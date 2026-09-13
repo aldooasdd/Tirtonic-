@@ -1,0 +1,72 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --site-max: 1200px;
+}
+
+body {
+  color: #1a1a1a;
+  background: #ffffff;
+  font-family: var(--font-poppins), system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+@layer components {
+  .btn-pill {
+    @apply inline-flex items-center justify-center rounded-full bg-ink px-6 py-3 text-sm font-semibold uppercase tracking-wide text-white transition hover:opacity-90;
+  }
+  .btn-green {
+    @apply inline-flex items-center justify-center rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-primaryDark;
+  }
+  .field {
+    @apply w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none focus:border-primary;
+  }
+  .label {
+    @apply mb-1 block text-sm text-gray-700;
+  }
+  .section-title {
+    @apply text-2xl font-extrabold text-primary;
+  }
+}
+
+/* softer weights — "tebal, tapi jangan terlalu bold" */
+.font-semibold {
+  font-weight: 400;
+}
+.font-bold {
+  font-weight: 400;
+}
+.font-extrabold {
+  font-weight: 500;
+}
+
+/* scroll reveal */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.reveal.in {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* horizontal snap carousels (native, no JS lib) */
+.snap-x-carousel {
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+.snap-x-carousel::-webkit-scrollbar {
+  display: none;
+}
+.snap-item {
+  scroll-snap-align: start;
+}

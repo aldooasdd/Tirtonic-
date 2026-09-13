@@ -1,0 +1,85 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum StockStatus {
+  READY
+  SOLD
+}
+
+model Product {
+  id        String      @id @default(cuid())
+  nama      String
+  kategori  String // Sepatu Tenis | Raket Tenis | String & Grip | Tas & Aksesoris | Bola Tenis
+  brand     String?
+  harga     Int // rupiah, whole number
+  deskripsi String?
+  gambar    String[] // image URLs (Supabase Storage)
+  ukuran    String[] // shoe sizes, only for Sepatu Tenis
+  status    StockStatus @default(READY)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+}
+
+model Article {
+  id        String   @id @default(cuid())
+  judul     String
+  tag       String? // e.g. "News, Tennis Racket"
+  penulis   String   @default("admin")
+  tanggal   DateTime @default(now())
+  gambar    String?
+  excerpt   String?
+  konten    String
+  createdAt DateTime @default(now())
+}
+
+model HeroSlide {
+  id        String   @id @default(cuid())
+  gambar    String
+  link      String?
+  urutan    Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+model Store {
+  id      String  @id @default(cuid())
+  nama    String // Yogyakarta | Solo
+  alamat  String
+  jam     String?
+  foto    String? // square photo (1080x1080)
+  maps    String? // Google Maps link
+  urutan  Int     @default(0)
+}
+
+model SponsorshipSubmission {
+  id String @id @default(cuid())
+  // 1. Penyelenggara
+  organisasi      String
+  penanggungJawab String
+  noWa            String
+  email           String
+  // 2. Event
+  namaEvent    String?
+  jenisEvent   String[] // Turnamen | Coaching Clinic | Ekshibisi | Lainnya
+  tanggalEvent String?
+  alamatEvent  String?
+  kota         String?
+  // 3. Proposal
+  ringkasan    String?
+  proposalFile String? // uploaded PDF/Docs URL
+  // 4. Bentuk sponsorship
+  bentuk String[] // Produk | Hadiah Turnamen | Uang Tunai | Publikasi/Promosi | Lainnya
+  // 5. Manfaat
+  eksposur String?
+  catatan  String?
+  createdAt DateTime @default(now())
+}
+
+// ponytail: no Admin table — single admin via ADMIN_PASSWORD env var (see lib/auth.ts).
+// Add a hashed-password table only if multi-admin is ever needed.
