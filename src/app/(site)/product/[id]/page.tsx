@@ -39,7 +39,10 @@ export default async function ProductPage({ params }: { params: { id: string } }
 
       {related.length > 0 && (
         <section className="mx-auto max-w-[1200px] border-t px-4 py-12">
-          <h2 className="mb-8 text-center text-2xl font-extrabold text-gray-900">Produk Terkait</h2>
+          <h2 className="mb-8 flex items-center justify-center gap-2 text-2xl font-extrabold text-gray-900">
+            Produk Terkait {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.png" alt="" className="h-7 w-7" />
+          </h2>
           <div className="snap-x-carousel flex gap-4 overflow-x-auto pb-2">
             {related.map((r) => (
               <div key={r.id} className="snap-item w-[160px] shrink-0 sm:w-[220px]">
