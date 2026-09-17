@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { uploadFile, storageConfigured } from "@/lib/storage";
+import { sendSponsorshipEmail } from "@/lib/email";
 
 export type SponsorState = { ok: boolean; message: string };
 
@@ -40,28 +41,35 @@ export async function submitSponsorship(
     }
   }
 
+  const data = {
+    organisasi,
+    penanggungJawab,
+    noWa,
+    email,
+    namaEvent: get("namaEvent") || null,
+    jenisEvent: getAll("jenisEvent"),
+    tanggalEvent: get("tanggalEvent") || null,
+    alamatEvent: get("alamatEvent") || null,
+    kota: get("kota") || null,
+    ringkasan: get("ringkasan") || null,
+    proposalFile,
+    bentuk: getAll("bentuk"),
+    eksposur: get("eksposur") || null,
+    catatan: get("catatan") || null,
+  };
+
   try {
-    await prisma.sponsorshipSubmission.create({
-      data: {
-        organisasi,
-        penanggungJawab,
-        noWa,
-        email,
-        namaEvent: get("namaEvent") || null,
-        jenisEvent: getAll("jenisEvent"),
-        tanggalEvent: get("tanggalEvent") || null,
-        alamatEvent: get("alamatEvent") || null,
-        kota: get("kota") || null,
-        ringkasan: get("ringkasan") || null,
-        proposalFile,
-        bentuk: getAll("bentuk"),
-        eksposur: get("eksposur") || null,
-        catatan: get("catatan") || null,
-      },
-    });
+    await prisma.sponsorshipSubmission.create({ data });
   } catch (e) {
     console.error(e);
     return { ok: false, message: "Gagal menyimpan. Coba lagi atau hubungi admin." };
+  }
+
+  // Email notification is best-effort: a failure here must not lose the saved submission.
+  try {
+    await sendSponsorshipEmail(data);
+  } catch (e) {
+    console.error("Sponsorship email failed:", e);
   }
 
   return { ok: true, message: "Terima kasih! Pengajuan sponsorship Anda sudah kami terima." };
