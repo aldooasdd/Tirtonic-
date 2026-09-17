@@ -15,7 +15,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
       prisma.product.findMany({
         where: { kategori: p.kategori, id: { not: p.id } },
         orderBy: { createdAt: "desc" },
-        take: 6,
+        take: 12,
       }),
     []
   );
@@ -39,13 +39,14 @@ export default async function ProductPage({ params }: { params: { id: string } }
 
       {related.length > 0 && (
         <section className="mx-auto max-w-[1200px] border-t px-4 py-12">
-          <h2 className="mb-8 text-center text-2xl font-extrabold text-gray-900">Related Products</h2>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-4 lg:grid-cols-6">
+          <h2 className="mb-8 text-center text-2xl font-extrabold text-gray-900">Produk Terkait</h2>
+          <div className="snap-x-carousel flex gap-4 overflow-x-auto pb-2">
             {related.map((r) => (
-              <ProductCard
-                key={r.id}
-                p={{ id: r.id, nama: r.nama, harga: r.harga, gambar: r.gambar, status: r.status }}
-              />
+              <div key={r.id} className="snap-item w-[160px] shrink-0 sm:w-[220px]">
+                <ProductCard
+                  p={{ id: r.id, nama: r.nama, harga: r.harga, gambar: r.gambar, status: r.status }}
+                />
+              </div>
             ))}
           </div>
         </section>
