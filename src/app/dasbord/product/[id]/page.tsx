@@ -6,6 +6,8 @@ import { updateProduct } from "@/app/dasbord/actions";
 import ProductForm from "@/components/ProductForm";
 
 export const dynamic = "force-dynamic";
+// Tokopedia import via the residential proxy can take longer than the default limit.
+export const maxDuration = 60;
 export const metadata = { title: "Edit Produk — Tirtonic" };
 
 export default async function EditProductPage({ params }: { params: { id: string } }) {

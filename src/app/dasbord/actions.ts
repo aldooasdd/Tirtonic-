@@ -89,10 +89,16 @@ export type ImportResult = {
   sizeChart: string | null;
 };
 
-/** Import one product from a Tokopedia link: parse fields + re-host its images to Supabase. */
-export async function importFromTokopedia(url: string): Promise<ImportResult> {
+/** Import one product from a Tokopedia link: parse fields + re-host its images to Supabase.
+ *  Returns `{ error }` on failure so the message survives Next.js production error masking. */
+export async function importFromTokopedia(url: string): Promise<ImportResult | { error: string }> {
   requireAuth();
-  const p = await fetchTokopedia(url);
+  let p;
+  try {
+    p = await fetchTokopedia(url);
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Gagal impor dari Tokopedia." };
+  }
   const gambar: string[] = [];
   let sizeChart: string | null = null;
   if (storageConfigured) {

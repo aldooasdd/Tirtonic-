@@ -104,24 +104,54 @@ export function parseTokopedia(html: string): ParsedProduct {
   return { nama, harga, brand, kategori: detectKategori(nama), deskripsi, ukuran: [...sizes], images: images.slice(0, 10), sizeChart };
 }
 
+/**
+ * Tokopedia blocks datacenter/server IPs. On a server (Vercel) we route the request
+ * through ScraperAPI's residential proxy when SCRAPER_API_KEY is set; locally (no key)
+ * we fetch directly from a residential IP, which works and stays free.
+ * ponytail: premium (residential) is required — Tokopedia blocks datacenter proxies too.
+ * render is left off (data is in the SSR HTML); flip SCRAPER_RENDER=1 if a block page
+ * still comes back, at ~2x the credit cost.
+ */
+function buildFetchUrl(target: string): string {
+  const key = process.env.SCRAPER_API_KEY;
+  if (!key) return target;
+  const params = new URLSearchParams({
+    api_key: key,
+    url: target,
+    country_code: "id",
+    premium: "true",
+    ...(process.env.SCRAPER_RENDER === "1" ? { render: "true" } : {}),
+  });
+  return `https://api.scraperapi.com/?${params.toString()}`;
+}
+
 export async function fetchTokopedia(url: string): Promise<ParsedProduct> {
   if (!/^https?:\/\/(www\.)?tokopedia\.com\//i.test(url)) {
     throw new Error("Link harus dari tokopedia.com");
   }
-  const res = await fetch(url, {
+  const viaProxy = Boolean(process.env.SCRAPER_API_KEY);
+  const res = await fetch(buildFetchUrl(url), {
     headers: {
       "User-Agent":
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36",
       "Accept-Language": "id-ID,id;q=0.9",
     },
-    // ponytail: Tokopedia is slow; give it room but cap it.
-    signal: AbortSignal.timeout(25000),
+    // Direct fetch is quick; the residential proxy is slower, so give it more room.
+    signal: AbortSignal.timeout(viaProxy ? 55000 : 25000),
   });
-  if (!res.ok) throw new Error(`Gagal ambil halaman (HTTP ${res.status})`);
+  // Tokopedia blocks datacenter/server IPs (captcha/JS shell) — the page comes back
+  // either non-OK or without product data. From a residential IP (local dev) it's fine.
+  if (!res.ok) {
+    throw new Error(
+      `Tokopedia menolak akses dari server (HTTP ${res.status}). Jalankan importer dari komputer lokal (npm run dev), atau isi produk manual.`
+    );
+  }
   const html = await res.text();
   const parsed = parseTokopedia(html);
   if (!parsed.nama || !parsed.harga) {
-    throw new Error("Data produk tidak terbaca — cek link, atau isi manual.");
+    throw new Error(
+      "Data produk tidak terbaca — kemungkinan Tokopedia memblokir server. Jalankan importer dari komputer lokal (npm run dev), atau isi produk manual."
+    );
   }
   return parsed;
 }
