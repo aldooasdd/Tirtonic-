@@ -30,10 +30,11 @@ function Stat({ label, value, tone = "gray" }: { label: string; value: number; t
 export default async function AdminDashboard() {
   if (!isAuthed()) redirect("/dasbord/login");
 
-  const [products, slides, articles] = await Promise.all([
+  const [products, slides, articles, sponsorships] = await Promise.all([
     safeQuery(() => prisma.product.findMany({ orderBy: { createdAt: "desc" } }), []),
     safeQuery(() => prisma.heroSlide.findMany({ orderBy: [{ urutan: "asc" }, { createdAt: "asc" }] }), []),
     safeQuery(() => prisma.article.findMany({ orderBy: { tanggal: "desc" } }), []),
+    safeQuery(() => prisma.sponsorshipSubmission.findMany({ orderBy: { createdAt: "desc" } }), []),
   ]);
 
   const ready = products.filter((p) => p.status === "READY").length;
@@ -140,6 +141,49 @@ export default async function AdminDashboard() {
                   </div>
                 ))}
               </div>
+            )}
+          </div>
+        </details>
+
+        {/* sponsorship submissions */}
+        <details className="group overflow-hidden rounded-2xl border bg-white shadow-sm">
+          <summary className="flex cursor-pointer items-center justify-between px-5 py-4 font-bold text-gray-900">
+            <span className="flex items-center gap-2">🤝 Pengajuan Sponsorship</span>
+            <span className="text-xs font-normal text-gray-400">{sponsorships.length} pengajuan</span>
+          </summary>
+          <div className="space-y-3 border-t p-5">
+            {sponsorships.length === 0 ? (
+              <p className="text-sm text-gray-400">Belum ada pengajuan sponsorship.</p>
+            ) : (
+              sponsorships.map((s) => (
+                <div key={s.id} className="rounded-xl border p-4 text-sm">
+                  <div className="mb-1 flex items-center justify-between gap-2">
+                    <span className="font-semibold text-gray-900">{s.organisasi}</span>
+                    <span className="shrink-0 text-xs text-gray-400">{fmtDate(s.createdAt)}</span>
+                  </div>
+                  <p className="text-gray-600">
+                    {s.penanggungJawab}
+                    {" · "}
+                    <a href={`https://wa.me/${s.noWa.replace(/\D/g, "").replace(/^0/, "62")}`} target="_blank" rel="noreferrer" className="text-primary hover:underline">{s.noWa}</a>
+                    {" · "}
+                    <a href={`mailto:${s.email}`} className="text-primary hover:underline">{s.email}</a>
+                  </p>
+                  {[s.namaEvent, s.jenisEvent.join(", "), s.tanggalEvent, s.kota].filter(Boolean).length > 0 && (
+                    <p className="mt-1 text-gray-600">
+                      {[s.namaEvent, s.jenisEvent.join(", "), s.tanggalEvent, s.kota].filter(Boolean).join(" · ")}
+                    </p>
+                  )}
+                  {s.bentuk.length > 0 && (
+                    <p className="mt-1 text-gray-500"><span className="text-gray-400">Bentuk:</span> {s.bentuk.join(", ")}</p>
+                  )}
+                  {s.ringkasan && <p className="mt-1 whitespace-pre-line text-gray-500">{s.ringkasan}</p>}
+                  {s.proposalFile && (
+                    <a href={s.proposalFile} target="_blank" rel="noreferrer" className="mt-2 inline-block rounded-md border px-3 py-1 text-xs font-semibold text-primary transition hover:border-primary">
+                      📎 Lihat Proposal
+                    </a>
+                  )}
+                </div>
+              ))
             )}
           </div>
         </details>
