@@ -17,10 +17,15 @@ type StoreItem = { id: string; nama: string; alamat: string; jam: string | null;
 function OurStore({ stores }: { stores: StoreItem[] }) {
   return (
     <section className="mx-auto max-w-site px-4 py-2">
-      <h2 className="mb-1.5 flex items-center gap-2 text-xl font-extrabold text-gray-900">
-        Our Store {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logo.png" alt="" className="h-7 w-7" />
-      </h2>
+      <div className="mb-1.5 flex items-center justify-between gap-3">
+        <h2 className="flex items-center gap-2 text-xl font-extrabold text-gray-900">
+          Our Store {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.png" alt="" className="h-7 w-7" />
+        </h2>
+        <Link href="/contact" className="text-sm font-semibold text-primary hover:underline">
+          View All
+        </Link>
+      </div>
       {stores.length === 0 ? (
         <p className="text-gray-500">Belum ada data cabang.</p>
       ) : (
@@ -37,11 +42,16 @@ function OurStore({ stores }: { stores: StoreItem[] }) {
                 <div className="mt-3 text-xs opacity-90">{s.jam}</div>
               </div>
             );
-            const cls = "snap-item block aspect-square w-[240px] shrink-0 overflow-hidden rounded-xl bg-gray-100 sm:w-[280px]";
-            return s.maps ? (
-              <a key={s.id} href={s.maps} target="_blank" rel="noreferrer" className={cls}>{inner}</a>
-            ) : (
-              <div key={s.id} className={cls}>{inner}</div>
+            const imgCls = "block aspect-square overflow-hidden bg-gray-100";
+            return (
+              <div key={s.id} className="snap-item w-[280px] shrink-0 sm:w-[320px]">
+                <h3 className="mb-2 line-clamp-1 text-center text-sm font-bold text-gray-900">{s.nama}</h3>
+                {s.maps ? (
+                  <a href={s.maps} target="_blank" rel="noreferrer" className={imgCls}>{inner}</a>
+                ) : (
+                  <div className={imgCls}>{inner}</div>
+                )}
+              </div>
             );
           })}
         </div>
@@ -66,7 +76,7 @@ function NewArrival({ products }: { products: ProductCardData[] }) {
       <div className="snap-x-carousel flex gap-4 overflow-x-auto pb-2">
         {products.map((p) => (
           <div key={p.id} className="snap-item w-[200px] shrink-0 sm:w-[220px]">
-            <ProductCard p={p} />
+            <ProductCard p={p} thinPrice />
           </div>
         ))}
       </div>
@@ -138,12 +148,12 @@ export default async function HomePage() {
 
   return (
     <>
-      <HeroCarousel slides={slides.map((s) => ({ id: s.id, gambar: s.gambar, link: s.link }))} />
+      <HeroCarousel slides={slides.map((s) => ({ id: s.id, gambar: s.gambar, gambarMobile: s.gambarMobile, link: s.link }))} />
       <div className="mx-auto max-w-site px-4 pb-2 pt-8 text-center">
         <h2 className="text-xl font-extrabold text-gray-900">
           Toko Tennis Yogyakarta, Solo &amp; Semarang
         </h2>
-        <p className="mt-2 text-xs text-gray-500 sm:text-sm">
+        <p className="mt-1 text-xs text-gray-500 sm:text-sm">
           Berdiri sejak 2016 • 3 Lokasi Cabang • Ribuan Customer • Bisa kirim seluruh Indonesia gratis ongkir
         </p>
       </div>

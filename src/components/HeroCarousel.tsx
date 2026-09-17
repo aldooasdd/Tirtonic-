@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-export type Slide = { id: string; gambar: string; link: string | null };
+export type Slide = { id: string; gambar: string; gambarMobile: string | null; link: string | null };
 
 export default function HeroCarousel({ slides }: { slides: Slide[] }) {
   const [i, setI] = useState(0);
@@ -32,8 +32,14 @@ export default function HeroCarousel({ slides }: { slides: Slide[] }) {
       <div className="relative h-[42vh] min-h-[240px] sm:h-[50vh] w-full overflow-hidden rounded-b-2xl bg-primaryDark">
         {slides.map((s, idx) => {
           const img = (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={s.gambar} alt="" className="h-full w-full object-cover" />
+            <>
+              {/* mobile (square) — falls back to desktop image if none set */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={s.gambarMobile || s.gambar} alt="" className="h-full w-full object-cover sm:hidden" />
+              {/* desktop (wide) */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={s.gambar} alt="" className="hidden h-full w-full object-cover sm:block" />
+            </>
           );
           return (
             <div

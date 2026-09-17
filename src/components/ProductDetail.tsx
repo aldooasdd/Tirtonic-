@@ -14,6 +14,7 @@ type P = {
   deskripsi: string | null;
   gambar: string[];
   ukuran: string[];
+  sizeChart?: string | null;
   status: "READY" | "SOLD";
 };
 
@@ -34,6 +35,7 @@ export default function ProductDetail({ p }: { p: P }) {
   const [active, setActive] = useState(0);
   const [size, setSize] = useState("");
   const [url, setUrl] = useState("");
+  const [showChart, setShowChart] = useState(false);
   const { has, toggle } = useFav();
   const fav = has(p.id);
 
@@ -46,9 +48,7 @@ export default function ProductDetail({ p }: { p: P }) {
   const orderMsg = `Halo Admin Tirtonic, saya mau pesan: ${p.nama}${size ? ` (ukuran ${size})` : ""}. Apakah masih ready?`;
   const share = {
     wa: `https://wa.me/?text=${encodeURIComponent(p.nama + " " + url)}`,
-    tg: `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(p.nama)}`,
-    tw: `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(p.nama)}`,
-    fb: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
+    ig: process.env.NEXT_PUBLIC_INSTAGRAM || "https://instagram.com/tirtonic",
   };
   const categories = [p.brand, p.kategori].filter(Boolean) as string[];
 
@@ -97,9 +97,15 @@ export default function ProductDetail({ p }: { p: P }) {
 
           <div className="mt-3 flex items-center justify-between">
             <p className="text-2xl font-bold text-gray-900">{rupiah(p.harga)}</p>
-            <a href={waLink(`Halo Admin, boleh minta size chart untuk ${p.nama}?`)} target="_blank" rel="noreferrer" className="text-sm text-gray-600 underline hover:text-primary">
-              Size Chart
-            </a>
+            {p.sizeChart ? (
+              <button type="button" onClick={() => setShowChart(true)} className="text-sm text-gray-600 underline hover:text-primary">
+                Size Chart
+              </button>
+            ) : (
+              <a href={waLink(`Halo Admin, boleh minta size chart untuk ${p.nama}?`)} target="_blank" rel="noreferrer" className="text-sm text-gray-600 underline hover:text-primary">
+                Size Chart
+              </a>
+            )}
           </div>
 
           <span className={`mt-3 inline-block rounded-full px-3 py-1 text-xs font-semibold text-white ${sold ? "bg-red-500" : "bg-primary"}`}>
@@ -197,10 +203,8 @@ export default function ProductDetail({ p }: { p: P }) {
           <div className="mt-6 flex items-center gap-3">
             <span className="font-semibold text-gray-800">Bagikan</span>
             {[
-              { href: share.wa, label: "WhatsApp" },
-              { href: share.tg, label: "Telegram" },
-              { href: share.tw, label: "Twitter" },
-              { href: share.fb, label: "Facebook" },
+              { href: share.wa, label: "WhatsApp", icon: "/wa-icon.png", size: "h-6 w-6" },
+              { href: share.ig, label: "Instagram", icon: "/ig-icon.png", size: "h-5 w-5" },
             ].map((s) => (
               <a
                 key={s.label}
@@ -208,14 +212,34 @@ export default function ProductDetail({ p }: { p: P }) {
                 target="_blank"
                 rel="noreferrer"
                 aria-label={`Bagikan ke ${s.label}`}
-                className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-xs font-bold text-white hover:bg-primaryDark"
+                className="flex h-9 w-9 items-center justify-center rounded-full border bg-white transition hover:bg-gray-50"
               >
-                {s.label[0]}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={s.icon} alt="" className={`${s.size} object-contain`} />
               </a>
             ))}
           </div>
         </div>
       </div>
+
+      {showChart && p.sizeChart && (
+        <div
+          onClick={() => setShowChart(false)}
+          className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 p-4"
+        >
+          <div className="relative max-h-[90vh] max-w-lg" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => setShowChart(false)}
+              aria-label="Tutup"
+              className="absolute -right-3 -top-3 flex h-8 w-8 items-center justify-center rounded-full bg-white text-lg font-bold text-gray-700 shadow"
+            >
+              ×
+            </button>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={p.sizeChart} alt="Size chart" className="max-h-[90vh] w-full rounded-lg object-contain" />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

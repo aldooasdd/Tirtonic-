@@ -10,7 +10,7 @@ export type ProductCardData = {
   status: "READY" | "SOLD";
 };
 
-export default function ProductCard({ p }: { p: ProductCardData }) {
+export default function ProductCard({ p, thinPrice = false }: { p: ProductCardData; thinPrice?: boolean }) {
   const href = `/product/${p.id}`;
 
   return (
@@ -29,7 +29,7 @@ export default function ProductCard({ p }: { p: ProductCardData }) {
 
       <Link href={href} className="block p-3">
         <h3 className="line-clamp-2 min-h-[2.5rem] text-sm font-normal text-gray-800 group-hover:text-primary">{p.nama}</h3>
-        <p className="mt-1 text-base font-bold text-gray-900">{rupiah(p.harga)}</p>
+        <p className={`mt-1 text-base text-gray-900 ${thinPrice ? "font-thin" : "font-bold"}`}>{rupiah(p.harga)}</p>
       </Link>
     </div>
   );

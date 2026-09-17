@@ -21,6 +21,7 @@ model Product {
   harga     Int // rupiah, whole number
   deskripsi String?
   gambar    String[] // image URLs (Supabase Storage)
+  sizeChart String? // size chart image URL (from Tokopedia import or manual)
   ukuran    String[] // shoe sizes, only for Sepatu Tenis
   status    StockStatus @default(READY)
   createdAt DateTime    @default(now())
@@ -40,11 +41,12 @@ model Article {
 }
 
 model HeroSlide {
-  id        String   @id @default(cuid())
-  gambar    String
-  link      String?
-  urutan    Int      @default(0)
-  createdAt DateTime @default(now())
+  id           String   @id @default(cuid())
+  gambar       String // desktop (wide, ~2.6:1)
+  gambarMobile String? // optional mobile (square, ~1:1); falls back to gambar
+  link         String?
+  urutan       Int      @default(0)
+  createdAt    DateTime @default(now())
 }
 
 model Store {
