@@ -9,6 +9,8 @@ import ArticleForm from "@/components/ArticleForm";
 import ArticleRowActions from "@/components/ArticleRowActions";
 
 export const dynamic = "force-dynamic";
+// Tokopedia import via the residential proxy can take longer than the default limit.
+export const maxDuration = 60;
 export const metadata = { title: "Dashboard Admin — Tirtonic" };
 
 function Stat({ label, value, tone = "gray" }: { label: string; value: number; tone?: "gray" | "green" | "red" }) {

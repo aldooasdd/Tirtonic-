@@ -61,6 +61,10 @@ export default function ProductForm({
     setImportMsg(null);
     try {
       const d = await importFromTokopedia(url.trim());
+      if ("error" in d) {
+        setImportMsg({ ok: false, text: d.error });
+        return;
+      }
       setNama(d.nama);
       setKategori(d.kategori);
       setBrand(d.brand || "");
