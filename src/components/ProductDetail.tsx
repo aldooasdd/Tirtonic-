@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { rupiah, waLink } from "@/lib/format";
 import { useFav } from "./CartProvider";
 
@@ -40,7 +40,19 @@ export default function ProductDetail({ p }: { p: P }) {
   const { has, toggle } = useFav();
   const fav = has(p.id);
 
+  const scrollerRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => setUrl(window.location.href), []);
+
+  const scrollToIdx = (i: number) => {
+    const el = scrollerRef.current;
+    if (el) el.scrollTo({ left: i * el.clientWidth, behavior: "smooth" });
+  };
+  // keep the active dot in sync while the user swipes the gallery
+  const onGalleryScroll = () => {
+    const el = scrollerRef.current;
+    if (el) setActive(Math.round(el.scrollLeft / el.clientWidth));
+  };
 
   const sold = p.status === "SOLD";
   const needSize = p.ukuran.length > 0;
@@ -70,12 +82,41 @@ export default function ProductDetail({ p }: { p: P }) {
       <div className="grid gap-10 md:grid-cols-2">
         {/* gallery */}
         <div>
-          <div className="aspect-square overflow-hidden rounded-lg bg-gray-100">
-            {p.gambar[active] ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={p.gambar[active]} alt={p.nama} className="h-full w-full object-cover" />
+          <div className="relative aspect-square overflow-hidden rounded-lg bg-gray-100">
+            {p.gambar.length > 0 ? (
+              <div
+                ref={scrollerRef}
+                onScroll={onGalleryScroll}
+                className="flex h-full w-full snap-x snap-mandatory overflow-x-auto scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              >
+                {p.gambar.map((g, i) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img key={i} src={g} alt={p.nama} className="h-full w-full shrink-0 snap-center object-cover" />
+                ))}
+              </div>
             ) : (
               <div className="flex h-full w-full items-center justify-center text-gray-300">No image</div>
+            )}
+
+            {p.gambar.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => scrollToIdx(Math.max(0, active - 1))}
+                  aria-label="Foto sebelumnya"
+                  className="absolute left-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/30 text-gray-900 backdrop-blur-sm transition hover:bg-white/60"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => scrollToIdx(Math.min(p.gambar.length - 1, active + 1))}
+                  aria-label="Foto berikutnya"
+                  className="absolute right-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/30 text-gray-900 backdrop-blur-sm transition hover:bg-white/60"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6" /></svg>
+                </button>
+              </>
             )}
           </div>
           {p.gambar.length > 1 && (
@@ -83,7 +124,7 @@ export default function ProductDetail({ p }: { p: P }) {
               {p.gambar.map((_, i) => (
                 <button
                   key={i}
-                  onClick={() => setActive(i)}
+                  onClick={() => scrollToIdx(i)}
                   aria-label={`Gambar ${i + 1}`}
                   className={`h-2 rounded-full transition-all ${i === active ? "w-6 bg-primary" : "w-2 bg-gray-300"}`}
                 />
