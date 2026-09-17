@@ -32,6 +32,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
           deskripsi: p.deskripsi,
           gambar: p.gambar,
           ukuran: p.ukuran,
+          sizeChart: p.sizeChart,
           status: p.status,
         }}
       />

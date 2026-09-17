@@ -6,7 +6,7 @@ type Row = { icon: string; label: string; value: string; href?: string; badge?: 
 
 const ROWS: Row[] = [
   { icon: "🌐", label: "Website", value: "www.tirtonic.com", href: "https://www.tirtonic.com" },
-  { icon: "💬", label: "ADMIN 1", value: "085163215511", href: "https://wa.me/6285163215511", badge: "FREE SHIPPING" },
+  { icon: "💬", label: "ADMIN 1", value: "081312576998", href: "https://wa.me/6281312576998", badge: "FREE SHIPPING" },
   { icon: "💬", label: "ADMIN 2", value: "085179848167", href: "https://wa.me/6285179848167", badge: "FREE SHIPPING" },
   { icon: "🛍️", label: "Tokopedia", value: "Tirtonic", href: "https://www.tokopedia.com/tirtonic" },
   { icon: "🛒", label: "Shopee", value: "Tirtonic", href: "https://shopee.co.id/tirtonic" },

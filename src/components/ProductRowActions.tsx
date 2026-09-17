@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import Link from "next/link";
-import { setStatus, deleteProduct } from "@/app/admin/actions";
+import { setStatus, deleteProduct } from "@/app/dasbord/actions";
 
 export default function ProductRowActions({
   id,
@@ -35,17 +35,24 @@ export default function ProductRowActions({
       <button
         onClick={toggle}
         disabled={pending}
-        className={`rounded-full px-3 py-1 text-xs font-semibold text-white disabled:opacity-50 ${
-          sold ? "bg-red-500" : "bg-primary"
+        className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold text-white transition disabled:opacity-50 ${
+          sold ? "bg-red-500 hover:bg-red-600" : "bg-primary hover:bg-primaryDark"
         }`}
         title="Klik untuk ganti status"
       >
         {sold ? "Sold" : "Ready"} ⇄
       </button>
-      <Link href={`/admin/product/${id}`} className="text-xs text-blue-600 hover:underline">
+      <Link
+        href={`/dasbord/product/${id}`}
+        className="rounded-md border px-2.5 py-1 text-xs font-medium text-gray-600 transition hover:border-primary hover:text-primary"
+      >
         Edit
       </Link>
-      <button onClick={remove} disabled={pending} className="text-xs text-red-600 hover:underline disabled:opacity-50">
+      <button
+        onClick={remove}
+        disabled={pending}
+        className="rounded-md border px-2.5 py-1 text-xs font-medium text-gray-600 transition hover:border-red-400 hover:text-red-600 disabled:opacity-50"
+      >
         Hapus
       </button>
     </div>
