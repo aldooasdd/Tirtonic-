@@ -97,15 +97,17 @@ export default function ProductDetail({ p }: { p: P }) {
 
           <div className="mt-3 flex items-center justify-between">
             <p className="text-2xl font-bold text-gray-900">{rupiah(p.harga)}</p>
-            {p.sizeChart ? (
-              <button type="button" onClick={() => setShowChart(true)} className="text-sm text-gray-600 underline hover:text-primary">
-                Size Chart
-              </button>
-            ) : (
-              <a href={waLink(`Halo Admin, boleh minta size chart untuk ${p.nama}?`)} target="_blank" rel="noreferrer" className="text-sm text-gray-600 underline hover:text-primary">
-                Size Chart
-              </a>
-            )}
+            {/* Size chart only matters for sized products (shoes); hide it otherwise. */}
+            {needSize &&
+              (p.sizeChart ? (
+                <button type="button" onClick={() => setShowChart(true)} className="text-sm text-gray-600 underline hover:text-primary">
+                  Size Chart
+                </button>
+              ) : (
+                <a href={waLink(`Halo Admin, boleh minta size chart untuk ${p.nama}?`)} target="_blank" rel="noreferrer" className="text-sm text-gray-600 underline hover:text-primary">
+                  Size Chart
+                </a>
+              ))}
           </div>
 
           <span className={`mt-3 inline-block rounded-full px-3 py-1 text-xs font-semibold text-white ${sold ? "bg-red-500" : "bg-primary"}`}>
@@ -185,9 +187,11 @@ export default function ProductDetail({ p }: { p: P }) {
                 </div>
               </div>
             </Section>
-            <Section title="Exchange Size Warranty">
-              Garansi tukar ukuran hingga 7 hari setelah pesananmu diterima. Pastikan produk masih dalam kondisi baru & lengkap.
-            </Section>
+            {needSize && (
+              <Section title="Exchange Size Warranty">
+                Garansi tukar ukuran hingga 7 hari setelah pesananmu diterima. Pastikan produk masih dalam kondisi baru & lengkap.
+              </Section>
+            )}
             <Section title="Authentic. Trusted. Best Price.">
               Semua produk dijamin 100% original & authentic dengan harga terbaik. Tirtonic melayani sejak 2016.
             </Section>
