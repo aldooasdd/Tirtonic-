@@ -36,6 +36,7 @@ export default function ProductDetail({ p }: { p: P }) {
   const [size, setSize] = useState("");
   const [url, setUrl] = useState("");
   const [showChart, setShowChart] = useState(false);
+  const [descOpen, setDescOpen] = useState(false);
   const { has, toggle } = useFav();
   const fav = has(p.id);
 
@@ -157,36 +158,54 @@ export default function ProductDetail({ p }: { p: P }) {
           </div>
 
           <div className="mt-8">
-            <Section title="Deskripsi Produk">
+            <div className="border-b py-4">
+              <p className="font-semibold text-gray-900">Deskripsi Produk</p>
               {p.deskripsi ? (
-                <p className="whitespace-pre-line">{p.deskripsi}</p>
+                <>
+                  <p
+                    className={`mt-3 whitespace-pre-line text-sm leading-relaxed text-gray-600 ${
+                      descOpen ? "" : "line-clamp-3"
+                    }`}
+                  >
+                    {p.deskripsi}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setDescOpen((v) => !v)}
+                    className="mt-2 text-sm font-semibold text-primary hover:underline"
+                  >
+                    {descOpen ? "Tutup" : "Selengkapnya"}
+                  </button>
+                </>
               ) : (
-                <p className="text-gray-400">Belum ada deskripsi untuk produk ini.</p>
+                <p className="mt-3 text-sm text-gray-400">Belum ada deskripsi untuk produk ini.</p>
               )}
 
-              <div className="mt-4 rounded-lg border">
-                <div className="border-b px-4 py-3 text-xs font-bold uppercase tracking-wide text-gray-700">
-                  About Tirtonic
-                </div>
-                <div className="space-y-3 p-4 text-sm text-gray-600">
-                  <p>
-                    Tirtonic Tennis Store adalah toko perlengkapan tenis di Yogyakarta &amp; Solo yang menyediakan
-                    produk original dari brand resmi dan distributor terpercaya. Melayani sejak 2016, seluruh produk
-                    melalui pengecekan untuk memastikan keaslian dan kondisi sesuai standar.
-                  </p>
-                  <p>
-                    Informasi produk pada halaman ini disusun oleh tim Tirtonic berdasarkan spesifikasi brand serta
-                    pemeriksaan langsung. Ada pertanyaan soal produk, keaslian, atau ketersediaan? Hubungi customer
-                    service kami.
-                  </p>
-                  <div className="flex gap-2 pt-1">
-                    <a href={process.env.NEXT_PUBLIC_INSTAGRAM || "https://instagram.com/tirtonic"} target="_blank" rel="noreferrer" aria-label="Instagram" className="flex h-8 w-8 items-center justify-center rounded-lg bg-ink text-white">📷</a>
-                    <a href="https://www.tiktok.com/@tirtonic" target="_blank" rel="noreferrer" aria-label="TikTok" className="flex h-8 w-8 items-center justify-center rounded-lg bg-ink text-white">♪</a>
-                    <a href="https://youtube.com/@tirtonic" target="_blank" rel="noreferrer" aria-label="YouTube" className="flex h-8 w-8 items-center justify-center rounded-lg bg-ink text-white">▶</a>
+              {descOpen && (
+                <div className="mt-4 rounded-lg border">
+                  <div className="border-b px-4 py-3 text-xs font-bold uppercase tracking-wide text-gray-700">
+                    About Tirtonic
+                  </div>
+                  <div className="space-y-3 p-4 text-sm text-gray-600">
+                    <p>
+                      Tirtonic Tennis Store adalah toko perlengkapan tenis di Yogyakarta &amp; Solo yang menyediakan
+                      produk original dari brand resmi dan distributor terpercaya. Melayani sejak 2016, seluruh produk
+                      melalui pengecekan untuk memastikan keaslian dan kondisi sesuai standar.
+                    </p>
+                    <p>
+                      Informasi produk pada halaman ini disusun oleh tim Tirtonic berdasarkan spesifikasi brand serta
+                      pemeriksaan langsung. Ada pertanyaan soal produk, keaslian, atau ketersediaan? Hubungi customer
+                      service kami.
+                    </p>
+                    <div className="flex gap-2 pt-1">
+                      <a href={process.env.NEXT_PUBLIC_INSTAGRAM || "https://instagram.com/tirtonic"} target="_blank" rel="noreferrer" aria-label="Instagram" className="flex h-8 w-8 items-center justify-center rounded-lg bg-ink text-white">📷</a>
+                      <a href="https://www.tiktok.com/@tirtonic" target="_blank" rel="noreferrer" aria-label="TikTok" className="flex h-8 w-8 items-center justify-center rounded-lg bg-ink text-white">♪</a>
+                      <a href="https://youtube.com/@tirtonic" target="_blank" rel="noreferrer" aria-label="YouTube" className="flex h-8 w-8 items-center justify-center rounded-lg bg-ink text-white">▶</a>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </Section>
+              )}
+            </div>
             {needSize && (
               <Section title="Exchange Size Warranty">
                 Garansi tukar ukuran hingga 7 hari setelah pesananmu diterima. Pastikan produk masih dalam kondisi baru & lengkap.
