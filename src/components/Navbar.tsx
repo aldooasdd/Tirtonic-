@@ -155,7 +155,7 @@ export default function Navbar() {
 
           {open && (
             <div
-              className="absolute left-0 z-50 w-full rounded-xl border bg-white p-6 text-gray-800 shadow-xl
+              className="animate-dropdown absolute left-0 z-50 w-full rounded-xl border bg-white p-6 text-gray-800 shadow-xl
                          bottom-full mb-2
                          sm:bottom-auto sm:top-full sm:mb-0 sm:mt-2"
             >

@@ -59,6 +59,26 @@ body {
   }
 }
 
+/* dropdown entrance (Quick Access menu) */
+@keyframes dropdown-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.animate-dropdown {
+  animation: dropdown-in 0.18s ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-dropdown {
+    animation: none;
+  }
+}
+
 /* horizontal snap carousels (native, no JS lib) */
 .snap-x-carousel {
   scroll-snap-type: x mandatory;
