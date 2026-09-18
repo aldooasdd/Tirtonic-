@@ -89,7 +89,7 @@ export default async function AdminDashboard() {
         {/* add article */}
         <details className="group overflow-hidden rounded-2xl border bg-white shadow-sm">
           <summary className="flex cursor-pointer items-center justify-between px-5 py-4 font-bold text-gray-900">
-            <span className="flex items-center gap-2">📝 Tambah Artikel</span>
+            <span className="flex items-center gap-2">Tambah Artikel</span>
             <span className="text-xs font-normal text-gray-400">{articles.length} artikel</span>
           </summary>
           <div className="border-t p-5">
@@ -100,7 +100,7 @@ export default async function AdminDashboard() {
         {/* hero banner */}
         <details className="group overflow-hidden rounded-2xl border bg-white shadow-sm">
           <summary className="flex cursor-pointer items-center justify-between px-5 py-4 font-bold text-gray-900">
-            <span className="flex items-center gap-2">🖼️ Hero Banner (Home)</span>
+            <span className="flex items-center gap-2">Hero Banner (Home)</span>
             <span className="text-xs font-normal text-gray-400">{slides.length} slide</span>
           </summary>
           <div className="space-y-4 border-t p-5">
@@ -148,7 +148,7 @@ export default async function AdminDashboard() {
         {/* sponsorship submissions */}
         <details className="group overflow-hidden rounded-2xl border bg-white shadow-sm">
           <summary className="flex cursor-pointer items-center justify-between px-5 py-4 font-bold text-gray-900">
-            <span className="flex items-center gap-2">🤝 Pengajuan Sponsorship</span>
+            <span className="flex items-center gap-2">Pengajuan Sponsorship</span>
             <span className="text-xs font-normal text-gray-400">{sponsorships.length} pengajuan</span>
           </summary>
           <div className="space-y-3 border-t p-5">
