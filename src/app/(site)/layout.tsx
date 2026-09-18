@@ -6,8 +6,9 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
   return (
     <CartProvider>
       <Navbar />
-      {/* navbar is fixed & floating: pad bottom on mobile, top on desktop */}
-      <main className="pb-24 sm:pb-0 sm:pt-20">{children}</main>
+      {/* navbar is fixed & floating; desktop needs top clearance. Mobile bottom
+          clearance lives in the footer (kept black) so no white strip shows below it. */}
+      <main className="sm:pt-20">{children}</main>
       <FloatingWhatsApp />
     </CartProvider>
   );

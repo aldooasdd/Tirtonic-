@@ -20,7 +20,7 @@ const ROWS: Row[] = [
 export default function ContactPage() {
   return (
     <div className="min-h-screen bg-white">
-      <div className="mx-auto max-w-2xl px-4 py-10">
+      <div className="mx-auto max-w-2xl px-4 pt-10 pb-24 sm:py-10">
         <div className="mb-8 flex justify-center">
           <Logo />
         </div>
