@@ -28,6 +28,7 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
   const [hidden, setHidden] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [kbOffset, setKbOffset] = useState(0);
   const [q, setQ] = useState("");
   const router = useRouter();
   const { count, setOpen: setCartOpen } = useCart();
@@ -55,17 +56,37 @@ export default function Navbar() {
     let last = window.scrollY;
     const onScroll = () => {
       const y = window.scrollY;
-      if (open) return; // keep visible while menu open
+      if (open || searchOpen) return; // keep visible while menu/search open
       if (y > last && y > 80) setHidden(true);
       else if (y < last) setHidden(false);
       last = y;
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, [open]);
+  }, [open, searchOpen]);
+
+  // On mobile the navbar is a bottom bar; the on-screen keyboard would cover it when
+  // the search field is focused. Lift it to sit just above the keyboard using the
+  // VisualViewport API. No-op on desktop (no soft keyboard → no viewport shrink).
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const update = () => {
+      const kb = window.innerHeight - vv.height - vv.offsetTop;
+      setKbOffset(searchOpen && kb > 120 ? kb : 0);
+    };
+    update();
+    vv.addEventListener("resize", update);
+    vv.addEventListener("scroll", update);
+    return () => {
+      vv.removeEventListener("resize", update);
+      vv.removeEventListener("scroll", update);
+    };
+  }, [searchOpen]);
 
   return (
     <header
+      style={kbOffset ? { bottom: kbOffset } : undefined}
       className={`fixed inset-x-0 z-50 transition-transform duration-300
                   bottom-0 sm:bottom-auto sm:top-0
                   ${hidden ? "translate-y-[140%] sm:-translate-y-[160%]" : "translate-y-0"}`}
@@ -108,6 +129,7 @@ export default function Navbar() {
                 onClick={() => {
                   setSearchOpen((v) => !v);
                   setOpen(false);
+                  setHidden(false);
                 }}
                 className="hover:opacity-80"
               >
