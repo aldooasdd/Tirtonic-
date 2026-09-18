@@ -78,7 +78,7 @@ export default async function AdminDashboard() {
         {/* add product */}
         <details className="group overflow-hidden rounded-2xl border bg-white shadow-sm" open>
           <summary className="flex cursor-pointer items-center justify-between px-5 py-4 font-bold text-gray-900">
-            <span className="flex items-center gap-2">➕ Tambah Produk</span>
+            <span className="flex items-center gap-2">Tambah Produk</span>
             <span className="text-xs font-normal text-gray-400 group-open:hidden">klik untuk buka</span>
           </summary>
           <div className="border-t p-5">
