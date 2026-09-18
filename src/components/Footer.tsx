@@ -63,7 +63,7 @@ export default function Footer({ benefits = false }: { benefits?: boolean }) {
         </div>
       )}
       <div className="bg-black text-white">
-        <div className="mx-auto flex max-w-site flex-col items-center justify-between gap-4 px-4 py-8 text-sm text-gray-300 sm:flex-row">
+        <div className="mx-auto flex max-w-site flex-col items-center justify-between gap-4 px-4 pt-8 pb-24 text-sm text-gray-300 sm:flex-row sm:py-8">
           <nav className="flex gap-6">
             <Link href="/contact">Terms and Conditions</Link>
             <Link href="/contact">Return policy</Link>
