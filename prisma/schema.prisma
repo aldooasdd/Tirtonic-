@@ -24,6 +24,7 @@ model Product {
   sizeChart String? // size chart image URL (from Tokopedia import or manual)
   ukuran    String[] // shoe sizes, only for Sepatu Tenis
   status    StockStatus @default(READY)
+  views     Int         @default(0) // product-page view counter
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
 }

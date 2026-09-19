@@ -10,6 +10,9 @@ export default async function ProductPage({ params }: { params: { id: string } }
   const p = await safeQuery(() => prisma.product.findUnique({ where: { id: params.id } }), null);
   if (!p) notFound();
 
+  // Count the view — fire-and-forget so it never blocks or breaks the page render.
+  prisma.product.update({ where: { id: p.id }, data: { views: { increment: 1 } } }).catch(() => {});
+
   const related = await safeQuery(
     () =>
       prisma.product.findMany({
