@@ -25,7 +25,9 @@ const BRANDS = [
 
 function decode(s: string): string {
   return s
-    .replace(/\\u002F/gi, "/")
+    // any \uXXXX escape (e.g. \u00A0 non-breaking space) → its real character
+    .replace(/\\u([0-9a-fA-F]{4})/g, (_, h) => String.fromCharCode(parseInt(h, 16)))
+    .replace(/\u00A0/g, " ") // normalise non-breaking spaces to plain spaces
     .replace(/\\n/g, "\n")
     .replace(/\\r/g, "")
     .replace(/\\t/g, " ")
