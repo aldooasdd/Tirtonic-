@@ -84,6 +84,21 @@ export default function ProductForm({
     }
   }
 
+  // Clear the form back to its initial state (blank when adding, original values when editing).
+  function resetForm() {
+    if (!confirm("Reset form? Semua data yang terisi (termasuk hasil impor) akan dihapus.")) return;
+    setNama(product?.nama || "");
+    setKategori(product?.kategori || KATEGORI[0]);
+    setBrand(product?.brand || "");
+    setHarga(product?.harga ? String(product.harga) : "");
+    setDeskripsi(product?.deskripsi || "");
+    setUkuran(product?.ukuran || []);
+    setImages(product?.gambar || []);
+    setSizeChart(product?.sizeChart ?? null);
+    setUrl("");
+    setImportMsg(null);
+  }
+
   return (
     <div className="space-y-4">
       {/* Tokopedia importer */}
@@ -203,7 +218,16 @@ export default function ProductForm({
           <p className="mt-1 text-xs text-gray-400">Otomatis terisi saat impor dari Tokopedia. Upload di sini untuk ganti/isi manual.</p>
         </div>
 
-        <SaveBtn edit={edit} />
+        <div className="flex items-center gap-3">
+          <SaveBtn edit={edit} />
+          <button
+            type="button"
+            onClick={resetForm}
+            className="rounded-full border px-5 py-2.5 text-sm font-semibold text-gray-600 transition hover:border-red-400 hover:text-red-600"
+          >
+            Reset
+          </button>
+        </div>
       </form>
     </div>
   );
