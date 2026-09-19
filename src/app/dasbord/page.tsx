@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { isAuthed } from "@/lib/auth";
 import { prisma, safeQuery } from "@/lib/prisma";
@@ -54,6 +55,9 @@ export default async function AdminDashboard() {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            <Link href="/dasbord/trafik" className="text-sm font-medium text-gray-500 hover:text-primary">
+              Trafik
+            </Link>
             <a href="/" target="_blank" rel="noreferrer" className="hidden text-sm font-medium text-gray-500 hover:text-primary sm:block">
               Lihat situs ↗
             </a>
