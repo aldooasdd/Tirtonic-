@@ -31,7 +31,7 @@ const ROWS: Row[] = [
 
 export default function ContactPage() {
   return (
-    {/* no navbar on this page → cancel the layout's desktop top clearance */}
+    // no navbar on this page → sm:-mt-20 cancels the layout's desktop top clearance
     <div className="min-h-screen bg-white sm:-mt-20">
       <div className="mx-auto max-w-2xl px-4 py-10">
         <div className="space-y-4">
