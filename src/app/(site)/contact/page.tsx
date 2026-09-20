@@ -1,5 +1,3 @@
-import Logo from "@/components/Logo";
-
 export const metadata = { title: "Contact — Tirtonic Tennis Store" };
 
 type IconKey = "globe" | "chat" | "bag" | "cart" | "music" | "instagram" | "building" | "headphones";
@@ -33,12 +31,9 @@ const ROWS: Row[] = [
 
 export default function ContactPage() {
   return (
-    <div className="min-h-screen bg-white">
-      <div className="mx-auto max-w-2xl px-4 pt-10 pb-24 sm:py-10">
-        <div className="mb-8 flex justify-center">
-          <Logo />
-        </div>
-
+    {/* no navbar on this page → cancel the layout's desktop top clearance */}
+    <div className="min-h-screen bg-white sm:-mt-20">
+      <div className="mx-auto max-w-2xl px-4 py-10">
         <div className="space-y-4">
           {ROWS.map((r) => {
             const inner = (
