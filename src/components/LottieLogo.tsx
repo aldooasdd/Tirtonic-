@@ -21,7 +21,7 @@ export default function LottieLogo() {
 
   // reserve height to avoid layout shift while the JSON loads
   return (
-    <div className="mx-auto mb-6 flex min-h-[80px] w-full max-w-[200px] items-center justify-center">
+    <div className="mx-auto mb-6 flex min-h-[60px] w-full max-w-[140px] items-center justify-center">
       {data && <Lottie animationData={data} loop={false} className="w-full" />}
     </div>
   );
