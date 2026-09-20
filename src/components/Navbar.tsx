@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Logo from "./Logo";
 import { waLink } from "@/lib/format";
@@ -31,6 +31,7 @@ export default function Navbar() {
   const [kbOffset, setKbOffset] = useState(0);
   const [q, setQ] = useState("");
   const router = useRouter();
+  const pathname = usePathname();
   const { count, setOpen: setCartOpen } = useCart();
   const ig = process.env.NEXT_PUBLIC_INSTAGRAM || "https://instagram.com/tirtonic";
 
@@ -83,6 +84,9 @@ export default function Navbar() {
       vv.removeEventListener("scroll", update);
     };
   }, [searchOpen]);
+
+  // Contact page is a standalone landing — no navbar there.
+  if (pathname === "/contact") return null;
 
   return (
     <header
