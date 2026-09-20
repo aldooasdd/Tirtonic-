@@ -1,3 +1,5 @@
+import LottieLogo from "@/components/LottieLogo";
+
 export const metadata = { title: "Contact — Tirtonic Tennis Store" };
 
 type IconKey = "globe" | "chat" | "bag" | "cart" | "music" | "instagram" | "building" | "headphones";
@@ -34,6 +36,7 @@ export default function ContactPage() {
     // no navbar on this page → sm:-mt-20 cancels the layout's desktop top clearance
     <div className="min-h-screen bg-white sm:-mt-20">
       <div className="mx-auto max-w-2xl px-4 py-10">
+        <LottieLogo />
         <div className="space-y-4">
           {ROWS.map((r) => {
             const inner = (
