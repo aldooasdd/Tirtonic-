@@ -20,7 +20,7 @@ const ICONS: Record<IconKey, React.ReactNode> = {
 
 const ROWS: Row[] = [
   { icon: "globe", label: "Website", value: "www.tirtonic.com", href: "https://www.tirtonic.com" },
-  { icon: "chat", label: "ADMIN 1", value: "081312576998", href: "https://wa.me/6281312576998", badge: "FREE SHIPPING" },
+  { icon: "chat", label: "ADMIN 1", value: "085163215511", href: "https://wa.me/6285163215511", badge: "FREE SHIPPING" },
   { icon: "chat", label: "ADMIN 2", value: "085179848167", href: "https://wa.me/6285179848167", badge: "FREE SHIPPING" },
   { icon: "bag", label: "Tokopedia", value: "Tirtonic", href: "https://www.tokopedia.com/tirtonic" },
   { icon: "cart", label: "Shopee", value: "Tirtonic", href: "https://shopee.co.id/tirtonic" },
