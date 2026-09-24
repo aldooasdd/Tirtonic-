@@ -1,0 +1,193 @@
+{
+  "version": 2,
+  "note": "Aturan awal (seed). Nanti disimpan di database dan bisa diubah admin/stringer tanpa ubah kode.",
+  "base_weights": {
+    "spin": 10,
+    "power": 10,
+    "control": 10,
+    "comfort": 10,
+    "stability": 10,
+    "durability": 5
+  },
+  "priority_bonus": [
+    40,
+    20
+  ],
+  "adjustments": {
+    "level": {
+      "pemula": {
+        "comfort": 10,
+        "power": 10
+      },
+      "rutin": {},
+      "kompetitif": {
+        "control": 5,
+        "stability": 5
+      }
+    },
+    "swing": {
+      "santai": {
+        "power": 10
+      },
+      "sedang": {},
+      "cepat": {
+        "control": 10
+      }
+    },
+    "arm": {
+      "tidak": {},
+      "pegal": {
+        "comfort": 15
+      },
+      "cedera": {
+        "comfort": 35
+      }
+    },
+    "change": {
+      "cepat": {
+        "stability": -5
+      },
+      "sedang": {
+        "stability": 10
+      },
+      "lama": {
+        "stability": 25
+      }
+    },
+    "breakage": {
+      "sering": {
+        "durability": 25
+      },
+      "kadang": {
+        "durability": 10
+      },
+      "tidak": {}
+    }
+  },
+  "hard_filters": [
+    {
+      "exclude_material": "Polyester",
+      "when_any": [
+        {
+          "arm": "cedera"
+        },
+        {
+          "level": "pemula"
+        },
+        {
+          "swing": "santai"
+        }
+      ],
+      "reason": {
+        "arm=cedera": "sedang cedera lengan",
+        "level=pemula": "baru mulai bermain",
+        "swing=santai": "ayunan santai"
+      }
+    },
+    {
+      "exclude_material": "Gut",
+      "when_any": [
+        {
+          "breakage": "sering"
+        },
+        {
+          "level": "pemula"
+        }
+      ],
+      "reason": {
+        "breakage=sering": "senar sering putus",
+        "level=pemula": "baru mulai bermain"
+      }
+    }
+  ],
+  "exclude_unknown_material_when_filtering": true,
+  "condition_map": {
+    "swing": {
+      "santai": "S",
+      "sedang": "M",
+      "cepat": "F"
+    },
+    "tension": {
+      "rendah": 40,
+      "sedang": 51,
+      "tinggi": 62,
+      "tidaktahu": 51
+    }
+  },
+  "selection": {
+    "phase": 1,
+    "top_n": 3,
+    "one_per_family": true,
+    "exclude_coverage": [
+      "terbatas"
+    ],
+    "neutral_percentile_for_missing": 50
+  },
+  "phase2": {
+    "pool_threshold": 0.85,
+    "pool_floor": 0.75,
+    "pool_step": 0.05,
+    "labels": {
+      "bestseller": "Terlaris",
+      "premium": "Premium",
+      "budget": "Paling hemat"
+    }
+  },
+  "slip": {
+    "note": "Isi resep stringing. Teks catatan bisa diubah/ditambah stringer dari admin.",
+    "paper_default": "58",
+    "code_prefix": "SF-",
+    "code_alphabet": "23456789ABCDEFGHJKMNPQRSTUVWXYZ",
+    "code_length": 4,
+    "handwritten_fields": [
+      "Raket",
+      "Nama",
+      "No. HP",
+      "Ambil (tgl/jam)"
+    ],
+    "flags": [
+      {
+        "when": {
+          "arm": "cedera"
+        },
+        "text": "Customer sedang cedera lengan. Prioritaskan kenyamanan saat menentukan tensi."
+      },
+      {
+        "when": {
+          "arm": "pegal"
+        },
+        "text": "Lengan customer kadang pegal setelah main lama."
+      },
+      {
+        "when": {
+          "tension": "tidaktahu"
+        },
+        "text": "Customer tidak tahu tensinya. Cek tensi senar lama atau tanyakan dulu."
+      },
+      {
+        "when": {
+          "change": "lama"
+        },
+        "when_pick": {
+          "stability_below": 35
+        },
+        "text": "Tensi senar ini cepat turun, padahal customer jarang ganti senar. Sarankan ganti lebih rutin."
+      },
+      {
+        "when": {
+          "breakage": "sering"
+        },
+        "when_pick": {
+          "gauge_below": 1.25
+        },
+        "text": "Gauge tipis dan customer sering putus senar. Tawarkan gauge lebih tebal bila ada."
+      },
+      {
+        "when_pick": {
+          "estimated": true
+        },
+        "text": "Data lab kondisi customer belum ada; rekomendasi memakai data 51 lbs / swing cepat."
+      }
+    ]
+  }
+}
