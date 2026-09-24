@@ -1,0 +1,22 @@
+{
+ "rows": 4815,
+ "strings": 789,
+ "families": 487,
+ "coverage": {
+  "lengkap": 504,
+  "referensi_51F": 283,
+  "terbatas": 2
+ },
+ "materials": {
+  "Polyester": 483,
+  "Nylon": 231,
+  "Nylon/Polyester": 18,
+  "Gut": 18,
+  "Nylon/Polyurethane": 17,
+  "Nylon/Zyex": 11,
+  "Nylon/Polyolefin": 6,
+  "Polyolefin": 3,
+  "Tidak diketahui": 2
+ },
+ "spin_missing_strings": 71
+}

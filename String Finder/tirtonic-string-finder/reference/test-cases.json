@@ -1,0 +1,614 @@
+{
+  "note": "Golden output dari engine acuan. Implementasi produksi wajib lolos semua kasus ini (skor toleransi ±0,1).",
+  "phase1": [
+    {
+      "id": "baseline-spin-kontrol",
+      "answers": {
+        "level": "kompetitif",
+        "swing": "cepat",
+        "priorities": [
+          "spin",
+          "control"
+        ],
+        "arm": "tidak",
+        "change": "sedang",
+        "breakage": "kadang",
+        "tension": "sedang"
+      },
+      "expected": {
+        "condition": "51F",
+        "weights_pct": {
+          "spin": 32.3,
+          "power": 6.5,
+          "control": 29,
+          "comfort": 6.5,
+          "stability": 16.1,
+          "durability": 9.7
+        },
+        "excluded_materials": [],
+        "candidates": 716,
+        "picks": [
+          {
+            "string": "Tecnifibre Black Code 4S 16 (1.30)",
+            "material": "Polyester",
+            "score": 79.9,
+            "strengths": [
+              "Potensi spin lebih tinggi dari 99% senar yang diuji (nilai 9,2).",
+              "Lebih kaku dari 98% senar, jadi arah bola lebih mudah dijaga (stiffness 243 lb/in)."
+            ],
+            "weakness": "Cukup kaku (lebih kaku dari 98% senar). Perhatikan kalau lengan mudah pegal.",
+            "notes": []
+          },
+          {
+            "string": "Gamma Ocho 16 (1.30)",
+            "material": "Polyester",
+            "score": 78.1,
+            "strengths": [
+              "Potensi spin lebih tinggi dari 89% senar yang diuji (nilai 6,9).",
+              "Lebih kaku dari 98% senar, jadi arah bola lebih mudah dijaga (stiffness 243 lb/in)."
+            ],
+            "weakness": "Cukup kaku (lebih kaku dari 98% senar). Perhatikan kalau lengan mudah pegal.",
+            "notes": []
+          },
+          {
+            "string": "Signum Pro Plasma HEXtreme 16 (1.30)",
+            "material": "Polyester",
+            "score": 76.9,
+            "strengths": [
+              "Potensi spin lebih tinggi dari 93% senar yang diuji (nilai 7,3).",
+              "Lebih kaku dari 91% senar, jadi arah bola lebih mudah dijaga (stiffness 226 lb/in)."
+            ],
+            "weakness": "Cukup kaku (lebih kaku dari 91% senar). Perhatikan kalau lengan mudah pegal.",
+            "notes": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "rekreasi-nyaman-pegal",
+      "answers": {
+        "level": "rutin",
+        "swing": "sedang",
+        "priorities": [
+          "comfort",
+          "power"
+        ],
+        "arm": "pegal",
+        "change": "lama",
+        "breakage": "tidak",
+        "tension": "tidaktahu"
+      },
+      "expected": {
+        "condition": "51M",
+        "weights_pct": {
+          "spin": 6.5,
+          "power": 19.4,
+          "control": 6.5,
+          "comfort": 41.9,
+          "stability": 22.6,
+          "durability": 3.2
+        },
+        "excluded_materials": [],
+        "candidates": 786,
+        "picks": [
+          {
+            "string": "Pacific Prime Natural Gut 16",
+            "material": "Gut",
+            "score": 87.8,
+            "strengths": [
+              "Lebih lembut dari 99% senar yang diuji (stiffness 89 lb/in).",
+              "Tensinya lebih awet dari 99% senar (tension loss 12,3%)."
+            ],
+            "weakness": "Senarnya lembut, jadi bola cenderung melaju lebih jauh dan butuh kontrol dari ayunan.",
+            "notes": []
+          },
+          {
+            "string": "Babolat Tonic + Natural Gut 16",
+            "material": "Gut",
+            "score": 86.2,
+            "strengths": [
+              "Lebih lembut dari 99% senar yang diuji (stiffness 103 lb/in).",
+              "Tensinya lebih awet dari 99% senar (tension loss 14,3%)."
+            ],
+            "weakness": "Senarnya lembut, jadi bola cenderung melaju lebih jauh dan butuh kontrol dari ayunan.",
+            "notes": [
+              "Potensi spin senar ini tidak diukur di data lab."
+            ]
+          },
+          {
+            "string": "Pacific Prime Gut Orange Bull 16 (1.30)",
+            "material": "Gut",
+            "score": 85.7,
+            "strengths": [
+              "Lebih lembut dari 99% senar yang diuji (stiffness 74 lb/in).",
+              "Tensinya lebih awet dari 99% senar (tension loss 11,7%)."
+            ],
+            "weakness": "Senarnya lembut, jadi bola cenderung melaju lebih jauh dan butuh kontrol dari ayunan.",
+            "notes": [
+              "Data lab untuk tensi dan ayunan Anda belum tersedia; dihitung dari pengujian 51 lbs, swing cepat."
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "pemula-power",
+      "answers": {
+        "level": "pemula",
+        "swing": "santai",
+        "priorities": [
+          "power"
+        ],
+        "arm": "tidak",
+        "change": "lama",
+        "breakage": "tidak",
+        "tension": "rendah"
+      },
+      "expected": {
+        "condition": "40S",
+        "weights_pct": {
+          "spin": 6.7,
+          "power": 46.7,
+          "control": 6.7,
+          "comfort": 13.3,
+          "stability": 23.3,
+          "durability": 3.3
+        },
+        "excluded_materials": [
+          "Polyester",
+          "Gut"
+        ],
+        "candidates": 285,
+        "picks": [
+          {
+            "string": "Babolat Xcel French Open Black 16",
+            "material": "Nylon",
+            "score": 84,
+            "strengths": [
+              "Mengembalikan energi lebih baik dari 96% senar (energy return 94,5%).",
+              "Tensinya lebih awet dari 98% senar (tension loss 13,3%)."
+            ],
+            "weakness": "Senarnya lembut, jadi bola cenderung melaju lebih jauh dan butuh kontrol dari ayunan.",
+            "notes": [
+              "Data lab untuk tensi dan ayunan Anda belum tersedia; dihitung dari pengujian 51 lbs, swing cepat."
+            ]
+          },
+          {
+            "string": "Prince Premier Control 15L",
+            "material": "Nylon",
+            "score": 82.6,
+            "strengths": [
+              "Lentur (lebih lembut dari 94% senar), membantu bola melaju lebih jauh.",
+              "Tensinya lebih awet dari 90% senar (tension loss 22,7%)."
+            ],
+            "weakness": "Senarnya lembut, jadi bola cenderung melaju lebih jauh dan butuh kontrol dari ayunan.",
+            "notes": []
+          },
+          {
+            "string": "Tecnifibre HDX Tour 16 (1.30)",
+            "material": "Nylon/Polyester",
+            "score": 82.3,
+            "strengths": [
+              "Lentur (lebih lembut dari 93% senar), membantu bola melaju lebih jauh.",
+              "Tensinya lebih awet dari 99% senar (tension loss 14,6%)."
+            ],
+            "weakness": "Senarnya lembut, jadi bola cenderung melaju lebih jauh dan butuh kontrol dari ayunan.",
+            "notes": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "cedera-kontrol-konflik",
+      "answers": {
+        "level": "rutin",
+        "swing": "cepat",
+        "priorities": [
+          "control",
+          "comfort"
+        ],
+        "arm": "cedera",
+        "change": "sedang",
+        "breakage": "sering",
+        "tension": "tinggi"
+      },
+      "expected": {
+        "condition": "62F",
+        "weights_pct": {
+          "spin": 5.1,
+          "power": 5.1,
+          "control": 30.8,
+          "comfort": 33.3,
+          "stability": 10.3,
+          "durability": 15.4
+        },
+        "excluded_materials": [
+          "Polyester",
+          "Gut"
+        ],
+        "candidates": 285,
+        "picks": [
+          {
+            "string": "Prince Premier Touch 15L",
+            "material": "Nylon",
+            "score": 61.5,
+            "strengths": [
+              "Lebih lembut dari 95% senar yang diuji (stiffness 155 lb/in).",
+              "Lebih tebal dari 97% senar (1,35 mm), jadi lebih tahan putus."
+            ],
+            "weakness": "Senarnya lembut, jadi bola cenderung melaju lebih jauh dan butuh kontrol dari ayunan.",
+            "notes": []
+          },
+          {
+            "string": "Wilson NXT 15L (1.35)",
+            "material": "Nylon",
+            "score": 61.4,
+            "strengths": [
+              "Lebih lembut dari 85% senar yang diuji (stiffness 152 lb/in).",
+              "Lebih tebal dari 97% senar (1,35 mm), jadi lebih tahan putus."
+            ],
+            "weakness": "Senarnya lembut, jadi bola cenderung melaju lebih jauh dan butuh kontrol dari ayunan.",
+            "notes": [
+              "Data lab untuk tensi dan ayunan Anda belum tersedia; dihitung dari pengujian 51 lbs, swing cepat."
+            ]
+          },
+          {
+            "string": "Wilson NXT Max 15L (1.35)",
+            "material": "Nylon",
+            "score": 60.1,
+            "strengths": [
+              "Lebih lembut dari 81% senar yang diuji (stiffness 156 lb/in).",
+              "Lebih tebal dari 97% senar (1,35 mm), jadi lebih tahan putus."
+            ],
+            "weakness": "Senarnya lembut, jadi bola cenderung melaju lebih jauh dan butuh kontrol dari ayunan.",
+            "notes": [
+              "Data lab untuk tensi dan ayunan Anda belum tersedia; dihitung dari pengujian 51 lbs, swing cepat."
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "kompetitif-kontrol-sering-putus",
+      "answers": {
+        "level": "kompetitif",
+        "swing": "cepat",
+        "priorities": [
+          "control",
+          "spin"
+        ],
+        "arm": "tidak",
+        "change": "cepat",
+        "breakage": "sering",
+        "tension": "tinggi"
+      },
+      "expected": {
+        "condition": "62F",
+        "weights_pct": {
+          "spin": 19.4,
+          "power": 6.5,
+          "control": 41.9,
+          "comfort": 6.5,
+          "stability": 6.5,
+          "durability": 19.4
+        },
+        "excluded_materials": [
+          "Gut"
+        ],
+        "candidates": 701,
+        "picks": [
+          {
+            "string": "Babolat RPM Blast 15L (1.35)",
+            "material": "Polyester",
+            "score": 81.7,
+            "strengths": [
+              "Lebih kaku dari 97% senar, jadi arah bola lebih mudah dijaga (stiffness 237 lb/in).",
+              "Lebih tebal dari 97% senar (1,35 mm), jadi lebih tahan putus."
+            ],
+            "weakness": "Cukup kaku (lebih kaku dari 97% senar). Perhatikan kalau lengan mudah pegal.",
+            "notes": [
+              "Data lab untuk tensi dan ayunan Anda belum tersedia; dihitung dari pengujian 51 lbs, swing cepat."
+            ]
+          },
+          {
+            "string": "Diadem Solstice Power 15L (1.35)",
+            "material": "Polyester",
+            "score": 81.3,
+            "strengths": [
+              "Lebih kaku dari 93% senar, jadi arah bola lebih mudah dijaga (stiffness 229 lb/in).",
+              "Lebih tebal dari 97% senar (1,35 mm), jadi lebih tahan putus."
+            ],
+            "weakness": "Cukup kaku (lebih kaku dari 93% senar). Perhatikan kalau lengan mudah pegal.",
+            "notes": [
+              "Data lab untuk tensi dan ayunan Anda belum tersedia; dihitung dari pengujian 51 lbs, swing cepat."
+            ]
+          },
+          {
+            "string": "Tecnifibre Black Code 4S 16 (1.30)",
+            "material": "Polyester",
+            "score": 80.9,
+            "strengths": [
+              "Lebih kaku dari 98% senar, jadi arah bola lebih mudah dijaga (stiffness 243 lb/in).",
+              "Potensi spin lebih tinggi dari 99% senar yang diuji (nilai 9,2)."
+            ],
+            "weakness": "Cukup kaku (lebih kaku dari 98% senar). Perhatikan kalau lengan mudah pegal.",
+            "notes": [
+              "Data lab untuk tensi dan ayunan Anda belum tersedia; dihitung dari pengujian 51 lbs, swing cepat."
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "rutin-spin-tensi-awet",
+      "answers": {
+        "level": "rutin",
+        "swing": "sedang",
+        "priorities": [
+          "spin"
+        ],
+        "arm": "tidak",
+        "change": "lama",
+        "breakage": "kadang",
+        "tension": "sedang"
+      },
+      "expected": {
+        "condition": "51M",
+        "weights_pct": {
+          "spin": 38.5,
+          "power": 7.7,
+          "control": 7.7,
+          "comfort": 7.7,
+          "stability": 26.9,
+          "durability": 11.5
+        },
+        "excluded_materials": [],
+        "candidates": 716,
+        "picks": [
+          {
+            "string": "Wilson NXT Max 15L (1.35)",
+            "material": "Nylon",
+            "score": 85.3,
+            "strengths": [
+              "Potensi spin lebih tinggi dari 92% senar yang diuji (nilai 7,2).",
+              "Tensinya lebih awet dari 98% senar (tension loss 13,1%)."
+            ],
+            "weakness": "Senarnya lembut, jadi bola cenderung melaju lebih jauh dan butuh kontrol dari ayunan.",
+            "notes": [
+              "Data lab untuk tensi dan ayunan Anda belum tersedia; dihitung dari pengujian 51 lbs, swing cepat."
+            ]
+          },
+          {
+            "string": "Wilson NXT 15L (1.35)",
+            "material": "Nylon",
+            "score": 82.3,
+            "strengths": [
+              "Potensi spin lebih tinggi dari 90% senar yang diuji (nilai 7).",
+              "Tensinya lebih awet dari 87% senar (tension loss 18,5%)."
+            ],
+            "weakness": "Senarnya lembut, jadi bola cenderung melaju lebih jauh dan butuh kontrol dari ayunan.",
+            "notes": [
+              "Data lab untuk tensi dan ayunan Anda belum tersedia; dihitung dari pengujian 51 lbs, swing cepat."
+            ]
+          },
+          {
+            "string": "Prince Premier Control 16",
+            "material": "Nylon",
+            "score": 80.4,
+            "strengths": [
+              "Potensi spin lebih tinggi dari 85% senar yang diuji (nilai 5,4).",
+              "Tensinya lebih awet dari 96% senar (tension loss 17%)."
+            ],
+            "weakness": "Senarnya lembut, jadi bola cenderung melaju lebih jauh dan butuh kontrol dari ayunan.",
+            "notes": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "rutin-power-nyaman-lambat",
+      "answers": {
+        "level": "rutin",
+        "swing": "santai",
+        "priorities": [
+          "power",
+          "comfort"
+        ],
+        "arm": "pegal",
+        "change": "sedang",
+        "breakage": "tidak",
+        "tension": "rendah"
+      },
+      "expected": {
+        "condition": "40S",
+        "weights_pct": {
+          "spin": 6.7,
+          "power": 40,
+          "control": 6.7,
+          "comfort": 30,
+          "stability": 13.3,
+          "durability": 3.3
+        },
+        "excluded_materials": [
+          "Polyester"
+        ],
+        "candidates": 303,
+        "picks": [
+          {
+            "string": "Pacific Prime Gut Orange Bull 16 (1.30)",
+            "material": "Gut",
+            "score": 85.6,
+            "strengths": [
+              "Mengembalikan energi lebih baik dari 99% senar (energy return 96,8%).",
+              "Lebih lembut dari 99% senar yang diuji (stiffness 74 lb/in)."
+            ],
+            "weakness": "Senarnya lembut, jadi bola cenderung melaju lebih jauh dan butuh kontrol dari ayunan.",
+            "notes": [
+              "Data lab untuk tensi dan ayunan Anda belum tersedia; dihitung dari pengujian 51 lbs, swing cepat."
+            ]
+          },
+          {
+            "string": "Babolat VS Touch 15L (1.35)",
+            "material": "Gut",
+            "score": 85.5,
+            "strengths": [
+              "Mengembalikan energi lebih baik dari 99% senar (energy return 96,4%).",
+              "Lebih lembut dari 99% senar yang diuji (stiffness 89 lb/in)."
+            ],
+            "weakness": "Senarnya lembut, jadi bola cenderung melaju lebih jauh dan butuh kontrol dari ayunan.",
+            "notes": [
+              "Data lab untuk tensi dan ayunan Anda belum tersedia; dihitung dari pengujian 51 lbs, swing cepat."
+            ]
+          },
+          {
+            "string": "Wilson Natural Gut 16 (1.30)",
+            "material": "Gut",
+            "score": 85,
+            "strengths": [
+              "Mengembalikan energi lebih baik dari 97% senar (energy return 94,9%).",
+              "Lebih lembut dari 99% senar yang diuji (stiffness 93 lb/in)."
+            ],
+            "weakness": "Senarnya lembut, jadi bola cenderung melaju lebih jauh dan butuh kontrol dari ayunan.",
+            "notes": [
+              "Data lab untuk tensi dan ayunan Anda belum tersedia; dihitung dari pengujian 51 lbs, swing cepat."
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "kompetitif-spin-pegal",
+      "answers": {
+        "level": "kompetitif",
+        "swing": "cepat",
+        "priorities": [
+          "spin",
+          "comfort"
+        ],
+        "arm": "pegal",
+        "change": "cepat",
+        "breakage": "kadang",
+        "tension": "rendah"
+      },
+      "expected": {
+        "condition": "40F",
+        "weights_pct": {
+          "spin": 32.3,
+          "power": 6.5,
+          "control": 16.1,
+          "comfort": 29,
+          "stability": 6.5,
+          "durability": 9.7
+        },
+        "excluded_materials": [],
+        "candidates": 716,
+        "picks": [
+          {
+            "string": "Wilson NXT 15L (1.35)",
+            "material": "Nylon",
+            "score": 72.7,
+            "strengths": [
+              "Potensi spin lebih tinggi dari 90% senar yang diuji (nilai 7).",
+              "Lebih lembut dari 85% senar yang diuji (stiffness 152 lb/in)."
+            ],
+            "weakness": "Senarnya lembut, jadi bola cenderung melaju lebih jauh dan butuh kontrol dari ayunan.",
+            "notes": [
+              "Data lab untuk tensi dan ayunan Anda belum tersedia; dihitung dari pengujian 51 lbs, swing cepat."
+            ]
+          },
+          {
+            "string": "Double AR Diablo (1.31)",
+            "material": "Polyester",
+            "score": 71.5,
+            "strengths": [
+              "Potensi spin lebih tinggi dari 99% senar yang diuji (nilai 7,7).",
+              "Lebih lembut dari 80% senar yang diuji (stiffness 132 lb/in)."
+            ],
+            "weakness": "Senarnya lembut, jadi bola cenderung melaju lebih jauh dan butuh kontrol dari ayunan.",
+            "notes": []
+          },
+          {
+            "string": "Wilson NXT Max 15L (1.35)",
+            "material": "Nylon",
+            "score": 71.5,
+            "strengths": [
+              "Potensi spin lebih tinggi dari 92% senar yang diuji (nilai 7,2).",
+              "Lebih lembut dari 81% senar yang diuji (stiffness 156 lb/in)."
+            ],
+            "weakness": "Senarnya lembut, jadi bola cenderung melaju lebih jauh dan butuh kontrol dari ayunan.",
+            "notes": [
+              "Data lab untuk tensi dan ayunan Anda belum tersedia; dihitung dari pengujian 51 lbs, swing cepat."
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "phase2": [
+    {
+      "id": "fase2-contoh-A-F",
+      "input": [
+        {
+          "string": "A",
+          "score": 92,
+          "price_per_set": 180000,
+          "sold_90d": 45,
+          "in_stock": true
+        },
+        {
+          "string": "B",
+          "score": 90,
+          "price_per_set": 320000,
+          "sold_90d": 12,
+          "in_stock": true
+        },
+        {
+          "string": "C",
+          "score": 88,
+          "price_per_set": 95000,
+          "sold_90d": 30,
+          "in_stock": true
+        },
+        {
+          "string": "D",
+          "score": 86,
+          "price_per_set": 150000,
+          "sold_90d": 60,
+          "in_stock": true
+        },
+        {
+          "string": "E",
+          "score": 81,
+          "price_per_set": 210000,
+          "sold_90d": 8,
+          "in_stock": true
+        },
+        {
+          "string": "F",
+          "score": 70,
+          "price_per_set": 60000,
+          "sold_90d": 50,
+          "in_stock": true
+        }
+      ],
+      "expected": {
+        "picks": [
+          {
+            "label": "Terlaris",
+            "string": "D"
+          },
+          {
+            "label": "Premium",
+            "string": "B"
+          },
+          {
+            "label": "Paling hemat",
+            "string": "C"
+          }
+        ],
+        "best_match_note": "A",
+        "threshold": 0.85
+      }
+    }
+  ]
+}

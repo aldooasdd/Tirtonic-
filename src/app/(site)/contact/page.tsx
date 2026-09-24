@@ -28,7 +28,7 @@ const ROWS: Row[] = [
   { icon: "instagram", label: "Instagram", value: "tirtonic.id", href: "https://www.instagram.com/tirtonic.id" },
   { icon: "building", label: "Tirtonic Headquarter", value: "Yogyakarta" },
   { icon: "building", label: "Tirtonic Heritage", value: "Solo" },
-  { icon: "headphones", label: "Customer Care", value: "085179848167", href: "https://wa.me/6285179848167" },
+  { icon: "headphones", label: "Customer Care", value: "085163215511", href: "https://wa.me/6285163215511" },
 ];
 
 export default function ContactPage() {
