@@ -7,7 +7,7 @@
 | Pemilik | Aldo |
 | Status | Siap diimplementasikan (Fase 1). Fase 2 menunggu data harga, stok, dan penjualan |
 | Versi dokumen | 2.0, 22 September 2026 |
-| Pelaksana | Claude Code, di **repo baru** |
+| Pelaksana | developer, di **repo baru** |
 
 **Perubahan v2.0 (menggantikan semua versi sebelumnya):**
 - String Finder menjadi **aplikasi sendiri** dengan repo, database, dan deploy terpisah. Tidak memakai kode, database, login, maupun komponen website Tirtonic.
@@ -18,7 +18,7 @@
 
 ---
 
-## 0. Untuk Claude Code: cara memakai dokumen ini
+## 0. Untuk developer: cara memakai dokumen ini
 
 Baca dalam urutan ini sebelum menulis kode:
 

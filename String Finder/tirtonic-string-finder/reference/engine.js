@@ -1,6 +1,6 @@
 /**
  * Tirtonic String Finder — reference engine (JavaScript, tanpa dependensi, tanpa LLM).
- * Implementasi acuan untuk Claude Code. Versi produksi boleh ditulis ulang di TypeScript,
+ * Implementasi acuan untuk developer. Versi produksi boleh ditulis ulang di TypeScript,
  * tetapi WAJIB menghasilkan output yang sama dengan test-cases.json.
  *
  * Input : strings.json (data TWU yang sudah dibersihkan), rules.json, jawaban customer.

@@ -7,7 +7,7 @@
 | Pemilik | Aldo |
 | Status | Siap diimplementasikan (Fase 1). Fase 2 menunggu data katalog, harga, dan penjualan |
 | Versi dokumen | 1.2, 22 September 2026 |
-| Pelaksana | Claude Code, di dalam proyek Next.js website Tirtonic |
+| Pelaksana | developer, di dalam proyek Next.js website Tirtonic |
 
 **Perubahan v1.2:** UI dibuat sederhana dan menyatu dengan tirtonic.com (bagian 9); seed cabang mengikuti data cabang di website (Yogyakarta, Solo, Semarang).
 
@@ -18,7 +18,7 @@
 
 ---
 
-## 0. Untuk Claude Code: cara memakai dokumen ini
+## 0. Untuk developer: cara memakai dokumen ini
 
 Baca dalam urutan ini sebelum menulis kode:
 

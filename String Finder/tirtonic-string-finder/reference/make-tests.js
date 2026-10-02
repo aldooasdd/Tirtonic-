@@ -1,4 +1,4 @@
-// Membuat test-cases.json (golden output) dari engine acuan. Dijalankan sekali oleh Claude di chat.
+// Membuat test-cases.json (golden output) dari engine acuan. Dijalankan sekali oleh developer di chat.
 require('./engine.js');
 const fs = require('fs');
 const data = require('../data/strings.json'), rules = require('./rules.json');

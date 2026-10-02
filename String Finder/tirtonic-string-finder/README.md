@@ -1,10 +1,10 @@
 # Tirtonic String Finder — bundel implementasi
 
-Letakkan folder ini di proyek website Tirtonic (misalnya `docs/string-finder/`), lalu minta Claude Code membaca `PRD-string-finder.md` terlebih dulu.
+Letakkan folder ini di proyek website Tirtonic (misalnya `docs/string-finder/`), lalu minta developer membaca `PRD-string-finder.md` terlebih dulu.
 
 ```
 PRD-string-finder.md        Spesifikasi lengkap (mulai dari sini)
-PROMPTS-claude-code.md      Prompt Claude Code per tahap (0, 1a, 1b, 1c, 1d)
+PROMPTS-developer.md      Prompt developer per tahap (0, 1a, 1b, 1c, 1d)
 data/
   twu_strings_raw.csv       Export asli TWU (tidak diubah)
   twu_strings_clean.csv     Data bersih untuk impor ke database
@@ -26,6 +26,6 @@ reference/
   make-slip-sample.js       Membuat ulang contoh & golden resep
 ```
 
-Contoh prompt untuk Claude Code:
+Contoh prompt untuk developer:
 
 > Baca docs/string-finder/PRD-string-finder.md dan semua file di folder itu. Kerjakan tahap 1a dulu: impor data ke database, port reference/engine.js dan reference/slip.js ke TypeScript, dan buat unit test yang memakai reference/test-cases.json dan reference/slip-test-cases.json. Jangan lanjut ke UI sebelum semua tes lulus.
