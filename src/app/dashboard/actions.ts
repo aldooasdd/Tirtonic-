@@ -13,12 +13,12 @@ export async function login(_prev: LoginState, formData: FormData): Promise<Logi
   const pw = (formData.get("password") as string) || "";
   if (!checkPassword(pw)) return { error: "Password salah." };
   createSession();
-  redirect("/dasbord");
+  redirect("/dashboard");
 }
 
 export async function logout() {
   destroySession();
-  redirect("/dasbord/login");
+  redirect("/dashboard/login");
 }
 
 function requireAuth() {
@@ -28,7 +28,7 @@ function requireAuth() {
 function revalidatePublic(productId?: string) {
   revalidatePath("/");
   revalidatePath("/shop");
-  revalidatePath("/dasbord");
+  revalidatePath("/dashboard");
   if (productId) revalidatePath(`/product/${productId}`);
 }
 
@@ -75,7 +75,7 @@ export async function createProduct(formData: FormData) {
   const sizeChart = await resolveSizeChart(formData);
   await prisma.product.create({ data: { ...data, gambar: [...existing, ...uploaded], sizeChart } });
   revalidatePublic();
-  redirect("/dasbord");
+  redirect("/dashboard");
 }
 
 export type ImportResult = {
@@ -132,7 +132,7 @@ export async function updateProduct(id: string, formData: FormData) {
     data: { ...data, gambar: [...existing, ...uploaded], sizeChart },
   });
   revalidatePublic(id);
-  redirect("/dasbord");
+  redirect("/dashboard");
 }
 
 export async function deleteProduct(id: string) {
@@ -164,15 +164,15 @@ export async function createHeroSlide(formData: FormData) {
     },
   });
   revalidatePath("/");
-  revalidatePath("/dasbord");
-  redirect("/dasbord");
+  revalidatePath("/dashboard");
+  redirect("/dashboard");
 }
 
 export async function deleteHeroSlide(id: string) {
   requireAuth();
   await prisma.heroSlide.delete({ where: { id } });
   revalidatePath("/");
-  revalidatePath("/dasbord");
+  revalidatePath("/dashboard");
 }
 
 // ---------- Articles ----------
@@ -180,7 +180,7 @@ export async function deleteHeroSlide(id: string) {
 function revalidateArticles(id?: string) {
   revalidatePath("/");
   revalidatePath("/articles");
-  revalidatePath("/dasbord");
+  revalidatePath("/dashboard");
   if (id) revalidatePath(`/articles/${id}`);
 }
 
@@ -213,7 +213,7 @@ export async function createArticle(formData: FormData) {
   const gambar = await uploadOneImage(formData, "articles");
   await prisma.article.create({ data: { ...data, gambar } });
   revalidateArticles();
-  redirect("/dasbord");
+  redirect("/dashboard");
 }
 
 export async function updateArticle(id: string, formData: FormData) {
@@ -224,7 +224,7 @@ export async function updateArticle(id: string, formData: FormData) {
   const existing = ((formData.get("existingGambar") as string) || "") || null;
   await prisma.article.update({ where: { id }, data: { ...data, gambar: uploaded ?? existing } });
   revalidateArticles(id);
-  redirect("/dasbord");
+  redirect("/dashboard");
 }
 
 export async function deleteArticle(id: string) {

@@ -16,7 +16,7 @@ function Stat({ label, value }: { label: string; value: number }) {
 }
 
 export default async function TrafikPage() {
-  if (!isAuthed()) redirect("/dasbord/login");
+  if (!isAuthed()) redirect("/dashboard/login");
 
   const products = await safeQuery(() => prisma.product.findMany({ orderBy: { views: "desc" } }), []);
   const totalViews = products.reduce((s, p) => s + (p.views || 0), 0);
@@ -35,7 +35,7 @@ export default async function TrafikPage() {
             </div>
           </div>
           <Link
-            href="/dasbord"
+            href="/dashboard"
             className="rounded-full border px-4 py-1.5 text-sm font-semibold text-gray-600 transition hover:border-primary hover:text-primary"
           >
             ← Dashboard

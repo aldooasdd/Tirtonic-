@@ -29,7 +29,7 @@ function Stat({ label, value, tone = "gray" }: { label: string; value: number; t
 }
 
 export default async function AdminDashboard() {
-  if (!isAuthed()) redirect("/dasbord/login");
+  if (!isAuthed()) redirect("/dashboard/login");
 
   const [products, slides, articles, sponsorships] = await Promise.all([
     safeQuery(() => prisma.product.findMany({ orderBy: { createdAt: "desc" } }), []),
@@ -55,7 +55,7 @@ export default async function AdminDashboard() {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <Link href="/dasbord/trafik" className="text-sm font-medium text-gray-500 hover:text-primary">
+            <Link href="/dashboard/trafik" className="text-sm font-medium text-gray-500 hover:text-primary">
               Trafik
             </Link>
             <a href="/" target="_blank" rel="noreferrer" className="hidden text-sm font-medium text-gray-500 hover:text-primary sm:block">

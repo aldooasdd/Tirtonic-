@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
-import { deleteArticle } from "@/app/dasbord/actions";
+import { deleteArticle } from "@/app/dashboard/actions";
 
 export default function ArticleRowActions({ id }: { id: string }) {
   const router = useRouter();
@@ -20,7 +20,7 @@ export default function ArticleRowActions({ id }: { id: string }) {
   return (
     <div className="flex items-center gap-2">
       <Link
-        href={`/dasbord/article/${id}`}
+        href={`/dashboard/article/${id}`}
         className="rounded-md border px-2.5 py-1 text-xs font-medium text-gray-600 transition hover:border-primary hover:text-primary"
       >
         Edit

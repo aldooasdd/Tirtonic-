@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import Link from "next/link";
-import { setStatus, deleteProduct } from "@/app/dasbord/actions";
+import { setStatus, deleteProduct } from "@/app/dashboard/actions";
 
 export default function ProductRowActions({
   id,
@@ -43,7 +43,7 @@ export default function ProductRowActions({
         {sold ? "Sold" : "Ready"} ⇄
       </button>
       <Link
-        href={`/dasbord/product/${id}`}
+        href={`/dashboard/product/${id}`}
         className="rounded-md border px-2.5 py-1 text-xs font-medium text-gray-600 transition hover:border-primary hover:text-primary"
       >
         Edit

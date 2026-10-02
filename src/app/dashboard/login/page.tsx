@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Admin Login — Tirtonic" };
 
 export default function LoginPage() {
-  if (isAuthed()) redirect("/dasbord");
+  if (isAuthed()) redirect("/dashboard");
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-sm rounded-2xl border bg-white p-8 shadow-sm">

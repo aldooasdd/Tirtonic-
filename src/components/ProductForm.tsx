@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useFormStatus } from "react-dom";
 import { KATEGORI, SHOE_SIZES } from "@/lib/constants";
-import { importFromTokopedia } from "@/app/dasbord/actions";
+import { importFromTokopedia } from "@/app/dashboard/actions";
 
 type ProductInput = {
   id: string;
