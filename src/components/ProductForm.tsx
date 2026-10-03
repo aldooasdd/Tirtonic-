@@ -101,7 +101,7 @@ export default function ProductForm({
       setKategori(d.kategori);
       setBrand(d.brand || "");
       setHarga(String(d.harga));
-      setDiskonPersen(""); // impor = harga web (sudah -10%), bukan diskon
+      setDiskonPersen(""); // impor = harga Tokopedia apa adanya, tanpa diskon
       setDeskripsi(d.deskripsi || "");
       setUkuran(d.ukuran);
       setImages((prev) => [...prev, ...d.gambar]);

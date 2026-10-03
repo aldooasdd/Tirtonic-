@@ -151,10 +151,6 @@ export type ImportResult = {
   variants: { warna: string; ukuran: string; harga: number; stok: number; gambar: string | null }[];
 };
 
-/** Web price is a flat 10% below Tokopedia (a web-only lower price, NOT a displayed discount).
- *  Rounded to the nearest 500 so the number stays clean. */
-const webPrice = (n: number) => Math.round((n * 0.9) / 500) * 500;
-
 /** Import one product from a Tokopedia link: parse fields + re-host its images to Supabase.
  *  Returns `{ error }` on failure so the message survives Next.js production error masking. */
 export async function importFromTokopedia(url: string): Promise<ImportResult | { error: string }> {
@@ -201,14 +197,14 @@ export async function importFromTokopedia(url: string): Promise<ImportResult | {
   const variants = p.variants.map((v) => ({
     warna: v.warna,
     ukuran: v.ukuran,
-    harga: webPrice(v.harga), // web price = 10% below Tokopedia (not a discount)
+    harga: v.harga,
     stok: v.stok,
     gambar: colorPhoto[v.warna.toLowerCase()] ?? null,
   }));
 
   return {
     nama: p.nama,
-    harga: webPrice(p.harga),
+    harga: p.harga,
     brand: p.brand,
     kategori: p.kategori,
     deskripsi: p.deskripsi,
