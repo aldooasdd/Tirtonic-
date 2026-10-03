@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import Logo from "./Logo";
 import { waLink } from "@/lib/format";
 import { useCart } from "./CartProvider";
+import { useShopCart } from "./ShopCartProvider";
 
 const MENU = [
   { href: "/", label: "Home" },
@@ -33,6 +34,7 @@ export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
   const { count, setOpen: setCartOpen } = useCart();
+  const { count: cartCount } = useShopCart();
   const ig = process.env.NEXT_PUBLIC_INSTAGRAM || "https://instagram.com/tirtonic";
 
   function submitSearch(e: React.FormEvent) {
@@ -154,6 +156,18 @@ export default function Navbar() {
                   </span>
                 )}
               </button>
+              <Link href="/cart" aria-label="Keranjang" className="relative hover:opacity-80">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="9" cy="21" r="1" />
+                  <circle cx="20" cy="21" r="1" />
+                  <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+                </svg>
+                {cartCount > 0 && (
+                  <span className="absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-white px-1 text-[10px] font-bold text-primary">
+                    {cartCount}
+                  </span>
+                )}
+              </Link>
             </div>
           </div>
 

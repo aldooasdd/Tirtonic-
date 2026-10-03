@@ -1,0 +1,169 @@
+import "server-only";
+import { prisma } from "@/lib/prisma";
+import { SHIPPING_OPTIONS } from "@/lib/constants";
+import { createDokuPayment } from "@/lib/doku";
+import { notifyN8N } from "@/lib/notify";
+
+export type CartLine = { productId: string; variantId?: string | null; qty: number };
+export type CheckoutInput = {
+  nama: string;
+  email: string;
+  telepon: string;
+  alamat: string;
+  kota: string;
+  provinsi: string;
+  kodePos?: string;
+  catatan?: string;
+  shippingId: string;
+  items: CartLine[];
+};
+
+export type CreateOrderResult =
+  | { ok: true; orderId: string; invoice: string; paymentUrl: string | null }
+  | { ok: false; error: string };
+
+function genInvoice(): string {
+  const d = new Date();
+  const ymd = `${String(d.getFullYear()).slice(2)}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}`;
+  const rand = Math.floor(1000 + Math.random() * 9000);
+  return `TIRT-${ymd}-${rand}`;
+}
+
+const effHarga = (harga: number, hargaDiskon: number | null) =>
+  hargaDiskon != null && hargaDiskon < harga ? hargaDiskon : harga;
+
+/** Buat order dari keranjang. Harga/varian/stok SELALU diverifikasi ulang dari DB
+ *  (harga dari client tidak dipercaya). Stok dipotong nanti saat LUNAS, bukan di sini. */
+export async function createOrder(input: CheckoutInput): Promise<CreateOrderResult> {
+  const nama = input.nama?.trim();
+  const email = input.email?.trim();
+  const telepon = input.telepon?.trim();
+  const alamat = input.alamat?.trim();
+  const kota = input.kota?.trim();
+  const provinsi = input.provinsi?.trim();
+  if (!nama || !email || !telepon || !alamat || !kota || !provinsi)
+    return { ok: false, error: "Lengkapi data pengiriman dulu." };
+  if (!/^\S+@\S+\.\S+$/.test(email)) return { ok: false, error: "Email tidak valid." };
+  if (!input.items?.length) return { ok: false, error: "Keranjang kosong." };
+
+  const shipping = SHIPPING_OPTIONS.find((s) => s.id === input.shippingId);
+  if (!shipping) return { ok: false, error: "Pilih metode pengiriman." };
+
+  const products = await prisma.product.findMany({
+    where: { id: { in: input.items.map((i) => i.productId) } },
+    include: { variants: true },
+  });
+
+  const lines: { productId: string; variantId: string | null; nama: string; varian: string | null; harga: number; qty: number; gambar: string | null }[] = [];
+  for (const it of input.items) {
+    const qty = Math.max(1, Math.floor(it.qty || 1));
+    const p = products.find((x) => x.id === it.productId);
+    if (!p) return { ok: false, error: "Ada produk yang sudah tidak tersedia." };
+
+    if (p.variants.length > 0) {
+      if (!it.variantId) return { ok: false, error: `Pilih varian untuk ${p.nama}.` };
+      const v = p.variants.find((x) => x.id === it.variantId);
+      if (!v) return { ok: false, error: `Varian ${p.nama} tidak ditemukan.` };
+      if (v.stok < qty) return { ok: false, error: `Stok ${p.nama} (${v.warna}${v.ukuran ? " / " + v.ukuran : ""}) tinggal ${v.stok}.` };
+      lines.push({
+        productId: p.id,
+        variantId: v.id,
+        nama: p.nama,
+        varian: `${v.warna}${v.ukuran ? " / " + v.ukuran : ""}`,
+        harga: effHarga(v.harga, v.hargaDiskon),
+        qty,
+        gambar: v.gambar ?? p.gambar[0] ?? null,
+      });
+    } else {
+      if (p.status === "SOLD") return { ok: false, error: `${p.nama} sedang habis.` };
+      lines.push({
+        productId: p.id,
+        variantId: null,
+        nama: p.nama,
+        varian: null,
+        harga: effHarga(p.harga, p.hargaDiskon),
+        qty,
+        gambar: p.gambar[0] ?? null,
+      });
+    }
+  }
+
+  const subtotal = lines.reduce((s, l) => s + l.harga * l.qty, 0);
+  const total = subtotal + shipping.cost;
+
+  const order = await prisma.order.create({
+    data: {
+      invoice: genInvoice(),
+      nama,
+      email,
+      telepon,
+      alamat,
+      kota,
+      provinsi,
+      kodePos: input.kodePos?.trim() || null,
+      catatan: input.catatan?.trim() || null,
+      kurir: shipping.label,
+      ongkir: shipping.cost,
+      subtotal,
+      total,
+      items: { create: lines },
+    },
+  });
+
+  // Kalau DOKU sudah dikonfigurasi → dapatkan URL halaman bayar. Kalau belum → null
+  // (order tetap PENDING, bisa dikonfirmasi manual oleh admin).
+  const paymentUrl = await createDokuPayment({
+    id: order.id,
+    invoice: order.invoice,
+    total: order.total,
+    nama: order.nama,
+    email: order.email,
+    telepon: order.telepon,
+  });
+
+  return { ok: true, orderId: order.id, invoice: order.invoice, paymentUrl };
+}
+
+/** Transisi ke LUNAS: potong stok varian + kirim event ke n8n. Idempoten (aman
+ *  dipanggil berulang oleh webhook DOKU). */
+export async function markOrderPaid(orderId: string, info?: { metodeBayar?: string; paymentRef?: string }): Promise<boolean> {
+  const order = await prisma.order.findUnique({ where: { id: orderId }, include: { items: true } });
+  if (!order) return false;
+  if (order.status !== "PENDING") return true; // sudah diproses, jangan dobel
+
+  await prisma.$transaction([
+    prisma.order.update({
+      where: { id: orderId },
+      data: { status: "PAID", paidAt: new Date(), metodeBayar: info?.metodeBayar ?? order.metodeBayar, paymentRef: info?.paymentRef ?? order.paymentRef },
+    }),
+    // ponytail: potong stok varian; non-varian tak punya field stok (pakai status READY/SOLD).
+    // Race antar-pesanan bisa bikin minus — tambah lock/stok reservasi kalau volume tinggi.
+    ...order.items
+      .filter((i) => i.variantId)
+      .map((i) => prisma.productVariant.update({ where: { id: i.variantId! }, data: { stok: { decrement: i.qty } } })),
+  ]);
+
+  const fresh = await prisma.order.findUnique({ where: { id: orderId }, include: { items: true } });
+  if (fresh) await notifyN8N("paid", fresh);
+  return true;
+}
+
+/** Isi nomor resi → status DIKIRIM → kirim event ke n8n (WA resi ke customer). */
+export async function markOrderShipped(orderId: string, resi: string, kurir?: string): Promise<boolean> {
+  const r = resi.trim();
+  if (!r) return false;
+  const order = await prisma.order.update({
+    where: { id: orderId },
+    data: { status: "SHIPPED", resi: r, shippedAt: new Date(), ...(kurir ? { kurir } : {}) },
+    include: { items: true },
+  });
+  await notifyN8N("shipped", order);
+  return true;
+}
+
+export async function cancelOrder(orderId: string): Promise<boolean> {
+  const order = await prisma.order.findUnique({ where: { id: orderId } });
+  if (!order || order.status === "SHIPPED") return false;
+  await prisma.order.update({ where: { id: orderId }, data: { status: "CANCELLED" } });
+  return true;
+}

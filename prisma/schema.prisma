@@ -13,6 +13,57 @@ enum StockStatus {
   SOLD
 }
 
+enum OrderStatus {
+  PENDING // dibuat, menunggu pembayaran
+  PAID // sudah dibayar (via DOKU / konfirmasi manual)
+  SHIPPED // sudah dikirim (resi diisi)
+  CANCELLED // dibatalkan
+}
+
+// Pesanan checkout (guest, tanpa login). Pembayaran via DOKU (dipasang via env),
+// atau dikonfirmasi manual oleh admin. Nomor resi hanya disimpan & dikirim ke
+// customer (lewat webhook n8n); pelacakannya tetap di situs kurir.
+model Order {
+  id          String      @id @default(cuid())
+  invoice     String      @unique // TIRT-YYMMDD-XXXX, dipakai juga sebagai referensi DOKU
+  nama        String
+  email       String
+  telepon     String
+  alamat      String
+  kota        String
+  provinsi    String
+  kodePos     String?
+  catatan     String?
+  kurir       String // opsi pengiriman yang dipilih (label + estimasi)
+  ongkir      Int
+  subtotal    Int
+  total       Int
+  status      OrderStatus @default(PENDING)
+  resi        String?
+  metodeBayar String? // diisi dari DOKU (VA / QRIS / dll)
+  paymentRef  String? // referensi transaksi DOKU
+  paidAt      DateTime?
+  shippedAt   DateTime?
+  items       OrderItem[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String? // referensi (produk bisa berubah/terhapus nanti)
+  variantId String?
+  nama      String // snapshot nama produk saat dibeli
+  varian    String? // snapshot varian, mis. "Biru / 1.20mm"
+  harga     Int // snapshot harga satuan (sudah termasuk diskon) saat dibeli
+  qty       Int
+  gambar    String?
+
+  @@index([orderId])
+}
+
 model Product {
   id        String      @id @default(cuid())
   nama      String

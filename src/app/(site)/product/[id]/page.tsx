@@ -47,6 +47,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
           sizeChart: p.sizeChart,
           status: p.status,
           variants: p.variants.map((v) => ({
+            id: v.id,
             warna: v.warna,
             ukuran: v.ukuran,
             harga: v.harga,

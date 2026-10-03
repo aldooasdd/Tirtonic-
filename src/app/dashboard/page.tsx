@@ -56,6 +56,9 @@ export default async function AdminDashboard() {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            <Link href="/dashboard/orders" className="text-sm font-medium text-gray-500 hover:text-primary">
+              Pesanan
+            </Link>
             <Link href="/dashboard/trafik" className="text-sm font-medium text-gray-500 hover:text-primary">
               Trafik
             </Link>

@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { checkPassword, createSession, destroySession, isAuthed } from "@/lib/auth";
 import { uploadFile, uploadFromUrl, storageConfigured } from "@/lib/storage";
 import { fetchTokopedia } from "@/lib/tokopedia";
+import { markOrderPaid, markOrderShipped, cancelOrder } from "@/lib/orders";
 
 export type LoginState = { error: string };
 
@@ -340,4 +341,32 @@ export async function deleteSponsorship(id: string) {
   requireAuth();
   await prisma.sponsorshipSubmission.delete({ where: { id } });
   revalidatePath("/dashboard");
+}
+
+// ---------- Orders (admin) ----------
+
+function revalidateOrder(id: string) {
+  revalidatePath("/dashboard/orders");
+  revalidatePath(`/order/${id}`);
+}
+
+/** Konfirmasi pembayaran manual (transfer) — sama efeknya dgn webhook DOKU:
+ *  potong stok + kirim event "paid" ke n8n. */
+export async function adminMarkPaid(id: string) {
+  requireAuth();
+  await markOrderPaid(id, { metodeBayar: "Manual" });
+  revalidateOrder(id);
+}
+
+/** Simpan nomor resi → status DIKIRIM → kirim event "shipped" ke n8n (WA resi ke customer). */
+export async function adminMarkShipped(id: string, resi: string, kurir?: string) {
+  requireAuth();
+  await markOrderShipped(id, resi, kurir);
+  revalidateOrder(id);
+}
+
+export async function adminCancelOrder(id: string) {
+  requireAuth();
+  await cancelOrder(id);
+  revalidateOrder(id);
 }

@@ -3,10 +3,12 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { rupiah, waLink } from "@/lib/format";
 import { useFav } from "./CartProvider";
+import { useShopCart } from "./ShopCartProvider";
 
-type Variant = { warna: string; ukuran: string; harga: number; hargaDiskon?: number | null; stok: number; gambar: string | null };
+type Variant = { id?: string; warna: string; ukuran: string; harga: number; hargaDiskon?: number | null; stok: number; gambar: string | null };
 
 type P = {
   id: string;
@@ -55,6 +57,9 @@ export default function ProductDetail({ p }: { p: P }) {
   const [showChart, setShowChart] = useState(false);
   const [descOpen, setDescOpen] = useState(false);
   const { has, toggle } = useFav();
+  const { add: addToCart } = useShopCart();
+  const router = useRouter();
+  const [added, setAdded] = useState(false);
   const fav = has(p.id);
 
   const scrollerRef = useRef<HTMLDivElement>(null);
@@ -104,8 +109,27 @@ export default function ProductDetail({ p }: { p: P }) {
     ? !sold && !!selVariant && selVariant.stok > 0
     : !sold && (!needSize || !!size);
 
-  const variantLabel = hasVar ? ` (Warna ${color}${hasSizeAxis && size ? `, ${size}` : ""})` : size ? ` (ukuran ${size})` : "";
-  const orderMsg = `Halo Admin Tirtonic, saya mau pesan: ${p.nama}${variantLabel}. Apakah masih ready?`;
+  const addItem = () => {
+    if (!ready) return;
+    addToCart({
+      productId: p.id,
+      variantId: selVariant?.id ?? null,
+      nama: p.nama,
+      varian: hasVar ? `${color}${hasSizeAxis && size ? " / " + size : ""}` : needSize && size ? size : null,
+      harga: priceNum,
+      gambar: colorImg ?? p.gambar[0] ?? null,
+      qty: 1,
+      max: hasVar ? selVariant?.stok ?? 1 : 99,
+    });
+    setAdded(true);
+    setTimeout(() => setAdded(false), 1500);
+  };
+  const buyNow = () => {
+    if (!ready) return;
+    addItem();
+    router.push("/checkout");
+  };
+
   const disabledMsg = sold
     ? "Stok Habis"
     : hasVar
@@ -284,11 +308,16 @@ export default function ProductDetail({ p }: { p: P }) {
             </div>
           )}
 
-          <div className="mt-6 flex gap-3">
+          <div className="mt-6 flex flex-wrap gap-3">
             {ready ? (
-              <a href={waLink(orderMsg)} target="_blank" rel="noreferrer" className="btn-pill flex-1 bg-primary hover:bg-primaryDark">
-                Buy Now
-              </a>
+              <>
+                <button onClick={buyNow} className="btn-pill flex-1 bg-primary hover:bg-primaryDark">
+                  Beli Sekarang
+                </button>
+                <button onClick={addItem} className="btn-pill flex-1 border border-primary bg-white text-primary hover:bg-primary/5">
+                  {added ? "✓ Ditambahkan" : "+ Keranjang"}
+                </button>
+              </>
             ) : (
               <button disabled className="btn-pill flex-1 cursor-not-allowed bg-gray-200 text-gray-400">
                 {disabledMsg}
