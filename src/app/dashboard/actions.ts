@@ -46,15 +46,21 @@ const toInt = (v: FormDataEntryValue | null) => parseInt(((v as string) || "0").
 /** A discount price only counts when it's a real cut (below the normal price). */
 const diskonOrNull = (diskon: number, harga: number) => (diskon > 0 && diskon < harga ? diskon : null);
 
+/** Product-wide percent discount → a discounted price, rounded to the nearest 500. */
+const applyPct = (harga: number, pct: number) =>
+  pct > 0 && pct < 100 ? Math.round((harga * (1 - pct / 100)) / 500) * 500 : null;
+
 function parseData(formData: FormData) {
   const nama = ((formData.get("nama") as string) || "").trim();
   const kategori = ((formData.get("kategori") as string) || "").trim();
   const harga = toInt(formData.get("harga"));
+  const diskonPersen = Math.min(90, Math.max(0, toInt(formData.get("diskonPersen"))));
   return {
     nama,
     kategori,
     harga,
-    hargaDiskon: diskonOrNull(toInt(formData.get("hargaDiskon")), harga),
+    diskonPersen,
+    hargaDiskon: applyPct(harga, diskonPersen), // no-variant products use this directly
     brand: ((formData.get("brand") as string) || "").trim() || null,
     deskripsi: ((formData.get("deskripsi") as string) || "").trim() || null,
     ukuran: formData.getAll("ukuran").map(String),
@@ -65,8 +71,9 @@ function parseData(formData: FormData) {
 type VariantInput = { warna: string; ukuran: string; harga: number; hargaDiskon: number | null; stok: number; gambar: string | null; urutan: number };
 
 /** Parse the variant rows from the form (aligned arrays) and upload any new per-row photos.
- *  A row needs a warna + harga to count; blank rows are skipped. */
-async function parseVariants(formData: FormData): Promise<VariantInput[]> {
+ *  A row needs a warna + harga to count; blank rows are skipped.
+ *  `pct` is the product-wide percent discount; a row's own discount price overrides it. */
+async function parseVariants(formData: FormData, pct: number): Promise<VariantInput[]> {
   const warna = formData.getAll("v_warna").map(String);
   const ukuran = formData.getAll("v_ukuran").map(String);
   const harga = formData.getAll("v_harga").map(String);
@@ -91,7 +98,7 @@ async function parseVariants(formData: FormData): Promise<VariantInput[]> {
       warna: w,
       ukuran: (ukuran[i] || "").trim(),
       harga: h,
-      hargaDiskon: diskonOrNull(hd, h),
+      hargaDiskon: diskonOrNull(hd, h) ?? applyPct(h, pct), // row override, else product-wide %
       stok: parseInt((stok[i] || "0").replace(/\D/g, ""), 10) || 0,
       gambar,
       urutan: i,
@@ -126,7 +133,7 @@ export async function createProduct(formData: FormData) {
   const existing = formData.getAll("existingGambar").map(String);
   const uploaded = await uploadImages(formData);
   const sizeChart = await resolveSizeChart(formData);
-  const variants = await parseVariants(formData);
+  const variants = await parseVariants(formData, data.diskonPersen);
   const headline = headlinePrice(variants, data);
   await prisma.product.create({
     data: { ...data, ...headline, gambar: [...existing, ...uploaded], sizeChart, variants: { create: variants } },
@@ -222,7 +229,7 @@ export async function updateProduct(id: string, formData: FormData) {
   const existing = formData.getAll("existingGambar").map(String);
   const uploaded = await uploadImages(formData);
   const sizeChart = await resolveSizeChart(formData);
-  const variants = await parseVariants(formData);
+  const variants = await parseVariants(formData, data.diskonPersen);
   const headline = headlinePrice(variants, data);
   await prisma.product.update({
     where: { id },

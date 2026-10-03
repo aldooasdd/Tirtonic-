@@ -20,6 +20,7 @@ model Product {
   brand     String?
   harga     Int // rupiah, whole number (harga normal)
   hargaDiskon Int? // harga diskon (opsional); jika < harga → tampil coret + badge
+  diskonPersen Int @default(0) // diskon se-produk (%), berlaku ke semua varian; 0 = tanpa diskon
   deskripsi String?
   gambar    String[] // image URLs (Supabase Storage)
   sizeChart String? // size chart image URL (from Tokopedia import or manual)

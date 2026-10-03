@@ -21,7 +21,7 @@ type ProductInput = {
   kategori: string;
   brand: string | null;
   harga: number;
-  hargaDiskon?: number | null;
+  diskonPersen?: number;
   deskripsi: string | null;
   ukuran: string[];
   gambar: string[];
@@ -56,7 +56,7 @@ export default function ProductForm({
   const [kategori, setKategori] = useState(product?.kategori || KATEGORI[0]);
   const [brand, setBrand] = useState(product?.brand || "");
   const [harga, setHarga] = useState(product?.harga ? String(product.harga) : "");
-  const [hargaDiskon, setHargaDiskon] = useState(product?.hargaDiskon ? String(product.hargaDiskon) : "");
+  const [diskonPersen, setDiskonPersen] = useState(product?.diskonPersen ? String(product.diskonPersen) : "");
   const [deskripsi, setDeskripsi] = useState(product?.deskripsi || "");
   const [ukuran, setUkuran] = useState<string[]>(product?.ukuran || []);
   const [images, setImages] = useState<string[]>(product?.gambar || []); // existing + imported URLs
@@ -101,7 +101,7 @@ export default function ProductForm({
       setKategori(d.kategori);
       setBrand(d.brand || "");
       setHarga(String(d.harga));
-      setHargaDiskon(""); // impor = harga web (sudah -10%), bukan diskon
+      setDiskonPersen(""); // impor = harga web (sudah -10%), bukan diskon
       setDeskripsi(d.deskripsi || "");
       setUkuran(d.ukuran);
       setImages((prev) => [...prev, ...d.gambar]);
@@ -138,7 +138,7 @@ export default function ProductForm({
     setKategori(product?.kategori || KATEGORI[0]);
     setBrand(product?.brand || "");
     setHarga(product?.harga ? String(product.harga) : "");
-    setHargaDiskon(product?.hargaDiskon ? String(product.hargaDiskon) : "");
+    setDiskonPersen(product?.diskonPersen ? String(product.diskonPersen) : "");
     setDeskripsi(product?.deskripsi || "");
     setUkuran(product?.ukuran || []);
     setImages(product?.gambar || []);
@@ -200,12 +200,12 @@ export default function ProductForm({
             {hasVariants && <p className="mt-1 text-xs text-gray-400">Otomatis dari harga varian termurah.</p>}
           </div>
           <div>
-            <label className="label">Harga diskon (Rp)</label>
-            <input name="hargaDiskon" type="number" value={hargaDiskon} onChange={(e) => setHargaDiskon(e.target.value)} className="field" disabled={hasVariants} placeholder="kosongkan jika tidak diskon" />
+            <label className="label">Diskon (%)</label>
+            <input name="diskonPersen" type="number" min={0} max={90} value={diskonPersen} onChange={(e) => setDiskonPersen(e.target.value)} className="field" placeholder="kosongkan jika tidak diskon" />
             {hasVariants ? (
-              <p className="mt-1 text-xs text-gray-400">Diatur per varian di bawah.</p>
+              <p className="mt-1 text-xs text-gray-400">Berlaku ke semua varian. Mau beda per varian? Isi &quot;Harga diskon&quot; di baris varian.</p>
             ) : (
-              <p className="mt-1 text-xs text-gray-400">Isi lebih kecil dari harga normal → tampil coret + badge persen.</p>
+              <p className="mt-1 text-xs text-gray-400">Contoh: 20 → tampil harga coret + badge -20%.</p>
             )}
           </div>
         </div>
