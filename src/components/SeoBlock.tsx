@@ -56,6 +56,7 @@ export default function SeoBlock() {
           <p><strong>3. String &amp; Grip</strong> — String dengan berbagai tipe (control, power, spin) serta grip berkualitas.</p>
           <p><strong>4. Tas &amp; Aksesoris</strong> — Tas tenis, topi, wristband, dan aksesoris lain.</p>
           <p><strong>5. Bola Tenis</strong> — Bola tenis untuk latihan maupun pertandingan resmi.</p>
+          <p><strong>6. Aparel</strong> — Kaos, celana, dan jersey tenis untuk latihan maupun pertandingan.</p>
           <h3 className="font-bold text-gray-900">Cara Belanja Di Tirtonic Tennis Store</h3>
           <p>
             Anda bisa langsung mengunjungi toko kami di Yogyakarta dan Solo, atau melakukan pemesanan melalui

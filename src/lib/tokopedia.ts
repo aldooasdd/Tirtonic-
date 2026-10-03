@@ -52,7 +52,8 @@ function detectKategori(nama: string): string {
   if (/(raket|racket|racquet)/.test(n)) return "Raket Tenis";
   if (/(senar|string|grip|overgrip)/.test(n)) return "String & Grip";
   if (/(bola|ball)/.test(n)) return "Bola Tenis";
-  if (/(tas|bag|backpack|apparel|kaos|topi|wristband|aksesoris)/.test(n)) return "Tas & Aksesoris";
+  if (/(kaos|t-?shirt|tshirt|jersey|celana|short|pants|polo|jaket|jacket|dress|rok|skirt|apparel|aparel)/.test(n)) return "Aparel";
+  if (/(tas|bag|backpack|topi|cap|hat|wristband|aksesoris)/.test(n)) return "Tas & Aksesoris";
   return KATEGORI[0];
 }
 
