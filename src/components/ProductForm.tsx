@@ -10,7 +10,7 @@ type VariantRow = {
   warna: string;
   ukuran: string;
   harga: string;
-  hargaDiskon: string;
+  diskonPersen: string; // per-variant % override
   stok: string;
   gambar: string | null; // existing photo URL (edit mode)
 };
@@ -31,7 +31,7 @@ type ProductInput = {
 };
 
 let vkey = 0;
-const newVariant = (): VariantRow => ({ key: `v${vkey++}`, warna: "", ukuran: "", harga: "", hargaDiskon: "", stok: "", gambar: null });
+const newVariant = (): VariantRow => ({ key: `v${vkey++}`, warna: "", ukuran: "", harga: "", diskonPersen: "", stok: "", gambar: null });
 
 function SaveBtn({ edit }: { edit: boolean }) {
   const { pending } = useFormStatus();
@@ -69,7 +69,7 @@ export default function ProductForm({
     warna: v.warna,
     ukuran: v.ukuran,
     harga: String(v.harga),
-    hargaDiskon: v.hargaDiskon ? String(v.hargaDiskon) : "",
+    diskonPersen: v.hargaDiskon && v.harga ? String(Math.round((1 - v.hargaDiskon / v.harga) * 100)) : "",
     stok: String(v.stok),
     gambar: v.gambar,
   }));
@@ -114,7 +114,7 @@ export default function ProductForm({
             warna: v.warna,
             ukuran: v.ukuran,
             harga: String(v.harga),
-            hargaDiskon: "",
+            diskonPersen: "",
             stok: String(v.stok),
             gambar: v.gambar,
           }))
@@ -262,8 +262,8 @@ export default function ProductForm({
                       <input name="v_harga" type="number" value={v.harga} onChange={(e) => setVariant(i, "harga", e.target.value)} placeholder="174000" className="field" />
                     </div>
                     <div>
-                      <label className="label">Harga diskon</label>
-                      <input name="v_hargadiskon" type="number" value={v.hargaDiskon} onChange={(e) => setVariant(i, "hargaDiskon", e.target.value)} placeholder="opsional" className="field" />
+                      <label className="label">Diskon (%)</label>
+                      <input name="v_diskonpersen" type="number" min={0} max={90} value={v.diskonPersen} onChange={(e) => setVariant(i, "diskonPersen", e.target.value)} placeholder="opsional" className="field" />
                     </div>
                     <div>
                       <label className="label">Stok</label>

@@ -43,10 +43,7 @@ async function uploadImages(formData: FormData): Promise<string[]> {
 
 const toInt = (v: FormDataEntryValue | null) => parseInt(((v as string) || "0").replace(/\D/g, ""), 10) || 0;
 
-/** A discount price only counts when it's a real cut (below the normal price). */
-const diskonOrNull = (diskon: number, harga: number) => (diskon > 0 && diskon < harga ? diskon : null);
-
-/** Product-wide percent discount → a discounted price, rounded to the nearest 500. */
+/** Percent discount → a discounted price, rounded to the nearest 500. */
 const applyPct = (harga: number, pct: number) =>
   pct > 0 && pct < 100 ? Math.round((harga * (1 - pct / 100)) / 500) * 500 : null;
 
@@ -77,7 +74,7 @@ async function parseVariants(formData: FormData, pct: number): Promise<VariantIn
   const warna = formData.getAll("v_warna").map(String);
   const ukuran = formData.getAll("v_ukuran").map(String);
   const harga = formData.getAll("v_harga").map(String);
-  const diskon = formData.getAll("v_hargadiskon").map(String);
+  const diskon = formData.getAll("v_diskonpersen").map(String);
   const stok = formData.getAll("v_stok").map(String);
   const existing = formData.getAll("v_existingGambar").map(String);
   const files = formData.getAll("v_gambar");
@@ -93,12 +90,12 @@ async function parseVariants(formData: FormData, pct: number): Promise<VariantIn
       if (!storageConfigured) throw new Error("Supabase Storage belum dikonfigurasi (cek .env).");
       gambar = await uploadFile(f, "products");
     }
-    const hd = parseInt((diskon[i] || "0").replace(/\D/g, ""), 10) || 0;
+    const vp = Math.min(90, Math.max(0, parseInt((diskon[i] || "0").replace(/\D/g, ""), 10) || 0));
     out.push({
       warna: w,
       ukuran: (ukuran[i] || "").trim(),
       harga: h,
-      hargaDiskon: diskonOrNull(hd, h) ?? applyPct(h, pct), // row override, else product-wide %
+      hargaDiskon: applyPct(h, vp > 0 ? vp : pct), // row % override, else product-wide %
       stok: parseInt((stok[i] || "0").replace(/\D/g, ""), 10) || 0,
       gambar,
       urutan: i,
