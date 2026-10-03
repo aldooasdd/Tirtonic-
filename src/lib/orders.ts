@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { SHIPPING_OPTIONS } from "@/lib/constants";
 import { createDokuPayment } from "@/lib/doku";
 import { notifyN8N } from "@/lib/notify";
+import { biteshipConfigured, getRates, type RateOption, type RateItem } from "@/lib/biteship";
 
 export type CartLine = { productId: string; variantId?: string | null; qty: number };
 export type CheckoutInput = {
@@ -14,9 +15,11 @@ export type CheckoutInput = {
   provinsi: string;
   kodePos?: string;
   catatan?: string;
-  shippingId: string;
+  shippingCourier: string; // id opsi ongkir yang dipilih (dari shippingOptions)
   items: CartLine[];
 };
+
+type ProductWithVariants = { id: string; nama: string; berat: number; harga: number; hargaDiskon: number | null; status: string; gambar: string[]; variants: { id: string; warna: string; ukuran: string; harga: number; hargaDiskon: number | null; stok: number; gambar: string | null }[] };
 
 export type CreateOrderResult =
   | { ok: true; orderId: string; invoice: string; paymentUrl: string | null }
@@ -32,6 +35,34 @@ function genInvoice(): string {
 const effHarga = (harga: number, hargaDiskon: number | null) =>
   hargaDiskon != null && hargaDiskon < harga ? hargaDiskon : harga;
 
+const flatOptions = (): RateOption[] => SHIPPING_OPTIONS.map((s) => ({ id: s.id, label: s.label, cost: s.cost, etd: null }));
+
+function toRateItem(line: CartLine, products: ProductWithVariants[]): RateItem {
+  const p = products.find((x) => x.id === line.productId);
+  const v = p?.variants.find((x) => x.id === line.variantId);
+  const harga = v ? effHarga(v.harga, v.hargaDiskon) : p ? effHarga(p.harga, p.hargaDiskon) : 0;
+  return { name: p?.nama || "item", value: harga, weight: p?.berat || 500, quantity: Math.max(1, Math.floor(line.qty || 1)) };
+}
+
+/** Opsi ongkir: dari Biteship kalau dikonfigurasi (+ kode pos valid), else flat. */
+async function optionsForItems(destPostal: string, items: RateItem[]): Promise<RateOption[]> {
+  if (biteshipConfigured) {
+    const opts = await getRates(destPostal, items);
+    if (opts.length) return opts;
+  }
+  return flatOptions();
+}
+
+/** Dipakai halaman checkout untuk menampilkan daftar ongkir. */
+export async function shippingOptions(destPostal: string, cart: CartLine[]): Promise<RateOption[]> {
+  if (!cart.length) return flatOptions();
+  const products = (await prisma.product.findMany({
+    where: { id: { in: cart.map((c) => c.productId) } },
+    include: { variants: true },
+  })) as unknown as ProductWithVariants[];
+  return optionsForItems(destPostal, cart.map((c) => toRateItem(c, products)));
+}
+
 /** Buat order dari keranjang. Harga/varian/stok SELALU diverifikasi ulang dari DB
  *  (harga dari client tidak dipercaya). Stok dipotong nanti saat LUNAS, bukan di sini. */
 export async function createOrder(input: CheckoutInput): Promise<CreateOrderResult> {
@@ -46,13 +77,10 @@ export async function createOrder(input: CheckoutInput): Promise<CreateOrderResu
   if (!/^\S+@\S+\.\S+$/.test(email)) return { ok: false, error: "Email tidak valid." };
   if (!input.items?.length) return { ok: false, error: "Keranjang kosong." };
 
-  const shipping = SHIPPING_OPTIONS.find((s) => s.id === input.shippingId);
-  if (!shipping) return { ok: false, error: "Pilih metode pengiriman." };
-
-  const products = await prisma.product.findMany({
+  const products = (await prisma.product.findMany({
     where: { id: { in: input.items.map((i) => i.productId) } },
     include: { variants: true },
-  });
+  })) as unknown as ProductWithVariants[];
 
   const lines: { productId: string; variantId: string | null; nama: string; varian: string | null; harga: number; qty: number; gambar: string | null }[] = [];
   for (const it of input.items) {
@@ -89,6 +117,11 @@ export async function createOrder(input: CheckoutInput): Promise<CreateOrderResu
   }
 
   const subtotal = lines.reduce((s, l) => s + l.harga * l.qty, 0);
+
+  // Resolusi ongkir dihitung ULANG di server (harga dari client tidak dipercaya).
+  const options = await optionsForItems(input.kodePos?.trim() || "", input.items.map((i) => toRateItem(i, products)));
+  const shipping = options.find((o) => o.id === input.shippingCourier);
+  if (!shipping) return { ok: false, error: "Pilih metode pengiriman dulu." };
   const total = subtotal + shipping.cost;
 
   const order = await prisma.order.create({

@@ -57,6 +57,7 @@ function parseData(formData: FormData) {
     nama,
     kategori,
     harga,
+    berat: toInt(formData.get("berat")) || 500, // gram; default 500 utk hitung ongkir
     diskonPersen,
     hargaDiskon: applyPct(harga, diskonPersen), // no-variant products use this directly
     brand: ((formData.get("brand") as string) || "").trim() || null,
@@ -143,6 +144,7 @@ export async function createProduct(formData: FormData) {
 export type ImportResult = {
   nama: string;
   harga: number;
+  berat: number;
   brand: string | null;
   kategori: string;
   deskripsi: string | null;
@@ -206,6 +208,7 @@ export async function importFromTokopedia(url: string): Promise<ImportResult | {
   return {
     nama: p.nama,
     harga: p.harga,
+    berat: p.berat,
     brand: p.brand,
     kategori: p.kategori,
     deskripsi: p.deskripsi,

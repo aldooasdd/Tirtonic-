@@ -5,23 +5,36 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useShopCart } from "@/components/ShopCartProvider";
 import { rupiah } from "@/lib/format";
-import { SHIPPING_OPTIONS } from "@/lib/constants";
-import { submitCheckout } from "./actions";
+import { submitCheckout, checkRates } from "./actions";
+import type { RateOption } from "@/lib/biteship";
 
 export default function CheckoutPage() {
   const router = useRouter();
   const { items, subtotal, clear } = useShopCart();
-  const [shippingId, setShippingId] = useState(SHIPPING_OPTIONS[0].id);
+
+  const [kodePos, setKodePos] = useState("");
+  const [rates, setRates] = useState<RateOption[] | null>(null);
+  const [chosenId, setChosenId] = useState("");
+  const [ratesLoading, setRatesLoading] = useState(false);
+  const [ratesError, setRatesError] = useState<string | null>(null);
+
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);
 
-  const shipping = SHIPPING_OPTIONS.find((s) => s.id === shippingId)!;
-  const total = subtotal + shipping.cost;
+  const postalOk = kodePos.replace(/\D/g, "").length >= 5;
+  const chosen = rates?.find((r) => r.id === chosenId) ?? null;
+  const ongkir = chosen?.cost ?? 0;
+  const total = subtotal + ongkir;
 
-  // Keranjang kosong (dan sudah hydrate) → balik ke /cart.
+  // Kalau kode pos berubah, ongkir lama tidak valid lagi.
+  useEffect(() => {
+    setRates(null);
+    setChosenId("");
+  }, [kodePos]);
+
   if (mounted && items.length === 0) {
     return (
       <div className="mx-auto max-w-3xl px-4 pb-16 pt-10 text-center">
@@ -31,9 +44,36 @@ export default function CheckoutPage() {
     );
   }
 
+  async function onCheckRates() {
+    if (!postalOk) return;
+    setRatesLoading(true);
+    setRatesError(null);
+    try {
+      const opts = await checkRates(
+        kodePos,
+        items.map((x) => ({ productId: x.productId, variantId: x.variantId, qty: x.qty }))
+      );
+      if (opts.length === 0) {
+        setRatesError("Ongkir tidak ditemukan untuk kode pos ini. Cek lagi kode posnya.");
+        setRates([]);
+        return;
+      }
+      setRates(opts);
+      setChosenId(opts[0].id);
+    } catch {
+      setRatesError("Gagal cek ongkir. Coba lagi.");
+    } finally {
+      setRatesLoading(false);
+    }
+  }
+
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
+    if (!chosen) {
+      setError("Cek & pilih ongkir dulu.");
+      return;
+    }
     const fd = new FormData(e.currentTarget);
     setSubmitting(true);
     try {
@@ -44,9 +84,9 @@ export default function CheckoutPage() {
         alamat: String(fd.get("alamat") || ""),
         kota: String(fd.get("kota") || ""),
         provinsi: String(fd.get("provinsi") || ""),
-        kodePos: String(fd.get("kodePos") || ""),
+        kodePos,
         catatan: String(fd.get("catatan") || ""),
-        shippingId,
+        shippingCourier: chosen.id,
         items: items.map((x) => ({ productId: x.productId, variantId: x.variantId, qty: x.qty })),
       });
       if (!res.ok) {
@@ -68,7 +108,6 @@ export default function CheckoutPage() {
       <h1 className="mb-6 text-2xl font-extrabold text-gray-900">Checkout</h1>
 
       <form onSubmit={onSubmit} className="grid gap-8 md:grid-cols-[1fr_360px]">
-        {/* data pengiriman */}
         <div className="space-y-4">
           <div className="rounded-2xl border bg-white p-5">
             <h2 className="mb-4 font-bold text-gray-900">Data Penerima</h2>
@@ -98,8 +137,8 @@ export default function CheckoutPage() {
                 <input id="provinsi" name="provinsi" required className="field" autoComplete="address-level1" />
               </div>
               <div>
-                <label className="label" htmlFor="kodePos">Kode Pos</label>
-                <input id="kodePos" name="kodePos" inputMode="numeric" className="field" autoComplete="postal-code" />
+                <label className="label" htmlFor="kodePos">Kode Pos *</label>
+                <input id="kodePos" name="kodePos" required inputMode="numeric" value={kodePos} onChange={(e) => setKodePos(e.target.value)} className="field" autoComplete="postal-code" placeholder="5 digit" />
               </div>
               <div className="sm:col-span-2">
                 <label className="label" htmlFor="catatan">Catatan (opsional)</label>
@@ -109,27 +148,45 @@ export default function CheckoutPage() {
           </div>
 
           <div className="rounded-2xl border bg-white p-5">
-            <h2 className="mb-3 font-bold text-gray-900">Pengiriman</h2>
-            <div className="space-y-2">
-              {SHIPPING_OPTIONS.map((s) => (
-                <label
-                  key={s.id}
-                  className={`flex cursor-pointer items-center justify-between rounded-xl border px-4 py-3 text-sm transition ${
-                    shippingId === s.id ? "border-primary bg-primary/5" : "border-gray-300"
-                  }`}
-                >
-                  <span className="flex items-center gap-3">
-                    <input type="radio" name="shipping" checked={shippingId === s.id} onChange={() => setShippingId(s.id)} className="accent-primary" />
-                    {s.label}
-                  </span>
-                  <span className="font-semibold text-gray-900">{s.cost === 0 ? "Gratis" : rupiah(s.cost)}</span>
-                </label>
-              ))}
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="font-bold text-gray-900">Pengiriman</h2>
+              <button
+                type="button"
+                onClick={onCheckRates}
+                disabled={!postalOk || ratesLoading}
+                className="rounded-full border border-primary px-4 py-1.5 text-sm font-semibold text-primary transition hover:bg-primary/5 disabled:opacity-50"
+              >
+                {ratesLoading ? "Mengecek..." : "Cek Ongkir"}
+              </button>
             </div>
+
+            {!postalOk && <p className="text-sm text-gray-400">Isi kode pos dulu untuk cek ongkir.</p>}
+            {ratesError && <p className="text-sm text-red-600">{ratesError}</p>}
+
+            {rates && rates.length > 0 && (
+              <div className="space-y-2">
+                {rates.map((s) => (
+                  <label
+                    key={s.id}
+                    className={`flex cursor-pointer items-center justify-between rounded-xl border px-4 py-3 text-sm transition ${
+                      chosenId === s.id ? "border-primary bg-primary/5" : "border-gray-300"
+                    }`}
+                  >
+                    <span className="flex items-center gap-3">
+                      <input type="radio" name="shipping" checked={chosenId === s.id} onChange={() => setChosenId(s.id)} className="accent-primary" />
+                      <span>
+                        {s.label}
+                        {s.etd && <span className="ml-1 text-xs text-gray-400">({s.etd})</span>}
+                      </span>
+                    </span>
+                    <span className="font-semibold text-gray-900">{s.cost === 0 ? "Gratis" : rupiah(s.cost)}</span>
+                  </label>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
-        {/* ringkasan */}
         <div className="md:sticky md:top-24 md:self-start">
           <div className="rounded-2xl border bg-white p-5">
             <h2 className="mb-4 font-bold text-gray-900">Ringkasan Pesanan</h2>
@@ -159,7 +216,7 @@ export default function CheckoutPage() {
               </div>
               <div className="flex justify-between text-gray-600">
                 <span>Ongkir</span>
-                <span>{shipping.cost === 0 ? "Gratis" : rupiah(shipping.cost)}</span>
+                <span>{chosen ? (ongkir === 0 ? "Gratis" : rupiah(ongkir)) : "—"}</span>
               </div>
               <div className="flex justify-between pt-1 text-base font-extrabold text-gray-900">
                 <span>Total</span>
@@ -169,12 +226,10 @@ export default function CheckoutPage() {
 
             {error && <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>}
 
-            <button type="submit" disabled={submitting} className="btn-pill mt-4 w-full bg-primary hover:bg-primaryDark disabled:opacity-60">
+            <button type="submit" disabled={submitting || !chosen} className="btn-pill mt-4 w-full bg-primary hover:bg-primaryDark disabled:opacity-60">
               {submitting ? "Memproses..." : "Buat Pesanan & Bayar"}
             </button>
-            <p className="mt-2 text-center text-xs text-gray-400">
-              Kamu akan diarahkan ke halaman pembayaran yang aman.
-            </p>
+            <p className="mt-2 text-center text-xs text-gray-400">Kamu akan diarahkan ke halaman pembayaran yang aman.</p>
           </div>
         </div>
       </form>

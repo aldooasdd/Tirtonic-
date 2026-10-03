@@ -17,6 +17,7 @@ export type ParsedVariant = {
 export type ParsedProduct = {
   nama: string;
   harga: number;
+  berat: number; // gram
   brand: string | null;
   kategori: string;
   deskripsi: string | null;
@@ -154,6 +155,16 @@ export function parseTokopedia(html: string): ParsedProduct {
     }
   }
 
+  // --- berat: field "weight" di state; KG → gram. ponytail: best-effort, default 500g. ---
+  const wM = html.match(/"weight":(\d{1,6})(?:[^}]*?"weightUnit":"?(KG|GR|GRAM)"?)?/i);
+  let berat = 500;
+  if (wM) {
+    const n = parseInt(wM[1], 10);
+    const unit = (wM[2] || "GR").toUpperCase();
+    const g = unit === "KG" ? n * 1000 : n;
+    if (g >= 50 && g <= 50000) berat = g;
+  }
+
   const brand = BRANDS.find((b) => new RegExp(`\\b${b}\\b`, "i").test(nama)) || null;
 
   // --- size chart: dedicated Tokopedia field (fashion/shoe categories) ---
@@ -161,7 +172,7 @@ export function parseTokopedia(html: string): ParsedProduct {
   const sizeChart = scRaw ? scRaw.replace(/\\u002F/gi, "/").replace(/\\u0026/gi, "&").replace(/\\\//g, "/") : null;
 
   const variants = parseVariants(html);
-  return { nama, harga, brand, kategori: detectKategori(nama), deskripsi, ukuran: [...sizes], images: images.slice(0, 10), sizeChart, variants };
+  return { nama, harga, berat, brand, kategori: detectKategori(nama), deskripsi, ukuran: [...sizes], images: images.slice(0, 10), sizeChart, variants };
 }
 
 /**

@@ -22,6 +22,7 @@ type ProductInput = {
   brand: string | null;
   harga: number;
   diskonPersen?: number;
+  berat?: number;
   deskripsi: string | null;
   ukuran: string[];
   gambar: string[];
@@ -57,6 +58,7 @@ export default function ProductForm({
   const [brand, setBrand] = useState(product?.brand || "");
   const [harga, setHarga] = useState(product?.harga ? String(product.harga) : "");
   const [diskonPersen, setDiskonPersen] = useState(product?.diskonPersen ? String(product.diskonPersen) : "");
+  const [berat, setBerat] = useState(product?.berat ? String(product.berat) : "");
   const [deskripsi, setDeskripsi] = useState(product?.deskripsi || "");
   const [ukuran, setUkuran] = useState<string[]>(product?.ukuran || []);
   const [images, setImages] = useState<string[]>(product?.gambar || []); // existing + imported URLs
@@ -101,6 +103,7 @@ export default function ProductForm({
       setKategori(d.kategori);
       setBrand(d.brand || "");
       setHarga(String(d.harga));
+      setBerat(String(d.berat));
       setDiskonPersen(""); // impor = harga Tokopedia apa adanya, tanpa diskon
       setDeskripsi(d.deskripsi || "");
       setUkuran(d.ukuran);
@@ -139,6 +142,7 @@ export default function ProductForm({
     setBrand(product?.brand || "");
     setHarga(product?.harga ? String(product.harga) : "");
     setDiskonPersen(product?.diskonPersen ? String(product.diskonPersen) : "");
+    setBerat(product?.berat ? String(product.berat) : "");
     setDeskripsi(product?.deskripsi || "");
     setUkuran(product?.ukuran || []);
     setImages(product?.gambar || []);
@@ -207,6 +211,11 @@ export default function ProductForm({
             ) : (
               <p className="mt-1 text-xs text-gray-400">Contoh: 20 → tampil harga coret + badge -20%.</p>
             )}
+          </div>
+          <div>
+            <label className="label">Berat (gram)</label>
+            <input name="berat" type="number" min={1} value={berat} onChange={(e) => setBerat(e.target.value)} className="field" placeholder="500" />
+            <p className="mt-1 text-xs text-gray-400">Untuk hitung ongkir. Kosong = 500 gram. Auto terisi saat impor Tokopedia.</p>
           </div>
         </div>
 
