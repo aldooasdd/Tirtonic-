@@ -6,6 +6,14 @@
 
 import { KATEGORI } from "@/lib/constants";
 
+export type ParsedVariant = {
+  warna: string;
+  ukuran: string; // "" when the product has a single variant axis
+  harga: number;
+  stok: number;
+  gambarUrl: string | null; // Tokopedia image URL for this color (re-hosted later)
+};
+
 export type ParsedProduct = {
   nama: string;
   harga: number;
@@ -15,6 +23,7 @@ export type ParsedProduct = {
   ukuran: string[];
   images: string[];
   sizeChart: string | null;
+  variants: ParsedVariant[];
 };
 
 const BRANDS = [
@@ -45,6 +54,53 @@ function detectKategori(nama: string): string {
   if (/(bola|ball)/.test(n)) return "Bola Tenis";
   if (/(tas|bag|backpack|apparel|kaos|topi|wristband|aksesoris)/.test(n)) return "Tas & Aksesoris";
   return KATEGORI[0];
+}
+
+/** Parse Tokopedia's variant matrix from the embedded Apollo cache.
+ *  Axis 0 is the colour (has per-option photos); axis 1 (if any) is the size/variant.
+ *  `children` holds every colour×size combo with its own price + stock. */
+export function parseVariants(html: string): ParsedVariant[] {
+  let m: RegExpExecArray | null;
+
+  // colour-axis option photos: option index -> image URL
+  const idxUrl: Record<string, string> = {};
+  const picRe = /\.variants\.0\.option\.(\d+)\.picture":\{"url":"([^"]+)"/g;
+  while ((m = picRe.exec(html))) idxUrl[m[1]] = m[2].replace(/\\u002F/gi, "/").replace(/\\\//g, "/");
+
+  // colour name per option index -> image URL (keyed by lowercased colour)
+  const colorImg: Record<string, string> = {};
+  const optRe = /\.variants\.0\.option\.(\d+)":\{"picture":\{[\s\S]*?"productVariantOptionID":"[^"]*","variantUnitValueID":"[^"]*","value":"([^"]+)"/g;
+  while ((m = optRe.exec(html))) {
+    const u = idxUrl[m[1]];
+    if (u) colorImg[m[2].toLowerCase()] = u;
+  }
+
+  // stock per child index
+  const stockMap: Record<string, number> = {};
+  const stRe = /\.children\.(\d+)\.stock":\{"stock":"(\d+)"/g;
+  while ((m = stRe.exec(html))) stockMap[m[1]] = parseInt(m[2], 10);
+
+  // children = every combo, with its price and [colour, size] names
+  const out: ParsedVariant[] = [];
+  const childRe = /\.children\.(\d+)":\{"productID":"\d+","price":(\d+),[\s\S]*?"optionName":\{"type":"json","json":(\[[^\]]*\])\}/g;
+  while ((m = childRe.exec(html))) {
+    let names: string[];
+    try {
+      names = JSON.parse(m[3]);
+    } catch {
+      continue;
+    }
+    const warna = (names[0] || "").trim();
+    if (!warna) continue;
+    out.push({
+      warna,
+      ukuran: (names[1] || "").trim(),
+      harga: parseInt(m[2], 10),
+      stok: stockMap[m[1]] ?? 0,
+      gambarUrl: colorImg[warna.toLowerCase()] ?? null,
+    });
+  }
+  return out;
 }
 
 export function parseTokopedia(html: string): ParsedProduct {
@@ -103,7 +159,8 @@ export function parseTokopedia(html: string): ParsedProduct {
   const scRaw = html.match(/"sizeChart":"([^"]+)"/)?.[1];
   const sizeChart = scRaw ? scRaw.replace(/\\u002F/gi, "/").replace(/\\u0026/gi, "&").replace(/\\\//g, "/") : null;
 
-  return { nama, harga, brand, kategori: detectKategori(nama), deskripsi, ukuran: [...sizes], images: images.slice(0, 10), sizeChart };
+  const variants = parseVariants(html);
+  return { nama, harga, brand, kategori: detectKategori(nama), deskripsi, ukuran: [...sizes], images: images.slice(0, 10), sizeChart, variants };
 }
 
 /**

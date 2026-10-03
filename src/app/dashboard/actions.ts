@@ -127,6 +127,7 @@ export type ImportResult = {
   ukuran: string[];
   gambar: string[];
   sizeChart: string | null;
+  variants: { warna: string; ukuran: string; harga: number; stok: number; gambar: string | null }[];
 };
 
 /** Import one product from a Tokopedia link: parse fields + re-host its images to Supabase.
@@ -157,7 +158,30 @@ export async function importFromTokopedia(url: string): Promise<ImportResult | {
       }
     }
   }
-  return { nama: p.nama, harga: p.harga, brand: p.brand, kategori: p.kategori, deskripsi: p.deskripsi, ukuran: p.ukuran, gambar, sizeChart };
+
+  // Re-host each colour's photo once, then map it onto every variant of that colour.
+  const colorPhoto: Record<string, string | null> = {};
+  if (storageConfigured) {
+    for (const v of p.variants) {
+      const key = v.warna.toLowerCase();
+      if (v.gambarUrl && !(key in colorPhoto)) {
+        try {
+          colorPhoto[key] = await uploadFromUrl(v.gambarUrl, "products");
+        } catch {
+          colorPhoto[key] = null;
+        }
+      }
+    }
+  }
+  const variants = p.variants.map((v) => ({
+    warna: v.warna,
+    ukuran: v.ukuran,
+    harga: v.harga,
+    stok: v.stok,
+    gambar: colorPhoto[v.warna.toLowerCase()] ?? null,
+  }));
+
+  return { nama: p.nama, harga: p.harga, brand: p.brand, kategori: p.kategori, deskripsi: p.deskripsi, ukuran: p.ukuran, gambar, sizeChart, variants };
 }
 
 export async function updateProduct(id: string, formData: FormData) {

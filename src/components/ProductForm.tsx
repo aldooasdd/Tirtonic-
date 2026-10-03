@@ -101,9 +101,22 @@ export default function ProductForm({
       setUkuran(d.ukuran);
       setImages((prev) => [...prev, ...d.gambar]);
       if (d.sizeChart) setSizeChart(d.sizeChart);
+      if (d.variants.length) {
+        setHasVariants(true);
+        setVariants(
+          d.variants.map((v) => ({
+            key: `v${vkey++}`,
+            warna: v.warna,
+            ukuran: v.ukuran,
+            harga: String(v.harga),
+            stok: String(v.stok),
+            gambar: v.gambar,
+          }))
+        );
+      }
       setImportMsg({
         ok: true,
-        text: `Berhasil: ${d.nama} · ${d.gambar.length} foto${d.ukuran.length ? ` · ${d.ukuran.length} size` : ""}${d.sizeChart ? " · size chart ✓" : ""}. Cek lalu simpan.`,
+        text: `Berhasil: ${d.nama} · ${d.gambar.length} foto${d.variants.length ? ` · ${d.variants.length} varian` : d.ukuran.length ? ` · ${d.ukuran.length} size` : ""}${d.sizeChart ? " · size chart ✓" : ""}. Cek lalu simpan.`,
       });
     } catch (e) {
       setImportMsg({ ok: false, text: e instanceof Error ? e.message : "Gagal impor." });
