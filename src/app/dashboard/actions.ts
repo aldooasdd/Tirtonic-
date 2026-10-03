@@ -335,3 +335,9 @@ export async function deleteArticle(id: string) {
   await prisma.article.delete({ where: { id } });
   revalidateArticles(id);
 }
+
+export async function deleteSponsorship(id: string) {
+  requireAuth();
+  await prisma.sponsorshipSubmission.delete({ where: { id } });
+  revalidatePath("/dashboard");
+}

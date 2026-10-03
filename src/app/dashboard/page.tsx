@@ -8,6 +8,7 @@ import ProductForm from "@/components/ProductForm";
 import ProductRowActions from "@/components/ProductRowActions";
 import ArticleForm from "@/components/ArticleForm";
 import ArticleRowActions from "@/components/ArticleRowActions";
+import SponsorshipDeleteButton from "@/components/SponsorshipDeleteButton";
 
 export const dynamic = "force-dynamic";
 // Tokopedia import via the residential proxy can take longer than the default limit.
@@ -163,7 +164,10 @@ export default async function AdminDashboard() {
                 <div key={s.id} className="rounded-xl border p-4 text-sm">
                   <div className="mb-1 flex items-center justify-between gap-2">
                     <span className="font-semibold text-gray-900">{s.organisasi}</span>
-                    <span className="shrink-0 text-xs text-gray-400">{fmtDate(s.createdAt)}</span>
+                    <span className="flex shrink-0 items-center gap-2">
+                      <span className="text-xs text-gray-400">{fmtDate(s.createdAt)}</span>
+                      <SponsorshipDeleteButton id={s.id} />
+                    </span>
                   </div>
                   <p className="text-gray-600">
                     {s.penanggungJawab}
