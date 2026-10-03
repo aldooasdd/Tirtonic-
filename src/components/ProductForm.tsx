@@ -5,6 +5,15 @@ import { useFormStatus } from "react-dom";
 import { KATEGORI, SHOE_SIZES } from "@/lib/constants";
 import { importFromTokopedia } from "@/app/dashboard/actions";
 
+type VariantRow = {
+  key: string; // local React key
+  warna: string;
+  ukuran: string;
+  harga: string;
+  stok: string;
+  gambar: string | null; // existing photo URL (edit mode)
+};
+
 type ProductInput = {
   id: string;
   nama: string;
@@ -16,7 +25,11 @@ type ProductInput = {
   gambar: string[];
   sizeChart?: string | null;
   status: "READY" | "SOLD";
+  variants?: { warna: string; ukuran: string; harga: number; stok: number; gambar: string | null }[];
 };
+
+let vkey = 0;
+const newVariant = (): VariantRow => ({ key: `v${vkey++}`, warna: "", ukuran: "", harga: "", stok: "", gambar: null });
 
 function SaveBtn({ edit }: { edit: boolean }) {
   const { pending } = useFormStatus();
@@ -46,6 +59,21 @@ export default function ProductForm({
   const [images, setImages] = useState<string[]>(product?.gambar || []); // existing + imported URLs
   const [sizeChart, setSizeChart] = useState<string | null>(product?.sizeChart ?? null);
   const isShoe = kategori === "Sepatu Tenis";
+
+  // Variants (color + size, each with own price/stock/photo)
+  const initVariants: VariantRow[] = (product?.variants || []).map((v) => ({
+    key: `v${vkey++}`,
+    warna: v.warna,
+    ukuran: v.ukuran,
+    harga: String(v.harga),
+    stok: String(v.stok),
+    gambar: v.gambar,
+  }));
+  const [hasVariants, setHasVariants] = useState(initVariants.length > 0);
+  const [variants, setVariants] = useState<VariantRow[]>(initVariants.length ? initVariants : [newVariant()]);
+
+  const setVariant = (i: number, field: keyof VariantRow, val: string | null) =>
+    setVariants((prev) => prev.map((v, idx) => (idx === i ? { ...v, [field]: val } : v)));
 
   // Importer UI state
   const [url, setUrl] = useState("");
@@ -95,6 +123,8 @@ export default function ProductForm({
     setUkuran(product?.ukuran || []);
     setImages(product?.gambar || []);
     setSizeChart(product?.sizeChart ?? null);
+    setHasVariants(initVariants.length > 0);
+    setVariants(initVariants.length ? initVariants : [newVariant()]);
     setUrl("");
     setImportMsg(null);
   }
@@ -145,8 +175,9 @@ export default function ProductForm({
             <input name="brand" value={brand} onChange={(e) => setBrand(e.target.value)} className="field" />
           </div>
           <div>
-            <label className="label">Harga (Rp) *</label>
-            <input name="harga" type="number" required value={harga} onChange={(e) => setHarga(e.target.value)} className="field" />
+            <label className="label">Harga (Rp) {hasVariants ? "" : "*"}</label>
+            <input name="harga" type="number" required={!hasVariants} value={harga} onChange={(e) => setHarga(e.target.value)} className="field" disabled={hasVariants} />
+            {hasVariants && <p className="mt-1 text-xs text-gray-400">Otomatis dari harga varian termurah.</p>}
           </div>
         </div>
 
@@ -175,6 +206,76 @@ export default function ProductForm({
             <option value="READY">Ready</option>
             <option value="SOLD">Sold</option>
           </select>
+        </div>
+
+        {/* Varian: warna + ukuran, masing-masing harga/stok/foto sendiri */}
+        <div className="rounded-lg border border-gray-200 p-4">
+          <label className="flex items-center gap-2 font-semibold text-gray-900">
+            <input type="checkbox" checked={hasVariants} onChange={(e) => setHasVariants(e.target.checked)} />
+            Produk punya varian (warna / ukuran)
+          </label>
+
+          {hasVariants && (
+            <div className="mt-4 space-y-3">
+              {variants.map((v, i) => (
+                <div key={v.key} className="rounded-lg border bg-gray-50 p-3">
+                  <div className="grid gap-2 sm:grid-cols-4">
+                    <div>
+                      <label className="label">Warna *</label>
+                      <input name="v_warna" value={v.warna} onChange={(e) => setVariant(i, "warna", e.target.value)} placeholder="Biru" className="field" />
+                    </div>
+                    <div>
+                      <label className="label">Ukuran</label>
+                      <input name="v_ukuran" value={v.ukuran} onChange={(e) => setVariant(i, "ukuran", e.target.value)} placeholder="1.20mm (opsional)" className="field" />
+                    </div>
+                    <div>
+                      <label className="label">Harga (Rp) *</label>
+                      <input name="v_harga" type="number" value={v.harga} onChange={(e) => setVariant(i, "harga", e.target.value)} placeholder="174000" className="field" />
+                    </div>
+                    <div>
+                      <label className="label">Stok</label>
+                      <input name="v_stok" type="number" value={v.stok} onChange={(e) => setVariant(i, "stok", e.target.value)} placeholder="16" className="field" />
+                    </div>
+                  </div>
+                  <div className="mt-2 flex items-center gap-3">
+                    {v.gambar ? (
+                      <span className="flex items-center gap-2">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={v.gambar} alt="" className="h-12 w-12 rounded border object-contain" />
+                        <input type="hidden" name="v_existingGambar" value={v.gambar} />
+                        <button type="button" onClick={() => setVariant(i, "gambar", null)} className="text-xs text-red-500 hover:underline">
+                          Hapus foto
+                        </button>
+                      </span>
+                    ) : (
+                      <input type="hidden" name="v_existingGambar" value="" />
+                    )}
+                    <label className="text-xs text-gray-500">
+                      Foto warna: <input name="v_gambar" type="file" accept="image/*" className="text-xs" />
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setVariants((prev) => prev.filter((_, idx) => idx !== i))}
+                      className="ml-auto text-xs font-semibold text-red-500 hover:underline"
+                    >
+                      Hapus baris
+                    </button>
+                  </div>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => setVariants((prev) => [...prev, newVariant()])}
+                className="rounded-full border px-4 py-2 text-sm font-semibold text-primary hover:border-primary"
+              >
+                + Tambah varian
+              </button>
+              <p className="text-xs text-gray-400">
+                Satu baris = satu kombinasi. Untuk warna yang punya beberapa ukuran, buat baris per ukuran dengan warna sama.
+                Foto cukup diisi di salah satu baris tiap warna.
+              </p>
+            </div>
+          )}
         </div>
 
         <div>

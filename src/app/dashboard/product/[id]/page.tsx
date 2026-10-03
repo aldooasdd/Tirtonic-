@@ -13,7 +13,14 @@ export const metadata = { title: "Edit Produk — Tirtonic" };
 export default async function EditProductPage({ params }: { params: { id: string } }) {
   if (!isAuthed()) redirect("/dashboard/login");
 
-  const product = await safeQuery(() => prisma.product.findUnique({ where: { id: params.id } }), null);
+  const product = await safeQuery(
+    () =>
+      prisma.product.findUnique({
+        where: { id: params.id },
+        include: { variants: { orderBy: { urutan: "asc" } } },
+      }),
+    null
+  );
   if (!product) notFound();
 
   return (

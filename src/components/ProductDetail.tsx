@@ -5,6 +5,8 @@ import { useEffect, useRef, useState } from "react";
 import { rupiah, waLink } from "@/lib/format";
 import { useFav } from "./CartProvider";
 
+type Variant = { warna: string; ukuran: string; harga: number; stok: number; gambar: string | null };
+
 type P = {
   id: string;
   nama: string;
@@ -16,6 +18,7 @@ type P = {
   ukuran: string[];
   sizeChart?: string | null;
   status: "READY" | "SOLD";
+  variants?: Variant[];
 };
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -32,8 +35,20 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 }
 
 export default function ProductDetail({ p }: { p: P }) {
+  const variants = p.variants || [];
+  const hasVar = variants.length > 0;
+  const hasSizeAxis = variants.some((v) => v.ukuran !== "");
+  // unique colors in order, each with its first available photo
+  const colors = variants.reduce<{ warna: string; gambar: string | null }[]>((acc, v) => {
+    const found = acc.find((c) => c.warna === v.warna);
+    if (!found) acc.push({ warna: v.warna, gambar: v.gambar });
+    else if (!found.gambar && v.gambar) found.gambar = v.gambar;
+    return acc;
+  }, []);
+
   const [active, setActive] = useState(0);
   const [size, setSize] = useState("");
+  const [color, setColor] = useState(hasVar ? colors[0].warna : "");
   const [url, setUrl] = useState("");
   const [showChart, setShowChart] = useState(false);
   const [descOpen, setDescOpen] = useState(false);
@@ -43,6 +58,11 @@ export default function ProductDetail({ p }: { p: P }) {
   const scrollerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => setUrl(window.location.href), []);
+  // when the color changes, its photo becomes first — jump the gallery back to the start
+  useEffect(() => {
+    setActive(0);
+    scrollerRef.current?.scrollTo({ left: 0 });
+  }, [color]);
 
   const scrollToIdx = (i: number) => {
     const el = scrollerRef.current;
@@ -55,10 +75,36 @@ export default function ProductDetail({ p }: { p: P }) {
   };
 
   const sold = p.status === "SOLD";
-  const needSize = p.ukuran.length > 0;
-  const ready = !sold && (!needSize || size);
+  const needSize = !hasVar && p.ukuran.length > 0; // shoe sizes, only when there are no variants
 
-  const orderMsg = `Halo Admin Tirtonic, saya mau pesan: ${p.nama}${size ? ` (ukuran ${size})` : ""}. Apakah masih ready?`;
+  // variant selection
+  const sizesForColor = variants.filter((v) => v.warna === color);
+  const selVariant = hasVar
+    ? hasSizeAxis
+      ? variants.find((v) => v.warna === color && v.ukuran === size)
+      : variants.find((v) => v.warna === color)
+    : undefined;
+  const colorImg = hasVar ? colors.find((c) => c.warna === color)?.gambar ?? null : null;
+  const gallery = colorImg ? [colorImg, ...p.gambar.filter((g) => g !== colorImg)] : p.gambar;
+
+  // price shown: selected variant, else "mulai dari" cheapest, else plain product price
+  const minVar = hasVar ? Math.min(...variants.map((v) => v.harga)) : p.harga;
+  const priceNum = selVariant ? selVariant.harga : minVar;
+  const showFrom = hasVar && !selVariant;
+
+  const ready = hasVar
+    ? !sold && !!selVariant && selVariant.stok > 0
+    : !sold && (!needSize || !!size);
+
+  const variantLabel = hasVar ? ` (Warna ${color}${hasSizeAxis && size ? `, ${size}` : ""})` : size ? ` (ukuran ${size})` : "";
+  const orderMsg = `Halo Admin Tirtonic, saya mau pesan: ${p.nama}${variantLabel}. Apakah masih ready?`;
+  const disabledMsg = sold
+    ? "Stok Habis"
+    : hasVar
+    ? !selVariant
+      ? "Pilih varian dulu"
+      : "Stok Habis"
+    : "Pilih ukuran dulu";
   const share = {
     wa: `https://wa.me/?text=${encodeURIComponent(p.nama + " " + url)}`,
     ig: process.env.NEXT_PUBLIC_INSTAGRAM || "https://instagram.com/tirtonic",
@@ -83,24 +129,24 @@ export default function ProductDetail({ p }: { p: P }) {
         {/* gallery */}
         <div>
           <div className="relative aspect-square overflow-hidden rounded-lg bg-gray-100">
-            {p.gambar.length > 0 ? (
+            {gallery.length > 0 ? (
               <div
                 ref={scrollerRef}
                 onScroll={onGalleryScroll}
                 className="flex h-full w-full snap-x snap-mandatory overflow-x-auto scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
               >
-                {p.gambar.map((g, i) => (
+                {gallery.map((g, i) => (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img key={i} src={g} alt={p.nama} className="h-full w-full shrink-0 snap-center object-cover" />
+                  <img key={g + i} src={g} alt={p.nama} className="h-full w-full shrink-0 snap-center object-cover" />
                 ))}
               </div>
             ) : (
               <div className="flex h-full w-full items-center justify-center text-gray-300">No image</div>
             )}
           </div>
-          {p.gambar.length > 1 && (
+          {gallery.length > 1 && (
             <div className="mt-4 flex justify-center gap-2">
-              {p.gambar.map((_, i) => (
+              {gallery.map((_, i) => (
                 <button
                   key={i}
                   onClick={() => scrollToIdx(i)}
@@ -117,7 +163,7 @@ export default function ProductDetail({ p }: { p: P }) {
           <h1 className="text-3xl font-extrabold leading-tight text-gray-900">{p.nama}</h1>
 
           <div className="mt-3 flex items-center justify-between">
-            <p className="text-2xl font-bold text-gray-900">{rupiah(p.harga)}</p>
+            <p className="text-2xl font-bold text-gray-900">{showFrom ? `mulai ${rupiah(priceNum)}` : rupiah(priceNum)}</p>
             {/* Size chart only matters for sized products (shoes); hide it otherwise. */}
             {needSize &&
               (p.sizeChart ? (
@@ -134,6 +180,75 @@ export default function ProductDetail({ p }: { p: P }) {
           <span className={`mt-3 inline-block rounded-full px-3 py-1 text-xs font-semibold text-white ${sold ? "bg-red-500" : "bg-primary"}`}>
             {sold ? "Sold Out" : "Ready Stock"}
           </span>
+
+          {hasVar && (
+            <div className="mt-6 space-y-5">
+              {/* Color */}
+              <div>
+                <p className="mb-2 text-sm font-semibold text-gray-900">
+                  Pilih warna: <span className="font-normal text-gray-600">{color}</span>
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {colors.map((c) => (
+                    <button
+                      key={c.warna}
+                      onClick={() => {
+                        setColor(c.warna);
+                        setSize("");
+                      }}
+                      className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition ${
+                        color === c.warna ? "border-primary bg-primary/10 text-primary" : "border-gray-300 text-gray-700 hover:border-primary"
+                      }`}
+                    >
+                      {c.gambar && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={c.gambar} alt="" className="h-6 w-6 rounded object-cover" />
+                      )}
+                      {c.warna}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Size (second axis) */}
+              {hasSizeAxis && (
+                <div>
+                  <p className="mb-2 text-sm font-semibold text-gray-900">
+                    Pilih ukuran: <span className="font-normal text-gray-600">{size || "-"}</span>
+                  </p>
+                  <div className="flex flex-wrap gap-3">
+                    {sizesForColor.map((v) => {
+                      const habis = v.stok <= 0;
+                      return (
+                        <button
+                          key={v.ukuran}
+                          disabled={habis}
+                          onClick={() => setSize(v.ukuran)}
+                          className={`min-w-[64px] rounded-lg border px-4 py-3 text-sm font-medium transition ${
+                            habis
+                              ? "cursor-not-allowed border-gray-200 text-gray-300 line-through"
+                              : size === v.ukuran
+                              ? "border-primary bg-primary text-white"
+                              : "border-gray-300 text-gray-700 hover:border-primary"
+                          }`}
+                        >
+                          {v.ukuran}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Stock of the chosen combo */}
+              {selVariant && (
+                <p className="text-sm text-gray-600">
+                  Stok: <span className="font-semibold text-gray-900">{selVariant.stok}</span>
+                  {selVariant.stok <= 0 && <span className="ml-2 font-semibold text-red-500">Habis</span>}
+                </p>
+              )}
+            </div>
+          )}
 
           {needSize && (
             <div className="mt-6">
@@ -161,11 +276,11 @@ export default function ProductDetail({ p }: { p: P }) {
               </a>
             ) : (
               <button disabled className="btn-pill flex-1 cursor-not-allowed bg-gray-200 text-gray-400">
-                {sold ? "Stok Habis" : "Pilih ukuran dulu"}
+                {disabledMsg}
               </button>
             )}
             <button
-              onClick={() => toggle({ id: p.id, nama: p.nama, harga: p.harga, gambar: p.gambar[0] ?? null })}
+              onClick={() => toggle({ id: p.id, nama: p.nama, harga: priceNum, gambar: colorImg ?? p.gambar[0] ?? null })}
               aria-label="Favorit"
               className={`flex h-[52px] w-[52px] items-center justify-center rounded-xl border transition ${
                 fav ? "border-red-300 bg-red-50 text-red-500" : "border-gray-300 text-gray-600 hover:border-primary"

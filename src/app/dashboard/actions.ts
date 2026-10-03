@@ -56,6 +56,41 @@ function parseData(formData: FormData) {
   };
 }
 
+type VariantInput = { warna: string; ukuran: string; harga: number; stok: number; gambar: string | null; urutan: number };
+
+/** Parse the variant rows from the form (aligned arrays) and upload any new per-row photos.
+ *  A row needs a warna + harga to count; blank rows are skipped. */
+async function parseVariants(formData: FormData): Promise<VariantInput[]> {
+  const warna = formData.getAll("v_warna").map(String);
+  const ukuran = formData.getAll("v_ukuran").map(String);
+  const harga = formData.getAll("v_harga").map(String);
+  const stok = formData.getAll("v_stok").map(String);
+  const existing = formData.getAll("v_existingGambar").map(String);
+  const files = formData.getAll("v_gambar");
+
+  const out: VariantInput[] = [];
+  for (let i = 0; i < warna.length; i++) {
+    const w = (warna[i] || "").trim();
+    const h = parseInt((harga[i] || "0").replace(/\D/g, ""), 10) || 0;
+    if (!w || h <= 0) continue; // skip incomplete rows
+    const f = files[i];
+    let gambar: string | null = (existing[i] || "") || null;
+    if (f instanceof File && f.size > 0) {
+      if (!storageConfigured) throw new Error("Supabase Storage belum dikonfigurasi (cek .env).");
+      gambar = await uploadFile(f, "products");
+    }
+    out.push({
+      warna: w,
+      ukuran: (ukuran[i] || "").trim(),
+      harga: h,
+      stok: parseInt((stok[i] || "0").replace(/\D/g, ""), 10) || 0,
+      gambar,
+      urutan: i,
+    });
+  }
+  return out;
+}
+
 /** Resolve the size chart: a newly uploaded file wins, else the existing/imported URL. */
 async function resolveSizeChart(formData: FormData): Promise<string | null> {
   const file = formData.get("sizeChartFile");
@@ -73,7 +108,12 @@ export async function createProduct(formData: FormData) {
   const existing = formData.getAll("existingGambar").map(String);
   const uploaded = await uploadImages(formData);
   const sizeChart = await resolveSizeChart(formData);
-  await prisma.product.create({ data: { ...data, gambar: [...existing, ...uploaded], sizeChart } });
+  const variants = await parseVariants(formData);
+  // With variants, the product's headline price is the cheapest variant (keeps shop sort/filter working).
+  const harga = variants.length ? Math.min(...variants.map((v) => v.harga)) : data.harga;
+  await prisma.product.create({
+    data: { ...data, harga, gambar: [...existing, ...uploaded], sizeChart, variants: { create: variants } },
+  });
   revalidatePublic();
   redirect("/dashboard");
 }
@@ -127,9 +167,17 @@ export async function updateProduct(id: string, formData: FormData) {
   const existing = formData.getAll("existingGambar").map(String);
   const uploaded = await uploadImages(formData);
   const sizeChart = await resolveSizeChart(formData);
+  const variants = await parseVariants(formData);
+  const harga = variants.length ? Math.min(...variants.map((v) => v.harga)) : data.harga;
   await prisma.product.update({
     where: { id },
-    data: { ...data, gambar: [...existing, ...uploaded], sizeChart },
+    data: {
+      ...data,
+      harga,
+      gambar: [...existing, ...uploaded],
+      sizeChart,
+      variants: { deleteMany: {}, create: variants }, // replace the whole set
+    },
   });
   revalidatePublic(id);
   redirect("/dashboard");

@@ -7,7 +7,14 @@ import ProductCard from "@/components/ProductCard";
 export const dynamic = "force-dynamic";
 
 export default async function ProductPage({ params }: { params: { id: string } }) {
-  const p = await safeQuery(() => prisma.product.findUnique({ where: { id: params.id } }), null);
+  const p = await safeQuery(
+    () =>
+      prisma.product.findUnique({
+        where: { id: params.id },
+        include: { variants: { orderBy: { urutan: "asc" } } },
+      }),
+    null
+  );
   if (!p) notFound();
 
   // Count the view — fire-and-forget so it never blocks or breaks the page render.
@@ -19,6 +26,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
         where: { kategori: p.kategori, id: { not: p.id } },
         orderBy: { createdAt: "desc" },
         take: 12,
+        include: { _count: { select: { variants: true } } },
       }),
     []
   );
@@ -37,6 +45,13 @@ export default async function ProductPage({ params }: { params: { id: string } }
           ukuran: p.ukuran,
           sizeChart: p.sizeChart,
           status: p.status,
+          variants: p.variants.map((v) => ({
+            warna: v.warna,
+            ukuran: v.ukuran,
+            harga: v.harga,
+            stok: v.stok,
+            gambar: v.gambar,
+          })),
         }}
       />
 
@@ -50,7 +65,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
             {related.map((r) => (
               <div key={r.id} className="snap-item w-[160px] shrink-0 sm:w-[220px]">
                 <ProductCard
-                  p={{ id: r.id, nama: r.nama, harga: r.harga, gambar: r.gambar, status: r.status }}
+                  p={{ id: r.id, nama: r.nama, harga: r.harga, gambar: r.gambar, status: r.status, fromPrice: r._count.variants > 0 }}
                 />
               </div>
             ))}

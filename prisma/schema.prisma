@@ -25,8 +25,25 @@ model Product {
   ukuran    String[] // shoe sizes, only for Sepatu Tenis
   status    StockStatus @default(READY)
   views     Int         @default(0) // product-page view counter
+  variants  ProductVariant[]
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
+}
+
+// A color+size combo with its own price, stock and (per-color) photo.
+// A product with zero variants behaves as before (single harga + optional ukuran).
+model ProductVariant {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  warna     String // color name, e.g. "Biru"
+  ukuran    String  @default("") // second axis, e.g. "1.20mm"; "" if the product has no size axis
+  harga     Int // rupiah for this combo
+  stok      Int     @default(0)
+  gambar    String? // photo for this color (Supabase Storage URL)
+  urutan    Int     @default(0)
+
+  @@index([productId])
 }
 
 model Article {

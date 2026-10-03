@@ -8,6 +8,7 @@ export type ProductCardData = {
   harga: number;
   gambar: string[];
   status: "READY" | "SOLD";
+  fromPrice?: boolean; // true → show "mulai Rp ..." (product has variants)
 };
 
 export default function ProductCard({ p, thinPrice = false }: { p: ProductCardData; thinPrice?: boolean }) {
@@ -29,7 +30,9 @@ export default function ProductCard({ p, thinPrice = false }: { p: ProductCardDa
 
       <Link href={href} className="block p-3">
         <h3 className="line-clamp-2 min-h-[2.5rem] text-sm font-normal text-gray-800 group-hover:text-primary">{p.nama}</h3>
-        <p className={`mt-1 text-base text-gray-900 ${thinPrice ? "font-thin" : "font-bold"}`}>{rupiah(p.harga)}</p>
+        <p className={`mt-1 text-base text-gray-900 ${thinPrice ? "font-thin" : "font-bold"}`}>
+          {p.fromPrice ? `mulai ${rupiah(p.harga)}` : rupiah(p.harga)}
+        </p>
       </Link>
     </div>
   );

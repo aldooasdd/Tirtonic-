@@ -46,6 +46,7 @@ export default async function ShopPage({ searchParams }: { searchParams: SP }) {
           orderBy: orderBy(searchParams.sort),
           skip: (page - 1) * PER_PAGE,
           take: PER_PAGE,
+          include: { _count: { select: { variants: true } } },
         }),
       []
     ),
@@ -61,6 +62,7 @@ export default async function ShopPage({ searchParams }: { searchParams: SP }) {
     harga: p.harga,
     gambar: p.gambar,
     status: p.status,
+    fromPrice: p._count.variants > 0,
   }));
 
   return (

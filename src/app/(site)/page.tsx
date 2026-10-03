@@ -134,9 +134,9 @@ export default async function HomePage() {
       () => prisma.heroSlide.findMany({ orderBy: [{ urutan: "asc" }, { createdAt: "asc" }] }),
       []
     ),
-    safeQuery(() => prisma.product.findMany({ orderBy: { createdAt: "desc" }, take: 12 }), []),
+    safeQuery(() => prisma.product.findMany({ orderBy: { createdAt: "desc" }, take: 12, include: { _count: { select: { variants: true } } } }), []),
   ]);
-  const arrivals = latest.map((p) => ({ id: p.id, nama: p.nama, harga: p.harga, gambar: p.gambar, status: p.status }));
+  const arrivals = latest.map((p) => ({ id: p.id, nama: p.nama, harga: p.harga, gambar: p.gambar, status: p.status, fromPrice: p._count.variants > 0 }));
   const storeItems = stores.map((s) => ({
     id: s.id,
     nama: s.nama,
