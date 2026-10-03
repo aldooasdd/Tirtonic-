@@ -93,7 +93,7 @@ function BestDeal({ products }: { products: ProductCardData[] }) {
           Best Deal {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo.png" alt="" className="h-7 w-7" />
         </h2>
-        <Link href="/shop" className="text-sm font-semibold text-primary hover:underline">
+        <Link href="/shop?deal=1" className="text-sm font-semibold text-primary hover:underline">
           View All
         </Link>
       </div>

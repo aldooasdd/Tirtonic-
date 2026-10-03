@@ -6,7 +6,7 @@ import { Suspense } from "react";
 
 export const dynamic = "force-dynamic";
 
-type SP = { sort?: string; size?: string; brand?: string; type?: string; q?: string; price?: string; page?: string };
+type SP = { sort?: string; size?: string; brand?: string; type?: string; q?: string; price?: string; page?: string; deal?: string };
 
 const PER_PAGE = 12;
 
@@ -29,6 +29,7 @@ export default async function ShopPage({ searchParams }: { searchParams: SP }) {
   if (searchParams.brand) where.brand = searchParams.brand;
   if (searchParams.size) where.ukuran = { has: searchParams.size };
   if (searchParams.q) where.nama = { contains: searchParams.q, mode: "insensitive" };
+  if (searchParams.deal) where.hargaDiskon = { not: null }; // hanya barang diskon (Best Deal)
   if (searchParams.price) {
     const [min, max] = searchParams.price.split("-").map((n) => (n ? parseInt(n, 10) : undefined));
     where.harga = { gte: min ?? 0, ...(max ? { lte: max } : {}) };
