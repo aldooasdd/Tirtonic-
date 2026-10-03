@@ -60,6 +60,7 @@ export default async function ShopPage({ searchParams }: { searchParams: SP }) {
     id: p.id,
     nama: p.nama,
     harga: p.harga,
+    hargaCoret: p.hargaCoret,
     gambar: p.gambar,
     status: p.status,
     fromPrice: p._count.variants > 0,

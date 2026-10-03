@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { rupiah, waLink } from "@/lib/format";
 import { useFav } from "./CartProvider";
 
-type Variant = { warna: string; ukuran: string; harga: number; stok: number; gambar: string | null };
+type Variant = { warna: string; ukuran: string; harga: number; hargaCoret?: number | null; stok: number; gambar: string | null };
 
 type P = {
   id: string;
@@ -14,6 +14,7 @@ type P = {
   kategori: string;
   brand: string | null;
   harga: number;
+  hargaCoret?: number | null;
   deskripsi: string | null;
   gambar: string[];
   ukuran: string[];
@@ -91,6 +92,10 @@ export default function ProductDetail({ p }: { p: P }) {
   // price shown: selected variant, else "mulai dari" cheapest, else plain product price
   const minVar = hasVar ? Math.min(...variants.map((v) => v.harga)) : p.harga;
   const priceNum = selVariant ? selVariant.harga : minVar;
+  const cheapestVar = hasVar ? variants.reduce((a, b) => (b.harga < a.harga ? b : a)) : null;
+  const coretNum = selVariant ? selVariant.hargaCoret ?? null : hasVar ? cheapestVar?.hargaCoret ?? null : p.hargaCoret ?? null;
+  const discounted = coretNum != null && coretNum > priceNum;
+  const pct = discounted ? Math.round((1 - priceNum / coretNum!) * 100) : 0;
 
   const ready = hasVar
     ? !sold && !!selVariant && selVariant.stok > 0
@@ -164,7 +169,13 @@ export default function ProductDetail({ p }: { p: P }) {
           <h1 className="text-3xl font-extrabold leading-tight text-gray-900">{p.nama}</h1>
 
           <div className="mt-3 flex items-center justify-between">
-            <p className="text-2xl font-bold text-gray-900">{rupiah(priceNum)}</p>
+            <div>
+              <div className="flex items-center gap-2">
+                <p className="text-2xl font-bold text-gray-900">{rupiah(priceNum)}</p>
+                {discounted && <span className="rounded bg-red-500 px-1.5 py-0.5 text-xs font-bold text-white">-{pct}%</span>}
+              </div>
+              {discounted && <p className="text-sm text-gray-400 line-through">{rupiah(coretNum!)}</p>}
+            </div>
             {/* Size chart only matters for sized products (shoes); hide it otherwise. */}
             {needSize &&
               (p.sizeChart ? (

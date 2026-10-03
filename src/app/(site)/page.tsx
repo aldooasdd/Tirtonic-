@@ -84,6 +84,30 @@ function NewArrival({ products }: { products: ProductCardData[] }) {
   );
 }
 
+function BestDeal({ products }: { products: ProductCardData[] }) {
+  if (products.length === 0) return null;
+  return (
+    <section className="mx-auto max-w-site px-4 py-2">
+      <div className="mb-1.5 flex items-center justify-between gap-3">
+        <h2 className="flex items-center gap-2 text-xl font-extrabold text-gray-900">
+          Best Deal {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.png" alt="" className="h-7 w-7" />
+        </h2>
+        <Link href="/shop" className="text-sm font-semibold text-primary hover:underline">
+          View All
+        </Link>
+      </div>
+      <div className="snap-x-carousel flex gap-4 overflow-x-auto pb-2">
+        {products.map((p) => (
+          <div key={p.id} className="snap-item w-[200px] shrink-0 sm:w-[220px]">
+            <ProductCard p={p} thinPrice />
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function NewArticles({ articles }: { articles: ArticleCardData[] }) {
   return (
     <section className="mx-auto max-w-site px-4 pb-10 pt-2">
@@ -127,7 +151,7 @@ function NewArticles({ articles }: { articles: ArticleCardData[] }) {
 }
 
 export default async function HomePage() {
-  const [stores, articles, slides, latest] = await Promise.all([
+  const [stores, articles, slides, latest, deals] = await Promise.all([
     safeQuery(() => prisma.store.findMany({ orderBy: [{ urutan: "asc" }, { nama: "asc" }] }), []),
     safeQuery(() => prisma.article.findMany({ orderBy: { tanggal: "desc" }, take: 8 }), []),
     safeQuery(
@@ -135,8 +159,12 @@ export default async function HomePage() {
       []
     ),
     safeQuery(() => prisma.product.findMany({ orderBy: { createdAt: "desc" }, take: 12, include: { _count: { select: { variants: true } } } }), []),
+    safeQuery(() => prisma.product.findMany({ where: { hargaCoret: { not: null } }, orderBy: { updatedAt: "desc" }, take: 16, include: { _count: { select: { variants: true } } } }), []),
   ]);
-  const arrivals = latest.map((p) => ({ id: p.id, nama: p.nama, harga: p.harga, gambar: p.gambar, status: p.status, fromPrice: p._count.variants > 0 }));
+  const toCard = (p: (typeof latest)[number]) => ({ id: p.id, nama: p.nama, harga: p.harga, hargaCoret: p.hargaCoret, gambar: p.gambar, status: p.status, fromPrice: p._count.variants > 0 });
+  const arrivals = latest.map(toCard);
+  // only keep real discounts (coret > harga), cap at 12
+  const bestDeals = deals.filter((p) => p.hargaCoret != null && p.hargaCoret > p.harga).slice(0, 12).map(toCard);
   const storeItems = stores.map((s) => ({
     id: s.id,
     nama: s.nama,
@@ -158,6 +186,7 @@ export default async function HomePage() {
         </p>
       </div>
       <OurStore stores={storeItems} />
+      <BestDeal products={bestDeals} />
       <NewArrival products={arrivals} />
       <NewArticles articles={articles} />
       <SeoBlock />
