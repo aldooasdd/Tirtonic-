@@ -4,7 +4,7 @@ export const KATEGORI = [
   "String & Grip",
   "Tas & Aksesoris",
   "Bola Tenis",
-  "Aparel",
+  "Apparel",
 ] as const;
 
 export const SHOE_SIZES = [
