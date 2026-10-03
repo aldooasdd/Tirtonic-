@@ -81,6 +81,14 @@ export default function ProductForm({
   const setVariant = (i: number, field: keyof VariantRow, val: string | null) =>
     setVariants((prev) => prev.map((v, idx) => (idx === i ? { ...v, [field]: val } : v)));
 
+  // Bulk set harga semua varian (praktis buat produk impor yang variannya banyak)
+  const [bulkHarga, setBulkHarga] = useState("");
+  const applyBulkHarga = () => {
+    const v = bulkHarga.replace(/\D/g, "");
+    if (!v) return;
+    setVariants((prev) => prev.map((row) => ({ ...row, harga: v })));
+  };
+
   // Importer UI state
   const [url, setUrl] = useState("");
   const [importing, setImporting] = useState(false);
@@ -255,6 +263,21 @@ export default function ProductForm({
 
           {hasVariants && (
             <div className="mt-4 space-y-3">
+              <div className="flex flex-wrap items-end gap-2 rounded-lg bg-primary/5 p-3">
+                <div className="flex-1">
+                  <label className="label">Set harga semua varian (Rp)</label>
+                  <input
+                    type="number"
+                    value={bulkHarga}
+                    onChange={(e) => setBulkHarga(e.target.value)}
+                    placeholder="mis. 150000"
+                    className="field"
+                  />
+                </div>
+                <button type="button" onClick={applyBulkHarga} className="btn-green shrink-0">
+                  Terapkan ke semua
+                </button>
+              </div>
               {variants.map((v, i) => (
                 <div key={v.key} className="rounded-lg border bg-gray-50 p-3">
                   <div className="grid gap-2 sm:grid-cols-5">
