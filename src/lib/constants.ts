@@ -13,14 +13,6 @@ export const SHOE_SIZES = [
   "44", "44,5", "45", "45,5", "46",
 ];
 
-// ponytail: ongkir flat/manual dulu. Ganti ke tarif kurir asli (Biteship/RajaOngkir)
-// saat butuh — cukup ganti sumber opsi ini & tambah pemilihan kota tujuan.
-export const SHIPPING_OPTIONS: { id: string; label: string; cost: number }[] = [
-  { id: "reguler", label: "Reguler (2-4 hari)", cost: 20000 },
-  { id: "kilat", label: "Kilat (1-2 hari)", cost: 35000 },
-  { id: "ambil", label: "Ambil di toko", cost: 0 },
-];
-
 export const JENIS_EVENT = ["Turnamen", "Coaching Clinic", "Ekshibisi", "Lainnya"];
 
 export const BENTUK_SPONSORSHIP = [
