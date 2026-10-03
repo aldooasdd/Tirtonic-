@@ -20,7 +20,7 @@ export default function SponsorshipDeleteButton({ id }: { id: string }) {
     <button
       onClick={remove}
       disabled={pending}
-      className="shrink-0 rounded-md border px-2.5 py-1 text-xs font-medium text-gray-500 transition hover:border-red-400 hover:text-red-600 disabled:opacity-50"
+      className="shrink-0 rounded-md border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-600 transition hover:bg-red-100 disabled:opacity-50"
     >
       {pending ? "..." : "Hapus"}
     </button>
