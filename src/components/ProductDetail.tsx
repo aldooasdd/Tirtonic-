@@ -90,7 +90,6 @@ export default function ProductDetail({ p }: { p: P }) {
   // price shown: selected variant, else "mulai dari" cheapest, else plain product price
   const minVar = hasVar ? Math.min(...variants.map((v) => v.harga)) : p.harga;
   const priceNum = selVariant ? selVariant.harga : minVar;
-  const showFrom = hasVar && !selVariant;
 
   const ready = hasVar
     ? !sold && !!selVariant && selVariant.stok > 0
@@ -163,7 +162,7 @@ export default function ProductDetail({ p }: { p: P }) {
           <h1 className="text-3xl font-extrabold leading-tight text-gray-900">{p.nama}</h1>
 
           <div className="mt-3 flex items-center justify-between">
-            <p className="text-2xl font-bold text-gray-900">{showFrom ? `mulai ${rupiah(priceNum)}` : rupiah(priceNum)}</p>
+            <p className="text-2xl font-bold text-gray-900">{rupiah(priceNum)}</p>
             {/* Size chart only matters for sized products (shoes); hide it otherwise. */}
             {needSize &&
               (p.sizeChart ? (
