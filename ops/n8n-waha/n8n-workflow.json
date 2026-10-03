@@ -1,0 +1,87 @@
+{
+  "name": "Tirtonic — Notifikasi WA Pesanan",
+  "nodes": [
+    {
+      "parameters": { "httpMethod": "POST", "path": "tirtonic-order", "options": {} },
+      "id": "9713a2c8-95e3-4db4-9b98-c0f3a9b46e5e",
+      "name": "Webhook Pesanan",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [240, 304],
+      "webhookId": "tirtonic-order"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const item=$input.first().json; const b=item.body||item; const NL=String.fromCharCode(10); const digits=String((b.customer&&b.customer.telepon)||'').replace(/[^0-9]/g,''); const phone=digits.indexOf('62')===0?digits:digits.replace(/^0/,'62'); const chatId=phone+'@c.us'; function rupiah(n){return 'Rp '+Number(n||0).toLocaleString('id-ID');} function lineOf(i){return '- '+i.qty+'x '+i.nama+(i.varian?' ('+i.varian+')':'');} const list=(b.items||[]).map(lineOf).join(NL); const nama=(b.customer&&b.customer.nama)||''; const tel=(b.customer&&b.customer.telepon)||''; const email=(b.customer&&b.customer.email)||'-'; const metode=b.metodeBayar||'-'; const catatan=b.catatan||'-'; const al=b.alamat||{}; const alamatFull=(al.alamat||'')+', '+(al.kota||'')+', '+(al.provinsi||'')+' '+(al.kodePos||''); let waText; if(b.event==='paid'){waText='Halo '+nama+', pembayaran pesanan *'+b.invoice+'* sudah kami terima. Terima kasih!'+NL+NL+list+NL+'Total: '+rupiah(b.total)+NL+NL+'Pesananmu segera diproses. Cek status: '+b.orderUrl;}else{waText='Halo '+nama+', pesanan *'+b.invoice+'* sudah dikirim.'+NL+NL+'Kurir: '+b.kurir+NL+'No. Resi: *'+b.resi+'*'+NL+NL+'Lacak resi di aplikasi/website kurir terkait. Terima kasih!';} const waGudang='Mohon bantuannya untuk dapat mengisi data berikut🙌🏻:'+NL+NL+'Invoice : '+b.invoice+NL+'Order :'+NL+list+NL+'Total : '+rupiah(b.total)+NL+'Metode bayar : '+metode+NL+NL+'Nama : '+nama+NL+'Nomer : '+tel+NL+'Email : '+email+NL+'Alamat : '+alamatFull+NL+'Catatan : '+catatan; return [{json:{event:b.event,chatId:chatId,waText:waText,waGudang:waGudang}}];"
+      },
+      "id": "164c46fe-b73d-4512-8893-50dd13115076",
+      "name": "Siapkan Pesan",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 176]
+    },
+    {
+      "parameters": {
+        "resource": "Chatting",
+        "operation": "Send Text",
+        "session": "admin_tirtonic",
+        "chatId": "={{ $json.chatId }}",
+        "text": "={{ $json.waText }}",
+        "linkPreview": false,
+        "requestOptions": {}
+      },
+      "id": "8050d1ba-8a8a-439f-addd-a75039351515",
+      "name": "Kirim WhatsApp",
+      "type": "@devlikeapro/n8n-nodes-waha.WAHA",
+      "typeVersion": 202502,
+      "position": [704, 176],
+      "credentials": { "wahaApi": { "name": "WAHA account" } }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
+          "conditions": [
+            { "leftValue": "={{ $json.event }}", "rightValue": "paid", "operator": { "type": "string", "operation": "equals" }, "id": "a3c948e7-a8ee-4799-b132-df2ad58ad62c" }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "fa4197db-f062-4916-beba-47e8a6c8f865",
+      "name": "Cek Lunas",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [480, 416]
+    },
+    {
+      "parameters": {
+        "resource": "Chatting",
+        "operation": "Send Text",
+        "session": "admin_tirtonic",
+        "chatId": "6285163215511@c.us",
+        "text": "={{ $json.waGudang }}",
+        "linkPreview": false,
+        "requestOptions": {}
+      },
+      "id": "28dc63f3-8e55-42fb-aed4-b276cb6b2157",
+      "name": "Kirim WA Gudang",
+      "type": "@devlikeapro/n8n-nodes-waha.WAHA",
+      "typeVersion": 202502,
+      "position": [832, 400],
+      "credentials": { "wahaApi": { "name": "WAHA account" } }
+    }
+  ],
+  "connections": {
+    "Webhook Pesanan": { "main": [[{ "node": "Siapkan Pesan", "type": "main", "index": 0 }]] },
+    "Siapkan Pesan": {
+      "main": [[
+        { "node": "Kirim WhatsApp", "type": "main", "index": 0 },
+        { "node": "Cek Lunas", "type": "main", "index": 0 }
+      ]]
+    },
+    "Cek Lunas": { "main": [[{ "node": "Kirim WA Gudang", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" }
+}

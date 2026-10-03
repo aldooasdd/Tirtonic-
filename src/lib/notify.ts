@@ -24,6 +24,7 @@ type OrderLike = {
   status: string;
   resi: string | null;
   metodeBayar: string | null;
+  catatan: string | null;
   items: OrderItemLike[];
 };
 
@@ -49,6 +50,7 @@ export async function notifyN8N(kind: NotifyKind, order: OrderLike): Promise<voi
     kurir: order.kurir,
     resi: order.resi,
     metodeBayar: order.metodeBayar,
+    catatan: order.catatan,
     ongkir: order.ongkir,
     subtotal: order.subtotal,
     total: order.total,

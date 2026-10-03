@@ -8,6 +8,7 @@ export default function OrderRowActions({ id, status, kurir }: { id: string; sta
   const router = useRouter();
   const [pending, start] = useTransition();
   const [resi, setResi] = useState("");
+  const [kurirInput, setKurirInput] = useState("");
 
   const run = (fn: () => Promise<void>) => start(async () => { await fn(); router.refresh(); });
 
@@ -36,13 +37,19 @@ export default function OrderRowActions({ id, status, kurir }: { id: string; sta
     return (
       <div className="flex flex-wrap items-center gap-2">
         <input
+          value={kurirInput}
+          onChange={(e) => setKurirInput(e.target.value)}
+          placeholder="Kurir (mis. JNE)"
+          className="w-32 rounded-md border border-gray-300 px-2.5 py-1.5 text-xs outline-none focus:border-primary"
+        />
+        <input
           value={resi}
           onChange={(e) => setResi(e.target.value)}
           placeholder="No. resi"
           className="w-36 rounded-md border border-gray-300 px-2.5 py-1.5 text-xs outline-none focus:border-primary"
         />
         <button
-          onClick={() => { if (resi.trim()) run(() => adminMarkShipped(id, resi.trim(), kurir)); }}
+          onClick={() => { if (resi.trim()) run(() => adminMarkShipped(id, resi.trim(), kurirInput.trim() || kurir)); }}
           disabled={pending || !resi.trim()}
           className="rounded-md border border-blue-300 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 transition hover:bg-blue-100 disabled:opacity-50"
         >
