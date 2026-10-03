@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { rupiah } from "@/lib/format";
 import HeartButton from "./HeartButton";
 
@@ -19,8 +20,13 @@ export default function ProductCard({ p, thinPrice = false }: { p: ProductCardDa
       <div className="relative aspect-square">
         <Link href={href} className="block h-full w-full">
           {p.gambar[0] ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={p.gambar[0]} alt={p.nama} className="h-full w-full object-cover" />
+            <Image
+              src={p.gambar[0]}
+              alt={p.nama}
+              fill
+              sizes="(max-width: 640px) 50vw, 240px"
+              className="object-cover"
+            />
           ) : (
             <div className="flex h-full w-full items-center justify-center bg-gray-100 text-gray-300">No image</div>
           )}

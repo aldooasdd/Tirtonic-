@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { rupiah, waLink } from "@/lib/format";
 import { useFav } from "./CartProvider";
@@ -135,8 +136,9 @@ export default function ProductDetail({ p }: { p: P }) {
                 className="flex h-full w-full snap-x snap-mandatory overflow-x-auto scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
               >
                 {gallery.map((g, i) => (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img key={g + i} src={g} alt={p.nama} className="h-full w-full shrink-0 snap-center object-cover" />
+                  <div key={g + i} className="relative h-full w-full shrink-0 snap-center">
+                    <Image src={g} alt={p.nama} fill sizes="(max-width: 768px) 100vw, 600px" className="object-cover" priority={i === 0} />
+                  </div>
                 ))}
               </div>
             ) : (
