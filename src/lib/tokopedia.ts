@@ -112,9 +112,13 @@ export function parseTokopedia(html: string): ParsedProduct {
   // drop a trailing " - 39" style variant suffix
   nama = nama.replace(/\s*-\s*\d{2}(?:[.,]\d)?\s*$/i, "").trim();
 
-  // --- price: numeric field in the embedded state ---
-  const priceMatch = html.match(/"price":(\d{4,})/);
-  const harga = priceMatch ? parseInt(priceMatch[1], 10) : 0;
+  // --- price: numeric field in the embedded state; fallback ke "priceFmt":"Rp1.597.060"
+  //     (sebagian produk, mis. tas, nggak punya "price":<angka> bare) ---
+  let harga = parseInt(html.match(/"price":(\d{4,})/)?.[1] || "0", 10) || 0;
+  if (!harga) {
+    const fmt = html.match(/"priceFmt":"Rp([\d.]+)"/)?.[1];
+    if (fmt) harga = parseInt(fmt.replace(/\D/g, ""), 10) || 0;
+  }
 
   // --- description: longest "content" JSON string value ---
   let deskripsi: string | null = null;
