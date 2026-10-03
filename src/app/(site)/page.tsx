@@ -159,12 +159,12 @@ export default async function HomePage() {
       []
     ),
     safeQuery(() => prisma.product.findMany({ orderBy: { createdAt: "desc" }, take: 12, include: { _count: { select: { variants: true } } } }), []),
-    safeQuery(() => prisma.product.findMany({ where: { hargaCoret: { not: null } }, orderBy: { updatedAt: "desc" }, take: 16, include: { _count: { select: { variants: true } } } }), []),
+    safeQuery(() => prisma.product.findMany({ where: { hargaDiskon: { not: null } }, orderBy: { updatedAt: "desc" }, take: 16, include: { _count: { select: { variants: true } } } }), []),
   ]);
-  const toCard = (p: (typeof latest)[number]) => ({ id: p.id, nama: p.nama, harga: p.harga, hargaCoret: p.hargaCoret, gambar: p.gambar, status: p.status, fromPrice: p._count.variants > 0 });
+  const toCard = (p: (typeof latest)[number]) => ({ id: p.id, nama: p.nama, harga: p.harga, hargaDiskon: p.hargaDiskon, gambar: p.gambar, status: p.status, fromPrice: p._count.variants > 0 });
   const arrivals = latest.map(toCard);
-  // only keep real discounts (coret > harga), cap at 12
-  const bestDeals = deals.filter((p) => p.hargaCoret != null && p.hargaCoret > p.harga).slice(0, 12).map(toCard);
+  // only keep real discounts (diskon < harga), cap at 12
+  const bestDeals = deals.filter((p) => p.hargaDiskon != null && p.hargaDiskon < p.harga).slice(0, 12).map(toCard);
   const storeItems = stores.map((s) => ({
     id: s.id,
     nama: s.nama,

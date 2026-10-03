@@ -43,8 +43,8 @@ async function uploadImages(formData: FormData): Promise<string[]> {
 
 const toInt = (v: FormDataEntryValue | null) => parseInt(((v as string) || "0").replace(/\D/g, ""), 10) || 0;
 
-/** A strikethrough price only counts when it's higher than the selling price. */
-const coretOrNull = (coret: number, harga: number) => (coret > harga ? coret : null);
+/** A discount price only counts when it's a real cut (below the normal price). */
+const diskonOrNull = (diskon: number, harga: number) => (diskon > 0 && diskon < harga ? diskon : null);
 
 function parseData(formData: FormData) {
   const nama = ((formData.get("nama") as string) || "").trim();
@@ -54,7 +54,7 @@ function parseData(formData: FormData) {
     nama,
     kategori,
     harga,
-    hargaCoret: coretOrNull(toInt(formData.get("hargaCoret")), harga),
+    hargaDiskon: diskonOrNull(toInt(formData.get("hargaDiskon")), harga),
     brand: ((formData.get("brand") as string) || "").trim() || null,
     deskripsi: ((formData.get("deskripsi") as string) || "").trim() || null,
     ukuran: formData.getAll("ukuran").map(String),
@@ -62,7 +62,7 @@ function parseData(formData: FormData) {
   };
 }
 
-type VariantInput = { warna: string; ukuran: string; harga: number; hargaCoret: number | null; stok: number; gambar: string | null; urutan: number };
+type VariantInput = { warna: string; ukuran: string; harga: number; hargaDiskon: number | null; stok: number; gambar: string | null; urutan: number };
 
 /** Parse the variant rows from the form (aligned arrays) and upload any new per-row photos.
  *  A row needs a warna + harga to count; blank rows are skipped. */
@@ -70,7 +70,7 @@ async function parseVariants(formData: FormData): Promise<VariantInput[]> {
   const warna = formData.getAll("v_warna").map(String);
   const ukuran = formData.getAll("v_ukuran").map(String);
   const harga = formData.getAll("v_harga").map(String);
-  const coret = formData.getAll("v_hargacoret").map(String);
+  const diskon = formData.getAll("v_hargadiskon").map(String);
   const stok = formData.getAll("v_stok").map(String);
   const existing = formData.getAll("v_existingGambar").map(String);
   const files = formData.getAll("v_gambar");
@@ -86,12 +86,12 @@ async function parseVariants(formData: FormData): Promise<VariantInput[]> {
       if (!storageConfigured) throw new Error("Supabase Storage belum dikonfigurasi (cek .env).");
       gambar = await uploadFile(f, "products");
     }
-    const hc = parseInt((coret[i] || "0").replace(/\D/g, ""), 10) || 0;
+    const hd = parseInt((diskon[i] || "0").replace(/\D/g, ""), 10) || 0;
     out.push({
       warna: w,
       ukuran: (ukuran[i] || "").trim(),
       harga: h,
-      hargaCoret: coretOrNull(hc, h),
+      hargaDiskon: diskonOrNull(hd, h),
       stok: parseInt((stok[i] || "0").replace(/\D/g, ""), 10) || 0,
       gambar,
       urutan: i,
@@ -100,12 +100,13 @@ async function parseVariants(formData: FormData): Promise<VariantInput[]> {
   return out;
 }
 
-/** The product's headline price/strikethrough: cheapest variant when there are variants
- *  (keeps shop sort/filter + Best Deal working), else the product's own fields. */
-function headlinePrice(variants: VariantInput[], data: { harga: number; hargaCoret: number | null }) {
-  if (!variants.length) return { harga: data.harga, hargaCoret: data.hargaCoret };
-  const cheapest = variants.reduce((a, b) => (b.harga < a.harga ? b : a));
-  return { harga: cheapest.harga, hargaCoret: cheapest.hargaCoret };
+/** The product's headline price: the variant with the lowest effective price (discount if any),
+ *  so shop sort/filter + Best Deal use the real cheapest. Else the product's own fields. */
+function headlinePrice(variants: VariantInput[], data: { harga: number; hargaDiskon: number | null }) {
+  if (!variants.length) return { harga: data.harga, hargaDiskon: data.hargaDiskon };
+  const eff = (v: VariantInput) => v.hargaDiskon ?? v.harga;
+  const cheapest = variants.reduce((a, b) => (eff(b) < eff(a) ? b : a));
+  return { harga: cheapest.harga, hargaDiskon: cheapest.hargaDiskon };
 }
 
 /** Resolve the size chart: a newly uploaded file wins, else the existing/imported URL. */
@@ -137,19 +138,18 @@ export async function createProduct(formData: FormData) {
 export type ImportResult = {
   nama: string;
   harga: number;
-  hargaCoret: number | null;
   brand: string | null;
   kategori: string;
   deskripsi: string | null;
   ukuran: string[];
   gambar: string[];
   sizeChart: string | null;
-  variants: { warna: string; ukuran: string; harga: number; hargaCoret: number | null; stok: number; gambar: string | null }[];
+  variants: { warna: string; ukuran: string; harga: number; stok: number; gambar: string | null }[];
 };
 
-/** Tokopedia prices get a 10% markdown on import; the original becomes the strikethrough price.
- *  Rounded to the nearest 500 so the discounted number stays clean. */
-const discount10 = (n: number) => Math.round((n * 0.9) / 500) * 500;
+/** Web price is a flat 10% below Tokopedia (a web-only lower price, NOT a displayed discount).
+ *  Rounded to the nearest 500 so the number stays clean. */
+const webPrice = (n: number) => Math.round((n * 0.9) / 500) * 500;
 
 /** Import one product from a Tokopedia link: parse fields + re-host its images to Supabase.
  *  Returns `{ error }` on failure so the message survives Next.js production error masking. */
@@ -197,16 +197,14 @@ export async function importFromTokopedia(url: string): Promise<ImportResult | {
   const variants = p.variants.map((v) => ({
     warna: v.warna,
     ukuran: v.ukuran,
-    harga: discount10(v.harga), // 10% off; original kept as strikethrough
-    hargaCoret: v.harga,
+    harga: webPrice(v.harga), // web price = 10% below Tokopedia (not a discount)
     stok: v.stok,
     gambar: colorPhoto[v.warna.toLowerCase()] ?? null,
   }));
 
   return {
     nama: p.nama,
-    harga: discount10(p.harga),
-    hargaCoret: p.harga,
+    harga: webPrice(p.harga),
     brand: p.brand,
     kategori: p.kategori,
     deskripsi: p.deskripsi,

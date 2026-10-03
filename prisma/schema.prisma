@@ -18,8 +18,8 @@ model Product {
   nama      String
   kategori  String // Sepatu Tenis | Raket Tenis | String & Grip | Tas & Aksesoris | Bola Tenis
   brand     String?
-  harga     Int // rupiah, whole number (harga jual / setelah diskon)
-  hargaCoret Int? // harga sebelum diskon (dicoret); null = tidak diskon
+  harga     Int // rupiah, whole number (harga normal)
+  hargaDiskon Int? // harga diskon (opsional); jika < harga → tampil coret + badge
   deskripsi String?
   gambar    String[] // image URLs (Supabase Storage)
   sizeChart String? // size chart image URL (from Tokopedia import or manual)
@@ -39,8 +39,8 @@ model ProductVariant {
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
   warna     String // color name, e.g. "Biru"
   ukuran    String  @default("") // second axis, e.g. "1.20mm"; "" if the product has no size axis
-  harga     Int // rupiah for this combo (harga jual)
-  hargaCoret Int? // harga sebelum diskon (dicoret)
+  harga     Int // rupiah for this combo (harga normal)
+  hargaDiskon Int? // harga diskon (opsional); jika < harga → tampil coret + badge
   stok      Int     @default(0)
   gambar    String? // photo for this color (Supabase Storage URL)
   urutan    Int     @default(0)

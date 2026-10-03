@@ -40,7 +40,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
           kategori: p.kategori,
           brand: p.brand,
           harga: p.harga,
-          hargaCoret: p.hargaCoret,
+          hargaDiskon: p.hargaDiskon,
           deskripsi: p.deskripsi,
           gambar: p.gambar,
           ukuran: p.ukuran,
@@ -50,7 +50,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
             warna: v.warna,
             ukuran: v.ukuran,
             harga: v.harga,
-            hargaCoret: v.hargaCoret,
+            hargaDiskon: v.hargaDiskon,
             stok: v.stok,
             gambar: v.gambar,
           })),
@@ -67,7 +67,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
             {related.map((r) => (
               <div key={r.id} className="snap-item w-[160px] shrink-0 sm:w-[220px]">
                 <ProductCard
-                  p={{ id: r.id, nama: r.nama, harga: r.harga, hargaCoret: r.hargaCoret, gambar: r.gambar, status: r.status, fromPrice: r._count.variants > 0 }}
+                  p={{ id: r.id, nama: r.nama, harga: r.harga, hargaDiskon: r.hargaDiskon, gambar: r.gambar, status: r.status, fromPrice: r._count.variants > 0 }}
                 />
               </div>
             ))}
