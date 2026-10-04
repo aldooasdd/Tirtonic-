@@ -8,8 +8,6 @@ export const dynamic = "force-dynamic";
 
 type SP = { sort?: string; size?: string; brand?: string; type?: string; q?: string; price?: string; page?: string; deal?: string };
 
-const PER_PAGE = 12;
-
 function orderBy(sort?: string): Prisma.ProductOrderByWithRelationInput {
   switch (sort) {
     case "price_asc":
@@ -19,7 +17,7 @@ function orderBy(sort?: string): Prisma.ProductOrderByWithRelationInput {
     case "newest":
       return { createdAt: "desc" };
     default:
-      return { createdAt: "desc" }; // featured ~ newest for now
+      return { views: "desc" }; // populer = paling sering dikunjungi
   }
 }
 
@@ -35,18 +33,12 @@ export default async function ShopPage({ searchParams }: { searchParams: SP }) {
     where.harga = { gte: min ?? 0, ...(max ? { lte: max } : {}) };
   }
 
-  const total = await safeQuery(() => prisma.product.count({ where }), 0);
-  const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
-  const page = Math.min(totalPages, Math.max(1, parseInt(searchParams.page || "1", 10) || 1));
-
   const [products, brandRows] = await Promise.all([
     safeQuery(
       () =>
         prisma.product.findMany({
           where,
           orderBy: orderBy(searchParams.sort),
-          skip: (page - 1) * PER_PAGE,
-          take: PER_PAGE,
           include: { _count: { select: { variants: true } } },
         }),
       []
@@ -70,7 +62,7 @@ export default async function ShopPage({ searchParams }: { searchParams: SP }) {
   return (
     <>
       <Suspense fallback={null}>
-        <ShopClient products={cards} brands={brands} q={searchParams.q} currentPage={page} totalPages={totalPages} />
+        <ShopClient products={cards} brands={brands} q={searchParams.q} />
       </Suspense>
       <Footer />
     </>

@@ -41,7 +41,6 @@ export default function CheckoutPage() {
         alamat: String(fd.get("alamat") || ""),
         kota: String(fd.get("kota") || ""),
         provinsi: String(fd.get("provinsi") || ""),
-        kodePos: String(fd.get("kodePos") || ""),
         catatan: String(fd.get("catatan") || ""),
         items: items.map((x) => ({ productId: x.productId, variantId: x.variantId, qty: x.qty })),
       });
@@ -91,10 +90,6 @@ export default function CheckoutPage() {
               <div>
                 <label className="label" htmlFor="provinsi">Provinsi *</label>
                 <input id="provinsi" name="provinsi" required className="field" autoComplete="address-level1" />
-              </div>
-              <div>
-                <label className="label" htmlFor="kodePos">Kode Pos</label>
-                <input id="kodePos" name="kodePos" inputMode="numeric" className="field" autoComplete="postal-code" placeholder="opsional" />
               </div>
               <div>
                 <label className="label" htmlFor="catatan">Catatan (opsional)</label>

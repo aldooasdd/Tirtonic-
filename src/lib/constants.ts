@@ -32,7 +32,7 @@ export const PRICE_RANGES = [
 
 // Category-listing product-type filter reuses KATEGORI.
 export const SORT_OPTIONS = [
-  { value: "featured", label: "Featured" },
+  { value: "populer", label: "Populer" },
   { value: "newest", label: "Newest first" },
   { value: "price_asc", label: "Price: low to high" },
   { value: "price_desc", label: "Price: high to low" },

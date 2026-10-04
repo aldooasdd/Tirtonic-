@@ -21,14 +21,10 @@ export default function ShopClient({
   products,
   brands,
   q,
-  currentPage,
-  totalPages,
 }: {
   products: ProductCardData[];
   brands: string[];
   q?: string;
-  currentPage: number;
-  totalPages: number;
 }) {
   const [open, setOpen] = useState(true);
   const router = useRouter();
@@ -48,59 +44,8 @@ export default function ShopClient({
     const next = new URLSearchParams(sp.toString());
     if (value) next.set("sort", value);
     else next.delete("sort");
-    next.delete("page");
     router.push(`/shop?${next.toString()}`);
   }
-
-  function pageHref(n: number) {
-    const next = new URLSearchParams(sp.toString());
-    next.set("page", String(n));
-    return `/shop?${next.toString()}`;
-  }
-
-  const pageList: (number | "...")[] = [];
-  if (totalPages <= 7) {
-    for (let i = 1; i <= totalPages; i++) pageList.push(i);
-  } else {
-    pageList.push(1);
-    if (currentPage > 3) pageList.push("...");
-    for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) pageList.push(i);
-    if (currentPage < totalPages - 2) pageList.push("...");
-    pageList.push(totalPages);
-  }
-
-  const paginationEl =
-    totalPages > 1 ? (
-      <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
-        {pageList.map((p, i) =>
-          p === "..." ? (
-            <span key={`e${i}`} className="px-1 text-gray-400">
-              …
-            </span>
-          ) : (
-            <Link
-              key={p}
-              href={pageHref(p)}
-              className={`min-w-[44px] rounded-lg border px-3 py-2 text-center text-sm font-semibold transition ${
-                p === currentPage
-                  ? "border-primary bg-primary text-white"
-                  : "border-gray-300 text-gray-700 hover:border-primary"
-              }`}
-            >
-              {p}
-            </Link>
-          )
-        )}
-        {currentPage < totalPages && (
-          <Link
-            href={pageHref(currentPage + 1)}
-            className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:border-primary"
-          >
-            Next
-          </Link>
-        )}
-      </div>
-    ) : null;
 
   const sortEl = (
     <label className="flex items-center gap-2 rounded-lg border px-3 py-2.5 text-sm">
@@ -110,8 +55,8 @@ export default function ShopClient({
         onChange={(e) => setSort(e.target.value)}
         className="cursor-pointer bg-transparent font-medium text-gray-800 outline-none"
       >
-        <option value="">Featured</option>
-        {SORT_OPTIONS.filter((o) => o.value !== "featured").map((o) => (
+        <option value="">Populer</option>
+        {SORT_OPTIONS.filter((o) => o.value !== "populer").map((o) => (
           <option key={o.value} value={o.value}>{o.label}</option>
         ))}
       </select>
@@ -177,7 +122,6 @@ export default function ShopClient({
               {sortEl}
             </div>
             {grid}
-            {paginationEl}
           </div>
         </div>
       ) : (
@@ -194,7 +138,6 @@ export default function ShopClient({
             {sortEl}
           </div>
           {grid}
-          {paginationEl}
         </div>
       )}
     </div>
