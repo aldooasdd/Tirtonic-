@@ -1,0 +1,9 @@
+# HTTPS otomatis (Let's Encrypt). Pastikan A record kedua subdomain
+# sudah mengarah ke IP VPS sebelum menjalankan.
+{$N8N_HOST} {
+	reverse_proxy n8n:5678
+}
+
+{$WAHA_HOST} {
+	reverse_proxy waha:3000
+}

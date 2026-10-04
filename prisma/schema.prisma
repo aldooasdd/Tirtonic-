@@ -78,6 +78,7 @@ model Product {
   sizeChart String? // size chart image URL (from Tokopedia import or manual)
   ukuran    String[] // shoe sizes, only for Sepatu Tenis
   status    StockStatus @default(READY)
+  stok      Int?        // stok produk non-varian (null = tak terbatas; 0 = habis). Produk bervarian pakai stok per-varian.
   views     Int         @default(0) // product-page view counter
   variants  ProductVariant[]
   createdAt DateTime    @default(now())

@@ -64,7 +64,15 @@ function parseData(formData: FormData) {
     deskripsi: ((formData.get("deskripsi") as string) || "").trim() || null,
     ukuran: formData.getAll("ukuran").map(String),
     status: (formData.get("status") as string) === "SOLD" ? ("SOLD" as const) : ("READY" as const),
+    stok: parseStok(formData.get("stok")), // non-varian: null = tak terbatas, angka = jumlah stok
   };
+}
+
+/** Stok produk non-varian: kosong → null (tak terbatas), selain itu angka ≥ 0. */
+function parseStok(raw: FormDataEntryValue | null): number | null {
+  const s = String(raw ?? "").trim();
+  if (s === "") return null;
+  return Math.max(0, parseInt(s.replace(/\D/g, ""), 10) || 0);
 }
 
 type VariantInput = { warna: string; ukuran: string; harga: number; hargaDiskon: number | null; stok: number; gambar: string | null; urutan: number };
@@ -135,7 +143,7 @@ export async function createProduct(formData: FormData) {
   const variants = await parseVariants(formData, data.diskonPersen);
   const headline = headlinePrice(variants, data);
   await prisma.product.create({
-    data: { ...data, ...headline, gambar: [...existing, ...uploaded], sizeChart, variants: { create: variants } },
+    data: { ...data, ...headline, stok: variants.length ? null : data.stok, gambar: [...existing, ...uploaded], sizeChart, variants: { create: variants } },
   });
   revalidatePublic();
   redirect("/dashboard");
@@ -233,6 +241,7 @@ export async function updateProduct(id: string, formData: FormData) {
     data: {
       ...data,
       ...headline,
+      stok: variants.length ? null : data.stok,
       gambar: [...existing, ...uploaded],
       sizeChart,
       variants: { deleteMany: {}, create: variants }, // replace the whole set

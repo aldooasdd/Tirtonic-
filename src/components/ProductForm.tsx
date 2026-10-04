@@ -28,6 +28,7 @@ type ProductInput = {
   gambar: string[];
   sizeChart?: string | null;
   status: "READY" | "SOLD";
+  stok?: number | null;
   variants?: { warna: string; ukuran: string; harga: number; hargaDiskon?: number | null; stok: number; gambar: string | null }[];
 };
 
@@ -225,12 +226,27 @@ export default function ProductForm({
           <textarea name="deskripsi" rows={4} value={deskripsi} onChange={(e) => setDeskripsi(e.target.value)} className="field" />
         </div>
 
-        <div>
-          <label className="label">Status Stok</label>
-          <select name="status" defaultValue={product?.status || "READY"} className="field w-40">
-            <option value="READY">Ready</option>
-            <option value="SOLD">Sold</option>
-          </select>
+        <div className="flex flex-wrap gap-4">
+          <div>
+            <label className="label">Status Stok</label>
+            <select name="status" defaultValue={product?.status || "READY"} className="field w-40">
+              <option value="READY">Ready</option>
+              <option value="SOLD">Sold</option>
+            </select>
+          </div>
+          {!hasVariants && (
+            <div>
+              <label className="label">Stok (pcs)</label>
+              <input
+                type="number"
+                name="stok"
+                min={0}
+                defaultValue={product?.stok ?? ""}
+                placeholder="kosong = tak terbatas"
+                className="field w-48"
+              />
+            </div>
+          )}
         </div>
 
         {/* Varian: warna + ukuran, masing-masing harga/stok/foto sendiri */}

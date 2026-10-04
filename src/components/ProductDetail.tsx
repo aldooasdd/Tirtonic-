@@ -22,6 +22,7 @@ type P = {
   ukuran: string[];
   sizeChart?: string | null;
   status: "READY" | "SOLD";
+  stok?: number | null;
   variants?: Variant[];
 };
 
@@ -81,7 +82,8 @@ export default function ProductDetail({ p }: { p: P }) {
     if (el) setActive(Math.round(el.scrollLeft / el.clientWidth));
   };
 
-  const sold = p.status === "SOLD";
+  const stokHabis = !hasVar && p.stok != null && p.stok <= 0; // produk non-varian dengan stok 0
+  const sold = p.status === "SOLD" || stokHabis;
   const needSize = !hasVar && p.ukuran.length > 0; // shoe sizes, only when there are no variants
 
   // variant selection
@@ -124,7 +126,7 @@ export default function ProductDetail({ p }: { p: P }) {
       harga: priceNum,
       gambar: colorImg ?? p.gambar[0] ?? null,
       qty: 1,
-      max: hasVar ? selVariant?.stok ?? 1 : 99,
+      max: hasVar ? selVariant?.stok ?? 1 : p.stok ?? 99,
     });
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);

@@ -1,0 +1,69 @@
+# Stack otomasi Tirtonic: n8n (workflow) + WAHA (WhatsApp API) + Caddy (HTTPS).
+# Jalankan di VPS (bukan di Vercel). Web Tirtonic mem-POST ke webhook n8n saat
+# pesanan LUNAS / resi diisi; n8n kirim WA (via WAHA) + email.
+#
+#   cp .env.example .env   # isi dulu
+#   docker compose up -d
+#
+services:
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:latest
+    restart: unless-stopped
+    environment:
+      - N8N_HOST=${N8N_HOST}
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=https
+      - WEBHOOK_URL=https://${N8N_HOST}/
+      - N8N_EDITOR_BASE_URL=https://${N8N_HOST}/
+      - GENERIC_TIMEZONE=Asia/Jakarta
+      - TZ=Asia/Jakarta
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+      - N8N_RUNNERS_ENABLED=true
+      # WAHA dipanggil lewat jaringan internal compose (lihat workflow): http://waha:3000
+      - WAHA_API_KEY=${WAHA_API_KEY}
+    volumes:
+      - n8n_data:/home/node/.n8n
+    expose:
+      - "5678"
+    # Tes lokal tanpa Caddy? buka port langsung: ganti baris di atas jadi
+    # ports: ["5678:5678"] lalu akses http://localhost:5678
+
+  waha:
+    # Engine NOWEB (Baileys) — ringan, tanpa Chromium. `latest`/WEBJS crash di CPU
+    # tanpa WebAssembly SIMD (bug sharp). NOWEB cukup buat kirim notif WA.
+    image: devlikeapro/waha:noweb
+    restart: unless-stopped
+    environment:
+      - WAHA_API_KEY=${WAHA_API_KEY}
+      - WHATSAPP_DEFAULT_ENGINE=NOWEB
+      - TZ=Asia/Jakarta
+      - WAHA_DASHBOARD_USERNAME=${WAHA_DASHBOARD_USERNAME}
+      - WAHA_DASHBOARD_PASSWORD=${WAHA_DASHBOARD_PASSWORD}
+    volumes:
+      - waha_sessions:/app/.sessions
+    expose:
+      - "3000"
+    # Tes lokal: ports: ["3001:3000"] → dashboard di http://localhost:3001/dashboard
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - N8N_HOST=${N8N_HOST}
+      - WAHA_HOST=${WAHA_HOST}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - n8n
+      - waha
+
+volumes:
+  n8n_data:
+  waha_sessions:
+  caddy_data:
+  caddy_config:

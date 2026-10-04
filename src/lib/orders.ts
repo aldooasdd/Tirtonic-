@@ -16,7 +16,7 @@ export type CheckoutInput = {
   items: CartLine[];
 };
 
-type ProductWithVariants = { id: string; nama: string; berat: number; harga: number; hargaDiskon: number | null; status: string; gambar: string[]; variants: { id: string; warna: string; ukuran: string; harga: number; hargaDiskon: number | null; stok: number; gambar: string | null }[] };
+type ProductWithVariants = { id: string; nama: string; berat: number; harga: number; hargaDiskon: number | null; status: string; stok: number | null; gambar: string[]; variants: { id: string; warna: string; ukuran: string; harga: number; hargaDiskon: number | null; stok: number; gambar: string | null }[] };
 
 export type CreateOrderResult =
   | { ok: true; orderId: string; invoice: string; paymentUrl: string | null }
@@ -72,7 +72,8 @@ export async function createOrder(input: CheckoutInput): Promise<CreateOrderResu
         gambar: v.gambar ?? p.gambar[0] ?? null,
       });
     } else {
-      if (p.status === "SOLD") return { ok: false, error: `${p.nama} sedang habis.` };
+      if (p.status === "SOLD" || (p.stok != null && p.stok <= 0)) return { ok: false, error: `${p.nama} sedang habis.` };
+      if (p.stok != null && p.stok < qty) return { ok: false, error: `Stok ${p.nama} tinggal ${p.stok}.` };
       lines.push({
         productId: p.id,
         variantId: null,
@@ -137,11 +138,15 @@ export async function markOrderPaid(orderId: string, info?: { metodeBayar?: stri
       where: { id: orderId },
       data: { status: "PAID", paidAt: new Date(), metodeBayar: info?.metodeBayar ?? order.metodeBayar, paymentRef: info?.paymentRef ?? order.paymentRef },
     }),
-    // ponytail: potong stok varian; non-varian tak punya field stok (pakai status READY/SOLD).
+    // ponytail: potong stok — varian pakai stok per-varian, non-varian pakai Product.stok.
+    // Produk non-varian tanpa batas stok (stok null) → decrement null tetap null, aman.
     // Race antar-pesanan bisa bikin minus — tambah lock/stok reservasi kalau volume tinggi.
     ...order.items
       .filter((i) => i.variantId)
       .map((i) => prisma.productVariant.update({ where: { id: i.variantId! }, data: { stok: { decrement: i.qty } } })),
+    ...order.items
+      .filter((i) => !i.variantId && i.productId)
+      .map((i) => prisma.product.update({ where: { id: i.productId! }, data: { stok: { decrement: i.qty } } })),
   ]);
 
   const fresh = await prisma.order.findUnique({ where: { id: orderId }, include: { items: true } });
