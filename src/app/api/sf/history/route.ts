@@ -17,16 +17,19 @@ export async function GET(req: NextRequest) {
     where: { phone },
     orderBy: { createdAt: "desc" },
     take: 20,
-    select: { resultCode: true, chosenString: true, status: true, createdAt: true, customerName: true },
+    select: { resultCode: true, chosenString: true, tensionLbs: true, racket: true, status: true, createdAt: true, customerName: true },
   });
 
   return NextResponse.json({
     phone,
     count: orders.length,
     lastName: orders.find((o) => o.customerName)?.customerName ?? null,
+    lastRacket: orders.find((o) => o.racket)?.racket ?? null,
     history: orders.map((o) => ({
       code: o.resultCode,
       senar: o.chosenString,
+      tension: o.tensionLbs,
+      racket: o.racket,
       status: o.status,
       statusLabel: STATUS_LABEL[o.status] ?? o.status,
       date: o.createdAt,

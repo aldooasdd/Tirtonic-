@@ -57,6 +57,10 @@ export default async function StringingQueuePage() {
                       <span className="text-xs text-gray-400">{fmt(o.createdAt)}</span>
                     </div>
                     <p className="mt-1.5 font-semibold text-gray-900">{o.chosenString ?? "— (3 pilihan)"}</p>
+                    <p className="text-sm text-gray-600">
+                      {o.tensionLbs ? `${o.tensionLbs} lbs` : "tarikan –"}
+                      {o.racket ? ` • Raket: ${o.racket}` : ""}
+                    </p>
                     <p className="text-sm text-gray-500">
                       {o.customerName ? `${o.customerName} • ` : ""}
                       <a href={`https://wa.me/${o.phone}`} target="_blank" rel="noreferrer" className="text-primary hover:underline">{wa}</a>
