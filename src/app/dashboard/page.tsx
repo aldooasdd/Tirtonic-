@@ -60,6 +60,9 @@ export default async function AdminDashboard() {
             <Link href="/dashboard/orders" className="text-sm font-medium text-gray-500 hover:text-primary">
               Pesanan
             </Link>
+            <Link href="/dashboard/stringing" className="text-sm font-medium text-gray-500 hover:text-primary">
+              Stringing
+            </Link>
             <Link href="/dashboard/trafik" className="text-sm font-medium text-gray-500 hover:text-primary">
               Trafik
             </Link>
