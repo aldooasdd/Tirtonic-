@@ -305,23 +305,3 @@ model SfLoginAttempt {
   @@index([ip, createdAt])
 }
 
-// Spec FAKTUAL raket (head size, berat, pola, kekakuan, rentang tarikan) untuk
-// mencocokkan senar + menyarankan tarikan. Bukan skor olahan pihak ketiga.
-model RacketSpec {
-  id            String   @id @default(cuid())
-  slug          String   @unique // brand-model-year (deterministik)
-  brand         String
-  model         String
-  headSizeSqin  Int // mis. 98, 100
-  weightG       Int // berat unstrung (gram)
-  pattern       String // pola senar, mis. "16x19", "18x20"
-  stiffnessRa   Int? // RA (flex). tinggi = kaku
-  tensionMinLbs Int // rentang tarikan pabrikan
-  tensionMaxLbs Int
-  stringType    String // saran tipe: "Polyester" | "Multifilament" | "Any"
-  powerLevel    String // "Low" | "Medium" | "High"
-  aliases       String[] // kata kunci pencocokan dari input bebas customer
-  createdAt     DateTime @default(now())
-
-  @@index([brand])
-}

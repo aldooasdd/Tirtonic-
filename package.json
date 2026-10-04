@@ -12,8 +12,7 @@
     "test:sf": "node --import tsx --test tests/engine.test.ts tests/slip.test.ts tests/phone.test.ts",
     "test:sf:db": "node --env-file-if-exists=.env --import tsx --test tests/db.test.ts",
     "sf:import": "node --env-file-if-exists=.env --import tsx scripts/sf-import.ts",
-    "sf:seed": "node --env-file-if-exists=.env --import tsx scripts/sf-seed.ts",
-    "sf:rackets": "node --env-file-if-exists=.env --import tsx scripts/sf-rackets.ts"
+    "sf:seed": "node --env-file-if-exists=.env --import tsx scripts/sf-seed.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

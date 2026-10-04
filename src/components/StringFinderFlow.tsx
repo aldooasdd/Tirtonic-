@@ -22,7 +22,7 @@ type Pick = {
   attrs: Record<Attr, number | null>;
   explanation: { strengths: { attr: Attr; text: string }[]; weakness: { attr: Attr | null; text: string }; notes: string[] };
 };
-type RecResponse = { code: string; condition: string; profile_summary: string; picks: Pick[]; tension_suggestion: number; tension_note: string; racket_matched: { brand: string; model: string } | null; racket_note: string | null; racket_input: string | null };
+type RecResponse = { code: string; condition: string; profile_summary: string; picks: Pick[]; tension_suggestion: number; tension_note: string };
 
 const ATTR_LABEL: Record<Attr, string> = {
   spin: "Spin", power: "Power", control: "Kontrol", comfort: "Nyaman", stability: "Stabil", durability: "Awet",
@@ -94,7 +94,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
       const res = await fetch("/api/sf/recommend", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ answers, racket }),
+        body: JSON.stringify({ answers }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Gagal menghitung rekomendasi.");
@@ -165,7 +165,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
             <div>
               <label className="label">Jenis raket <span className="text-gray-400">(opsional)</span></label>
               <input value={racket} onChange={(e) => setRacket(e.target.value)} className="field" placeholder="mis. Yonex Ezone 100, Babolat Pure Aero" />
-              <p className="mt-1 text-xs text-gray-400">Biar rekomendasi senar & tarikan lebih pas dengan raketmu.</p>
+              <p className="mt-1 text-xs text-gray-400">Dicatat di riwayat stringing kamu.</p>
             </div>
             {err && <p className="text-sm text-red-600">{err}</p>}
 
@@ -303,15 +303,6 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
             <p className="mx-auto mt-2 max-w-2xl text-gray-600">{rec.profile_summary}</p>
           </div>
 
-          {rec.racket_note && (
-            <div className="mx-auto mt-5 max-w-2xl rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-gray-700">
-              <span className="font-semibold text-primary">🎾 Untuk raketmu:</span> {rec.racket_note}
-            </div>
-          )}
-          {rec.racket_input && !rec.racket_matched && (
-            <p className="mx-auto mt-3 max-w-2xl text-center text-xs text-gray-400">Raket &ldquo;{rec.racket_input}&rdquo; belum ada di data kami — saran tarikan pakai jawaban kuesioner.</p>
-          )}
-
           <div className="mt-8 grid gap-5 md:grid-cols-3">
             {rec.picks.map((p, i) => (
               <div key={p.name} className={`flex flex-col rounded-2xl border bg-white p-5 shadow-sm ${i === 0 ? "border-primary ring-1 ring-primary" : "border-gray-200"}`}>
@@ -346,9 +337,9 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
                 <button
                   onClick={() => {
                     setChosen(i);
-                    // saran dari server (sudah sadar-raket kalau terdeteksi). Tanpa raket & senar poly → -2 lbs.
+                    // saran tarikan dari server; senar polyester dimainkan lebih enak −2 lbs
                     const poly = /poly/i.test(p.material);
-                    const sug = Math.max(40, rec.tension_suggestion - (!rec.racket_matched && poly ? 2 : 0));
+                    const sug = Math.max(40, rec.tension_suggestion - (poly ? 2 : 0));
                     setTension(String(sug));
                     setPhase("order");
                   }}

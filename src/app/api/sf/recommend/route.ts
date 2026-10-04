@@ -6,7 +6,7 @@ import { recommend, type MetricRes, type Ranked } from "@/lib/string-finder/engi
 import { makeCode } from "@/lib/string-finder/slip";
 import { validateAnswers } from "@/lib/string-finder/validate";
 import { profileSentence } from "@/lib/string-finder/profile";
-import { matchRacket, suggestSetup, type RacketLite } from "@/lib/string-finder/racket";
+import { suggestTension } from "@/lib/string-finder/tension";
 import type { LabMetric, PickDTO } from "@/lib/string-finder/dto";
 
 export const dynamic = "force-dynamic";
@@ -36,23 +36,13 @@ export async function POST(req: NextRequest) {
   const v = validateAnswers((body as { answers?: unknown })?.answers);
   if (!v.ok) return NextResponse.json({ error: v.error }, { status: 400 });
   const answers = v.answers;
-  const racketInput = String((body as { racket?: unknown })?.racket ?? "").trim();
 
   const { prepared, rules, ruleVersion, datasetVersion } = await getEngine();
   const result = recommend(prepared, answers, rules);
   const picks = result.picks!.map(toDTO);
   const profile_summary = profileSentence(answers);
   const condition = result.plan.condition;
-
-  // Raket (opsional): cocokkan ke RacketSpec → saran tarikan + panduan tipe senar.
-  let racket: RacketLite | null = null;
-  if (racketInput) {
-    const rackets = (await prisma.racketSpec.findMany({
-      select: { slug: true, brand: true, model: true, pattern: true, stiffnessRa: true, tensionMinLbs: true, tensionMaxLbs: true, stringType: true, powerLevel: true, aliases: true },
-    })) as RacketLite[];
-    racket = matchRacket(racketInput, rackets);
-  }
-  const setup = suggestSetup(answers, racket);
+  const tension = suggestTension(answers);
 
   // Website: satu cabang default (tanpa cookie perangkat).
   const branch = await prisma.sfBranch.findFirst({ where: { slug: "tirtonic", isActive: true }, select: { id: true } });
@@ -77,12 +67,5 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  return NextResponse.json({
-    code, condition, profile_summary, picks,
-    tension_suggestion: setup.tensionLbs,
-    tension_note: setup.tensionNote,
-    racket_matched: setup.racket, // {brand,model} atau null
-    racket_note: setup.racketNote,
-    racket_input: racketInput || null,
-  });
+  return NextResponse.json({ code, condition, profile_summary, picks, tension_suggestion: tension.lbs, tension_note: tension.note });
 }
