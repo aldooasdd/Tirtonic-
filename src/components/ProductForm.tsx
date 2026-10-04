@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useFormStatus } from "react-dom";
-import { KATEGORI, SHOE_SIZES } from "@/lib/constants";
+import { KATEGORI } from "@/lib/constants";
 import { importFromTokopedia } from "@/app/dashboard/actions";
 
 type VariantRow = {
@@ -60,10 +60,8 @@ export default function ProductForm({
   const [diskonPersen, setDiskonPersen] = useState(product?.diskonPersen ? String(product.diskonPersen) : "");
   const [berat, setBerat] = useState(product?.berat ? String(product.berat) : "");
   const [deskripsi, setDeskripsi] = useState(product?.deskripsi || "");
-  const [ukuran, setUkuran] = useState<string[]>(product?.ukuran || []);
   const [images, setImages] = useState<string[]>(product?.gambar || []); // existing + imported URLs
   const [sizeChart, setSizeChart] = useState<string | null>(product?.sizeChart ?? null);
-  const isShoe = kategori === "Sepatu Tenis";
 
   // Variants (color + size, each with own price/stock/photo)
   const initVariants: VariantRow[] = (product?.variants || []).map((v) => ({
@@ -94,9 +92,6 @@ export default function ProductForm({
   const [importing, setImporting] = useState(false);
   const [importMsg, setImportMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
-  const toggleUkuran = (s: string) =>
-    setUkuran((prev) => (prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]));
-
   async function handleImport() {
     if (!url.trim()) return;
     setImporting(true);
@@ -114,7 +109,6 @@ export default function ProductForm({
       setBerat(String(d.berat));
       setDiskonPersen(""); // impor = harga Tokopedia apa adanya, tanpa diskon
       setDeskripsi(d.deskripsi || "");
-      setUkuran(d.ukuran);
       setImages((prev) => [...prev, ...d.gambar]);
       if (d.sizeChart) setSizeChart(d.sizeChart);
       if (d.variants.length) {
@@ -152,7 +146,6 @@ export default function ProductForm({
     setDiskonPersen(product?.diskonPersen ? String(product.diskonPersen) : "");
     setBerat(product?.berat ? String(product.berat) : "");
     setDeskripsi(product?.deskripsi || "");
-    setUkuran(product?.ukuran || []);
     setImages(product?.gambar || []);
     setSizeChart(product?.sizeChart ?? null);
     setHasVariants(initVariants.length > 0);
@@ -231,20 +224,6 @@ export default function ProductForm({
           <label className="label">Deskripsi</label>
           <textarea name="deskripsi" rows={4} value={deskripsi} onChange={(e) => setDeskripsi(e.target.value)} className="field" />
         </div>
-
-        {isShoe && (
-          <div>
-            <label className="label">Ukuran tersedia</label>
-            <div className="grid grid-cols-6 gap-2 sm:grid-cols-11">
-              {SHOE_SIZES.map((s) => (
-                <label key={s} className="flex items-center gap-1 text-xs">
-                  <input type="checkbox" name="ukuran" value={s} checked={ukuran.includes(s)} onChange={() => toggleUkuran(s)} />
-                  {s}
-                </label>
-              ))}
-            </div>
-          </div>
-        )}
 
         <div>
           <label className="label">Status Stok</label>

@@ -109,6 +109,11 @@ export default function ProductDetail({ p }: { p: P }) {
     ? !sold && !!selVariant && selVariant.stok > 0
     : !sold && (!needSize || !!size);
 
+  // Badge "Ready Stock" / "Sold Out" ikut ketersediaan: produk di-set SOLD,
+  // atau semua varian habis, atau varian yang dipilih stoknya 0.
+  const anyInStock = hasVar ? variants.some((v) => v.stok > 0) : !sold;
+  const badgeSold = sold || (hasVar && (!anyInStock || (!!selVariant && selVariant.stok <= 0)));
+
   const addItem = () => {
     if (!ready) return;
     addToCart({
@@ -216,8 +221,8 @@ export default function ProductDetail({ p }: { p: P }) {
               ))}
           </div>
 
-          <span className={`mt-3 inline-block rounded-full px-3 py-1 text-xs font-semibold text-white ${sold ? "bg-red-500" : "bg-primary"}`}>
-            {sold ? "Sold Out" : "Ready Stock"}
+          <span className={`mt-3 inline-block rounded-full px-3 py-1 text-xs font-semibold text-white ${badgeSold ? "bg-red-500" : "bg-primary"}`}>
+            {badgeSold ? "Sold Out" : "Ready Stock"}
           </span>
 
           {hasVar && (
