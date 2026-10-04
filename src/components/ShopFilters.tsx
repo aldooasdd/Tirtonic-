@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SHOE_SIZES, KATEGORI, PRICE_RANGES } from "@/lib/constants";
 
@@ -19,9 +20,11 @@ function Chevron() {
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, defaultOpen = false, children }: { title: string; defaultOpen?: boolean; children: React.ReactNode }) {
+  // Pakai state + onToggle supaya pilihan buka/tutup user tidak ke-reset saat re-render (klik filter).
+  const [open, setOpen] = useState(defaultOpen);
   return (
-    <details open className="group border-b py-4">
+    <details open={open} onToggle={(e) => setOpen(e.currentTarget.open)} className="group border-b py-4">
       <summary className="flex cursor-pointer list-none items-center justify-between text-base font-semibold text-gray-900">
         {title}
         <Chevron />
@@ -74,7 +77,7 @@ export default function ShopFilters({ brands }: { brands: string[] }) {
         </div>
       </Section>
 
-      <Section title="Price Range">
+      <Section title="Price Range" defaultOpen>
         {PRICE_RANGES.map((r) => (
           <label key={r.value} className={radio}>
             <input type="radio" name="price" checked={cur("price") === r.value} onChange={() => setParam("price", r.value)} />
@@ -83,7 +86,7 @@ export default function ShopFilters({ brands }: { brands: string[] }) {
         ))}
       </Section>
 
-      <Section title="Category">
+      <Section title="Category" defaultOpen>
         {KATEGORI.map((c) => (
           <label key={c} className={radio}>
             <input type="checkbox" checked={cur("type") === c} onChange={() => setParam("type", c)} />
