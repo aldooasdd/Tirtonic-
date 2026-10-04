@@ -1,0 +1,620 @@
+{
+  "note": "Golden output dari engine acuan. Implementasi produksi wajib lolos semua kasus ini (skor toleransi ±0,1).",
+  "phase1": [
+    {
+      "id": "baseline-spin-kontrol",
+      "answers": {
+        "level": "kompetitif",
+        "swing": "cepat",
+        "priorities": [
+          "spin",
+          "control"
+        ],
+        "arm": "tidak",
+        "change": "sedang",
+        "breakage": "kadang",
+        "tension": "sedang"
+      },
+      "expected": {
+        "condition": "51F",
+        "weights_pct": {
+          "spin": 32.3,
+          "power": 6.5,
+          "control": 29,
+          "comfort": 6.5,
+          "stability": 16.1,
+          "durability": 9.7
+        },
+        "excluded_materials": [],
+        "candidates": 86,
+        "picks": [
+          {
+            "string": "Signum Pro Plasma HEXtreme 16 (1.30)",
+            "material": "Polyester",
+            "score": 78.3,
+            "strengths": [
+              "Potensi spin lebih tinggi dari 84% senar yang diuji (nilai 7,3).",
+              "Lebih kaku dari 91% senar, jadi arah bola lebih mudah dijaga (stiffness 226 lb/in)."
+            ],
+            "weakness": "Cukup kaku (lebih kaku dari 91% senar). Perhatikan kalau lengan mudah pegal.",
+            "notes": []
+          },
+          {
+            "string": "Babolat RPM Blast Rough 16",
+            "material": "Polyester",
+            "score": 74.9,
+            "strengths": [
+              "Potensi spin lebih tinggi dari 95% senar yang diuji (nilai 8,2).",
+              "Lebih kaku dari 73% senar, jadi arah bola lebih mudah dijaga (stiffness 210 lb/in)."
+            ],
+            "weakness": "Cukup kaku (lebih kaku dari 73% senar). Perhatikan kalau lengan mudah pegal.",
+            "notes": []
+          },
+          {
+            "string": "Solinco Hyper-G 16 Round (1.30)",
+            "material": "Polyester",
+            "score": 73.8,
+            "strengths": [
+              "Potensi spin lebih tinggi dari 84% senar yang diuji (nilai 7,3).",
+              "Lebih kaku dari 92% senar, jadi arah bola lebih mudah dijaga (stiffness 226 lb/in)."
+            ],
+            "weakness": "Cukup kaku (lebih kaku dari 92% senar). Perhatikan kalau lengan mudah pegal.",
+            "notes": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "rekreasi-nyaman-pegal",
+      "answers": {
+        "level": "rutin",
+        "swing": "sedang",
+        "priorities": [
+          "comfort",
+          "power"
+        ],
+        "arm": "pegal",
+        "change": "lama",
+        "breakage": "tidak",
+        "tension": "tidaktahu"
+      },
+      "expected": {
+        "condition": "51M",
+        "weights_pct": {
+          "spin": 6.5,
+          "power": 19.4,
+          "control": 6.5,
+          "comfort": 41.9,
+          "stability": 22.6,
+          "durability": 3.2
+        },
+        "excluded_materials": [],
+        "candidates": 94,
+        "picks": [
+          {
+            "string": "Yonex Rexis Comfort 16L (1.25)",
+            "material": "Nylon",
+            "score": 82.6,
+            "strengths": [
+              "Lebih lembut dari 99% senar yang diuji (stiffness 129 lb/in).",
+              "Tensinya lebih awet dari 84% senar (tension loss 24%)."
+            ],
+            "weakness": "Senarnya lembut, jadi bola cenderung melaju lebih jauh dan butuh kontrol dari ayunan.",
+            "notes": [
+              "Data lab untuk tensi dan ayunan Anda belum tersedia; dihitung dari pengujian 51 lbs, swing cepat."
+            ]
+          },
+          {
+            "string": "Solinco Vanquish 17 (1.20)",
+            "material": "Nylon",
+            "score": 80.8,
+            "strengths": [
+              "Lebih lembut dari 96% senar yang diuji (stiffness 146 lb/in).",
+              "Tensinya lebih awet dari 98% senar (tension loss 17%)."
+            ],
+            "weakness": "Senarnya lembut, jadi bola cenderung melaju lebih jauh dan butuh kontrol dari ayunan.",
+            "notes": [
+              "Data lab untuk tensi dan ayunan Anda belum tersedia; dihitung dari pengujian 51 lbs, swing cepat."
+            ]
+          },
+          {
+            "string": "Solinco X-Natural 16 (1.30)",
+            "material": "Nylon",
+            "score": 79.4,
+            "strengths": [
+              "Lebih lembut dari 97% senar yang diuji (stiffness 145 lb/in).",
+              "Tensinya lebih awet dari 88% senar (tension loss 21,5%)."
+            ],
+            "weakness": "Senarnya lembut, jadi bola cenderung melaju lebih jauh dan butuh kontrol dari ayunan.",
+            "notes": [
+              "Data lab untuk tensi dan ayunan Anda belum tersedia; dihitung dari pengujian 51 lbs, swing cepat."
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "pemula-power",
+      "answers": {
+        "level": "pemula",
+        "swing": "santai",
+        "priorities": [
+          "power"
+        ],
+        "arm": "tidak",
+        "change": "lama",
+        "breakage": "tidak",
+        "tension": "rendah"
+      },
+      "expected": {
+        "condition": "40S",
+        "weights_pct": {
+          "spin": 6.7,
+          "power": 46.7,
+          "control": 6.7,
+          "comfort": 13.3,
+          "stability": 23.3,
+          "durability": 3.3
+        },
+        "excluded_materials": [
+          "Polyester",
+          "Gut"
+        ],
+        "candidates": 15,
+        "picks": [
+          {
+            "string": "Solinco Vanquish 17 (1.20)",
+            "material": "Nylon",
+            "score": 83.3,
+            "strengths": [
+              "Mengembalikan energi lebih baik dari 96% senar (energy return 93,5%).",
+              "Tensinya lebih awet dari 98% senar (tension loss 17%)."
+            ],
+            "weakness": "Senarnya lembut, jadi bola cenderung melaju lebih jauh dan butuh kontrol dari ayunan.",
+            "notes": [
+              "Data lab untuk tensi dan ayunan Anda belum tersedia; dihitung dari pengujian 51 lbs, swing cepat."
+            ]
+          },
+          {
+            "string": "Yonex Rexis Comfort 16L (1.25)",
+            "material": "Nylon",
+            "score": 82.5,
+            "strengths": [
+              "Lentur (lebih lembut dari 99% senar), membantu bola melaju lebih jauh.",
+              "Tensinya lebih awet dari 84% senar (tension loss 24%)."
+            ],
+            "weakness": "Senarnya lembut, jadi bola cenderung melaju lebih jauh dan butuh kontrol dari ayunan.",
+            "notes": [
+              "Data lab untuk tensi dan ayunan Anda belum tersedia; dihitung dari pengujian 51 lbs, swing cepat."
+            ]
+          },
+          {
+            "string": "Volkl Synthetic Gut 17",
+            "material": "Nylon",
+            "score": 82.1,
+            "strengths": [
+              "Mengembalikan energi lebih baik dari 98% senar (energy return 97,4%).",
+              "Tensinya lebih awet dari 90% senar (tension loss 25,7%)."
+            ],
+            "weakness": "Senarnya lembut, jadi bola cenderung melaju lebih jauh dan butuh kontrol dari ayunan.",
+            "notes": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "cedera-kontrol-konflik",
+      "answers": {
+        "level": "rutin",
+        "swing": "cepat",
+        "priorities": [
+          "control",
+          "comfort"
+        ],
+        "arm": "cedera",
+        "change": "sedang",
+        "breakage": "sering",
+        "tension": "tinggi"
+      },
+      "expected": {
+        "condition": "62F",
+        "weights_pct": {
+          "spin": 5.1,
+          "power": 5.1,
+          "control": 30.8,
+          "comfort": 33.3,
+          "stability": 10.3,
+          "durability": 15.4
+        },
+        "excluded_materials": [
+          "Polyester",
+          "Gut"
+        ],
+        "candidates": 15,
+        "picks": [
+          {
+            "string": "Solinco X-Natural 16 (1.30)",
+            "material": "Nylon",
+            "score": 58.1,
+            "strengths": [
+              "Lebih lembut dari 97% senar yang diuji (stiffness 145 lb/in).",
+              "Lebih tebal dari 85% senar (1,3 mm), jadi lebih tahan putus."
+            ],
+            "weakness": "Senarnya lembut, jadi bola cenderung melaju lebih jauh dan butuh kontrol dari ayunan.",
+            "notes": [
+              "Data lab untuk tensi dan ayunan Anda belum tersedia; dihitung dari pengujian 51 lbs, swing cepat."
+            ]
+          },
+          {
+            "string": "Dunlop S-Gut 16 (1.32)",
+            "material": "Nylon",
+            "score": 57.9,
+            "strengths": [
+              "Lebih lembut dari 92% senar yang diuji (stiffness 158 lb/in).",
+              "Lebih tebal dari 99% senar (1,32 mm), jadi lebih tahan putus."
+            ],
+            "weakness": "Senarnya lembut, jadi bola cenderung melaju lebih jauh dan butuh kontrol dari ayunan.",
+            "notes": [
+              "Data lab untuk tensi dan ayunan Anda belum tersedia; dihitung dari pengujian 51 lbs, swing cepat."
+            ]
+          },
+          {
+            "string": "Yonex Rexis 16 (1.30)",
+            "material": "Nylon",
+            "score": 57.4,
+            "strengths": [
+              "Lebih lembut dari 95% senar yang diuji (stiffness 153 lb/in).",
+              "Lebih tebal dari 85% senar (1,3 mm), jadi lebih tahan putus."
+            ],
+            "weakness": "Senarnya lembut, jadi bola cenderung melaju lebih jauh dan butuh kontrol dari ayunan.",
+            "notes": [
+              "Data lab untuk tensi dan ayunan Anda belum tersedia; dihitung dari pengujian 51 lbs, swing cepat."
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "kompetitif-kontrol-sering-putus",
+      "answers": {
+        "level": "kompetitif",
+        "swing": "cepat",
+        "priorities": [
+          "control",
+          "spin"
+        ],
+        "arm": "tidak",
+        "change": "cepat",
+        "breakage": "sering",
+        "tension": "tinggi"
+      },
+      "expected": {
+        "condition": "62F",
+        "weights_pct": {
+          "spin": 19.4,
+          "power": 6.5,
+          "control": 41.9,
+          "comfort": 6.5,
+          "stability": 6.5,
+          "durability": 19.4
+        },
+        "excluded_materials": [
+          "Gut"
+        ],
+        "candidates": 86,
+        "picks": [
+          {
+            "string": "Signum Pro Plasma HEXtreme 16 (1.30)",
+            "material": "Polyester",
+            "score": 79.5,
+            "strengths": [
+              "Lebih kaku dari 91% senar, jadi arah bola lebih mudah dijaga (stiffness 226 lb/in).",
+              "Lebih tebal dari 85% senar (1,3 mm), jadi lebih tahan putus."
+            ],
+            "weakness": "Cukup kaku (lebih kaku dari 91% senar). Perhatikan kalau lengan mudah pegal.",
+            "notes": [
+              "Data lab untuk tensi dan ayunan Anda belum tersedia; dihitung dari pengujian 51 lbs, swing cepat."
+            ]
+          },
+          {
+            "string": "Solinco Hyper-G 16 Round (1.30)",
+            "material": "Polyester",
+            "score": 77.8,
+            "strengths": [
+              "Lebih kaku dari 92% senar, jadi arah bola lebih mudah dijaga (stiffness 226 lb/in).",
+              "Lebih tebal dari 85% senar (1,3 mm), jadi lebih tahan putus."
+            ],
+            "weakness": "Cukup kaku (lebih kaku dari 92% senar). Perhatikan kalau lengan mudah pegal.",
+            "notes": [
+              "Data lab untuk tensi dan ayunan Anda belum tersedia; dihitung dari pengujian 51 lbs, swing cepat."
+            ]
+          },
+          {
+            "string": "Babolat RPM Blast Rough 16",
+            "material": "Polyester",
+            "score": 74.3,
+            "strengths": [
+              "Lebih kaku dari 73% senar, jadi arah bola lebih mudah dijaga (stiffness 210 lb/in).",
+              "Potensi spin lebih tinggi dari 95% senar yang diuji (nilai 8,2)."
+            ],
+            "weakness": "Cukup kaku (lebih kaku dari 73% senar). Perhatikan kalau lengan mudah pegal.",
+            "notes": [
+              "Data lab untuk tensi dan ayunan Anda belum tersedia; dihitung dari pengujian 51 lbs, swing cepat."
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "rutin-spin-tensi-awet",
+      "answers": {
+        "level": "rutin",
+        "swing": "sedang",
+        "priorities": [
+          "spin"
+        ],
+        "arm": "tidak",
+        "change": "lama",
+        "breakage": "kadang",
+        "tension": "sedang"
+      },
+      "expected": {
+        "condition": "51M",
+        "weights_pct": {
+          "spin": 38.5,
+          "power": 7.7,
+          "control": 7.7,
+          "comfort": 7.7,
+          "stability": 26.9,
+          "durability": 11.5
+        },
+        "excluded_materials": [],
+        "candidates": 86,
+        "picks": [
+          {
+            "string": "Signum Pro Plasma HEXtreme 16 (1.30)",
+            "material": "Polyester",
+            "score": 75.2,
+            "strengths": [
+              "Potensi spin lebih tinggi dari 84% senar yang diuji (nilai 7,3).",
+              "Tensinya lebih awet dari 83% senar (tension loss 24,8%)."
+            ],
+            "weakness": "Cukup kaku (lebih kaku dari 91% senar). Perhatikan kalau lengan mudah pegal.",
+            "notes": [
+              "Data lab untuk tensi dan ayunan Anda belum tersedia; dihitung dari pengujian 51 lbs, swing cepat."
+            ]
+          },
+          {
+            "string": "Babolat RPM Blast Rough 16",
+            "material": "Polyester",
+            "score": 74.5,
+            "strengths": [
+              "Potensi spin lebih tinggi dari 95% senar yang diuji (nilai 8,2).",
+              "Tensinya lebih awet dari 62% senar (tension loss 29,5%)."
+            ],
+            "weakness": "Cukup kaku (lebih kaku dari 73% senar). Perhatikan kalau lengan mudah pegal.",
+            "notes": [
+              "Data lab untuk tensi dan ayunan Anda belum tersedia; dihitung dari pengujian 51 lbs, swing cepat."
+            ]
+          },
+          {
+            "string": "Luxilon Alu Power Soft 1.25",
+            "material": "Polyester",
+            "score": 73.6,
+            "strengths": [
+              "Potensi spin lebih tinggi dari 99% senar yang diuji (nilai 6,9).",
+              "Tensinya lebih awet dari 66% senar (tension loss 36%)."
+            ],
+            "weakness": "Senarnya lembut, jadi bola cenderung melaju lebih jauh dan butuh kontrol dari ayunan.",
+            "notes": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "rutin-power-nyaman-lambat",
+      "answers": {
+        "level": "rutin",
+        "swing": "santai",
+        "priorities": [
+          "power",
+          "comfort"
+        ],
+        "arm": "pegal",
+        "change": "sedang",
+        "breakage": "tidak",
+        "tension": "rendah"
+      },
+      "expected": {
+        "condition": "40S",
+        "weights_pct": {
+          "spin": 6.7,
+          "power": 40,
+          "control": 6.7,
+          "comfort": 30,
+          "stability": 13.3,
+          "durability": 3.3
+        },
+        "excluded_materials": [
+          "Polyester"
+        ],
+        "candidates": 15,
+        "picks": [
+          {
+            "string": "Yonex Rexis Comfort 16L (1.25)",
+            "material": "Nylon",
+            "score": 83.4,
+            "strengths": [
+              "Mengembalikan energi lebih baik dari 91% senar (energy return 92,4%).",
+              "Lebih lembut dari 99% senar yang diuji (stiffness 129 lb/in)."
+            ],
+            "weakness": "Senarnya lembut, jadi bola cenderung melaju lebih jauh dan butuh kontrol dari ayunan.",
+            "notes": [
+              "Data lab untuk tensi dan ayunan Anda belum tersedia; dihitung dari pengujian 51 lbs, swing cepat."
+            ]
+          },
+          {
+            "string": "Solinco Vanquish 17 (1.20)",
+            "material": "Nylon",
+            "score": 81.4,
+            "strengths": [
+              "Mengembalikan energi lebih baik dari 96% senar (energy return 93,5%).",
+              "Lebih lembut dari 96% senar yang diuji (stiffness 146 lb/in)."
+            ],
+            "weakness": "Senarnya lembut, jadi bola cenderung melaju lebih jauh dan butuh kontrol dari ayunan.",
+            "notes": [
+              "Data lab untuk tensi dan ayunan Anda belum tersedia; dihitung dari pengujian 51 lbs, swing cepat."
+            ]
+          },
+          {
+            "string": "Solinco X-Natural 16 (1.30)",
+            "material": "Nylon",
+            "score": 81,
+            "strengths": [
+              "Mengembalikan energi lebih baik dari 98% senar (energy return 93,7%).",
+              "Lebih lembut dari 97% senar yang diuji (stiffness 145 lb/in)."
+            ],
+            "weakness": "Senarnya lembut, jadi bola cenderung melaju lebih jauh dan butuh kontrol dari ayunan.",
+            "notes": [
+              "Data lab untuk tensi dan ayunan Anda belum tersedia; dihitung dari pengujian 51 lbs, swing cepat."
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "kompetitif-spin-pegal",
+      "answers": {
+        "level": "kompetitif",
+        "swing": "cepat",
+        "priorities": [
+          "spin",
+          "comfort"
+        ],
+        "arm": "pegal",
+        "change": "cepat",
+        "breakage": "kadang",
+        "tension": "rendah"
+      },
+      "expected": {
+        "condition": "40F",
+        "weights_pct": {
+          "spin": 32.3,
+          "power": 6.5,
+          "control": 16.1,
+          "comfort": 29,
+          "stability": 6.5,
+          "durability": 9.7
+        },
+        "excluded_materials": [],
+        "candidates": 86,
+        "picks": [
+          {
+            "string": "Volkl Cyclone Tour 16 (1.30)",
+            "material": "Polyester",
+            "score": 70.6,
+            "strengths": [
+              "Potensi spin lebih tinggi dari 97% senar yang diuji (nilai 8,7).",
+              "Lebih lembut dari 82% senar yang diuji (stiffness 167 lb/in)."
+            ],
+            "weakness": "Senarnya lembut, jadi bola cenderung melaju lebih jauh dan butuh kontrol dari ayunan.",
+            "notes": [
+              "Data lab untuk tensi dan ayunan Anda belum tersedia; dihitung dari pengujian 51 lbs, swing cepat."
+            ]
+          },
+          {
+            "string": "Solinco Tour Bite 16 Soft",
+            "material": "Polyester",
+            "score": 70.1,
+            "strengths": [
+              "Potensi spin lebih tinggi dari 99% senar yang diuji (nilai 6,9).",
+              "Lebih lembut dari 73% senar yang diuji (stiffness 149 lb/in)."
+            ],
+            "weakness": "Senarnya lembut, jadi bola cenderung melaju lebih jauh dan butuh kontrol dari ayunan.",
+            "notes": []
+          },
+          {
+            "string": "Toroline O-TORO Snap 16L (1.25)",
+            "material": "Polyester",
+            "score": 68.6,
+            "strengths": [
+              "Potensi spin lebih tinggi dari 97% senar yang diuji (nilai 8,7).",
+              "Lebih lembut dari 85% senar yang diuji (stiffness 165 lb/in)."
+            ],
+            "weakness": "Senarnya lembut, jadi bola cenderung melaju lebih jauh dan butuh kontrol dari ayunan.",
+            "notes": [
+              "Data lab untuk tensi dan ayunan Anda belum tersedia; dihitung dari pengujian 51 lbs, swing cepat."
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "phase2": [
+    {
+      "id": "fase2-contoh-A-F",
+      "input": [
+        {
+          "string": "A",
+          "score": 92,
+          "price_per_set": 180000,
+          "sold_90d": 45,
+          "in_stock": true
+        },
+        {
+          "string": "B",
+          "score": 90,
+          "price_per_set": 320000,
+          "sold_90d": 12,
+          "in_stock": true
+        },
+        {
+          "string": "C",
+          "score": 88,
+          "price_per_set": 95000,
+          "sold_90d": 30,
+          "in_stock": true
+        },
+        {
+          "string": "D",
+          "score": 86,
+          "price_per_set": 150000,
+          "sold_90d": 60,
+          "in_stock": true
+        },
+        {
+          "string": "E",
+          "score": 81,
+          "price_per_set": 210000,
+          "sold_90d": 8,
+          "in_stock": true
+        },
+        {
+          "string": "F",
+          "score": 70,
+          "price_per_set": 60000,
+          "sold_90d": 50,
+          "in_stock": true
+        }
+      ],
+      "expected": {
+        "picks": [
+          {
+            "label": "Terlaris",
+            "string": "D"
+          },
+          {
+            "label": "Premium",
+            "string": "B"
+          },
+          {
+            "label": "Paling hemat",
+            "string": "C"
+          }
+        ],
+        "best_match_note": "A",
+        "threshold": 0.85
+      }
+    }
+  ]
+}

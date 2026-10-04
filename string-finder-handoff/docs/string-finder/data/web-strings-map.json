@@ -1,0 +1,300 @@
+{
+  "totalWebProduk": 123,
+  "denganDataTWU": {
+    "produk": 76,
+    "familyUnik": 60,
+    "barisTWU": 480,
+    "alias": [
+      "Senar Tenis Babolat RPM Rough Tennis String Potongan Reel",
+      "Senar Tenis Signum Pro Plasma Pure Tennis String Potongan Reel",
+      "Senar Tenis Volkl Classic Synthetic Gut Tennis String Potongan Reel"
+    ]
+  },
+  "tanpaData": {
+    "jumlah": 47,
+    "daftar": [
+      {
+        "nama": "babolat rpm hurricane",
+        "material": "Polyester",
+        "gauge": null,
+        "status": "READY"
+      },
+      {
+        "nama": "babolat xplore",
+        "material": "Tidak diketahui",
+        "gauge": null,
+        "status": "READY"
+      },
+      {
+        "nama": "deshibeli 3n",
+        "material": "Polyester",
+        "gauge": null,
+        "status": "READY"
+      },
+      {
+        "nama": "deshibeli 3t",
+        "material": "Polyester",
+        "gauge": null,
+        "status": "READY"
+      },
+      {
+        "nama": "deshibeli fast 3x",
+        "material": "Polyester",
+        "gauge": null,
+        "status": "READY"
+      },
+      {
+        "nama": "deshibeli macaron ma3",
+        "material": "Polyester",
+        "gauge": null,
+        "status": "READY"
+      },
+      {
+        "nama": "grapplesnake aspera triplum",
+        "material": "Polyester",
+        "gauge": null,
+        "status": "READY"
+      },
+      {
+        "nama": "grapplesnake ces neon dust",
+        "material": "Polyester",
+        "gauge": null,
+        "status": "READY"
+      },
+      {
+        "nama": "grapplesnake game changer",
+        "material": "Polyester",
+        "gauge": null,
+        "status": "READY"
+      },
+      {
+        "nama": "grapplesnake irukandji",
+        "material": "Polyester",
+        "gauge": null,
+        "status": "READY"
+      },
+      {
+        "nama": "grapplesnake liquid neon dust",
+        "material": "Polyester",
+        "gauge": null,
+        "status": "READY"
+      },
+      {
+        "nama": "grapplesnake liquid",
+        "material": "Polyester",
+        "gauge": null,
+        "status": "READY"
+      },
+      {
+        "nama": "grapplesnake paradox pro",
+        "material": "Polyester",
+        "gauge": null,
+        "status": "READY"
+      },
+      {
+        "nama": "grapplesnake soldier",
+        "material": "Polyester",
+        "gauge": null,
+        "status": "READY"
+      },
+      {
+        "nama": "grapplesnake tour mako",
+        "material": "Polyester",
+        "gauge": null,
+        "status": "READY"
+      },
+      {
+        "nama": "isospeed baseline speed",
+        "material": "Polyester",
+        "gauge": null,
+        "status": "READY"
+      },
+      {
+        "nama": "isospeed baseline spin",
+        "material": "Polyester",
+        "gauge": null,
+        "status": "READY"
+      },
+      {
+        "nama": "isospeed spinrose",
+        "material": "Polyester",
+        "gauge": null,
+        "status": "READY"
+      },
+      {
+        "nama": "mayami big spin",
+        "material": "Polyester",
+        "gauge": null,
+        "status": "READY"
+      },
+      {
+        "nama": "mayami hepta power",
+        "material": "Polyester",
+        "gauge": null,
+        "status": "READY"
+      },
+      {
+        "nama": "mayami machete",
+        "material": "Polyester",
+        "gauge": null,
+        "status": "READY"
+      },
+      {
+        "nama": "mayami magic twist",
+        "material": "Polyester",
+        "gauge": null,
+        "status": "READY"
+      },
+      {
+        "nama": "mayami tour hex",
+        "material": "Polyester",
+        "gauge": null,
+        "status": "READY"
+      },
+      {
+        "nama": "msv swift comfort",
+        "material": "Polyester",
+        "gauge": null,
+        "status": "READY"
+      },
+      {
+        "nama": "restring slap",
+        "material": "Polyester",
+        "gauge": null,
+        "status": "READY"
+      },
+      {
+        "nama": "restring sync",
+        "material": "Polyester",
+        "gauge": null,
+        "status": "SOLD"
+      },
+      {
+        "nama": "restring vivo",
+        "material": "Polyester",
+        "gauge": null,
+        "status": "READY"
+      },
+      {
+        "nama": "restring zero",
+        "material": "Polyester",
+        "gauge": null,
+        "status": "READY"
+      },
+      {
+        "nama": "signum pro andromeda",
+        "material": "Polyester",
+        "gauge": null,
+        "status": "READY"
+      },
+      {
+        "nama": "signum pro fibrecore",
+        "material": "Polyester",
+        "gauge": null,
+        "status": "READY"
+      },
+      {
+        "nama": "signum pro outbreak",
+        "material": "Polyester",
+        "gauge": null,
+        "status": "READY"
+      },
+      {
+        "nama": "signum pro polaris",
+        "material": "Polyester",
+        "gauge": null,
+        "status": "READY"
+      },
+      {
+        "nama": "signum pro poly power",
+        "material": "Polyester",
+        "gauge": null,
+        "status": "READY"
+      },
+      {
+        "nama": "signum pro thunderstorm",
+        "material": "Polyester",
+        "gauge": null,
+        "status": "READY"
+      },
+      {
+        "nama": "toalson asterista metal rainbow",
+        "material": "Polyester",
+        "gauge": null,
+        "status": "READY"
+      },
+      {
+        "nama": "toalson polygut super",
+        "material": "Polyester",
+        "gauge": null,
+        "status": "READY"
+      },
+      {
+        "nama": "toalson polygut",
+        "material": "Polyester",
+        "gauge": null,
+        "status": "READY"
+      },
+      {
+        "nama": "toalson recon devil spin",
+        "material": "Polyester",
+        "gauge": null,
+        "status": "READY"
+      },
+      {
+        "nama": "toalson rencon",
+        "material": "Polyester",
+        "gauge": null,
+        "status": "READY"
+      },
+      {
+        "nama": "toalson spin zone hex",
+        "material": "Polyester",
+        "gauge": null,
+        "status": "READY"
+      },
+      {
+        "nama": "toalson toa gold",
+        "material": "Polyester",
+        "gauge": null,
+        "status": "SOLD"
+      },
+      {
+        "nama": "toalson ultimate 115 control",
+        "material": "Polyester",
+        "gauge": null,
+        "status": "READY"
+      },
+      {
+        "nama": "toroline caviar",
+        "material": "Polyester",
+        "gauge": null,
+        "status": "READY"
+      },
+      {
+        "nama": "toroline enso pro",
+        "material": "Polyester",
+        "gauge": null,
+        "status": "READY"
+      },
+      {
+        "nama": "toroline toro toro",
+        "material": "Polyester",
+        "gauge": null,
+        "status": "READY"
+      },
+      {
+        "nama": "toroline wasabi",
+        "material": "Polyester",
+        "gauge": null,
+        "status": "READY"
+      },
+      {
+        "nama": "toroline wasabi x",
+        "material": "Polyester",
+        "gauge": null,
+        "status": "READY"
+      }
+    ]
+  }
+}

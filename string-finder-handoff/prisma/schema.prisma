@@ -1,0 +1,146 @@
+// Tirtonic String Finder — skema Fase 1 (PRD v2.0 bagian 7.4).
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum SfJobStatus {
+  antri
+  terkirim
+  gagal
+  kedaluwarsa
+}
+
+enum SfOrderStatus {
+  antri // menunggu stringer
+  dikerjakan // stringer sedang mengerjakan
+  selesai // senar siap diambil
+  batal
+}
+
+model TwuString {
+  id             String           @id @default(cuid())
+  name           String           @unique
+  family         String
+  material       String
+  gaugeMm        Float?
+  dataCoverage   String // lengkap | referensi_51F | terbatas
+  datasetVersion String
+  priceIdr       Int? // harga 1 set di toko (Rupiah)
+  inStock        Boolean          @default(true)
+  measurements   TwuMeasurement[]
+
+  @@index([family])
+}
+
+model TwuMeasurement {
+  id              String    @id @default(cuid())
+  stringId        String
+  string          TwuString @relation(fields: [stringId], references: [id], onDelete: Cascade)
+  tensionLbs      Int // 40 | 51 | 62
+  swing           String // "S" | "M" | "F"
+  stiffnessLbIn   Float? // st
+  tensionLossPct  Float? // tl
+  energyReturnPct Float? // er
+  dwellTimeMs     Float? // dw
+  spinPotential   Float? // sp
+
+  @@unique([stringId, tensionLbs, swing])
+}
+
+model SfRuleSet {
+  id        String   @id @default(cuid())
+  version   Int      @unique
+  config    Json // isi rules.json apa adanya
+  isActive  Boolean  @default(false)
+  note      String?
+  createdAt DateTime @default(now())
+
+  @@index([isActive])
+}
+
+model SfBranch {
+  id                String       @id @default(cuid())
+  name              String
+  slug              String       @unique
+  paperMm           String       @default("58") // "58" | "80"
+  etaMinutes        Int          @default(30) // estimasi lama stringing (menit)
+  isActive          Boolean      @default(true)
+  stationLastSeenAt DateTime?
+  results           SfResult[]
+  printJobs         SfPrintJob[]
+  orders            SfOrder[]
+}
+
+model SfResult {
+  code           String       @id // SF-XXXX, unik
+  createdAt      DateTime     @default(now())
+  branchId       String?
+  branch         SfBranch?    @relation(fields: [branchId], references: [id])
+  answers        Json
+  condition      String // mis. "51F"
+  ruleVersion    Int
+  datasetVersion String
+  picks          Json
+  chosenRank     Int? // null=belum pilih, 0=cetak ketiganya, 1..3=pilih satu
+  printJobs      SfPrintJob[]
+  orders         SfOrder[]
+
+  @@index([createdAt])
+  @@index([branchId])
+}
+
+model SfOrder {
+  id           String        @id @default(cuid())
+  resultCode   String
+  result       SfResult      @relation(fields: [resultCode], references: [code])
+  branchId     String
+  branch       SfBranch      @relation(fields: [branchId], references: [id])
+  phone        String // nomor WhatsApp customer, format 62xxxx
+  customerName String? // opsional
+  chosenRank   Int? // null=3 pilihan, 1..3=pilih satu
+  chosenString String? // nama senar terpilih (cache untuk tampil & notif)
+  status       SfOrderStatus @default(antri)
+  etaMinutes   Int           @default(30)
+  createdAt    DateTime      @default(now())
+  startedAt    DateTime?
+  finishedAt   DateTime?
+  notifiedInAt DateTime? // WA "terima kasih" terkirim
+  notifiedDone DateTime? // WA "siap diambil" terkirim
+
+  @@index([branchId, status])
+  @@index([createdAt])
+}
+
+model SfPrintJob {
+  id          String      @id @default(cuid())
+  resultCode  String
+  result      SfResult    @relation(fields: [resultCode], references: [code])
+  branchId    String
+  branch      SfBranch    @relation(fields: [branchId], references: [id])
+  chosenRank  Int?
+  status      SfJobStatus @default(antri)
+  createdAt   DateTime    @default(now())
+  sentAt      DateTime?
+  attempts    Int         @default(0)
+  error       String?
+  requestedBy String // "device" | "admin"
+
+  @@index([branchId, status])
+  @@index([createdAt])
+}
+
+model SfLoginAttempt {
+  id        String   @id @default(cuid())
+  ip        String
+  scope     String // "app" | "admin" | "station"
+  success   Boolean
+  createdAt DateTime @default(now())
+
+  @@index([ip, createdAt])
+}

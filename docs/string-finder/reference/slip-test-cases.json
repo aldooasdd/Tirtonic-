@@ -1,0 +1,145 @@
+{
+  "note": "Golden data resep (buildSlip). Tanggal & kode di-set tetap untuk tes.",
+  "cases": {
+    "baseline-spin-kontrol": {
+      "code": "SF-7K2Q",
+      "created_at": "2026-09-22T14:05:00.000Z",
+      "branch": "Yogyakarta",
+      "paper": "58",
+      "mode": "single",
+      "chosen": {
+        "rank": 1,
+        "name": "Signum Pro Plasma HEXtreme 16 (1.30)",
+        "material": "Polyester",
+        "gauge_mm": 1.3,
+        "score": 78,
+        "highlights": "Spin 84, Kontrol 91"
+      },
+      "options": [
+        {
+          "rank": 2,
+          "name": "Babolat RPM Blast Rough 16",
+          "material": "Polyester",
+          "gauge_mm": 1.3,
+          "score": 75,
+          "highlights": "Spin 95, Kontrol 73"
+        },
+        {
+          "rank": 3,
+          "name": "Solinco Hyper-G 16 Round (1.30)",
+          "material": "Polyester",
+          "gauge_mm": 1.3,
+          "score": 74,
+          "highlights": "Spin 84, Kontrol 92"
+        }
+      ],
+      "tension_usual": "48-55 lbs",
+      "profile": [
+        [
+          "Level",
+          "Kompetitif"
+        ],
+        [
+          "Ayunan",
+          "Penuh, cepat"
+        ],
+        [
+          "Prioritas",
+          "1 Spin, 2 Kontrol"
+        ],
+        [
+          "Lengan",
+          "Tidak ada keluhan"
+        ],
+        [
+          "Ganti senar",
+          "1-3 bulan"
+        ],
+        [
+          "Senar putus",
+          "Kadang"
+        ]
+      ],
+      "flags": [],
+      "handwritten": [
+        "Raket",
+        "Nama",
+        "No. HP",
+        "Ambil (tgl/jam)"
+      ],
+      "qr_url": "https://tirtonic.example/admin/string-finder/resep/SF-7K2Q"
+    },
+    "cedera-kontrol-konflik": {
+      "code": "SF-M4TX",
+      "created_at": "2026-09-22T14:05:00.000Z",
+      "branch": "Solo",
+      "paper": "58",
+      "mode": "all",
+      "chosen": null,
+      "options": [
+        {
+          "rank": 1,
+          "name": "Solinco X-Natural 16 (1.30)",
+          "material": "Nylon",
+          "gauge_mm": 1.3,
+          "score": 58,
+          "highlights": "Kontrol 3, Nyaman 88"
+        },
+        {
+          "rank": 2,
+          "name": "Dunlop S-Gut 16 (1.32)",
+          "material": "Nylon",
+          "gauge_mm": 1.32,
+          "score": 58,
+          "highlights": "Kontrol 8, Nyaman 76"
+        },
+        {
+          "rank": 3,
+          "name": "Yonex Rexis 16 (1.30)",
+          "material": "Nylon",
+          "gauge_mm": 1.3,
+          "score": 57,
+          "highlights": "Kontrol 5, Nyaman 83"
+        }
+      ],
+      "tension_usual": "> 55 lbs",
+      "profile": [
+        [
+          "Level",
+          "Rutin (rekreasi)"
+        ],
+        [
+          "Ayunan",
+          "Penuh, cepat"
+        ],
+        [
+          "Prioritas",
+          "1 Kontrol, 2 Nyaman"
+        ],
+        [
+          "Lengan",
+          "Sedang cedera"
+        ],
+        [
+          "Ganti senar",
+          "1-3 bulan"
+        ],
+        [
+          "Senar putus",
+          "Sering"
+        ]
+      ],
+      "flags": [
+        "Customer sedang cedera lengan. Prioritaskan kenyamanan saat menentukan tensi.",
+        "Data lab kondisi customer belum ada; rekomendasi memakai data 51 lbs / swing cepat."
+      ],
+      "handwritten": [
+        "Raket",
+        "Nama",
+        "No. HP",
+        "Ambil (tgl/jam)"
+      ],
+      "qr_url": "https://tirtonic.example/admin/string-finder/resep/SF-M4TX"
+    }
+  }
+}

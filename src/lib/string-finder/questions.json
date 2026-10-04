@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "questions": [
+    { "id": "level", "type": "single", "text": "Sudah berapa lama Anda main tenis?", "options": [
+      { "value": "pemula", "label": "Baru mulai", "hint": "Kurang dari 1 tahun" },
+      { "value": "rutin", "label": "Rutin main", "hint": "Lebih dari 1 tahun, untuk rekreasi" },
+      { "value": "kompetitif", "label": "Kompetitif", "hint": "Klub, liga, atau turnamen" } ] },
+    { "id": "swing", "type": "single", "text": "Seperti apa ayunan raket Anda?", "options": [
+      { "value": "santai", "label": "Santai dan pendek", "hint": "Lebih banyak mendorong bola" },
+      { "value": "sedang", "label": "Sedang", "hint": "Ayunan penuh, tapi tidak dipaksa" },
+      { "value": "cepat", "label": "Penuh dan cepat", "hint": "Memukul keras dengan banyak topspin" } ] },
+    { "id": "priorities", "type": "multi", "max": 2, "text": "Apa yang paling ingin Anda tingkatkan?",
+      "helper": "Pilih maksimal 2. Pilihan pertama dianggap paling penting.", "options": [
+      { "value": "spin", "label": "Spin", "hint": "Bola lebih banyak putaran dan cepat turun" },
+      { "value": "power", "label": "Power", "hint": "Bola lebih jauh dengan tenaga lebih sedikit" },
+      { "value": "control", "label": "Kontrol", "hint": "Bola lebih terarah, tidak sering out" },
+      { "value": "comfort", "label": "Nyaman", "hint": "Getaran lebih halus di tangan" } ],
+      "conflict_note": { "pair": ["control", "comfort"], "text": "Kontrol dan kenyamanan saling tarik. Hasilnya akan condong ke senar yang seimbang." } },
+    { "id": "arm", "type": "single", "text": "Ada keluhan di lengan, siku, atau bahu?", "options": [
+      { "value": "tidak", "label": "Tidak ada" },
+      { "value": "pegal", "label": "Kadang pegal", "hint": "Setelah main lama" },
+      { "value": "cedera", "label": "Sedang cedera", "hint": "Misalnya tennis elbow" } ] },
+    { "id": "change", "type": "single", "text": "Biasanya ganti senar tiap berapa lama?", "options": [
+      { "value": "cepat", "label": "Kurang dari 1 bulan" },
+      { "value": "sedang", "label": "1 sampai 3 bulan" },
+      { "value": "lama", "label": "Lebih dari 3 bulan" } ] },
+    { "id": "breakage", "type": "single", "text": "Senar Anda sering putus sebelum sempat diganti?", "options": [
+      { "value": "sering", "label": "Sering" },
+      { "value": "kadang", "label": "Kadang-kadang" },
+      { "value": "tidak", "label": "Tidak pernah" } ] },
+    { "id": "tension", "type": "single", "text": "Berapa tensi senar yang biasa Anda pakai?", "options": [
+      { "value": "rendah", "label": "Rendah", "hint": "Di bawah 48 lbs" },
+      { "value": "sedang", "label": "Sedang", "hint": "48 sampai 55 lbs" },
+      { "value": "tinggi", "label": "Tinggi", "hint": "Di atas 55 lbs" },
+      { "value": "tidaktahu", "label": "Tidak tahu", "hint": "Kami pakai tensi sedang" } ] }
+  ]
+}
