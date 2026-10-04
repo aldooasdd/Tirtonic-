@@ -282,6 +282,36 @@ export async function deleteHeroSlide(id: string) {
   revalidatePath("/dashboard");
 }
 
+// ---------- Our Store (cabang) ----------
+
+export async function createStore(formData: FormData) {
+  requireAuth();
+  const nama = ((formData.get("nama") as string) || "").trim();
+  const alamat = ((formData.get("alamat") as string) || "").trim();
+  if (!nama || !alamat) throw new Error("Nama & alamat store wajib diisi.");
+  const foto = await uploadOneImage(formData, "stores"); // pakai input name="gambar"
+  await prisma.store.create({
+    data: {
+      nama,
+      alamat,
+      jam: ((formData.get("jam") as string) || "").trim() || null,
+      maps: ((formData.get("maps") as string) || "").trim() || null,
+      foto,
+      urutan: parseInt((formData.get("urutan") as string) || "0", 10) || 0,
+    },
+  });
+  revalidatePath("/");
+  revalidatePath("/dashboard");
+  redirect("/dashboard");
+}
+
+export async function deleteStore(id: string) {
+  requireAuth();
+  await prisma.store.delete({ where: { id } });
+  revalidatePath("/");
+  revalidatePath("/dashboard");
+}
+
 // ---------- Articles ----------
 
 function revalidateArticles(id?: string) {

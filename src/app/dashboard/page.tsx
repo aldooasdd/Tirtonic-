@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { isAuthed } from "@/lib/auth";
 import { prisma, safeQuery } from "@/lib/prisma";
 import { rupiah } from "@/lib/format";
-import { createProduct, logout, createHeroSlide, deleteHeroSlide, createArticle } from "./actions";
+import { createProduct, logout, createHeroSlide, deleteHeroSlide, createStore, deleteStore, createArticle } from "./actions";
 import ProductForm from "@/components/ProductForm";
 import ProductRowActions from "@/components/ProductRowActions";
 import ArticleForm from "@/components/ArticleForm";
@@ -32,9 +32,10 @@ function Stat({ label, value, tone = "gray" }: { label: string; value: number; t
 export default async function AdminDashboard() {
   if (!isAuthed()) redirect("/dashboard/login");
 
-  const [products, slides, articles, sponsorships] = await Promise.all([
+  const [products, slides, stores, articles, sponsorships] = await Promise.all([
     safeQuery(() => prisma.product.findMany({ orderBy: { createdAt: "desc" } }), []),
     safeQuery(() => prisma.heroSlide.findMany({ orderBy: [{ urutan: "asc" }, { createdAt: "asc" }] }), []),
+    safeQuery(() => prisma.store.findMany({ orderBy: [{ urutan: "asc" }, { nama: "asc" }] }), []),
     safeQuery(() => prisma.article.findMany({ orderBy: { tanggal: "desc" } }), []),
     safeQuery(() => prisma.sponsorshipSubmission.findMany({ orderBy: { createdAt: "desc" } }), []),
   ]);
@@ -144,6 +145,72 @@ export default async function AdminDashboard() {
                       <span className="absolute bottom-1 left-1 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-bold text-white">+ mobile</span>
                     )}
                     <form action={deleteHeroSlide.bind(null, s.id)}>
+                      <button className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white shadow">×</button>
+                    </form>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </details>
+
+        {/* our store (cabang) */}
+        <details className="group overflow-hidden rounded-2xl border bg-white shadow-sm">
+          <summary className="flex cursor-pointer items-center justify-between px-5 py-4 font-bold text-gray-900">
+            <span className="flex items-center gap-2">Our Store (Cabang)</span>
+            <span className="text-xs font-normal text-gray-400">{stores.length} store</span>
+          </summary>
+          <div className="space-y-4 border-t p-5">
+            <form action={createStore} className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <label className="label">Nama store * (mis. Yogyakarta)</label>
+                <input name="nama" required className="field" placeholder="Yogyakarta" />
+              </div>
+              <div>
+                <label className="label">Alamat *</label>
+                <input name="alamat" required className="field" placeholder="Jl. Sedan Asri No.84, Sleman" />
+              </div>
+              <div>
+                <label className="label">Jam buka (opsional)</label>
+                <input name="jam" className="field" placeholder="Everyday | 9am-7pm" />
+              </div>
+              <div>
+                <label className="label">Link Google Maps (opsional)</label>
+                <input name="maps" className="field" placeholder="https://maps.app.goo.gl/..." />
+              </div>
+              <div>
+                <label className="label">Foto store (kotak 1:1, mis. 1080×1080)</label>
+                <input name="gambar" type="file" accept="image/*" className="text-sm" />
+              </div>
+              <div>
+                <label className="label">Urutan</label>
+                <input name="urutan" type="number" defaultValue={0} className="field w-24" />
+              </div>
+              <div className="sm:col-span-2">
+                <button className="btn-green">Tambah Store</button>
+              </div>
+            </form>
+
+            {stores.length === 0 ? (
+              <p className="text-sm text-gray-400">Belum ada store.</p>
+            ) : (
+              <div className="flex flex-wrap gap-3">
+                {stores.map((s) => (
+                  <div key={s.id} className="relative w-40 rounded-xl border p-2">
+                    {s.foto ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={s.foto} alt="" className="mb-2 h-28 w-full rounded-lg border object-cover" />
+                    ) : (
+                      <div className="mb-2 flex h-28 w-full items-center justify-center rounded-lg border bg-gray-50 text-xs text-gray-300">Tanpa foto</div>
+                    )}
+                    <p className="truncate text-sm font-semibold text-gray-900">{s.nama}</p>
+                    <p className="line-clamp-2 text-xs text-gray-500">{s.alamat}</p>
+                    {s.maps && (
+                      <a href={s.maps} target="_blank" rel="noreferrer" className="mt-1 inline-block text-xs font-semibold text-primary hover:underline">
+                        Lihat Maps ↗
+                      </a>
+                    )}
+                    <form action={deleteStore.bind(null, s.id)}>
                       <button className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white shadow">×</button>
                     </form>
                   </div>
