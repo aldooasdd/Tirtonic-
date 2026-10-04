@@ -92,7 +92,7 @@ export default function ShopClient({
 
       {open ? (
         <div className="flex flex-col gap-8 md:flex-row">
-          <aside className="w-full md:w-60 md:shrink-0">
+          <aside className="w-full md:w-60 md:shrink-0 md:sticky md:top-24 md:self-start md:max-h-[calc(100vh-7rem)] md:overflow-y-auto">
             <div className="mb-2 flex items-center justify-between">
               <h2 className="text-xl font-bold text-gray-900">Filter</h2>
               <button
