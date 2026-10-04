@@ -22,9 +22,6 @@ function OurStore({ stores }: { stores: StoreItem[] }) {
           Our Store {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo.png" alt="" className="h-7 w-7" />
         </h2>
-        <Link href="/contact" className="text-sm font-semibold text-primary hover:underline">
-          View All
-        </Link>
       </div>
       {stores.length === 0 ? (
         <p className="text-gray-500">Belum ada data cabang.</p>
