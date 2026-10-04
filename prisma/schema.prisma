@@ -81,6 +81,7 @@ model Product {
   stok      Int?        // stok produk non-varian (null = tak terbatas; 0 = habis). Produk bervarian pakai stok per-varian.
   views     Int         @default(0) // product-page view counter
   variants  ProductVariant[]
+  twuStrings TwuString[] // String Finder: senar TWU yg pakai produk ini sbg sumber harga/stok
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
 }
@@ -159,3 +160,145 @@ model SponsorshipSubmission {
 
 // ponytail: no Admin table — single admin via ADMIN_PASSWORD env var (see lib/auth.ts).
 // Add a hashed-password table only if multi-admin is ever needed.
+
+// ============================================================================
+// String Finder (lihat docs/string-finder/). Harga & stok senar TIDAK disimpan
+// di sini — diambil live dari Product via TwuString.productId (satu sumber).
+// ============================================================================
+
+enum SfJobStatus {
+  antri
+  terkirim
+  gagal
+  kedaluwarsa
+}
+
+enum SfOrderStatus {
+  antri // menunggu stringer
+  dikerjakan // stringer sedang mengerjakan
+  selesai // senar siap diambil
+  batal
+}
+
+model TwuString {
+  id             String           @id @default(cuid())
+  name           String           @unique
+  family         String
+  material       String
+  gaugeMm        Float?
+  dataCoverage   String // lengkap | referensi_51F | tanpa_data
+  datasetVersion String
+  productId      String? // join ke Product (sumber harga + stok). null = belum terpetakan
+  product        Product?         @relation(fields: [productId], references: [id], onDelete: SetNull)
+  measurements   TwuMeasurement[]
+
+  @@index([family])
+  @@index([productId])
+}
+
+model TwuMeasurement {
+  id              String    @id @default(cuid())
+  stringId        String
+  string          TwuString @relation(fields: [stringId], references: [id], onDelete: Cascade)
+  tensionLbs      Int // 40 | 51 | 62
+  swing           String // "S" | "M" | "F"
+  stiffnessLbIn   Float? // st
+  tensionLossPct  Float? // tl
+  energyReturnPct Float? // er
+  dwellTimeMs     Float? // dw
+  spinPotential   Float? // sp
+
+  @@unique([stringId, tensionLbs, swing])
+}
+
+model SfRuleSet {
+  id        String   @id @default(cuid())
+  version   Int      @unique
+  config    Json // isi rules.json apa adanya
+  isActive  Boolean  @default(false)
+  note      String?
+  createdAt DateTime @default(now())
+
+  @@index([isActive])
+}
+
+model SfBranch {
+  id                String       @id @default(cuid())
+  name              String
+  slug              String       @unique
+  paperMm           String       @default("58") // "58" | "80"
+  etaMinutes        Int          @default(30)
+  isActive          Boolean      @default(true)
+  stationLastSeenAt DateTime?
+  results           SfResult[]
+  printJobs         SfPrintJob[]
+  orders            SfOrder[]
+}
+
+model SfResult {
+  code           String       @id // SF-XXXX
+  createdAt      DateTime     @default(now())
+  branchId       String?
+  branch         SfBranch?    @relation(fields: [branchId], references: [id])
+  answers        Json
+  condition      String
+  ruleVersion    Int
+  datasetVersion String
+  picks          Json
+  chosenRank     Int?
+  printJobs      SfPrintJob[]
+  orders         SfOrder[]
+
+  @@index([createdAt])
+  @@index([branchId])
+}
+
+model SfOrder {
+  id           String        @id @default(cuid())
+  resultCode   String
+  result       SfResult      @relation(fields: [resultCode], references: [code])
+  branchId     String
+  branch       SfBranch      @relation(fields: [branchId], references: [id])
+  phone        String
+  customerName String?
+  chosenRank   Int?
+  chosenString String?
+  status       SfOrderStatus @default(antri)
+  etaMinutes   Int           @default(30)
+  createdAt    DateTime      @default(now())
+  startedAt    DateTime?
+  finishedAt   DateTime?
+  notifiedInAt DateTime?
+  notifiedDone DateTime?
+
+  @@index([branchId, status])
+  @@index([createdAt])
+}
+
+model SfPrintJob {
+  id          String      @id @default(cuid())
+  resultCode  String
+  result      SfResult    @relation(fields: [resultCode], references: [code])
+  branchId    String
+  branch      SfBranch    @relation(fields: [branchId], references: [id])
+  chosenRank  Int?
+  status      SfJobStatus @default(antri)
+  createdAt   DateTime    @default(now())
+  sentAt      DateTime?
+  attempts    Int         @default(0)
+  error       String?
+  requestedBy String // "device" | "admin"
+
+  @@index([branchId, status])
+  @@index([createdAt])
+}
+
+model SfLoginAttempt {
+  id        String   @id @default(cuid())
+  ip        String
+  scope     String
+  success   Boolean
+  createdAt DateTime @default(now())
+
+  @@index([ip, createdAt])
+}

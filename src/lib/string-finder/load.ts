@@ -9,9 +9,17 @@ import type { Dataset, Rules, Slice, Swing } from "./types";
 const SWING_MAP: Record<string, Swing> = { Slow: "S", Medium: "M", Fast: "F", S: "S", M: "M", F: "F" };
 
 export async function buildDatasetFromDb(): Promise<{ data: Dataset; datasetVersion: string }> {
-  // Senar habis stok tidak ikut dipertimbangkan mesin.
-  const rows = await prisma.twuString.findMany({ where: { inStock: true }, orderBy: { name: "asc" }, include: { measurements: true } });
-  const strings = rows.map((r) => ({ n: r.name, f: r.family, m: r.material, c: r.dataCoverage, g: r.gaugeMm, p: r.priceIdr }));
+  // Harga & stok diambil live dari Product (JOIN via productId). Senar yang produknya
+  // habis stok / tak terpetakan TIDAK ikut dipertimbangkan mesin.
+  const all = await prisma.twuString.findMany({
+    orderBy: { name: "asc" },
+    include: { measurements: true, product: { select: { harga: true, hargaDiskon: true, status: true, stok: true } } },
+  });
+  const rows = all.filter((r) => r.product && r.product.status !== "SOLD" && (r.product.stok == null || r.product.stok > 0));
+  const strings = rows.map((r) => ({
+    n: r.name, f: r.family, m: r.material, c: r.dataCoverage, g: r.gaugeMm,
+    p: r.product!.hargaDiskon ?? r.product!.harga,
+  }));
   const slices: Record<string, Slice> = {};
   for (const c of CONDITIONS) slices[c] = { st: [], tl: [], er: [], dw: [], sp: [] };
   rows.forEach((r, i) => {
