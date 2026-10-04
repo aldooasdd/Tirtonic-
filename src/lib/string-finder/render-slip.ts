@@ -24,7 +24,7 @@ export async function renderSlipForCode(
   const answers = rec.answers as unknown as Answers;
   const result = recommend(prepared, answers, rules);
 
-  const qrUrl = opts.qr && opts.origin ? `${opts.origin}/admin/resep/${code}` : "";
+  const qrUrl = opts.qr && opts.origin ? `${opts.origin}/dashboard/stringing/${code}` : "";
   const slip = buildSlip(result, answers, rules, {
     code: rec.code,
     createdAt: rec.createdAt,
