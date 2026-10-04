@@ -32,8 +32,10 @@ const RANK_LABEL = ["Paling cocok", "Alternatif", "Alternatif"];
 
 const rupiah = (n: number | null) => (n == null ? "—" : "Rp" + n.toLocaleString("id-ID"));
 
+type HistItem = { code: string; senar: string | null; status: string; statusLabel: string; date: string };
+
 export default function StringFinderFlow({ questions }: { questions: Question[] }) {
-  const [phase, setPhase] = useState<"intro" | "quiz" | "loading" | "results" | "order" | "done">("intro");
+  const [phase, setPhase] = useState<"intro" | "identify" | "quiz" | "loading" | "results" | "order" | "done">("intro");
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
   const [rec, setRec] = useState<RecResponse | null>(null);
@@ -42,8 +44,27 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
   const [nama, setNama] = useState("");
   const [wa, setWa] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [history, setHistory] = useState<HistItem[] | null>(null);
+  const [histLoading, setHistLoading] = useState(false);
 
   const q = questions[step];
+
+  async function loadHistoryAndContinue() {
+    if (!wa.trim()) { setErr("Isi nomor WhatsApp dulu ya."); return; }
+    setErr("");
+    setHistLoading(true);
+    try {
+      const res = await fetch(`/api/sf/history?phone=${encodeURIComponent(wa)}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Nomor WhatsApp tidak valid.");
+      setHistory(data.history as HistItem[]);
+      if (!nama.trim() && data.lastName) setNama(data.lastName as string);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Terjadi kesalahan.");
+    } finally {
+      setHistLoading(false);
+    }
+  }
 
   function setSingle(id: string, value: string) {
     setAnswers((a) => ({ ...a, [id]: value }));
@@ -113,8 +134,64 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
             Jawab 7 pertanyaan singkat, lalu kami tunjukkan 3 senar paling cocok lengkap dengan harga. Rekomendasi diambil
             dari hasil penelitian Tennis Warehouse University String Performance Database, yang disesuaikan dengan kebutuhan mainmu.
           </p>
-          <button onClick={() => setPhase("quiz")} className="btn-green mt-8 px-8 py-3 text-base">Mulai</button>
+          <button onClick={() => setPhase("identify")} className="btn-green mt-8 px-8 py-3 text-base">Mulai</button>
           <p className="mt-3 text-xs text-gray-400">Gratis • sekitar 1 menit</p>
+        </div>
+      </Shell>
+    );
+  }
+
+  // ---------- IDENTIFY (nama + WhatsApp + riwayat) ----------
+  if (phase === "identify") {
+    return (
+      <Shell>
+        <div className="mx-auto max-w-md">
+          <button onClick={() => { setPhase("intro"); setHistory(null); }} className="mb-4 text-sm font-semibold text-gray-500 hover:text-gray-900">← Kembali</button>
+          <h1 className="text-2xl font-extrabold text-gray-900">Sebelum mulai</h1>
+          <p className="mt-2 text-sm text-gray-600">Isi nama & nomor WhatsApp. Kami pakai untuk mengabari saat senar selesai, dan menampilkan riwayat stringing kamu sebelumnya.</p>
+
+          <div className="mt-5 space-y-3 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+            <div>
+              <label className="label">Nama <span className="text-gray-400">(opsional)</span></label>
+              <input value={nama} onChange={(e) => setNama(e.target.value)} className="field" placeholder="Nama kamu" />
+            </div>
+            <div>
+              <label className="label">Nomor WhatsApp <span className="text-red-500">*</span></label>
+              <input value={wa} onChange={(e) => { setWa(e.target.value); setHistory(null); }} inputMode="tel" className="field" placeholder="08xxxxxxxxxx" />
+            </div>
+            {err && <p className="text-sm text-red-600">{err}</p>}
+
+            {history === null ? (
+              <button onClick={loadHistoryAndContinue} disabled={histLoading || !wa.trim()} className="btn-green w-full py-3 disabled:opacity-40">
+                {histLoading ? "Mengecek…" : "Lanjut"}
+              </button>
+            ) : (
+              <button onClick={() => { setPhase("quiz"); setStep(0); }} className="btn-green w-full py-3">
+                Mulai cari rekomendasi →
+              </button>
+            )}
+          </div>
+
+          {history !== null && (
+            <div className="mt-5">
+              <h2 className="text-sm font-bold text-gray-900">Riwayat stringing kamu</h2>
+              {history.length === 0 ? (
+                <p className="mt-2 rounded-xl border border-dashed border-gray-200 p-4 text-sm text-gray-400">Belum ada riwayat untuk nomor ini.</p>
+              ) : (
+                <div className="mt-2 space-y-2">
+                  {history.map((h) => (
+                    <div key={h.code} className="flex items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm">
+                      <div>
+                        <p className="font-semibold text-gray-900">{h.senar ?? "—"}</p>
+                        <p className="text-xs text-gray-400">{new Date(h.date).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })} • {h.code}</p>
+                      </div>
+                      <span className="shrink-0 rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-semibold text-gray-600">{h.statusLabel}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </Shell>
     );
@@ -186,7 +263,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
 
           <div className="mt-8 flex items-center justify-between">
             <button
-              onClick={() => (step === 0 ? setPhase("intro") : setStep((s) => s - 1))}
+              onClick={() => (step === 0 ? setPhase("identify") : setStep((s) => s - 1))}
               className="rounded-full px-5 py-2.5 text-sm font-semibold text-gray-600 hover:text-gray-900"
             >
               ← Kembali
