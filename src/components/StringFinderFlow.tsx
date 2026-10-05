@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export type Question = {
   id: string;
@@ -48,6 +48,12 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
   const [submitting, setSubmitting] = useState(false);
   const [history, setHistory] = useState<HistItem[] | null>(null);
   const [histLoading, setHistLoading] = useState(false);
+  const [rackets, setRackets] = useState<string[]>([]);
+
+  // Daftar raket (TWU) buat autocomplete input. Gagal fetch → input tetap teks bebas.
+  useEffect(() => {
+    fetch("/sf/rackets.json").then((r) => r.json()).then(setRackets).catch(() => {});
+  }, []);
 
   const q = questions[step];
 
@@ -164,8 +170,11 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
             </div>
             <div>
               <label className="label">Jenis raket <span className="text-gray-400">(opsional)</span></label>
-              <input value={racket} onChange={(e) => setRacket(e.target.value)} className="field" placeholder="mis. Yonex Ezone 100, Babolat Pure Aero" />
-              <p className="mt-1 text-xs text-gray-400">Dicatat di riwayat stringing kamu.</p>
+              <input value={racket} onChange={(e) => setRacket(e.target.value)} list="sf-rackets" autoComplete="off" className="field" placeholder="Ketik merek/model, mis. Yonex Ezone 100" />
+              <datalist id="sf-rackets">
+                {rackets.map((r) => <option key={r} value={r} />)}
+              </datalist>
+              <p className="mt-1 text-xs text-gray-400">Pilih dari daftar atau ketik manual. Dicatat di riwayat stringing kamu.</p>
             </div>
             {err && <p className="text-sm text-red-600">{err}</p>}
 
