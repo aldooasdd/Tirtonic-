@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 export type Question = {
   id: string;
@@ -43,22 +43,28 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
   const [chosen, setChosen] = useState<number | null>(null);
   const [nama, setNama] = useState("");
   const [wa, setWa] = useState("");
-  const [racketBrand, setRacketBrand] = useState("");
-  const [racketModel, setRacketModel] = useState("");
+  const [racket, setRacket] = useState("");
+  const [racketOpen, setRacketOpen] = useState(false);
   const [tension, setTension] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [history, setHistory] = useState<HistItem[] | null>(null);
   const [histLoading, setHistLoading] = useState(false);
   const [rackets, setRackets] = useState<Record<string, string[]>>({});
 
-  // Daftar raket (TWU), dikelompokkan per brand → dropdown bertingkat brand→model.
+  // Daftar raket (TWU) dikelompokkan per brand. Combobox: ketik → saran relevan.
   useEffect(() => {
     fetch("/sf/rackets.json").then((r) => r.json()).then(setRackets).catch(() => {});
   }, []);
 
-  const racket = racketBrand && racketModel ? `${racketBrand} ${racketModel}` : "";
-  const racketBrands = Object.keys(rackets).sort((a, b) => a.localeCompare(b));
-  const racketModels = rackets[racketBrand] ?? [];
+  const racketLabels = useMemo(
+    () => Object.entries(rackets).flatMap(([b, ms]) => ms.map((m) => `${b} ${m}`)),
+    [rackets],
+  );
+  const racketMatches = useMemo(() => {
+    const words = racket.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    if (!racketOpen || words.length === 0 || racketLabels.includes(racket)) return [];
+    return racketLabels.filter((l) => { const t = l.toLowerCase(); return words.every((w) => t.includes(w)); }).slice(0, 8);
+  }, [racket, racketOpen, racketLabels]);
 
   const q = questions[step];
 
@@ -72,11 +78,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
       if (!res.ok) throw new Error(data.error || "Nomor WhatsApp tidak valid.");
       setHistory(data.history as HistItem[]);
       if (!nama.trim() && data.lastName) setNama(data.lastName as string);
-      // prefill dropdown dari riwayat: pecah "Brand Model" pakai daftar brand
-      if (!racketBrand && data.lastRacket) {
-        const b = Object.keys(rackets).find((x) => (data.lastRacket as string).startsWith(x + " "));
-        if (b) { setRacketBrand(b); setRacketModel((data.lastRacket as string).slice(b.length + 1)); }
-      }
+      if (!racket.trim() && data.lastRacket) setRacket(data.lastRacket as string);
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Terjadi kesalahan.");
     } finally {
@@ -179,17 +181,33 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
             </div>
             <div>
               <label className="label">Jenis raket <span className="text-gray-400">(opsional)</span></label>
-              <div className="grid grid-cols-2 gap-2">
-                <select value={racketBrand} onChange={(e) => { setRacketBrand(e.target.value); setRacketModel(""); }} className="field">
-                  <option value="">Merek…</option>
-                  {racketBrands.map((b) => <option key={b} value={b}>{b}</option>)}
-                </select>
-                <select value={racketModel} onChange={(e) => setRacketModel(e.target.value)} disabled={!racketBrand} className="field disabled:bg-gray-100 disabled:text-gray-400">
-                  <option value="">{racketBrand ? "Model…" : "Pilih merek dulu"}</option>
-                  {racketModels.map((m) => <option key={m} value={m}>{m}</option>)}
-                </select>
+              <div className="relative">
+                <input
+                  value={racket}
+                  onChange={(e) => { setRacket(e.target.value); setRacketOpen(true); }}
+                  onFocus={() => setRacketOpen(true)}
+                  onBlur={() => setTimeout(() => setRacketOpen(false), 150)}
+                  autoComplete="off"
+                  className="field"
+                  placeholder="Ketik merek/model, mis. Yonex Ezone 100"
+                />
+                {racketMatches.length > 0 && (
+                  <ul className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-xl border border-gray-200 bg-white py-1 shadow-lg">
+                    {racketMatches.map((m) => (
+                      <li key={m}>
+                        <button
+                          type="button"
+                          onMouseDown={(e) => { e.preventDefault(); setRacket(m); setRacketOpen(false); }}
+                          className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+                        >
+                          {m}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
-              <p className="mt-1 text-xs text-gray-400">Dipakai untuk saran tarikan & dicatat di riwayat stringing kamu.</p>
+              <p className="mt-1 text-xs text-gray-400">Ketik untuk cari, pilih dari saran. Dipakai untuk saran tarikan & dicatat di riwayat.</p>
             </div>
             {err && <p className="text-sm text-red-600">{err}</p>}
 
