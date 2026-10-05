@@ -263,6 +263,8 @@ model SfOrder {
   customerName String?
   chosenRank   Int?
   chosenString String?
+  tensionLbs   Int? // tarikan senar (lbs) — saran finder, bisa diubah customer
+  racket       String? // jenis raket (teks bebas; nanti dari daftar raket TWU)
   status       SfOrderStatus @default(antri)
   etaMinutes   Int           @default(30)
   createdAt    DateTime      @default(now())
@@ -302,3 +304,4 @@ model SfLoginAttempt {
 
   @@index([ip, createdAt])
 }
+

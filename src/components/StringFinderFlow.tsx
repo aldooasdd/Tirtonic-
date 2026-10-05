@@ -22,7 +22,7 @@ type Pick = {
   attrs: Record<Attr, number | null>;
   explanation: { strengths: { attr: Attr; text: string }[]; weakness: { attr: Attr | null; text: string }; notes: string[] };
 };
-type RecResponse = { code: string; condition: string; profile_summary: string; picks: Pick[] };
+type RecResponse = { code: string; condition: string; profile_summary: string; picks: Pick[]; tension_suggestion: number; tension_note: string };
 
 const ATTR_LABEL: Record<Attr, string> = {
   spin: "Spin", power: "Power", control: "Kontrol", comfort: "Nyaman", stability: "Stabil", durability: "Awet",
@@ -32,7 +32,7 @@ const RANK_LABEL = ["Paling cocok", "Alternatif", "Alternatif"];
 
 const rupiah = (n: number | null) => (n == null ? "—" : "Rp" + n.toLocaleString("id-ID"));
 
-type HistItem = { code: string; senar: string | null; status: string; statusLabel: string; date: string };
+type HistItem = { code: string; senar: string | null; tension: number | null; racket: string | null; status: string; statusLabel: string; date: string };
 
 export default function StringFinderFlow({ questions }: { questions: Question[] }) {
   const [phase, setPhase] = useState<"intro" | "identify" | "quiz" | "loading" | "results" | "order" | "done">("intro");
@@ -43,6 +43,8 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
   const [chosen, setChosen] = useState<number | null>(null);
   const [nama, setNama] = useState("");
   const [wa, setWa] = useState("");
+  const [racket, setRacket] = useState("");
+  const [tension, setTension] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [history, setHistory] = useState<HistItem[] | null>(null);
   const [histLoading, setHistLoading] = useState(false);
@@ -59,6 +61,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
       if (!res.ok) throw new Error(data.error || "Nomor WhatsApp tidak valid.");
       setHistory(data.history as HistItem[]);
       if (!nama.trim() && data.lastName) setNama(data.lastName as string);
+      if (!racket.trim() && data.lastRacket) setRacket(data.lastRacket as string);
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Terjadi kesalahan.");
     } finally {
@@ -111,7 +114,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
       const res = await fetch("/api/sf/order", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ code: rec.code, chosenRank: chosen + 1, phone: wa, customerName: nama }),
+        body: JSON.stringify({ code: rec.code, chosenRank: chosen + 1, phone: wa, customerName: nama, racket, tensionLbs: tension ? parseInt(tension, 10) : undefined }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Gagal mengirim pesanan.");
@@ -159,6 +162,11 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
               <label className="label">Nomor WhatsApp <span className="text-red-500">*</span></label>
               <input value={wa} onChange={(e) => { setWa(e.target.value); setHistory(null); }} inputMode="tel" className="field" placeholder="08xxxxxxxxxx" />
             </div>
+            <div>
+              <label className="label">Jenis raket <span className="text-gray-400">(opsional)</span></label>
+              <input value={racket} onChange={(e) => setRacket(e.target.value)} className="field" placeholder="mis. Yonex Ezone 100, Babolat Pure Aero" />
+              <p className="mt-1 text-xs text-gray-400">Dicatat di riwayat stringing kamu.</p>
+            </div>
             {err && <p className="text-sm text-red-600">{err}</p>}
 
             {history === null ? (
@@ -180,10 +188,16 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
               ) : (
                 <div className="mt-2 space-y-2">
                   {history.map((h) => (
-                    <div key={h.code} className="flex items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm">
+                    <div key={h.code} className="flex items-start justify-between gap-2 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm">
                       <div>
                         <p className="font-semibold text-gray-900">{h.senar ?? "—"}</p>
-                        <p className="text-xs text-gray-400">{new Date(h.date).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })} • {h.code}</p>
+                        <p className="mt-0.5 text-xs text-gray-500">
+                          {h.tension ? `${h.tension} lbs` : "tarikan –"}
+                          {h.racket ? ` • ${h.racket}` : ""}
+                        </p>
+                        <p className="text-xs text-gray-400">
+                          {new Date(h.date).toLocaleString("id-ID", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })} • {h.code}
+                        </p>
                       </div>
                       <span className="shrink-0 rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-semibold text-gray-600">{h.statusLabel}</span>
                     </div>
@@ -321,7 +335,14 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
                 </div>
 
                 <button
-                  onClick={() => { setChosen(i); setPhase("order"); }}
+                  onClick={() => {
+                    setChosen(i);
+                    // saran tarikan dari server; senar polyester dimainkan lebih enak −2 lbs
+                    const poly = /poly/i.test(p.material);
+                    const sug = Math.max(40, rec.tension_suggestion - (poly ? 2 : 0));
+                    setTension(String(sug));
+                    setPhase("order");
+                  }}
                   className={`mt-5 w-full rounded-full px-4 py-2.5 text-sm font-semibold transition ${i === 0 ? "btn-green" : "border border-primary text-primary hover:bg-primary/5"}`}
                 >
                   Pilih senar ini
@@ -349,17 +370,21 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
             <p className="text-sm text-gray-500">Senar pilihanmu</p>
             <h2 className="mt-1 text-lg font-bold text-gray-900">{p.name}</h2>
             <p className="text-sm text-gray-500">{p.material}{p.gauge ? ` • ${p.gauge} mm` : ""} • <span className="font-semibold text-primary">{rupiah(p.price)}</span></p>
+            {racket ? <p className="mt-1 text-sm text-gray-500">Raket: <span className="font-medium text-gray-700">{racket}</span></p> : null}
 
             <div className="mt-5 space-y-3">
               <div>
-                <label className="label">Nama <span className="text-gray-400">(opsional)</span></label>
-                <input value={nama} onChange={(e) => setNama(e.target.value)} className="field" placeholder="Nama kamu" />
+                <label className="label">Tarikan senar (lbs)</label>
+                <input value={tension} onChange={(e) => setTension(e.target.value.replace(/\D/g, ""))} inputMode="numeric" className="field w-32" placeholder="lbs" />
+                <p className="mt-1 text-xs text-gray-400">
+                  Saran kami <span className="font-semibold text-primary">{rec.tension_suggestion} lbs</span> — {rec.tension_note}. Kamu bisa ubah sesuai selera.
+                </p>
               </div>
-              <div>
-                <label className="label">Nomor WhatsApp <span className="text-red-500">*</span></label>
-                <input value={wa} onChange={(e) => setWa(e.target.value)} inputMode="tel" className="field" placeholder="08xxxxxxxxxx" />
-                <p className="mt-1 text-xs text-gray-400">Kami kabari lewat WhatsApp kalau senar sudah selesai dipasang.</p>
-              </div>
+            </div>
+
+            <div className="mt-4 rounded-xl bg-gray-50 px-4 py-3 text-sm text-gray-600">
+              Konfirmasi dikirim ke WhatsApp <span className="font-semibold text-gray-900">{wa || "—"}</span>
+              {nama ? ` • a.n. ${nama}` : ""}
             </div>
 
             {err && <p className="mt-3 text-sm text-red-600">{err}</p>}
@@ -381,7 +406,9 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
         <div className="mx-auto max-w-md text-center">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-3xl">✅</div>
           <h1 className="mt-5 text-2xl font-extrabold text-gray-900">Pesanan diterima!</h1>
-          <p className="mt-2 text-gray-600">Senar <strong>{p.name}</strong> sedang disiapkan. Kami kabari lewat WhatsApp begitu selesai dipasang.</p>
+          <p className="mt-2 text-gray-600">
+            Senar <strong>{p.name}</strong>{tension ? <> · tarikan <strong>{tension} lbs</strong></> : null}{racket ? <> · raket <strong>{racket}</strong></> : null} sedang disiapkan. Kami kabari lewat WhatsApp begitu selesai dipasang.
+          </p>
           <div className="mt-5 inline-block rounded-xl border border-dashed border-gray-300 px-6 py-3">
             <p className="text-xs text-gray-500">Kode resep</p>
             <p className="text-2xl font-extrabold tracking-wider text-primary">{rec.code}</p>
