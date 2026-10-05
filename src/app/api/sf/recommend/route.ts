@@ -7,6 +7,7 @@ import { makeCode } from "@/lib/string-finder/slip";
 import { validateAnswers } from "@/lib/string-finder/validate";
 import { profileSentence } from "@/lib/string-finder/profile";
 import { suggestTension } from "@/lib/string-finder/tension";
+import { lookupRacket } from "@/lib/string-finder/racket";
 import type { LabMetric, PickDTO } from "@/lib/string-finder/dto";
 
 export const dynamic = "force-dynamic";
@@ -42,7 +43,9 @@ export async function POST(req: NextRequest) {
   const picks = result.picks!.map(toDTO);
   const profile_summary = profileSentence(answers);
   const condition = result.plan.condition;
-  const tension = suggestTension(answers);
+  const racketInput = typeof (body as { racket?: unknown })?.racket === "string" ? (body as { racket: string }).racket : null;
+  const racketSpec = lookupRacket(racketInput);
+  const tension = suggestTension(answers, racketSpec);
 
   // Website: satu cabang default (tanpa cookie perangkat).
   const branch = await prisma.sfBranch.findFirst({ where: { slug: "tirtonic", isActive: true }, select: { id: true } });
@@ -67,5 +70,11 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  return NextResponse.json({ code, condition, profile_summary, picks, tension_suggestion: tension.lbs, tension_note: tension.note });
+  return NextResponse.json({
+    code, condition, profile_summary, picks,
+    tension_suggestion: tension.lbs,
+    tension_note: tension.note,
+    racket_matched: racketSpec ? { label: racketSpec.label, head: racketSpec.head, flex: racketSpec.flex } : null,
+    tension_racket_note: tension.racketNote ?? null,
+  });
 }

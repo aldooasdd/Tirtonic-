@@ -22,7 +22,7 @@ type Pick = {
   attrs: Record<Attr, number | null>;
   explanation: { strengths: { attr: Attr; text: string }[]; weakness: { attr: Attr | null; text: string }; notes: string[] };
 };
-type RecResponse = { code: string; condition: string; profile_summary: string; picks: Pick[]; tension_suggestion: number; tension_note: string };
+type RecResponse = { code: string; condition: string; profile_summary: string; picks: Pick[]; tension_suggestion: number; tension_note: string; racket_matched: { label: string; head: number; flex: number } | null; tension_racket_note: string | null };
 
 const ATTR_LABEL: Record<Attr, string> = {
   spin: "Spin", power: "Power", control: "Kontrol", comfort: "Nyaman", stability: "Stabil", durability: "Awet",
@@ -100,7 +100,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
       const res = await fetch("/api/sf/recommend", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ answers }),
+        body: JSON.stringify({ answers, racket }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Gagal menghitung rekomendasi.");
@@ -388,6 +388,12 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
                 <p className="mt-1 text-xs text-gray-400">
                   Saran kami <span className="font-semibold text-primary">{rec.tension_suggestion} lbs</span> — {rec.tension_note}. Kamu bisa ubah sesuai selera.
                 </p>
+                {rec.racket_matched ? (
+                  <p className="mt-1 text-xs text-gray-500">
+                    Disesuaikan dengan raket <span className="font-medium text-gray-700">{rec.racket_matched.label}</span> (flex {rec.racket_matched.flex}, head {rec.racket_matched.head} in²)
+                    {rec.tension_racket_note ? <> — {rec.tension_racket_note}</> : null}.
+                  </p>
+                ) : null}
               </div>
             </div>
 
