@@ -22,7 +22,7 @@ type Pick = {
   attrs: Record<Attr, number | null>;
   explanation: { strengths: { attr: Attr; text: string }[]; weakness: { attr: Attr | null; text: string }; notes: string[] };
 };
-type RecResponse = { code: string; condition: string; profile_summary: string; picks: Pick[]; tension_suggestion: number; tension_note: string; racket_matched: { label: string; head: number; flex: number } | null; tension_racket_note: string | null };
+type RecResponse = { code: string; condition: string; profile_summary: string; picks: Pick[]; tension_suggestion: number; tension_note: string; racket_matched: { label: string; head: number; flex: number } | null; tension_racket_note: string | null; racket_string_note: string | null };
 
 const ATTR_LABEL: Record<Attr, string> = {
   spin: "Spin", power: "Power", control: "Kontrol", comfort: "Nyaman", stability: "Stabil", durability: "Awet",
@@ -353,6 +353,11 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
           <div className="text-center">
             <h1 className="text-2xl font-extrabold text-gray-900 sm:text-3xl">3 senar yang cocok untukmu</h1>
             <p className="mx-auto mt-2 max-w-2xl text-gray-600">{rec.profile_summary}</p>
+            {rec.racket_matched && rec.racket_string_note ? (
+              <p className="mx-auto mt-2 max-w-2xl text-sm text-gray-500">
+                Disesuaikan dengan raket <span className="font-medium text-gray-700">{rec.racket_matched.label}</span> — {rec.racket_string_note}.
+              </p>
+            ) : null}
           </div>
 
           <div className="mt-8 grid gap-5 md:grid-cols-3">

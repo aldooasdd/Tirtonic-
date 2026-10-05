@@ -66,7 +66,8 @@ export interface Plan {
 }
 
 // Jawaban customer -> bobot, filter keras, kondisi data.
-export function buildPlan(answers: Answers, rules: Rules): Plan {
+// extraWeights: nudge opsional (mis. dari karakter raket) ditambah sebelum normalisasi.
+export function buildPlan(answers: Answers, rules: Rules, extraWeights?: Partial<Record<AttrKey, number>>): Plan {
   const w: Record<string, number> = { ...rules.base_weights };
   const add = (obj?: Partial<Record<AttrKey, number>>) => {
     for (const k in obj || {}) w[k] = Math.max(0, w[k] + (obj as Record<string, number>)[k]);
@@ -77,6 +78,7 @@ export function buildPlan(answers: Answers, rules: Rules): Plan {
   for (const q of ["level", "swing", "arm", "change", "breakage"]) {
     add((rules.adjustments[q] || {})[answers[q] as string]);
   }
+  add(extraWeights);
   const total = ATTRS.reduce((s, k) => s + w[k], 0);
   const weights = Object.fromEntries(ATTRS.map((k) => [k, w[k] / total])) as Record<AttrKey, number>;
   const filters: { exclude_material: string; reason: string }[] = [];
@@ -150,8 +152,8 @@ export interface ScoreResult {
   phase2?: Phase2Result;
 }
 
-export function scoreAll(P: Prepared, answers: Answers, rules: Rules): ScoreResult {
-  const plan = buildPlan(answers, rules);
+export function scoreAll(P: Prepared, answers: Answers, rules: Rules, extraWeights?: Partial<Record<AttrKey, number>>): ScoreResult {
+  const plan = buildPlan(answers, rules, extraWeights);
   const excluded = new Set(plan.filters.map((f) => f.exclude_material));
   const neutral = rules.selection.neutral_percentile_for_missing;
   const stats: Stats = {
@@ -204,8 +206,8 @@ function onePerFamily(ranked: Ranked[]): Ranked[] {
 }
 
 // FASE 1: 3 senar dengan skor tertinggi, masing-masing dari keluarga senar berbeda.
-export function recommend(P: Prepared, answers: Answers, rules: Rules): ScoreResult {
-  const res = scoreAll(P, answers, rules);
+export function recommend(P: Prepared, answers: Answers, rules: Rules, extraWeights?: Partial<Record<AttrKey, number>>): ScoreResult {
+  const res = scoreAll(P, answers, rules, extraWeights);
   const pool = rules.selection.one_per_family ? onePerFamily(res.ranked) : res.ranked;
   res.picks = pool.slice(0, rules.selection.top_n).map((r) => ({ ...r, explanation: explain(r, res.plan) }));
   return res;

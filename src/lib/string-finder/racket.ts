@@ -2,6 +2,7 @@
 // + hitung penyesuaian tarikan berdasar kekakuan frame (flex/RDC) & head size.
 // Statis (tanpa DB). Raket yang tak ketemu → null → fallback ke saran kuesioner.
 import specs from "./rackets-specs.json";
+import type { AttrKey } from "./types";
 
 export type RacketSpec = { label: string; head: number; weight: number; flex: number };
 
@@ -23,6 +24,29 @@ export function racketTensionDelta(r: RacketSpec): { delta: number; note: string
   if (r.head >= 105) { d += 2; n.push(`head besar (${r.head} in²) → tarikan dinaikkan untuk kontrol`); }
   else if (r.head <= 95) { d -= 1; n.push(`head kecil (${r.head} in²) → tarikan sedikit diturunkan`); }
   return { delta: d, note: n.join("; ") };
+}
+
+/**
+ * Nudge bobot atribut senar dari karakter raket (ditambahkan ke plan engine, kecil
+ * supaya jawaban customer tetap dominan). Grounded di flex (kekakuan) & head (power).
+ */
+export function racketStringWeights(r: RacketSpec): Partial<Record<AttrKey, number>> {
+  const w: Partial<Record<AttrKey, number>> = {};
+  const add = (k: AttrKey, v: number) => { w[k] = (w[k] ?? 0) + v; };
+  // ponytail: ambang & bobot heuristik — kecil (bandingkan base 10, prioritas 40).
+  if (r.flex >= 68) add("comfort", 8);            // frame kaku → senar lebih lembut (redam shock)
+  else if (r.flex >= 64) add("comfort", 4);
+  if (r.head >= 105) { add("control", 6); add("power", -4); } // head besar = powerful → kontrol
+  else if (r.head <= 95) add("power", 5);         // head kecil = kurang power → senar bantu power
+  return w;
+}
+
+export function racketStringNote(r: RacketSpec): string {
+  const n: string[] = [];
+  if (r.flex >= 64) n.push("condong ke senar lebih nyaman");
+  if (r.head >= 105) n.push("lebih mengutamakan kontrol");
+  else if (r.head <= 95) n.push("sedikit menambah power");
+  return n.join(", ");
 }
 
 // ponytail: cek sanity
