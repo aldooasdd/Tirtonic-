@@ -51,10 +51,12 @@ function detectKategori(nama: string): string {
   const n = nama.toLowerCase();
   if (/(sepatu|shoe|footwear)/.test(n)) return "Sepatu Tenis";
   if (/(raket|racket|racquet)/.test(n)) return "Raket Tenis";
-  if (/(senar|string|grip|overgrip)/.test(n)) return "String & Grip";
+  if (/(grip|overgrip)/.test(n)) return "Grip";
+  if (/(senar|string)/.test(n)) return "String";
   if (/(bola|ball)/.test(n)) return "Bola Tenis";
   if (/(kaos|t-?shirt|tshirt|jersey|celana|short|pants|polo|jaket|jacket|dress|rok|skirt|apparel|aparel)/.test(n)) return "Apparel";
-  if (/(tas|bag|backpack|topi|cap|hat|wristband|aksesoris)/.test(n)) return "Tas & Aksesoris";
+  if (/(tas|bag|backpack)/.test(n)) return "Tas";
+  if (/(topi|cap|hat|wristband|aksesoris|handuk|towel|dampener|vibration)/.test(n)) return "Aksesoris";
   return KATEGORI[0];
 }
 

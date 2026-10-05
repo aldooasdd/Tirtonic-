@@ -1,8 +1,10 @@
 export const KATEGORI = [
   "Sepatu Tenis",
   "Raket Tenis",
-  "String & Grip",
-  "Tas & Aksesoris",
+  "String",
+  "Grip",
+  "Tas",
+  "Aksesoris",
   "Bola Tenis",
   "Apparel",
 ] as const;
