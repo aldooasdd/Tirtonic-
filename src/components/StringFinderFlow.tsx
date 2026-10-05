@@ -43,17 +43,22 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
   const [chosen, setChosen] = useState<number | null>(null);
   const [nama, setNama] = useState("");
   const [wa, setWa] = useState("");
-  const [racket, setRacket] = useState("");
+  const [racketBrand, setRacketBrand] = useState("");
+  const [racketModel, setRacketModel] = useState("");
   const [tension, setTension] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [history, setHistory] = useState<HistItem[] | null>(null);
   const [histLoading, setHistLoading] = useState(false);
-  const [rackets, setRackets] = useState<string[]>([]);
+  const [rackets, setRackets] = useState<Record<string, string[]>>({});
 
-  // Daftar raket (TWU) buat autocomplete input. Gagal fetch → input tetap teks bebas.
+  // Daftar raket (TWU), dikelompokkan per brand → dropdown bertingkat brand→model.
   useEffect(() => {
     fetch("/sf/rackets.json").then((r) => r.json()).then(setRackets).catch(() => {});
   }, []);
+
+  const racket = racketBrand && racketModel ? `${racketBrand} ${racketModel}` : "";
+  const racketBrands = Object.keys(rackets).sort((a, b) => a.localeCompare(b));
+  const racketModels = rackets[racketBrand] ?? [];
 
   const q = questions[step];
 
@@ -67,7 +72,11 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
       if (!res.ok) throw new Error(data.error || "Nomor WhatsApp tidak valid.");
       setHistory(data.history as HistItem[]);
       if (!nama.trim() && data.lastName) setNama(data.lastName as string);
-      if (!racket.trim() && data.lastRacket) setRacket(data.lastRacket as string);
+      // prefill dropdown dari riwayat: pecah "Brand Model" pakai daftar brand
+      if (!racketBrand && data.lastRacket) {
+        const b = Object.keys(rackets).find((x) => (data.lastRacket as string).startsWith(x + " "));
+        if (b) { setRacketBrand(b); setRacketModel((data.lastRacket as string).slice(b.length + 1)); }
+      }
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Terjadi kesalahan.");
     } finally {
@@ -170,11 +179,17 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
             </div>
             <div>
               <label className="label">Jenis raket <span className="text-gray-400">(opsional)</span></label>
-              <input value={racket} onChange={(e) => setRacket(e.target.value)} list="sf-rackets" autoComplete="off" className="field" placeholder="Ketik merek/model, mis. Yonex Ezone 100" />
-              <datalist id="sf-rackets">
-                {rackets.map((r) => <option key={r} value={r} />)}
-              </datalist>
-              <p className="mt-1 text-xs text-gray-400">Pilih dari daftar atau ketik manual. Dicatat di riwayat stringing kamu.</p>
+              <div className="grid grid-cols-2 gap-2">
+                <select value={racketBrand} onChange={(e) => { setRacketBrand(e.target.value); setRacketModel(""); }} className="field">
+                  <option value="">Merek…</option>
+                  {racketBrands.map((b) => <option key={b} value={b}>{b}</option>)}
+                </select>
+                <select value={racketModel} onChange={(e) => setRacketModel(e.target.value)} disabled={!racketBrand} className="field disabled:bg-gray-100 disabled:text-gray-400">
+                  <option value="">{racketBrand ? "Model…" : "Pilih merek dulu"}</option>
+                  {racketModels.map((m) => <option key={m} value={m}>{m}</option>)}
+                </select>
+              </div>
+              <p className="mt-1 text-xs text-gray-400">Dipakai untuk saran tarikan & dicatat di riwayat stringing kamu.</p>
             </div>
             {err && <p className="text-sm text-red-600">{err}</p>}
 
