@@ -6,6 +6,9 @@ import { useEffect, useState } from "react";
 import { useShopCart } from "@/components/ShopCartProvider";
 import { rupiah } from "@/lib/format";
 import { submitCheckout } from "./actions";
+import wilayah from "@/lib/wilayah.json";
+
+const PROVINSI = Object.keys(wilayah as Record<string, string[]>).sort((a, b) => a.localeCompare(b));
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -14,6 +17,9 @@ export default function CheckoutPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [provinsi, setProvinsi] = useState("");
+  const [kota, setKota] = useState("");
+  const kotaOptions = (wilayah as Record<string, string[]>)[provinsi] ?? [];
 
   useEffect(() => setMounted(true), []);
 
@@ -84,12 +90,18 @@ export default function CheckoutPage() {
                 <textarea id="alamat" name="alamat" required rows={2} className="field" placeholder="Jalan, nomor rumah, RT/RW, kecamatan" autoComplete="street-address" />
               </div>
               <div>
-                <label className="label" htmlFor="kota">Kota / Kabupaten *</label>
-                <input id="kota" name="kota" required className="field" autoComplete="address-level2" />
+                <label className="label" htmlFor="provinsi">Provinsi *</label>
+                <select id="provinsi" name="provinsi" required value={provinsi} onChange={(e) => { setProvinsi(e.target.value); setKota(""); }} className="field">
+                  <option value="" disabled>Pilih provinsi</option>
+                  {PROVINSI.map((p) => <option key={p} value={p}>{p}</option>)}
+                </select>
               </div>
               <div>
-                <label className="label" htmlFor="provinsi">Provinsi *</label>
-                <input id="provinsi" name="provinsi" required className="field" autoComplete="address-level1" />
+                <label className="label" htmlFor="kota">Kota / Kabupaten *</label>
+                <select id="kota" name="kota" required value={kota} onChange={(e) => setKota(e.target.value)} disabled={!provinsi} className="field disabled:bg-gray-100 disabled:text-gray-400">
+                  <option value="" disabled>{provinsi ? "Pilih kota / kabupaten" : "Pilih provinsi dulu"}</option>
+                  {kotaOptions.map((k) => <option key={k} value={k}>{k}</option>)}
+                </select>
               </div>
               <div>
                 <label className="label" htmlFor="catatan">Catatan (opsional)</label>
