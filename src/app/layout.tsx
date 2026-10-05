@@ -10,9 +10,9 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "Tirtonic Tennis Store — Toko Perlengkapan Tenis Yogyakarta & Solo",
+  title: "Tirtonic Tennis Store — Toko Spesialis Tenis Jogja, Solo & Semarang",
   description:
-    "Tirtonic Tennis Store: sepatu tenis, raket, string, tas, grip, bola. Produk original & authentic, pengiriman seluruh Indonesia.",
+    "Toko spesialis tenis original terlengkap di Jogja, Solo, dan Semarang: raket, sepatu, senar, tas, grip, bola dari brand terbaik dunia. Pengiriman ke seluruh Indonesia.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
