@@ -374,8 +374,8 @@ export default function ProductDetail({ p }: { p: P }) {
                   </div>
                   <div className="space-y-3 p-4 text-sm text-gray-600">
                     <p>
-                      Tirtonic Tennis Store adalah toko perlengkapan tenis di Yogyakarta &amp; Solo yang menyediakan
-                      produk original dari brand resmi dan distributor terpercaya. Melayani sejak 2016, seluruh produk
+                      Tirtonic Tennis Store adalah toko perlengkapan tenis di Jogja, Solo &amp; Semarang yang menyediakan
+                      produk original dari brand resmi dan distributor terpercaya. Melayani sejak 2022, seluruh produk
                       melalui pengecekan untuk memastikan keaslian dan kondisi sesuai standar.
                     </p>
                     <p>
@@ -403,7 +403,7 @@ export default function ProductDetail({ p }: { p: P }) {
               </Section>
             )}
             <Section title="Authentic. Trusted. Best Price.">
-              Semua produk dijamin 100% original & authentic dengan harga terbaik. Tirtonic melayani sejak 2016.
+              Semua produk dijamin 100% original & authentic dengan harga terbaik. Tirtonic melayani sejak 2022.
             </Section>
           </div>
 

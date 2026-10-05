@@ -179,7 +179,7 @@ export default async function HomePage() {
           Toko Tennis Yogyakarta, Solo &amp; Semarang
         </h2>
         <p className="mt-1 text-xs text-gray-500 sm:text-sm">
-          Berdiri sejak 2016 • 3 Lokasi Cabang • Ribuan Customer • Bisa kirim seluruh Indonesia gratis ongkir
+          Berdiri sejak 2022 • 3 Lokasi Cabang • Ribuan Customer • Bisa kirim seluruh Indonesia gratis ongkir
         </p>
       </div>
       <OurStore stores={storeItems} />
