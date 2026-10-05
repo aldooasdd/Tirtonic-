@@ -46,6 +46,19 @@ export default function ShopFilters({ brands }: { brands: string[] }) {
     router.push(`/shop?${next.toString()}`);
   }
 
+  // Multi-pilih (comma-separated) — mis. kategori: ?type=String,Grip
+  function toggleMulti(key: string, value: string) {
+    const next = new URLSearchParams(sp.toString());
+    const vals = (next.get(key) || "").split(",").filter(Boolean);
+    const i = vals.indexOf(value);
+    if (i >= 0) vals.splice(i, 1);
+    else vals.push(value);
+    if (vals.length) next.set(key, vals.join(","));
+    else next.delete(key);
+    router.push(`/shop?${next.toString()}`);
+  }
+  const hasMulti = (key: string, value: string) => (sp.get(key) || "").split(",").includes(value);
+
   const radio =
     "flex cursor-pointer items-center gap-2 py-1 text-sm text-gray-600 hover:text-gray-900";
 
@@ -89,7 +102,7 @@ export default function ShopFilters({ brands }: { brands: string[] }) {
       <Section title="Category" defaultOpen>
         {KATEGORI.map((c) => (
           <label key={c} className={radio}>
-            <input type="checkbox" checked={cur("type") === c} onChange={() => setParam("type", c)} />
+            <input type="checkbox" checked={hasMulti("type", c)} onChange={() => toggleMulti("type", c)} />
             {c}
           </label>
         ))}

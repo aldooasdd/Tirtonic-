@@ -23,7 +23,7 @@ function orderBy(sort?: string): Prisma.ProductOrderByWithRelationInput {
 
 export default async function ShopPage({ searchParams }: { searchParams: SP }) {
   const where: Prisma.ProductWhereInput = {};
-  if (searchParams.type) where.kategori = searchParams.type;
+  if (searchParams.type) where.kategori = { in: searchParams.type.split(",").filter(Boolean) };
   if (searchParams.brand) where.brand = searchParams.brand;
   if (searchParams.size) where.ukuran = { has: searchParams.size };
   if (searchParams.q) where.nama = { contains: searchParams.q, mode: "insensitive" };
