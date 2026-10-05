@@ -43,7 +43,8 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
   const [chosen, setChosen] = useState<number | null>(null);
   const [nama, setNama] = useState("");
   const [wa, setWa] = useState("");
-  const [racket, setRacket] = useState("");
+  const [racket, setRacket] = useState("");        // nilai terpilih (wajib dari daftar)
+  const [racketQuery, setRacketQuery] = useState(""); // teks yang diketik untuk cari
   const [racketOpen, setRacketOpen] = useState(false);
   const [tension, setTension] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -61,10 +62,17 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
     [rackets],
   );
   const racketMatches = useMemo(() => {
-    const words = racket.trim().toLowerCase().split(/\s+/).filter(Boolean);
-    if (!racketOpen || words.length === 0 || racketLabels.includes(racket)) return [];
+    const words = racketQuery.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    if (!racketOpen || words.length === 0) return [];
     return racketLabels.filter((l) => { const t = l.toLowerCase(); return words.every((w) => t.includes(w)); }).slice(0, 8);
-  }, [racket, racketOpen, racketLabels]);
+  }, [racketQuery, racketOpen, racketLabels]);
+
+  // Saat blur: terima hanya kalau ketikan cocok persis 1 item daftar; kalau tidak, balik ke pilihan terakhir.
+  function commitRacket() {
+    const exact = racketLabels.find((l) => l.toLowerCase() === racketQuery.trim().toLowerCase());
+    if (exact) { setRacket(exact); setRacketQuery(exact); }
+    else { setRacketQuery(racket); }
+  }
 
   const q = questions[step];
 
@@ -78,7 +86,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
       if (!res.ok) throw new Error(data.error || "Nomor WhatsApp tidak valid.");
       setHistory(data.history as HistItem[]);
       if (!nama.trim() && data.lastName) setNama(data.lastName as string);
-      if (!racket.trim() && data.lastRacket) setRacket(data.lastRacket as string);
+      if (!racket.trim() && data.lastRacket) { setRacket(data.lastRacket as string); setRacketQuery(data.lastRacket as string); }
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Terjadi kesalahan.");
     } finally {
@@ -183,10 +191,10 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
               <label className="label">Jenis raket <span className="text-gray-400">(opsional)</span></label>
               <div className="relative">
                 <input
-                  value={racket}
-                  onChange={(e) => { setRacket(e.target.value); setRacketOpen(true); }}
+                  value={racketQuery}
+                  onChange={(e) => { setRacketQuery(e.target.value); if (e.target.value !== racket) setRacket(""); setRacketOpen(true); }}
                   onFocus={() => setRacketOpen(true)}
-                  onBlur={() => setTimeout(() => setRacketOpen(false), 150)}
+                  onBlur={() => setTimeout(() => { setRacketOpen(false); commitRacket(); }, 150)}
                   autoComplete="off"
                   className="field"
                   placeholder="Ketik merek/model, mis. Yonex Ezone 100"
@@ -197,7 +205,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
                       <li key={m}>
                         <button
                           type="button"
-                          onMouseDown={(e) => { e.preventDefault(); setRacket(m); setRacketOpen(false); }}
+                          onMouseDown={(e) => { e.preventDefault(); setRacket(m); setRacketQuery(m); setRacketOpen(false); }}
                           className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
                         >
                           {m}
@@ -207,7 +215,9 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
                   </ul>
                 )}
               </div>
-              <p className="mt-1 text-xs text-gray-400">Ketik untuk cari, pilih dari saran. Dipakai untuk saran tarikan & dicatat di riwayat.</p>
+              <p className="mt-1 text-xs text-gray-400">
+                {racketQuery.trim() && !racket ? <span className="text-amber-600">Pilih raket dari daftar yang muncul.</span> : "Ketik untuk cari, lalu pilih dari daftar."}
+              </p>
             </div>
             {err && <p className="text-sm text-red-600">{err}</p>}
 
