@@ -536,7 +536,12 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
             <p className="text-2xl font-extrabold tracking-wider text-primary">{rec.code}</p>
           </div>
           <div className="mt-6">
-            <a href={`/api/slip/${rec.code}?rank=${chosen + 1}`} target="_blank" rel="noreferrer" className="text-sm font-semibold text-primary hover:underline">Lihat / cetak resep →</a>
+            <button
+              onClick={() => window.open(`/api/slip/${rec.code}?rank=${chosen + 1}&qr=1&print=1`, "_blank", "noopener")}
+              className="btn-green px-6 py-3"
+            >
+              🖨 Cetak resep
+            </button>
           </div>
         </div>
       </Shell>

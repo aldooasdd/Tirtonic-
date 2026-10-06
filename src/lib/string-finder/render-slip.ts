@@ -12,7 +12,7 @@ import type { Answers } from "./types";
  */
 export async function renderSlipForCode(
   code: string,
-  opts: { rank?: number | null; qr?: boolean; origin?: string },
+  opts: { rank?: number | null; qr?: boolean; origin?: string; print?: boolean },
 ): Promise<string | null> {
   const rec = await prisma.sfResult.findUnique({ where: { code }, include: { branch: true } });
   if (!rec) return null;
@@ -36,5 +36,5 @@ export async function renderSlipForCode(
 
   let qrSvg = "";
   if (qrUrl) qrSvg = await QRCode.toString(qrUrl, { type: "svg", margin: 0, errorCorrectionLevel: "M" });
-  return renderSlipHTML(slip, qrSvg);
+  return renderSlipHTML(slip, qrSvg, opts.print ?? false);
 }

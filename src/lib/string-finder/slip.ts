@@ -141,7 +141,7 @@ function fmtWIB(d: Date): string {
 const esc = (s: unknown) =>
   String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c] as string));
 
-export function renderSlipHTML(slip: Slip, qrSvg = ""): string {
+export function renderSlipHTML(slip: Slip, qrSvg = "", autoPrint = false): string {
   const w = slip.paper === "80" ? 72 : 48; // lebar area cetak (mm)
   const when = fmtWIB(new Date(slip.created_at));
   const str = (x: SlipItem, big: boolean) => `<div class="${big ? "name big" : "name"}">${x.rank}. ${esc(x.name)}</div>
@@ -190,6 +190,7 @@ ${
 ${slip.handwritten.map((f) => `<div class="blank"><span>${esc(f)}</span><span class="line"></span></div>`).join("")}
 ${qrSvg ? `<div class="qr">${qrSvg}</div>` : ""}
 <div class="c foot">Data lab: Tennis Warehouse University</div>
+${autoPrint ? `<script>window.addEventListener("load",function(){setTimeout(function(){window.focus();window.print();},150);});window.onafterprint=function(){window.close();};</script>` : ""}
 </body></html>`;
 }
 
