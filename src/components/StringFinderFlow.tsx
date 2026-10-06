@@ -264,7 +264,10 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
               <p className="text-sm text-gray-500">{wa}</p>
               <h1 className="text-2xl font-extrabold text-gray-900 sm:text-3xl">Halo{nama ? `, ${nama}` : ""}! 👋</h1>
             </div>
-            <button onClick={() => { setPhase("quiz"); setStep(0); }} className="btn-green px-5 py-2.5">+ Cari rekomendasi senar</button>
+            <div className="flex gap-2">
+              <a href={`/riwayat/${encodeURIComponent(wa)}`} target="_blank" rel="noreferrer" className="rounded-full border border-gray-300 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50">Dashboard lengkap ↗</a>
+              <button onClick={() => { setPhase("quiz"); setStep(0); }} className="btn-green px-5 py-2.5">+ Cari rekomendasi senar</button>
+            </div>
           </div>
 
           {/* stat ringkas */}
@@ -535,12 +538,18 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
             <p className="text-xs text-gray-500">Kode resep</p>
             <p className="text-2xl font-extrabold tracking-wider text-primary">{rec.code}</p>
           </div>
-          <div className="mt-6">
+          <div className="mt-6 flex flex-wrap justify-center gap-2">
             <button
               onClick={() => window.open(`/api/slip/${rec.code}?rank=${chosen + 1}&qr=1&print=1`, "_blank", "noopener")}
               className="btn-green px-6 py-3"
             >
               🖨 Cetak resep
+            </button>
+            <button
+              onClick={() => window.open(`/api/racket-qr/${encodeURIComponent(wa)}?name=${encodeURIComponent(nama)}&print=1`, "_blank", "noopener")}
+              className="rounded-full border border-gray-300 px-6 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+            >
+              🏷 Cetak QR raket
             </button>
           </div>
         </div>
