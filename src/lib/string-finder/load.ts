@@ -56,12 +56,15 @@ interface EngineCache {
   datasetVersion: string;
 }
 
+const TTL_MS = 5 * 60 * 1000; // refresh stok/harga dari Product maks tiap 5 menit
+
 let cache: EngineCache | null = null;
+let cachedAt = 0;
 
 let loading: Promise<EngineCache> | null = null;
 
 export async function getEngine(): Promise<EngineCache> {
-  if (cache) return cache;
+  if (cache && Date.now() - cachedAt < TTL_MS) return cache;
   // Satu pemuatan dipakai bersama semua request yang datang bersamaan (hindari load ganda).
   if (!loading) {
     loading = (async () => {
@@ -69,6 +72,7 @@ export async function getEngine(): Promise<EngineCache> {
       const { rules, version } = await getActiveRules();
       const { data, datasetVersion } = await buildDatasetFromDb();
       cache = { prepared: prepare(data), rules, ruleVersion: version, datasetVersion };
+      cachedAt = Date.now();
       return cache;
     })().finally(() => {
       loading = null;
@@ -79,4 +83,5 @@ export async function getEngine(): Promise<EngineCache> {
 
 export function invalidateEngineCache(): void {
   cache = null;
+  cachedAt = 0;
 }
