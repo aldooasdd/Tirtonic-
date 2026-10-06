@@ -76,6 +76,13 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
 
   const q = questions[step];
 
+  function startQuiz() {
+    if (!wa.trim()) { setErr("Isi nomor WhatsApp dulu ya."); return; }
+    setErr("");
+    setPhase("quiz");
+    setStep(0);
+  }
+
   async function loadHistoryAndContinue() {
     if (!wa.trim()) { setErr("Isi nomor WhatsApp dulu ya."); return; }
     setErr("");
@@ -222,9 +229,14 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
             </div>
             {err && <p className="text-sm text-red-600">{err}</p>}
 
-            <button onClick={loadHistoryAndContinue} disabled={histLoading || !wa.trim()} className="btn-green w-full py-3 disabled:opacity-40">
-              {histLoading ? "Mengecek…" : "Lanjut"}
-            </button>
+            <div className="space-y-2">
+              <button onClick={startQuiz} disabled={!wa.trim()} className="btn-green w-full py-3 disabled:opacity-40">
+                Langsung cari senar →
+              </button>
+              <button onClick={loadHistoryAndContinue} disabled={histLoading || !wa.trim()} className="w-full rounded-full border border-gray-300 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-40">
+                {histLoading ? "Mengecek…" : "Lihat riwayat stringing"}
+              </button>
+            </div>
           </div>
         </div>
       </Shell>
