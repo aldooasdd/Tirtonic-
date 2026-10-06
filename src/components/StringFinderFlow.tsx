@@ -35,7 +35,7 @@ const rupiah = (n: number | null) => (n == null ? "—" : "Rp" + n.toLocaleStrin
 type HistItem = { code: string; senar: string | null; tension: number | null; racket: string | null; status: string; statusLabel: string; date: string };
 
 export default function StringFinderFlow({ questions }: { questions: Question[] }) {
-  const [phase, setPhase] = useState<"intro" | "identify" | "quiz" | "loading" | "results" | "order" | "done">("intro");
+  const [phase, setPhase] = useState<"intro" | "identify" | "dashboard" | "quiz" | "loading" | "results" | "order" | "done">("intro");
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
   const [rec, setRec] = useState<RecResponse | null>(null);
@@ -87,6 +87,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
       setHistory(data.history as HistItem[]);
       if (!nama.trim() && data.lastName) setNama(data.lastName as string);
       if (!racket.trim() && data.lastRacket) { setRacket(data.lastRacket as string); setRacketQuery(data.lastRacket as string); }
+      setPhase("dashboard");
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Terjadi kesalahan.");
     } finally {
@@ -221,43 +222,89 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
             </div>
             {err && <p className="text-sm text-red-600">{err}</p>}
 
-            {history === null ? (
-              <button onClick={loadHistoryAndContinue} disabled={histLoading || !wa.trim()} className="btn-green w-full py-3 disabled:opacity-40">
-                {histLoading ? "Mengecek…" : "Lanjut"}
-              </button>
-            ) : (
-              <button onClick={() => { setPhase("quiz"); setStep(0); }} className="btn-green w-full py-3">
-                Mulai cari rekomendasi →
-              </button>
-            )}
+            <button onClick={loadHistoryAndContinue} disabled={histLoading || !wa.trim()} className="btn-green w-full py-3 disabled:opacity-40">
+              {histLoading ? "Mengecek…" : "Lanjut"}
+            </button>
+          </div>
+        </div>
+      </Shell>
+    );
+  }
+
+  // ---------- DASHBOARD (riwayat stringing per nomor) ----------
+  if (phase === "dashboard") {
+    const h = history ?? [];
+    const selesai = h.filter((x) => x.status === "selesai").length;
+    const proses = h.filter((x) => x.status === "antri" || x.status === "dikerjakan").length;
+    const badge = (s: string) =>
+      s === "selesai" ? "bg-green-100 text-green-700"
+      : s === "dikerjakan" ? "bg-blue-100 text-blue-700"
+      : s === "antri" ? "bg-amber-100 text-amber-700"
+      : s === "batal" ? "bg-red-100 text-red-600"
+      : "bg-gray-100 text-gray-600";
+    return (
+      <Shell>
+        <div className="mx-auto max-w-4xl">
+          <button onClick={() => { setPhase("identify"); setHistory(null); }} className="mb-4 text-sm font-semibold text-gray-500 hover:text-gray-900">← Ganti nomor</button>
+
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <p className="text-sm text-gray-500">{wa}</p>
+              <h1 className="text-2xl font-extrabold text-gray-900 sm:text-3xl">Halo{nama ? `, ${nama}` : ""}! 👋</h1>
+            </div>
+            <button onClick={() => { setPhase("quiz"); setStep(0); }} className="btn-green px-5 py-2.5">+ Cari rekomendasi senar</button>
           </div>
 
-          {history !== null && (
-            <div className="mt-5">
-              <h2 className="text-sm font-bold text-gray-900">Riwayat stringing kamu</h2>
-              {history.length === 0 ? (
-                <p className="mt-2 rounded-xl border border-dashed border-gray-200 p-4 text-sm text-gray-400">Belum ada riwayat untuk nomor ini.</p>
-              ) : (
-                <div className="mt-2 space-y-2">
-                  {history.map((h) => (
-                    <div key={h.code} className="flex items-start justify-between gap-2 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm">
-                      <div>
-                        <p className="font-semibold text-gray-900">{h.senar ?? "—"}</p>
-                        <p className="mt-0.5 text-xs text-gray-500">
-                          {h.tension ? `${h.tension} lbs` : "tarikan –"}
-                          {h.racket ? ` • ${h.racket}` : ""}
-                        </p>
-                        <p className="text-xs text-gray-400">
-                          {new Date(h.date).toLocaleString("id-ID", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })} • {h.code}
-                        </p>
-                      </div>
-                      <span className="shrink-0 rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-semibold text-gray-600">{h.statusLabel}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
+          {/* stat ringkas */}
+          <div className="mt-5 grid grid-cols-3 gap-3">
+            {[
+              { n: h.length, l: "Total stringing" },
+              { n: selesai, l: "Selesai" },
+              { n: proses, l: "Sedang proses" },
+            ].map((s) => (
+              <div key={s.l} className="rounded-2xl border border-gray-200 bg-white p-4">
+                <p className="text-2xl font-extrabold text-gray-900">{s.n}</p>
+                <p className="mt-0.5 text-xs text-gray-500">{s.l}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* tabel riwayat */}
+          <div className="mt-5 overflow-hidden rounded-2xl border border-gray-200 bg-white">
+            <div className="flex items-center gap-2 border-b border-gray-100 px-5 py-4">
+              <h2 className="font-bold text-gray-900">Riwayat stringing</h2>
             </div>
-          )}
+            {h.length === 0 ? (
+              <p className="px-5 py-8 text-center text-sm text-gray-400">Belum ada riwayat untuk nomor ini. Yuk cari rekomendasi senar pertamamu.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-100 text-left text-xs font-semibold text-gray-500">
+                      <th className="px-5 py-3">Tanggal</th>
+                      <th className="px-5 py-3">Senar</th>
+                      <th className="px-5 py-3">Tarikan</th>
+                      <th className="px-5 py-3">Raket</th>
+                      <th className="px-5 py-3">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {h.map((x) => (
+                      <tr key={x.code} className="border-b border-gray-50 last:border-0">
+                        <td className="whitespace-nowrap px-5 py-3 text-gray-500">
+                          {new Date(x.date).toLocaleString("id-ID", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                        </td>
+                        <td className="px-5 py-3 font-medium text-gray-900">{x.senar ?? "—"}</td>
+                        <td className="whitespace-nowrap px-5 py-3 text-gray-700">{x.tension ? `${x.tension} lbs` : "—"}</td>
+                        <td className="px-5 py-3 text-gray-700">{x.racket ?? "—"}</td>
+                        <td className="px-5 py-3"><span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${badge(x.status)}`}>{x.statusLabel}</span></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
       </Shell>
     );
