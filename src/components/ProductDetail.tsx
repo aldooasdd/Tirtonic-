@@ -88,6 +88,8 @@ export default function ProductDetail({ p }: { p: P }) {
 
   // variant selection
   const sizesForColor = variants.filter((v) => v.warna === color);
+  // warna habis = semua varian warna itu stoknya 0 (buat sepatu, warna = ukuran)
+  const colorSold = (warna: string) => variants.filter((v) => v.warna === warna).every((v) => v.stok <= 0);
   const selVariant = hasVar
     ? hasSizeAxis
       ? variants.find((v) => v.warna === color && v.ukuran === size)
@@ -235,15 +237,22 @@ export default function ProductDetail({ p }: { p: P }) {
                   Pilih warna: <span className="font-normal text-gray-600">{color}</span>
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {colors.map((c) => (
+                  {colors.map((c) => {
+                    const habis = colorSold(c.warna);
+                    return (
                     <button
                       key={c.warna}
+                      disabled={habis}
                       onClick={() => {
                         setColor(c.warna);
                         setSize("");
                       }}
                       className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition ${
-                        color === c.warna ? "border-primary bg-primary/10 text-primary" : "border-gray-300 text-gray-700 hover:border-primary"
+                        habis
+                          ? "cursor-not-allowed border-gray-200 bg-gray-50 text-gray-400 line-through opacity-50"
+                          : color === c.warna
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-gray-300 text-gray-700 hover:border-primary"
                       }`}
                     >
                       {c.gambar && (
@@ -252,7 +261,8 @@ export default function ProductDetail({ p }: { p: P }) {
                       )}
                       {c.warna}
                     </button>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
 
