@@ -62,11 +62,6 @@ export default function ProductCard({ p, thinPrice = false, hoverExpand = false 
                   <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
                 </svg>
               </Link>
-              <Link href={href} aria-label="Lihat detail" className="flex flex-1 items-center justify-center py-1 hover:text-primary">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
-                </svg>
-              </Link>
             </div>
           </div>
         </div>
