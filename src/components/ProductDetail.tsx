@@ -313,9 +313,14 @@ export default function ProductDetail({ p }: { p: P }) {
                 {p.ukuran.map((u) => (
                   <button
                     key={u}
+                    disabled={sold}
                     onClick={() => setSize(u)}
                     className={`min-w-[56px] rounded-lg border px-4 py-3 text-sm font-medium transition ${
-                      size === u ? "border-primary bg-primary text-white" : "border-gray-300 text-gray-700 hover:border-primary"
+                      sold
+                        ? "cursor-not-allowed border-gray-200 bg-gray-50 text-gray-400 line-through opacity-50"
+                        : size === u
+                        ? "border-primary bg-primary text-white"
+                        : "border-gray-300 text-gray-700 hover:border-primary"
                     }`}
                   >
                     {u}
