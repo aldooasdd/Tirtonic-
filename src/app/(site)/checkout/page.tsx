@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useShopCart } from "@/components/ShopCartProvider";
 import { rupiah } from "@/lib/format";
-import { submitCheckout } from "./actions";
+import { submitCheckout, applyCoupon } from "./actions";
 import wilayah from "@/lib/wilayah.json";
 
 const PROVINSI = Object.keys(wilayah as Record<string, string[]>).sort((a, b) => a.localeCompare(b));
@@ -21,9 +21,35 @@ export default function CheckoutPage() {
   const [kota, setKota] = useState("");
   const kotaOptions = (wilayah as Record<string, string[]>)[provinsi] ?? [];
 
-  useEffect(() => setMounted(true), []);
+  // Kupon
+  const [couponCode, setCouponCode] = useState("");
+  const [coupon, setCoupon] = useState<{ code: string; diskon: number } | null>(null);
+  const [couponMsg, setCouponMsg] = useState<string | null>(null);
+  const [couponBusy, setCouponBusy] = useState(false);
 
-  const total = subtotal; // gratis ongkir
+  useEffect(() => setMounted(true), []);
+  // Isi keranjang berubah → kupon lama tidak valid lagi, reset preview.
+  useEffect(() => { setCoupon(null); setCouponMsg(null); }, [subtotal]);
+
+  async function onApplyCoupon() {
+    const code = couponCode.trim();
+    if (!code) return;
+    setCouponBusy(true);
+    setCouponMsg(null);
+    try {
+      const res = await applyCoupon({ code, items: items.map((x) => ({ productId: x.productId, variantId: x.variantId, qty: x.qty })) });
+      if (res.ok) { setCoupon({ code: res.code, diskon: res.diskon }); setCouponMsg(null); }
+      else { setCoupon(null); setCouponMsg(res.error); }
+    } catch {
+      setCoupon(null);
+      setCouponMsg("Gagal cek kupon. Coba lagi.");
+    } finally {
+      setCouponBusy(false);
+    }
+  }
+
+  const diskon = coupon?.diskon ?? 0;
+  const total = Math.max(0, subtotal - diskon); // gratis ongkir
 
   if (mounted && items.length === 0) {
     return (
@@ -48,6 +74,7 @@ export default function CheckoutPage() {
         kota: String(fd.get("kota") || ""),
         provinsi: String(fd.get("provinsi") || ""),
         catatan: String(fd.get("catatan") || ""),
+        kupon: coupon?.code,
         items: items.map((x) => ({ productId: x.productId, variantId: x.variantId, qty: x.qty })),
       });
       if (!res.ok) {
@@ -137,11 +164,43 @@ export default function CheckoutPage() {
               ))}
             </ul>
 
+            {/* Kupon */}
+            <div className="mt-4 border-t pt-4">
+              <label className="label" htmlFor="kupon">Punya kupon?</label>
+              <div className="flex gap-2">
+                <input
+                  id="kupon"
+                  value={couponCode}
+                  onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); onApplyCoupon(); } }}
+                  placeholder="mis. HEMAT10"
+                  className="field flex-1 uppercase"
+                  autoCapitalize="characters"
+                />
+                <button type="button" onClick={onApplyCoupon} disabled={couponBusy || !couponCode.trim()} className="btn-pill border border-primary bg-white px-4 text-primary hover:bg-primary/5 disabled:opacity-50">
+                  {couponBusy ? "..." : "Pakai"}
+                </button>
+              </div>
+              {couponMsg && <p className="mt-1.5 text-xs text-red-600">{couponMsg}</p>}
+              {coupon && (
+                <p className="mt-1.5 flex items-center justify-between text-xs">
+                  <span className="font-semibold text-primary">✓ Kupon {coupon.code} dipakai</span>
+                  <button type="button" onClick={() => { setCoupon(null); setCouponCode(""); }} className="text-gray-400 underline hover:text-gray-600">hapus</button>
+                </p>
+              )}
+            </div>
+
             <div className="mt-4 space-y-1 border-t pt-4 text-sm">
               <div className="flex justify-between text-gray-600">
                 <span>Subtotal</span>
                 <span>{rupiah(subtotal)}</span>
               </div>
+              {diskon > 0 && (
+                <div className="flex justify-between font-semibold text-primary">
+                  <span>Potongan kupon{coupon ? ` (${coupon.code})` : ""}</span>
+                  <span>−{rupiah(diskon)}</span>
+                </div>
+              )}
               <div className="flex justify-between text-gray-600">
                 <span>Ongkir</span>
                 <span className="font-semibold text-primary">Gratis</span>

@@ -3,9 +3,10 @@ import { redirect } from "next/navigation";
 import { isAuthed } from "@/lib/auth";
 import { prisma, safeQuery } from "@/lib/prisma";
 import { rupiah } from "@/lib/format";
-import { createProduct, logout, createHeroSlide, deleteHeroSlide, createStore, deleteStore, createArticle } from "./actions";
+import { createProduct, logout, createHeroSlide, deleteHeroSlide, createStore, deleteStore, createArticle, createCoupon, deleteCoupon, toggleCoupon } from "./actions";
 import ProductForm from "@/components/ProductForm";
 import ProductList from "@/components/ProductList";
+import CouponManager from "@/components/CouponManager";
 import ArticleForm from "@/components/ArticleForm";
 import ArticleRowActions from "@/components/ArticleRowActions";
 import SponsorshipDeleteButton from "@/components/SponsorshipDeleteButton";
@@ -32,16 +33,18 @@ function Stat({ label, value, tone = "gray" }: { label: string; value: number; t
 export default async function AdminDashboard() {
   if (!isAuthed()) redirect("/dashboard/login");
 
-  const [products, slides, stores, articles, sponsorships] = await Promise.all([
+  const [products, slides, stores, articles, sponsorships, coupons] = await Promise.all([
     safeQuery(() => prisma.product.findMany({ orderBy: { createdAt: "desc" } }), []),
     safeQuery(() => prisma.heroSlide.findMany({ orderBy: [{ urutan: "asc" }, { createdAt: "asc" }] }), []),
     safeQuery(() => prisma.store.findMany({ orderBy: [{ urutan: "asc" }, { nama: "asc" }] }), []),
     safeQuery(() => prisma.article.findMany({ orderBy: { tanggal: "desc" } }), []),
     safeQuery(() => prisma.sponsorshipSubmission.findMany({ orderBy: { createdAt: "desc" } }), []),
+    safeQuery(() => prisma.coupon.findMany({ orderBy: { createdAt: "desc" } }), []),
   ]);
 
   const ready = products.filter((p) => p.status === "READY").length;
   const fmtDate = (d: Date) => new Date(d).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
+  const prodName = new Map(products.map((p) => [p.id, p.nama]));
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -265,6 +268,44 @@ export default async function AdminDashboard() {
                   )}
                 </div>
               ))
+            )}
+          </div>
+        </details>
+
+        {/* kupon diskon */}
+        <details className="group overflow-hidden rounded-2xl border bg-white shadow-sm">
+          <summary className="flex cursor-pointer items-center justify-between px-5 py-4 font-bold text-gray-900">
+            <span className="flex items-center gap-2">Kupon Diskon</span>
+            <span className="text-xs font-normal text-gray-400">{coupons.length} kupon</span>
+          </summary>
+          <div className="space-y-5 border-t p-5">
+            <CouponManager action={createCoupon} products={products.map((p) => ({ id: p.id, nama: p.nama, kategori: p.kategori }))} />
+
+            {coupons.length === 0 ? (
+              <p className="text-sm text-gray-400">Belum ada kupon.</p>
+            ) : (
+              <div className="divide-y rounded-xl border">
+                {coupons.map((c) => {
+                  const nama = c.productIds.map((id) => prodName.get(id)).filter(Boolean) as string[];
+                  return (
+                    <div key={c.id} className="flex items-center gap-3 px-4 py-3 text-sm">
+                      <span className={`rounded-md px-2 py-0.5 font-mono text-xs font-bold ${c.active ? "bg-primary/10 text-primary" : "bg-gray-100 text-gray-400 line-through"}`}>{c.code}</span>
+                      <span className="font-semibold text-gray-900">{c.value}%</span>
+                      <span className="min-w-0 flex-1 truncate text-xs text-gray-500">
+                        {c.productIds.length === 0 ? "Semua produk" : `${c.productIds.length} produk: ${nama.join(", ") || "—"}`}
+                      </span>
+                      <form action={toggleCoupon.bind(null, c.id)}>
+                        <button className="rounded-full border px-3 py-1 text-xs font-semibold text-gray-600 transition hover:border-primary hover:text-primary">
+                          {c.active ? "Nonaktifkan" : "Aktifkan"}
+                        </button>
+                      </form>
+                      <form action={deleteCoupon.bind(null, c.id)}>
+                        <button className="rounded-full border px-3 py-1 text-xs font-semibold text-gray-500 transition hover:border-red-400 hover:text-red-600">Hapus</button>
+                      </form>
+                    </div>
+                  );
+                })}
+              </div>
             )}
           </div>
         </details>

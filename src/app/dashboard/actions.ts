@@ -412,3 +412,40 @@ export async function adminCancelOrder(id: string) {
   await cancelOrder(id);
   revalidateOrder(id);
 }
+
+// ── Kupon ──────────────────────────────────────────────────────────────────
+export type CouponState = { error?: string; ok?: boolean };
+
+/** Buat kupon. scope "products" → simpan daftar productIds; "all" → kosong (semua produk). */
+export async function createCoupon(_prev: CouponState, formData: FormData): Promise<CouponState> {
+  requireAuth();
+  const code = ((formData.get("code") as string) || "").trim().toUpperCase().replace(/\s+/g, "");
+  if (!/^[A-Z0-9]{3,20}$/.test(code)) return { error: "Kode kupon 3-20 karakter, huruf/angka saja." };
+
+  const value = Math.min(100, Math.max(1, toInt(formData.get("value"))));
+  if (value <= 0) return { error: "Persen potongan harus 1-100." };
+
+  const scoped = (formData.get("scope") as string) === "products";
+  const productIds = scoped ? formData.getAll("productIds").map(String).filter(Boolean) : [];
+  if (scoped && productIds.length === 0) return { error: "Pilih minimal satu produk untuk kupon produk tertentu." };
+
+  const exists = await prisma.coupon.findUnique({ where: { code } });
+  if (exists) return { error: `Kupon "${code}" sudah ada.` };
+
+  await prisma.coupon.create({ data: { code, value, productIds } });
+  revalidatePath("/dashboard");
+  return { ok: true };
+}
+
+export async function deleteCoupon(id: string) {
+  requireAuth();
+  await prisma.coupon.delete({ where: { id } });
+  revalidatePath("/dashboard");
+}
+
+export async function toggleCoupon(id: string) {
+  requireAuth();
+  const c = await prisma.coupon.findUnique({ where: { id } });
+  if (c) await prisma.coupon.update({ where: { id }, data: { active: !c.active } });
+  revalidatePath("/dashboard");
+}

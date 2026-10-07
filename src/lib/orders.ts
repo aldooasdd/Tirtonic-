@@ -2,6 +2,7 @@ import "server-only";
 import { prisma } from "@/lib/prisma";
 import { createDokuPayment } from "@/lib/doku";
 import { notifyN8N } from "@/lib/notify";
+import { computeCoupon } from "@/lib/coupons";
 
 export type CartLine = { productId: string; variantId?: string | null; qty: number };
 export type CheckoutInput = {
@@ -13,7 +14,16 @@ export type CheckoutInput = {
   provinsi: string;
   kodePos?: string;
   catatan?: string;
+  kupon?: string;
   items: CartLine[];
+};
+
+// Baris keranjang final: harga satuan sudah diverifikasi dari DB, plus flag
+// wasDiscounted (produk sedang diskon → tak kena kupon). wasDiscounted TIDAK
+// ikut disimpan ke OrderItem — hanya dipakai untuk hitung kupon.
+export type ResolvedLine = {
+  productId: string; variantId: string | null; nama: string; varian: string | null;
+  harga: number; qty: number; gambar: string | null; wasDiscounted: boolean;
 };
 
 type ProductWithVariants = { id: string; nama: string; berat: number; harga: number; hargaDiskon: number | null; status: string; stok: number | null; gambar: string[]; variants: { id: string; warna: string; ukuran: string; harga: number; hargaDiskon: number | null; stok: number; gambar: string | null }[] };
@@ -32,6 +42,50 @@ function genInvoice(): string {
 const effHarga = (harga: number, hargaDiskon: number | null) =>
   hargaDiskon != null && hargaDiskon < harga ? hargaDiskon : harga;
 
+const wasDiscounted = (harga: number, hargaDiskon: number | null) => hargaDiskon != null && hargaDiskon < harga;
+
+/** Verifikasi tiap item keranjang dari DB → baris final (harga, varian, stok).
+ *  Dipakai createOrder dan preview kupon di checkout. */
+export async function resolveLines(items: CartLine[]): Promise<{ ok: true; lines: ResolvedLine[] } | { ok: false; error: string }> {
+  if (!items?.length) return { ok: false, error: "Keranjang kosong." };
+
+  const products = (await prisma.product.findMany({
+    where: { id: { in: items.map((i) => i.productId) } },
+    include: { variants: true },
+  })) as unknown as ProductWithVariants[];
+
+  const lines: ResolvedLine[] = [];
+  for (const it of items) {
+    const qty = Math.max(1, Math.floor(it.qty || 1));
+    const p = products.find((x) => x.id === it.productId);
+    if (!p) return { ok: false, error: "Ada produk yang sudah tidak tersedia." };
+
+    if (p.variants.length > 0) {
+      if (!it.variantId) return { ok: false, error: `Pilih varian untuk ${p.nama}.` };
+      const v = p.variants.find((x) => x.id === it.variantId);
+      if (!v) return { ok: false, error: `Varian ${p.nama} tidak ditemukan.` };
+      if (v.stok < qty) return { ok: false, error: `Stok ${p.nama} (${v.warna}${v.ukuran ? " / " + v.ukuran : ""}) tinggal ${v.stok}.` };
+      lines.push({
+        productId: p.id, variantId: v.id, nama: p.nama,
+        varian: `${v.warna}${v.ukuran ? " / " + v.ukuran : ""}`,
+        harga: effHarga(v.harga, v.hargaDiskon), qty,
+        gambar: v.gambar ?? p.gambar[0] ?? null,
+        wasDiscounted: wasDiscounted(v.harga, v.hargaDiskon),
+      });
+    } else {
+      if (p.status === "SOLD" || (p.stok != null && p.stok <= 0)) return { ok: false, error: `${p.nama} sedang habis.` };
+      if (p.stok != null && p.stok < qty) return { ok: false, error: `Stok ${p.nama} tinggal ${p.stok}.` };
+      lines.push({
+        productId: p.id, variantId: null, nama: p.nama, varian: null,
+        harga: effHarga(p.harga, p.hargaDiskon), qty,
+        gambar: p.gambar[0] ?? null,
+        wasDiscounted: wasDiscounted(p.harga, p.hargaDiskon),
+      });
+    }
+  }
+  return { ok: true, lines };
+}
+
 /** Buat order dari keranjang. Harga/varian/stok SELALU diverifikasi ulang dari DB
  *  (harga dari client tidak dipercaya). Stok dipotong nanti saat LUNAS, bukan di sini. */
 export async function createOrder(input: CheckoutInput): Promise<CreateOrderResult> {
@@ -44,54 +98,27 @@ export async function createOrder(input: CheckoutInput): Promise<CreateOrderResu
   if (!nama || !email || !telepon || !alamat || !kota || !provinsi)
     return { ok: false, error: "Lengkapi data pengiriman dulu." };
   if (!/^\S+@\S+\.\S+$/.test(email)) return { ok: false, error: "Email tidak valid." };
-  if (!input.items?.length) return { ok: false, error: "Keranjang kosong." };
 
-  const products = (await prisma.product.findMany({
-    where: { id: { in: input.items.map((i) => i.productId) } },
-    include: { variants: true },
-  })) as unknown as ProductWithVariants[];
-
-  const lines: { productId: string; variantId: string | null; nama: string; varian: string | null; harga: number; qty: number; gambar: string | null }[] = [];
-  for (const it of input.items) {
-    const qty = Math.max(1, Math.floor(it.qty || 1));
-    const p = products.find((x) => x.id === it.productId);
-    if (!p) return { ok: false, error: "Ada produk yang sudah tidak tersedia." };
-
-    if (p.variants.length > 0) {
-      if (!it.variantId) return { ok: false, error: `Pilih varian untuk ${p.nama}.` };
-      const v = p.variants.find((x) => x.id === it.variantId);
-      if (!v) return { ok: false, error: `Varian ${p.nama} tidak ditemukan.` };
-      if (v.stok < qty) return { ok: false, error: `Stok ${p.nama} (${v.warna}${v.ukuran ? " / " + v.ukuran : ""}) tinggal ${v.stok}.` };
-      lines.push({
-        productId: p.id,
-        variantId: v.id,
-        nama: p.nama,
-        varian: `${v.warna}${v.ukuran ? " / " + v.ukuran : ""}`,
-        harga: effHarga(v.harga, v.hargaDiskon),
-        qty,
-        gambar: v.gambar ?? p.gambar[0] ?? null,
-      });
-    } else {
-      if (p.status === "SOLD" || (p.stok != null && p.stok <= 0)) return { ok: false, error: `${p.nama} sedang habis.` };
-      if (p.stok != null && p.stok < qty) return { ok: false, error: `Stok ${p.nama} tinggal ${p.stok}.` };
-      lines.push({
-        productId: p.id,
-        variantId: null,
-        nama: p.nama,
-        varian: null,
-        harga: effHarga(p.harga, p.hargaDiskon),
-        qty,
-        gambar: p.gambar[0] ?? null,
-      });
-    }
-  }
+  const resolved = await resolveLines(input.items);
+  if (!resolved.ok) return { ok: false, error: resolved.error };
+  const lines = resolved.lines;
 
   const subtotal = lines.reduce((s, l) => s + l.harga * l.qty, 0);
+
+  // Kupon (kalau ada): divalidasi ulang di server — kode dari client tak dipercaya.
+  let diskon = 0;
+  let kupon: string | null = null;
+  if (input.kupon?.trim()) {
+    const cr = await computeCoupon(input.kupon, lines.map((l) => ({ productId: l.productId, harga: l.harga, qty: l.qty, wasDiscounted: l.wasDiscounted })));
+    if (!cr.ok) return { ok: false, error: cr.error };
+    diskon = cr.diskon;
+    kupon = cr.code;
+  }
 
   // Gratis ongkir se-Indonesia.
   const ongkir = 0;
   const kurir = "Gratis Ongkir";
-  const total = subtotal + ongkir;
+  const total = Math.max(0, subtotal - diskon + ongkir);
 
   const order = await prisma.order.create({
     data: {
@@ -107,8 +134,10 @@ export async function createOrder(input: CheckoutInput): Promise<CreateOrderResu
       kurir,
       ongkir,
       subtotal,
+      diskon,
+      kupon,
       total,
-      items: { create: lines },
+      items: { create: lines.map(({ wasDiscounted: _w, ...l }) => l) },
     },
   });
 

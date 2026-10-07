@@ -37,6 +37,8 @@ model Order {
   kurir       String // opsi pengiriman yang dipilih (label + estimasi)
   ongkir      Int
   subtotal    Int
+  diskon      Int         @default(0) // potongan dari kupon
+  kupon       String? // kode kupon yang dipakai
   total       Int
   status      OrderStatus @default(PENDING)
   resi        String?
@@ -305,3 +307,16 @@ model SfLoginAttempt {
   @@index([ip, createdAt])
 }
 
+
+// Kupon diskon di checkout. Potongan selalu persen (value = 1-100). productIds
+// kosong = berlaku semua produk; terisi = hanya produk tertentu. Produk yang
+// sudah diskon (hargaDiskon < harga) tidak pernah ikut dipotong — logika itu
+// ada di src/lib/coupons.ts.
+model Coupon {
+  id         String   @id @default(cuid())
+  code       String   @unique // selalu disimpan UPPERCASE
+  value      Int // persen potongan, 1-100
+  productIds String[] @default([])
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+}

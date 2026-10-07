@@ -78,6 +78,7 @@ export default async function OrdersPage() {
                     ))}
                   </ul>
                   <p className="mt-1 text-xs text-gray-400">Ongkir {o.kurir}: {o.ongkir === 0 ? "Gratis" : rupiah(o.ongkir)}</p>
+                  {o.diskon > 0 && <p className="mt-1 text-xs font-semibold text-primary">Kupon {o.kupon}: −{rupiah(o.diskon)}</p>}
                   {o.resi && <p className="mt-1">Resi: <span className="font-mono font-semibold text-gray-900">{o.resi}</span></p>}
                 </div>
               </div>

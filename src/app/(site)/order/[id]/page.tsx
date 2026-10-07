@@ -73,6 +73,7 @@ export default async function OrderPage({ params }: { params: { id: string } }) 
         {/* totals */}
         <div className="mt-4 space-y-1 border-t pt-4 text-sm">
           <div className="flex justify-between text-gray-600"><span>Subtotal</span><span>{rupiah(order.subtotal)}</span></div>
+          {order.diskon > 0 && <div className="flex justify-between font-semibold text-primary"><span>Potongan kupon{order.kupon ? ` (${order.kupon})` : ""}</span><span>−{rupiah(order.diskon)}</span></div>}
           <div className="flex justify-between text-gray-600"><span>Ongkir ({order.kurir})</span><span>{order.ongkir === 0 ? "Gratis" : rupiah(order.ongkir)}</span></div>
           <div className="flex justify-between pt-1 text-base font-extrabold text-gray-900"><span>Total</span><span>{rupiah(order.total)}</span></div>
         </div>
