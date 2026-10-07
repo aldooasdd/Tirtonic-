@@ -4,6 +4,7 @@ import { isAuthed, can } from "@/lib/auth";
 import { prisma, safeQuery } from "@/lib/prisma";
 import { displayPhone } from "@/lib/string-finder/phone";
 import { startStringing, finishStringing, cancelStringing } from "./actions";
+import { logout } from "../actions";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Antrian Stringing — Tirtonic" };
@@ -39,7 +40,12 @@ export default async function StringingQueuePage() {
           <Link href="/dashboard" className="text-sm text-gray-500 hover:text-primary">← Kembali ke dashboard</Link>
           <h1 className="mt-2 text-2xl font-extrabold text-primary">Antrian Stringing</h1>
         </div>
-        <span className="text-sm text-gray-400">{aktif} aktif • {orders.length} total</span>
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-gray-400">{aktif} aktif • {orders.length} total</span>
+          <form action={logout}>
+            <button className="rounded-full border px-4 py-1.5 text-sm font-semibold text-gray-600 transition hover:border-red-400 hover:text-red-600">Logout</button>
+          </form>
+        </div>
       </div>
 
       {orders.length === 0 ? (

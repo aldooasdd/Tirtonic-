@@ -33,6 +33,15 @@ export default async function ShopPage({ searchParams }: { searchParams: SP }) {
     where.harga = { gte: min ?? 0, ...(max ? { lte: max } : {}) };
   }
 
+  // Sembunyikan produk yang benar-benar habis: status SOLD, semua varian stok 0,
+  // atau non-varian stok 0. Produk dengan minimal satu varian ready tetap tampil.
+  where.status = "READY";
+  where.OR = [
+    { variants: { some: { stok: { gt: 0 } } } }, // ada varian yang masih ada stok
+    { variants: { none: {} }, stok: { gt: 0 } }, // non-varian, stok > 0
+    { variants: { none: {} }, stok: null }, // non-varian, stok tak terbatas
+  ];
+
   const [products, brandRows] = await Promise.all([
     safeQuery(
       () =>

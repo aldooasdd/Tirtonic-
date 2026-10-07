@@ -43,7 +43,7 @@ export default async function AdminDashboard() {
   }
 
   const [products, slides, stores, articles, sponsorships, coupons] = await Promise.all([
-    safeQuery(() => prisma.product.findMany({ orderBy: { createdAt: "desc" } }), []),
+    safeQuery(() => prisma.product.findMany({ orderBy: { createdAt: "desc" }, include: { variants: { select: { stok: true } } } }), []),
     safeQuery(() => prisma.heroSlide.findMany({ orderBy: [{ urutan: "asc" }, { createdAt: "asc" }] }), []),
     safeQuery(() => prisma.store.findMany({ orderBy: [{ urutan: "asc" }, { nama: "asc" }] }), []),
     safeQuery(() => prisma.article.findMany({ orderBy: { tanggal: "desc" } }), []),
@@ -351,7 +351,17 @@ export default async function AdminDashboard() {
         {/* product list (search live di client) */}
         {can("produk") && (
 
-        <ProductList products={products.map((p) => ({ id: p.id, nama: p.nama, kategori: p.kategori, harga: p.harga, status: p.status, gambar: p.gambar }))} />
+        <ProductList
+          products={products.map((p) => ({
+            id: p.id,
+            nama: p.nama,
+            kategori: p.kategori,
+            harga: p.harga,
+            status: p.status,
+            gambar: p.gambar,
+            habis: p.status === "SOLD" || (p.variants.length ? p.variants.every((v) => v.stok <= 0) : p.stok != null && p.stok <= 0),
+          }))}
+        />
         )}
 
         {/* article list */}
