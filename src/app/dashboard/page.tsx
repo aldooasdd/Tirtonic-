@@ -5,7 +5,7 @@ import { prisma, safeQuery } from "@/lib/prisma";
 import { rupiah } from "@/lib/format";
 import { createProduct, logout, createHeroSlide, deleteHeroSlide, createStore, deleteStore, createArticle } from "./actions";
 import ProductForm from "@/components/ProductForm";
-import ProductRowActions from "@/components/ProductRowActions";
+import ProductList from "@/components/ProductList";
 import ArticleForm from "@/components/ArticleForm";
 import ArticleRowActions from "@/components/ArticleRowActions";
 import SponsorshipDeleteButton from "@/components/SponsorshipDeleteButton";
@@ -269,57 +269,8 @@ export default async function AdminDashboard() {
           </div>
         </details>
 
-        {/* product list */}
-        <div className="overflow-hidden rounded-2xl border bg-white shadow-sm">
-          <div className="flex items-center justify-between border-b px-5 py-4">
-            <h2 className="font-bold text-gray-900">Daftar Produk</h2>
-            <span className="text-xs text-gray-400">{products.length} item</span>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500">
-                <tr>
-                  <th className="px-5 py-3 font-semibold">Produk</th>
-                  <th className="px-5 py-3 font-semibold">Kategori</th>
-                  <th className="px-5 py-3 font-semibold">Harga</th>
-                  <th className="px-5 py-3 font-semibold">Status / Aksi</th>
-                </tr>
-              </thead>
-              <tbody>
-                {products.length === 0 ? (
-                  <tr>
-                    <td colSpan={4} className="px-5 py-12 text-center text-gray-400">
-                      Belum ada produk. Tambahkan lewat panel di atas.
-                    </td>
-                  </tr>
-                ) : (
-                  products.map((p) => (
-                    <tr key={p.id} className="border-t transition hover:bg-gray-50/60">
-                      <td className="px-5 py-3">
-                        <div className="flex items-center gap-3">
-                          {p.gambar[0] ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={p.gambar[0]} alt="" className="h-11 w-11 rounded-lg border object-cover" />
-                          ) : (
-                            <div className="flex h-11 w-11 items-center justify-center rounded-lg border bg-gray-100 text-[9px] text-gray-300">
-                              no img
-                            </div>
-                          )}
-                          <span className="font-medium text-gray-900">{p.nama}</span>
-                        </div>
-                      </td>
-                      <td className="px-5 py-3 text-gray-600">{p.kategori}</td>
-                      <td className="px-5 py-3 font-semibold text-gray-900">{rupiah(p.harga)}</td>
-                      <td className="px-5 py-3">
-                        <ProductRowActions id={p.id} status={p.status} />
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        {/* product list (search live di client) */}
+        <ProductList products={products.map((p) => ({ id: p.id, nama: p.nama, kategori: p.kategori, harga: p.harga, status: p.status, gambar: p.gambar }))} />
 
         {/* article list */}
         <div className="overflow-hidden rounded-2xl border bg-white shadow-sm">
