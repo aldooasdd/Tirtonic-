@@ -11,7 +11,7 @@ export type ProductCardData = {
   gambar: string[];
   status: "READY" | "SOLD";
   fromPrice?: boolean; // true → show "mulai Rp ..." (product has variants)
-  deskripsi?: string | null; // dipakai di panel hover (grid shop)
+  varian?: { label: string; sold: boolean }[]; // chip varian di panel hover (grid shop)
 };
 
 export default function ProductCard({ p, thinPrice = false, hoverExpand = false }: { p: ProductCardData; thinPrice?: boolean; hoverExpand?: boolean }) {
@@ -57,7 +57,18 @@ export default function ProductCard({ p, thinPrice = false, hoverExpand = false 
       {hoverExpand && (
         <div className="invisible absolute left-0 right-0 top-full z-20 rounded-b-md bg-white opacity-0 shadow-2xl transition-opacity duration-200 group-hover:visible group-hover:opacity-100">
           <div className="border-t px-3 pb-3 pt-2">
-            {p.deskripsi && <p className="line-clamp-3 text-xs leading-relaxed text-gray-500">{p.deskripsi}</p>}
+            {p.varian && p.varian.length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {p.varian.map((v) => (
+                  <span
+                    key={v.label}
+                    className={`rounded border px-1.5 py-0.5 text-[11px] ${v.sold ? "border-gray-200 text-gray-300 line-through" : "border-gray-300 text-gray-700"}`}
+                  >
+                    {v.label}
+                  </span>
+                ))}
+              </div>
+            )}
             <div className="mt-2 flex items-stretch justify-around divide-x border-t pt-2 text-gray-500">
               <HeartButton product={{ id: p.id, nama: p.nama, harga: p.harga, gambar: p.gambar[0] ?? null }} className="flex flex-1 items-center justify-center py-1" />
               <Link href={href} aria-label="Lihat & tambah ke keranjang" className="flex flex-1 items-center justify-center py-1 hover:text-primary">

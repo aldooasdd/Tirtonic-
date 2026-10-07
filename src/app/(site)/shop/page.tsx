@@ -39,7 +39,7 @@ export default async function ShopPage({ searchParams }: { searchParams: SP }) {
         prisma.product.findMany({
           where,
           orderBy: orderBy(searchParams.sort),
-          include: { _count: { select: { variants: true } } },
+          include: { _count: { select: { variants: true } }, variants: { select: { warna: true, ukuran: true, stok: true }, orderBy: { urutan: "asc" } } },
         }),
       []
     ),
@@ -49,6 +49,23 @@ export default async function ShopPage({ searchParams }: { searchParams: SP }) {
     ),
   ]);
   const brands = brandRows.map((r) => r.brand!).filter(Boolean).sort();
+
+  // Label varian untuk panel hover: pakai sumbu ukuran kalau ada, kalau tidak
+  // pakai warna (mis. sepatu, warna = ukuran). sold = semua stok label itu 0.
+  const variantChips = (vs: { warna: string; ukuran: string; stok: number }[]) => {
+    if (!vs.length) return [];
+    const axis = vs.some((v) => v.ukuran !== "") ? (v: (typeof vs)[number]) => v.ukuran : (v: (typeof vs)[number]) => v.warna;
+    const order: string[] = [];
+    const grup = new Map<string, number[]>();
+    for (const v of vs) {
+      const k = axis(v);
+      if (!k) continue;
+      if (!grup.has(k)) { grup.set(k, []); order.push(k); }
+      grup.get(k)!.push(v.stok);
+    }
+    return order.map((label) => ({ label, sold: grup.get(label)!.every((s) => s <= 0) }));
+  };
+
   const cards = products.map((p) => ({
     id: p.id,
     nama: p.nama,
@@ -57,7 +74,7 @@ export default async function ShopPage({ searchParams }: { searchParams: SP }) {
     gambar: p.gambar,
     status: p.status,
     fromPrice: p._count.variants > 0,
-    deskripsi: p.deskripsi,
+    varian: variantChips(p.variants),
   }));
 
   return (
