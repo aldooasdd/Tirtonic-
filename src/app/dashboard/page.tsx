@@ -35,6 +35,13 @@ export default async function AdminDashboard() {
   const role = currentRole();
   const hasPanel = (["produk", "kupon", "artikel", "hero", "store", "sponsor"] as const).some((x) => can(x));
 
+  // Role tanpa panel di halaman ini (mis. Stringer) → langsung ke halaman kerjanya.
+  const NAV_ROUTE: Record<string, string> = { stringing: "/dashboard/stringing", pesanan: "/dashboard/orders", trafik: "/dashboard/trafik" };
+  if (!hasPanel && role && role.sections !== "all") {
+    const target = role.sections.map((s) => NAV_ROUTE[s]).find(Boolean);
+    if (target) redirect(target);
+  }
+
   const [products, slides, stores, articles, sponsorships, coupons] = await Promise.all([
     safeQuery(() => prisma.product.findMany({ orderBy: { createdAt: "desc" } }), []),
     safeQuery(() => prisma.heroSlide.findMany({ orderBy: [{ urutan: "asc" }, { createdAt: "asc" }] }), []),
