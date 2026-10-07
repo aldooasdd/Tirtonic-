@@ -19,8 +19,8 @@ export default function ProductCard({ p, thinPrice = false, hoverExpand = false 
 
   return (
     <div
-      className={`group relative rounded-md bg-white shadow-sm transition-shadow duration-200 hover:shadow-md ${
-        hoverExpand ? "hover:z-20 hover:rounded-b-none hover:shadow-2xl" : ""
+      className={`group relative rounded-md bg-white shadow-sm transition duration-200 hover:shadow-md ${
+        hoverExpand ? "hover:z-20 hover:scale-[1.03] hover:rounded-b-none hover:shadow-2xl" : ""
       }`}
     >
       <div className="relative aspect-square overflow-hidden rounded-t-md">
@@ -29,6 +29,10 @@ export default function ProductCard({ p, thinPrice = false, hoverExpand = false 
             <Image src={p.gambar[0]} alt={p.nama} fill sizes="(max-width: 640px) 50vw, 240px" className="object-cover" />
           ) : (
             <div className="flex h-full w-full items-center justify-center bg-gray-100 text-gray-300">No image</div>
+          )}
+          {/* Foto kedua muncul saat hover (kalau ada). */}
+          {hoverExpand && p.gambar[1] && (
+            <Image src={p.gambar[1]} alt="" fill sizes="(max-width: 640px) 50vw, 240px" className="object-cover opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
           )}
         </Link>
         <HeartButton product={{ id: p.id, nama: p.nama, harga: p.harga, gambar: p.gambar[0] ?? null }} />
