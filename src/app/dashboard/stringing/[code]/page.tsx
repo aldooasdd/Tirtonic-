@@ -1,6 +1,6 @@
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
-import { isAuthed } from "@/lib/auth";
+import { isAuthed, can } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { displayPhone } from "@/lib/string-finder/phone";
 
@@ -9,6 +9,7 @@ export const dynamic = "force-dynamic";
 // Target QR resep. Dibuka admin/stringer untuk lihat detail + cetak.
 export default async function StringingDetailPage({ params }: { params: { code: string } }) {
   if (!isAuthed()) redirect("/dashboard/login");
+  if (!can("stringing")) redirect("/dashboard");
   const result = await prisma.sfResult.findUnique({ where: { code: params.code }, include: { orders: { orderBy: { createdAt: "desc" } } } });
   if (!result) notFound();
   const order = result.orders[0] ?? null;

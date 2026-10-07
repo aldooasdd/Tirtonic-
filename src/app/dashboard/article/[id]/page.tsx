@@ -1,6 +1,6 @@
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
-import { isAuthed } from "@/lib/auth";
+import { isAuthed, can } from "@/lib/auth";
 import { prisma, safeQuery } from "@/lib/prisma";
 import { updateArticle } from "@/app/dashboard/actions";
 import ArticleForm from "@/components/ArticleForm";
@@ -10,6 +10,7 @@ export const metadata = { title: "Edit Artikel — Tirtonic" };
 
 export default async function EditArticlePage({ params }: { params: { id: string } }) {
   if (!isAuthed()) redirect("/dashboard/login");
+  if (!can("artikel")) redirect("/dashboard");
 
   const article = await safeQuery(() => prisma.article.findUnique({ where: { id: params.id } }), null);
   if (!article) notFound();

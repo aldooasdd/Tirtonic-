@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { isAuthed } from "@/lib/auth";
+import { isAuthed, can } from "@/lib/auth";
 import { prisma, safeQuery } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -17,6 +17,7 @@ function Stat({ label, value }: { label: string; value: number }) {
 
 export default async function TrafikPage() {
   if (!isAuthed()) redirect("/dashboard/login");
+  if (!can("trafik")) redirect("/dashboard");
 
   const products = await safeQuery(() => prisma.product.findMany({ orderBy: { views: "desc" } }), []);
   const totalViews = products.reduce((s, p) => s + (p.views || 0), 0);

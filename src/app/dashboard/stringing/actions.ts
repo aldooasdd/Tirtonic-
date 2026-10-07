@@ -2,12 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { isAuthed } from "@/lib/auth";
+import { requireSection } from "@/lib/auth";
 import { notify } from "@/lib/string-finder/notify";
 
-function requireAuth() {
-  if (!isAuthed()) throw new Error("Unauthorized");
-}
+const requireAuth = () => requireSection("stringing");
 
 export async function startStringing(id: string) {
   requireAuth();

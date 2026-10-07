@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { isAuthed } from "@/lib/auth";
+import { isAuthed, can } from "@/lib/auth";
 import { prisma, safeQuery } from "@/lib/prisma";
 import { displayPhone } from "@/lib/string-finder/phone";
 import { startStringing, finishStringing, cancelStringing } from "./actions";
@@ -24,6 +24,7 @@ function fmt(d: Date) {
 
 export default async function StringingQueuePage() {
   if (!isAuthed()) redirect("/dashboard/login");
+  if (!can("stringing")) redirect("/dashboard");
 
   const orders = await safeQuery(
     () => prisma.sfOrder.findMany({ orderBy: [{ status: "asc" }, { createdAt: "desc" }], take: 200 }),

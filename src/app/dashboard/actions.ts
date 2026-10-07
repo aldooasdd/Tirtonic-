@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { checkPassword, createSession, destroySession, isAuthed } from "@/lib/auth";
+import { roleForPassword, createSession, destroySession, isAuthed, requireSection } from "@/lib/auth";
 import { uploadFile, uploadFromUrl, storageConfigured } from "@/lib/storage";
 import { fetchTokopedia } from "@/lib/tokopedia";
 import { markOrderPaid, markOrderShipped, cancelOrder } from "@/lib/orders";
@@ -12,18 +12,15 @@ export type LoginState = { error: string };
 
 export async function login(_prev: LoginState, formData: FormData): Promise<LoginState> {
   const pw = (formData.get("password") as string) || "";
-  if (!checkPassword(pw)) return { error: "Password salah." };
-  createSession();
+  const role = roleForPassword(pw);
+  if (!role) return { error: "Password salah." };
+  createSession(role);
   redirect("/dashboard");
 }
 
 export async function logout() {
   destroySession();
   redirect("/dashboard/login");
-}
-
-function requireAuth() {
-  if (!isAuthed()) throw new Error("Unauthorized");
 }
 
 function revalidatePublic(productId?: string) {
@@ -134,7 +131,7 @@ async function resolveSizeChart(formData: FormData): Promise<string | null> {
 }
 
 export async function createProduct(formData: FormData) {
-  requireAuth();
+  requireSection("produk");
   const data = parseData(formData);
   if (!data.nama || !data.kategori) throw new Error("Nama dan kategori wajib diisi.");
   const existing = formData.getAll("existingGambar").map(String);
@@ -165,7 +162,7 @@ export type ImportResult = {
 /** Import one product from a Tokopedia link: parse fields + re-host its images to Supabase.
  *  Returns `{ error }` on failure so the message survives Next.js production error masking. */
 export async function importFromTokopedia(url: string): Promise<ImportResult | { error: string }> {
-  requireAuth();
+  requireSection("produk");
   let p;
   try {
     p = await fetchTokopedia(url);
@@ -228,7 +225,7 @@ export async function importFromTokopedia(url: string): Promise<ImportResult | {
 }
 
 export async function updateProduct(id: string, formData: FormData) {
-  requireAuth();
+  requireSection("produk");
   const data = parseData(formData);
   if (!data.nama || !data.kategori) throw new Error("Nama dan kategori wajib diisi.");
   const existing = formData.getAll("existingGambar").map(String);
@@ -252,19 +249,19 @@ export async function updateProduct(id: string, formData: FormData) {
 }
 
 export async function deleteProduct(id: string) {
-  requireAuth();
+  requireSection("produk");
   await prisma.product.delete({ where: { id } });
   revalidatePublic(id);
 }
 
 export async function setStatus(id: string, status: "READY" | "SOLD") {
-  requireAuth();
+  requireSection("produk");
   await prisma.product.update({ where: { id }, data: { status } });
   revalidatePublic(id);
 }
 
 export async function createHeroSlide(formData: FormData) {
-  requireAuth();
+  requireSection("hero");
   const file = formData.get("gambar");
   if (!(file instanceof File) || file.size === 0) throw new Error("Pilih gambar dulu.");
   const mobileFile = formData.get("gambarMobile");
@@ -285,7 +282,7 @@ export async function createHeroSlide(formData: FormData) {
 }
 
 export async function deleteHeroSlide(id: string) {
-  requireAuth();
+  requireSection("hero");
   await prisma.heroSlide.delete({ where: { id } });
   revalidatePath("/");
   revalidatePath("/dashboard");
@@ -294,7 +291,7 @@ export async function deleteHeroSlide(id: string) {
 // ---------- Our Store (cabang) ----------
 
 export async function createStore(formData: FormData) {
-  requireAuth();
+  requireSection("store");
   const nama = ((formData.get("nama") as string) || "").trim();
   const alamat = ((formData.get("alamat") as string) || "").trim();
   if (!nama || !alamat) throw new Error("Nama & alamat store wajib diisi.");
@@ -315,7 +312,7 @@ export async function createStore(formData: FormData) {
 }
 
 export async function deleteStore(id: string) {
-  requireAuth();
+  requireSection("store");
   await prisma.store.delete({ where: { id } });
   revalidatePath("/");
   revalidatePath("/dashboard");
@@ -353,7 +350,7 @@ async function uploadOneImage(formData: FormData, folder: string): Promise<strin
 }
 
 export async function createArticle(formData: FormData) {
-  requireAuth();
+  requireSection("artikel");
   const data = parseArticle(formData);
   if (!data.judul || !data.konten) throw new Error("Judul dan konten wajib diisi.");
   const gambar = await uploadOneImage(formData, "articles");
@@ -363,7 +360,7 @@ export async function createArticle(formData: FormData) {
 }
 
 export async function updateArticle(id: string, formData: FormData) {
-  requireAuth();
+  requireSection("artikel");
   const data = parseArticle(formData);
   if (!data.judul || !data.konten) throw new Error("Judul dan konten wajib diisi.");
   const uploaded = await uploadOneImage(formData, "articles");
@@ -374,13 +371,13 @@ export async function updateArticle(id: string, formData: FormData) {
 }
 
 export async function deleteArticle(id: string) {
-  requireAuth();
+  requireSection("artikel");
   await prisma.article.delete({ where: { id } });
   revalidateArticles(id);
 }
 
 export async function deleteSponsorship(id: string) {
-  requireAuth();
+  requireSection("sponsor");
   await prisma.sponsorshipSubmission.delete({ where: { id } });
   revalidatePath("/dashboard");
 }
@@ -395,20 +392,20 @@ function revalidateOrder(id: string) {
 /** Konfirmasi pembayaran manual (transfer) — sama efeknya dgn webhook DOKU:
  *  potong stok + kirim event "paid" ke n8n. */
 export async function adminMarkPaid(id: string) {
-  requireAuth();
+  requireSection("pesanan");
   await markOrderPaid(id, { metodeBayar: "Manual" });
   revalidateOrder(id);
 }
 
 /** Simpan nomor resi → status DIKIRIM → kirim event "shipped" ke n8n (WA resi ke customer). */
 export async function adminMarkShipped(id: string, resi: string, kurir?: string) {
-  requireAuth();
+  requireSection("pesanan");
   await markOrderShipped(id, resi, kurir);
   revalidateOrder(id);
 }
 
 export async function adminCancelOrder(id: string) {
-  requireAuth();
+  requireSection("pesanan");
   await cancelOrder(id);
   revalidateOrder(id);
 }
@@ -418,7 +415,7 @@ export type CouponState = { error?: string; ok?: boolean };
 
 /** Buat kupon. scope "products" → simpan daftar productIds; "all" → kosong (semua produk). */
 export async function createCoupon(_prev: CouponState, formData: FormData): Promise<CouponState> {
-  requireAuth();
+  requireSection("kupon");
   const code = ((formData.get("code") as string) || "").trim().toUpperCase().replace(/\s+/g, "");
   if (!/^[A-Z0-9]{3,20}$/.test(code)) return { error: "Kode kupon 3-20 karakter, huruf/angka saja." };
 
@@ -438,13 +435,13 @@ export async function createCoupon(_prev: CouponState, formData: FormData): Prom
 }
 
 export async function deleteCoupon(id: string) {
-  requireAuth();
+  requireSection("kupon");
   await prisma.coupon.delete({ where: { id } });
   revalidatePath("/dashboard");
 }
 
 export async function toggleCoupon(id: string) {
-  requireAuth();
+  requireSection("kupon");
   const c = await prisma.coupon.findUnique({ where: { id } });
   if (c) await prisma.coupon.update({ where: { id }, data: { active: !c.active } });
   revalidatePath("/dashboard");

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { isAuthed } from "@/lib/auth";
+import { isAuthed, can } from "@/lib/auth";
 import { prisma, safeQuery } from "@/lib/prisma";
 import { rupiah } from "@/lib/format";
 import OrderRowActions from "@/components/OrderRowActions";
@@ -27,6 +27,7 @@ function fmtDate(d: Date) {
 
 export default async function OrdersPage() {
   if (!isAuthed()) redirect("/dashboard/login");
+  if (!can("pesanan")) redirect("/dashboard");
 
   const orders = await safeQuery(
     () => prisma.order.findMany({ orderBy: { createdAt: "desc" }, include: { items: true } }),

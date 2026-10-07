@@ -1,6 +1,6 @@
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
-import { isAuthed } from "@/lib/auth";
+import { isAuthed, can } from "@/lib/auth";
 import { prisma, safeQuery } from "@/lib/prisma";
 import { updateProduct } from "@/app/dashboard/actions";
 import ProductForm from "@/components/ProductForm";
@@ -12,6 +12,7 @@ export const metadata = { title: "Edit Produk — Tirtonic" };
 
 export default async function EditProductPage({ params }: { params: { id: string } }) {
   if (!isAuthed()) redirect("/dashboard/login");
+  if (!can("produk")) redirect("/dashboard");
 
   const product = await safeQuery(
     () =>
