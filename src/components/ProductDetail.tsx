@@ -272,7 +272,7 @@ export default function ProductDetail({ p }: { p: P }) {
                           onClick={() => setSize(v.ukuran)}
                           className={`min-w-[64px] rounded-lg border px-4 py-3 text-sm font-medium transition ${
                             habis
-                              ? "cursor-not-allowed border-gray-200 text-gray-300 line-through"
+                              ? "cursor-not-allowed border-gray-200 bg-gray-50 text-gray-400 line-through opacity-50"
                               : size === v.ukuran
                               ? "border-primary bg-primary text-white"
                               : "border-gray-300 text-gray-700 hover:border-primary"
