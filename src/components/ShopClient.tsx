@@ -77,7 +77,7 @@ export default function ShopClient({
         }`}
       >
         {products.map((p) => (
-          <ProductCard key={p.id} p={p} />
+          <ProductCard key={p.id} p={p} hoverExpand />
         ))}
       </div>
     );
