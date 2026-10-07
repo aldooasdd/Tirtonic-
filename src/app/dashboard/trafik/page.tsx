@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { isAuthed, can } from "@/lib/auth";
 import { prisma, safeQuery } from "@/lib/prisma";
+import { logout } from "../actions";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Trafik — Tirtonic Admin" };
@@ -35,12 +36,17 @@ export default async function TrafikPage() {
               <div className="text-[11px] text-gray-400">Produk paling sering dilihat</div>
             </div>
           </div>
-          <Link
-            href="/dashboard"
-            className="rounded-full border px-4 py-1.5 text-sm font-semibold text-gray-600 transition hover:border-primary hover:text-primary"
-          >
-            ← Dashboard
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/dashboard"
+              className="rounded-full border px-4 py-1.5 text-sm font-semibold text-gray-600 transition hover:border-primary hover:text-primary"
+            >
+              ← Dashboard
+            </Link>
+            <form action={logout}>
+              <button className="rounded-full border px-4 py-1.5 text-sm font-semibold text-gray-600 transition hover:border-red-400 hover:text-red-600">Logout</button>
+            </form>
+          </div>
         </div>
       </header>
 

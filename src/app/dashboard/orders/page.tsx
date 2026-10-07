@@ -4,6 +4,7 @@ import { isAuthed, can } from "@/lib/auth";
 import { prisma, safeQuery } from "@/lib/prisma";
 import { rupiah } from "@/lib/format";
 import OrderRowActions from "@/components/OrderRowActions";
+import { logout } from "../actions";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Pesanan — Tirtonic" };
@@ -41,7 +42,12 @@ export default async function OrdersPage() {
           <Link href="/dashboard" className="text-sm text-gray-500 hover:text-primary">← Kembali ke dashboard</Link>
           <h1 className="mt-2 text-2xl font-extrabold text-primary">Pesanan</h1>
         </div>
-        <span className="text-sm text-gray-400">{orders.length} pesanan</span>
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-gray-400">{orders.length} pesanan</span>
+          <form action={logout}>
+            <button className="rounded-full border px-4 py-1.5 text-sm font-semibold text-gray-600 transition hover:border-red-400 hover:text-red-600">Logout</button>
+          </form>
+        </div>
       </div>
 
       {orders.length === 0 ? (
