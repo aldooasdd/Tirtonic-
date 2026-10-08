@@ -97,7 +97,7 @@ export default function Navbar() {
                   bottom-0 sm:bottom-auto sm:top-0
                   ${hidden ? "translate-y-[140%] sm:-translate-y-[160%]" : "translate-y-0"}`}
     >
-      <div className="mx-auto flex max-w-site items-center justify-center gap-4 px-4 py-3 sm:justify-between">
+      <div className="mx-auto flex max-w-site items-center justify-center gap-4 px-4 py-3 sm:justify-between sm:px-8 lg:px-12">
         {/* logo hidden on mobile (bottom-bar mode) */}
         <div className="hidden sm:block">
           <Logo />
