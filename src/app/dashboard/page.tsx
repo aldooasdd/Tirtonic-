@@ -87,6 +87,9 @@ export default async function AdminDashboard() {
             <a href="/" target="_blank" rel="noreferrer" className="hidden text-sm font-medium text-gray-500 hover:text-primary sm:block">
               Lihat situs ↗
             </a>
+            <Link href="/dashboard/password" className="text-sm font-medium text-gray-500 hover:text-primary">
+              Ganti sandi
+            </Link>
             <form action={logout}>
               <button className="rounded-full border px-4 py-1.5 text-sm font-semibold text-gray-600 transition hover:border-red-400 hover:text-red-600">
                 Logout

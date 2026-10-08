@@ -3,7 +3,8 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { roleForPassword, createSession, destroySession, isAuthed, requireSection } from "@/lib/auth";
+import { createSession, destroySession, isAuthed, requireSection, currentRole } from "@/lib/auth";
+import { findRoleByPassword, roleMatches, setRolePassword } from "@/lib/role-password";
 import { uploadFile, uploadFromUrl, storageConfigured } from "@/lib/storage";
 import { fetchTokopedia } from "@/lib/tokopedia";
 import { markOrderPaid, markOrderShipped, cancelOrder } from "@/lib/orders";
@@ -12,7 +13,7 @@ export type LoginState = { error: string };
 
 export async function login(_prev: LoginState, formData: FormData): Promise<LoginState> {
   const pw = (formData.get("password") as string) || "";
-  const role = roleForPassword(pw);
+  const role = await findRoleByPassword(pw);
   if (!role) return { error: "Password salah." };
   createSession(role);
   redirect("/dashboard");
@@ -445,4 +446,20 @@ export async function toggleCoupon(id: string) {
   const c = await prisma.coupon.findUnique({ where: { id } });
   if (c) await prisma.coupon.update({ where: { id }, data: { active: !c.active } });
   revalidatePath("/dashboard");
+}
+
+// ── Ganti kata sandi (role sendiri) ─────────────────────────────────────────
+export type PasswordState = { error?: string; ok?: boolean };
+
+export async function changePassword(_prev: PasswordState, formData: FormData): Promise<PasswordState> {
+  const role = currentRole();
+  if (!role) return { error: "Sesi berakhir. Login ulang." };
+  const lama = (formData.get("lama") as string) || "";
+  const baru = (formData.get("baru") as string) || "";
+  const konfirmasi = (formData.get("konfirmasi") as string) || "";
+  if (baru.length < 6) return { error: "Kata sandi baru minimal 6 karakter." };
+  if (baru !== konfirmasi) return { error: "Konfirmasi kata sandi tidak cocok." };
+  if (!(await roleMatches(role.key, lama))) return { error: "Kata sandi lama salah." };
+  await setRolePassword(role.key, baru);
+  return { ok: true };
 }

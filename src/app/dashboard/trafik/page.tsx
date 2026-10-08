@@ -43,6 +43,9 @@ export default async function TrafikPage() {
             >
               ← Dashboard
             </Link>
+            <Link href="/dashboard/password" className="rounded-full border px-4 py-1.5 text-sm font-semibold text-gray-600 transition hover:border-primary hover:text-primary">
+              Ganti sandi
+            </Link>
             <form action={logout}>
               <button className="rounded-full border px-4 py-1.5 text-sm font-semibold text-gray-600 transition hover:border-red-400 hover:text-red-600">Logout</button>
             </form>

@@ -320,3 +320,12 @@ model Coupon {
   active     Boolean  @default(true)
   createdAt  DateTime @default(now())
 }
+
+// Override kata sandi per role (hasil "ganti kata sandi" di dashboard). Kalau
+// baris untuk suatu role ada, password-nya dipakai menggantikan default di
+// src/lib/roles.ts. Format hash: "<salt>:<scrypt>" (lihat src/lib/role-password.ts).
+model RolePassword {
+  role      String   @id // key role, mis. "bos", "admin"
+  hash      String
+  updatedAt DateTime @updatedAt
+}

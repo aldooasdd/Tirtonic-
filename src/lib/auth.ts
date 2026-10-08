@@ -1,7 +1,7 @@
 import "server-only";
 import { cookies } from "next/headers";
 import crypto from "crypto";
-import { ROLES, rolePassword, roleCan, type Role, type Section } from "@/lib/roles";
+import { ROLES, roleCan, type Role, type Section } from "@/lib/roles";
 
 const COOKIE = "admin_session";
 const secret = process.env.SESSION_SECRET || "dev-insecure-secret";
@@ -15,16 +15,6 @@ function safeEqual(a: string, b: string): boolean {
   const ba = Buffer.from(a);
   const bb = Buffer.from(b);
   return ba.length === bb.length && crypto.timingSafeEqual(ba, bb);
-}
-
-/** Cek password login → key role yang cocok, atau null kalau tak ada yang cocok. */
-export function roleForPassword(input: string): string | null {
-  if (!input) return null;
-  for (const key of Object.keys(ROLES)) {
-    const pw = rolePassword(key);
-    if (pw.length > 0 && safeEqual(input, pw)) return key;
-  }
-  return null;
 }
 
 export function createSession(roleKey: string) {
