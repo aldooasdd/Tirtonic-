@@ -2,7 +2,7 @@
 // Customer boleh menimpa angka ini. Penyesuaian poly dilakukan di sisi klien saat
 // senar dipilih (poly dimainkan lebih rendah demi kenyamanan).
 import type { Answers } from "./types";
-import { racketTensionDelta, type RacketSpec } from "./racket";
+import { racketTensionDelta, hasRacketInput, type RacketInput } from "./racket";
 
 const BASE: Record<string, number> = { rendah: 46, sedang: 52, tinggi: 58, tidaktahu: 50 };
 const MIN = 40;
@@ -20,10 +20,10 @@ export function tensionAdjustment(answers: Answers): number {
   return d;
 }
 
-export function suggestTension(answers: Answers, racket?: RacketSpec | null): { lbs: number; note: string; racketNote?: string } {
+export function suggestTension(answers: Answers, racket?: RacketInput | null): { lbs: number; note: string; racketNote?: string } {
   let t = (BASE[String(answers.tension ?? "tidaktahu")] ?? 50) + tensionAdjustment(answers);
   let racketNote: string | undefined;
-  if (racket) {
+  if (racket && hasRacketInput(racket)) {
     const r = racketTensionDelta(racket);
     t += r.delta;
     if (r.note) racketNote = r.note;

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import { RACKET_TYPES, racketLabel, type RacketType } from "@/lib/string-finder/racket";
 
 export type Question = {
   id: string;
@@ -22,7 +23,7 @@ type Pick = {
   attrs: Record<Attr, number | null>;
   explanation: { strengths: { attr: Attr; text: string }[]; weakness: { attr: Attr | null; text: string }; notes: string[] };
 };
-type RecResponse = { code: string; condition: string; profile_summary: string; picks: Pick[]; tension_suggestion: number; tension_note: string; racket_matched: { label: string; head: number; flex: number } | null; tension_racket_note: string | null; racket_string_note: string | null };
+type RecResponse = { code: string; condition: string; profile_summary: string; picks: Pick[]; tension_suggestion: number; tension_note: string; racket_label: string | null; tension_racket_note: string | null; racket_string_note: string | null };
 
 const ATTR_LABEL: Record<Attr, string> = {
   spin: "Spin", power: "Power", control: "Kontrol", comfort: "Nyaman", stability: "Stabil", durability: "Awet",
@@ -43,36 +44,17 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
   const [chosen, setChosen] = useState<number | null>(null);
   const [nama, setNama] = useState("");
   const [wa, setWa] = useState("");
-  const [racket, setRacket] = useState("");        // nilai terpilih (wajib dari daftar)
-  const [racketQuery, setRacketQuery] = useState(""); // teks yang diketik untuk cari
-  const [racketOpen, setRacketOpen] = useState(false);
+  // Konsep raket: customer isi head size (in²) + jenis raket (power/spin/control).
+  const [racketHead, setRacketHead] = useState("");
+  const [racketType, setRacketType] = useState<RacketType | "">("");
   const [tension, setTension] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [history, setHistory] = useState<HistItem[] | null>(null);
   const [histLoading, setHistLoading] = useState(false);
-  const [rackets, setRackets] = useState<Record<string, string[]>>({});
 
-  // Daftar raket (TWU) dikelompokkan per brand. Combobox: ketik → saran relevan.
-  useEffect(() => {
-    fetch("/sf/rackets.json").then((r) => r.json()).then(setRackets).catch(() => {});
-  }, []);
-
-  const racketLabels = useMemo(
-    () => Object.entries(rackets).flatMap(([b, ms]) => ms.map((m) => `${b} ${m}`)),
-    [rackets],
-  );
-  const racketMatches = useMemo(() => {
-    const words = racketQuery.trim().toLowerCase().split(/\s+/).filter(Boolean);
-    if (!racketOpen || words.length === 0) return [];
-    return racketLabels.filter((l) => { const t = l.toLowerCase(); return words.every((w) => t.includes(w)); }).slice(0, 8);
-  }, [racketQuery, racketOpen, racketLabels]);
-
-  // Saat blur: terima hanya kalau ketikan cocok persis 1 item daftar; kalau tidak, balik ke pilihan terakhir.
-  function commitRacket() {
-    const exact = racketLabels.find((l) => l.toLowerCase() === racketQuery.trim().toLowerCase());
-    if (exact) { setRacket(exact); setRacketQuery(exact); }
-    else { setRacketQuery(racket); }
-  }
+  // Label raket untuk disimpan & ditampilkan, mis. "Power · 100 in²".
+  const headNum = parseInt(racketHead, 10);
+  const racketStr = racketLabel({ head: Number.isFinite(headNum) ? headNum : null, type: racketType || null });
 
   const q = questions[step];
 
@@ -93,7 +75,6 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
       if (!res.ok) throw new Error(data.error || "Nomor WhatsApp tidak valid.");
       setHistory(data.history as HistItem[]);
       if (!nama.trim() && data.lastName) setNama(data.lastName as string);
-      if (!racket.trim() && data.lastRacket) { setRacket(data.lastRacket as string); setRacketQuery(data.lastRacket as string); }
       setPhase("dashboard");
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Terjadi kesalahan.");
@@ -127,7 +108,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
       const res = await fetch("/api/sf/recommend", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ answers, racket }),
+        body: JSON.stringify({ answers, racketHead: Number.isFinite(headNum) ? headNum : null, racketType: racketType || null }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Gagal menghitung rekomendasi.");
@@ -147,7 +128,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
       const res = await fetch("/api/sf/order", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ code: rec.code, chosenRank: chosen + 1, phone: wa, customerName: nama, racket, tensionLbs: tension ? parseInt(tension, 10) : undefined }),
+        body: JSON.stringify({ code: rec.code, chosenRank: chosen + 1, phone: wa, customerName: nama, racket: racketStr ?? undefined, tensionLbs: tension ? parseInt(tension, 10) : undefined }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Gagal mengirim pesanan.");
@@ -196,36 +177,33 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
               <input value={wa} onChange={(e) => { setWa(e.target.value); setHistory(null); }} inputMode="tel" className="field" placeholder="08xxxxxxxxxx" />
             </div>
             <div>
+              <label className="label">Head size raket <span className="text-gray-400">(opsional, in²)</span></label>
+              <input
+                value={racketHead}
+                onChange={(e) => setRacketHead(e.target.value.replace(/[^\d]/g, "").slice(0, 3))}
+                inputMode="numeric"
+                className="field"
+                placeholder="mis. 100"
+              />
+              <p className="mt-1 text-xs text-gray-400">Umumnya 95–110 in². Lihat di frame/ganggang raket.</p>
+            </div>
+            <div>
               <label className="label">Jenis raket <span className="text-gray-400">(opsional)</span></label>
-              <div className="relative">
-                <input
-                  value={racketQuery}
-                  onChange={(e) => { setRacketQuery(e.target.value); if (e.target.value !== racket) setRacket(""); setRacketOpen(true); }}
-                  onFocus={() => setRacketOpen(true)}
-                  onBlur={() => setTimeout(() => { setRacketOpen(false); commitRacket(); }, 150)}
-                  autoComplete="off"
-                  className="field"
-                  placeholder="Ketik merek/model, mis. Yonex Ezone 100"
-                />
-                {racketMatches.length > 0 && (
-                  <ul className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-xl border border-gray-200 bg-white py-1 shadow-lg">
-                    {racketMatches.map((m) => (
-                      <li key={m}>
-                        <button
-                          type="button"
-                          onMouseDown={(e) => { e.preventDefault(); setRacket(m); setRacketQuery(m); setRacketOpen(false); }}
-                          className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
-                        >
-                          {m}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
+              <div className="flex flex-wrap gap-2">
+                {RACKET_TYPES.map((t) => (
+                  <button
+                    key={t.key}
+                    type="button"
+                    onClick={() => setRacketType(racketType === t.key ? "" : t.key)}
+                    className={`rounded-lg border px-4 py-2 text-sm font-medium transition ${
+                      racketType === t.key ? "border-primary bg-primary text-white" : "border-gray-300 text-gray-700 hover:border-primary"
+                    }`}
+                  >
+                    {t.label}
+                  </button>
+                ))}
               </div>
-              <p className="mt-1 text-xs text-gray-400">
-                {racketQuery.trim() && !racket ? <span className="text-amber-600">Pilih raket dari daftar yang muncul.</span> : "Ketik untuk cari, lalu pilih dari daftar."}
-              </p>
+              <p className="mt-1 text-xs text-gray-400">Karakter raketmu — memengaruhi rekomendasi senar & tarikan.</p>
             </div>
             {err && <p className="text-sm text-red-600">{err}</p>}
 
@@ -415,9 +393,9 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
           <div className="text-center">
             <h1 className="text-2xl font-extrabold text-gray-900 sm:text-3xl">3 senar yang cocok untukmu</h1>
             <p className="mx-auto mt-2 max-w-2xl text-gray-600">{rec.profile_summary}</p>
-            {rec.racket_matched && rec.racket_string_note ? (
+            {rec.racket_label && rec.racket_string_note ? (
               <p className="mx-auto mt-2 max-w-2xl text-sm text-gray-500">
-                Disesuaikan dengan raket <span className="font-medium text-gray-700">{rec.racket_matched.label}</span> — {rec.racket_string_note}.
+                Disesuaikan dengan raket <span className="font-medium text-gray-700">{rec.racket_label}</span> — {rec.racket_string_note}.
               </p>
             ) : null}
           </div>
@@ -489,7 +467,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
             <p className="text-sm text-gray-500">Senar pilihanmu</p>
             <h2 className="mt-1 text-lg font-bold text-gray-900">{p.name}</h2>
             <p className="text-sm text-gray-500">{p.material}{p.gauge ? ` • ${p.gauge} mm` : ""} • <span className="font-semibold text-primary">{rupiah(p.price)}</span></p>
-            {racket ? <p className="mt-1 text-sm text-gray-500">Raket: <span className="font-medium text-gray-700">{racket}</span></p> : null}
+            {racketStr ? <p className="mt-1 text-sm text-gray-500">Raket: <span className="font-medium text-gray-700">{racketStr}</span></p> : null}
 
             <div className="mt-5 space-y-3">
               <div>
@@ -498,10 +476,9 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
                 <p className="mt-1 text-xs text-gray-400">
                   Saran kami <span className="font-semibold text-primary">{rec.tension_suggestion} lbs</span> — {rec.tension_note}. Kamu bisa ubah sesuai selera.
                 </p>
-                {rec.racket_matched ? (
+                {rec.racket_label && rec.tension_racket_note ? (
                   <p className="mt-1 text-xs text-gray-500">
-                    Disesuaikan dengan raket <span className="font-medium text-gray-700">{rec.racket_matched.label}</span> (flex {rec.racket_matched.flex}, head {rec.racket_matched.head} in²)
-                    {rec.tension_racket_note ? <> — {rec.tension_racket_note}</> : null}.
+                    Disesuaikan dengan raket <span className="font-medium text-gray-700">{rec.racket_label}</span> — {rec.tension_racket_note}.
                   </p>
                 ) : null}
               </div>
@@ -532,7 +509,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-3xl">✅</div>
           <h1 className="mt-5 text-2xl font-extrabold text-gray-900">Pesanan diterima!</h1>
           <p className="mt-2 text-gray-600">
-            Senar <strong>{p.name}</strong>{tension ? <> · tarikan <strong>{tension} lbs</strong></> : null}{racket ? <> · raket <strong>{racket}</strong></> : null} sedang disiapkan. Kami kabari lewat WhatsApp begitu selesai dipasang.
+            Senar <strong>{p.name}</strong>{tension ? <> · tarikan <strong>{tension} lbs</strong></> : null}{racketStr ? <> · raket <strong>{racketStr}</strong></> : null} sedang disiapkan. Kami kabari lewat WhatsApp begitu selesai dipasang.
           </p>
           <div className="mt-5 inline-block rounded-xl border border-dashed border-gray-300 px-6 py-3">
             <p className="text-xs text-gray-500">Kode resep</p>

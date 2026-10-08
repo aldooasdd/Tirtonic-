@@ -1,6 +1,5 @@
 import { prisma } from "@/lib/prisma";
 import { normalizePhone, displayPhone } from "@/lib/string-finder/phone";
-import { lookupRacket } from "@/lib/string-finder/racket";
 
 export const dynamic = "force-dynamic";
 
@@ -114,24 +113,12 @@ export default async function RiwayatPage({ params }: { params: { phone: string 
               <h2 className="mb-3 font-bold text-gray-900">Raket yang dipakai</h2>
               {raket.length ? (
                 <ul className="space-y-3">
-                  {raket.map((r) => {
-                    const rs = lookupRacket(r.label);
-                    return (
-                      <li key={r.label} className="border-b border-gray-50 pb-3 last:border-0 last:pb-0">
-                        <div className="flex justify-between gap-2 text-sm">
-                          <span className="font-medium text-gray-900">{r.label}</span>
-                          <span className="shrink-0 font-semibold text-gray-500">{r.n}×</span>
-                        </div>
-                        {rs ? (
-                          <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-gray-500">
-                            <span>Head {rs.head} in²</span>
-                            <span>Flex {rs.flex} (RDC)</span>
-                            <span>{rs.weight} g</span>
-                          </div>
-                        ) : <div className="mt-1 text-xs text-gray-400">Spec tidak ditemukan di data TWU.</div>}
-                      </li>
-                    );
-                  })}
+                  {raket.map((r) => (
+                    <li key={r.label} className="flex justify-between gap-2 border-b border-gray-50 pb-3 text-sm last:border-0 last:pb-0">
+                      <span className="font-medium text-gray-900">{r.label}</span>
+                      <span className="shrink-0 font-semibold text-gray-500">{r.n}×</span>
+                    </li>
+                  ))}
                 </ul>
               ) : <p className="text-sm text-gray-400">Belum ada data raket.</p>}
             </div>

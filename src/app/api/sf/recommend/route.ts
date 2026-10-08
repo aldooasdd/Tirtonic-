@@ -7,7 +7,7 @@ import { makeCode } from "@/lib/string-finder/slip";
 import { validateAnswers } from "@/lib/string-finder/validate";
 import { profileSentence } from "@/lib/string-finder/profile";
 import { suggestTension } from "@/lib/string-finder/tension";
-import { lookupRacket, racketStringWeights, racketStringNote } from "@/lib/string-finder/racket";
+import { racketStringWeights, racketStringNote, racketLabel, hasRacketInput, type RacketType, type RacketInput } from "@/lib/string-finder/racket";
 import type { LabMetric, PickDTO } from "@/lib/string-finder/dto";
 
 export const dynamic = "force-dynamic";
@@ -38,15 +38,21 @@ export async function POST(req: NextRequest) {
   if (!v.ok) return NextResponse.json({ error: v.error }, { status: 400 });
   const answers = v.answers;
 
-  const racketInput = typeof (body as { racket?: unknown })?.racket === "string" ? (body as { racket: string }).racket : null;
-  const racketSpec = lookupRacket(racketInput);
+  const b = body as { racketHead?: unknown; racketType?: unknown };
+  const headNum = Number(b?.racketHead);
+  const typeRaw = typeof b?.racketType === "string" ? b.racketType : null;
+  const racket: RacketInput = {
+    head: Number.isFinite(headNum) ? headNum : null,
+    type: typeRaw === "power" || typeRaw === "spin" || typeRaw === "control" ? (typeRaw as RacketType) : null,
+  };
+  const hasRacket = hasRacketInput(racket);
 
   const { prepared, rules, ruleVersion, datasetVersion } = await getEngine();
-  const result = recommend(prepared, answers, rules, racketSpec ? racketStringWeights(racketSpec) : undefined);
+  const result = recommend(prepared, answers, rules, hasRacket ? racketStringWeights(racket) : undefined);
   const picks = result.picks!.map(toDTO);
   const profile_summary = profileSentence(answers);
   const condition = result.plan.condition;
-  const tension = suggestTension(answers, racketSpec);
+  const tension = suggestTension(answers, racket);
 
   // Website: satu cabang default (tanpa cookie perangkat).
   const branch = await prisma.sfBranch.findFirst({ where: { slug: "tirtonic", isActive: true }, select: { id: true } });
@@ -75,8 +81,8 @@ export async function POST(req: NextRequest) {
     code, condition, profile_summary, picks,
     tension_suggestion: tension.lbs,
     tension_note: tension.note,
-    racket_matched: racketSpec ? { label: racketSpec.label, head: racketSpec.head, flex: racketSpec.flex } : null,
+    racket_label: hasRacket ? racketLabel(racket) : null,
     tension_racket_note: tension.racketNote ?? null,
-    racket_string_note: racketSpec ? (racketStringNote(racketSpec) || null) : null,
+    racket_string_note: hasRacket ? (racketStringNote(racket) || null) : null,
   });
 }
