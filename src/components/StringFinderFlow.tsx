@@ -506,8 +506,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
     return (
       <Shell>
         <div className="mx-auto max-w-md text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-3xl">✅</div>
-          <h1 className="mt-5 text-2xl font-extrabold text-gray-900">Pesanan diterima!</h1>
+          <h1 className="text-2xl font-extrabold text-gray-900">Pesanan diterima!</h1>
           <p className="mt-2 text-gray-600">
             Senar <strong>{p.name}</strong>{tension ? <> · tarikan <strong>{tension} lbs</strong></> : null}{racketStr ? <> · raket <strong>{racketStr}</strong></> : null} sedang disiapkan. Kami kabari lewat WhatsApp begitu selesai dipasang.
           </p>
@@ -520,13 +519,13 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
               onClick={() => window.open(`/api/slip/${rec.code}?rank=${chosen + 1}&qr=1&print=1`, "_blank", "noopener")}
               className="btn-green px-6 py-3"
             >
-              🖨 Cetak resep
+              Cetak resep
             </button>
             <button
               onClick={() => window.open(`/api/racket-qr/${encodeURIComponent(wa)}?name=${encodeURIComponent(nama)}&print=1`, "_blank", "noopener")}
               className="rounded-full border border-gray-300 px-6 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50"
             >
-              🏷 Cetak QR raket
+              Cetak QR raket
             </button>
           </div>
         </div>
