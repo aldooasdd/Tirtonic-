@@ -76,7 +76,7 @@ function BrandPopular({ brands }: { brands: BrandItem[] }) {
         {brands.map((b) => (
           <Link
             key={b.id}
-            href={`/shop?brand=${encodeURIComponent(b.nama)}`}
+            href={`/shop?q=${encodeURIComponent(b.nama)}`}
             className="snap-item group block w-[240px] shrink-0 sm:w-[280px]"
           >
             <p className="mb-2 text-center text-sm font-bold uppercase text-gray-900">{b.nama}</p>
