@@ -14,7 +14,7 @@ const DENSITY = 3; // 1–5; naikkan kalau hasil tipis
 // niimblue). Kalau gagal/kosong, coba "B21_V1" atau "B1".
 const PRINT_TASK = "D110M_V4" as const;
 
-export default function RacketQrPrint({ phone, name, className, label = "Cetak stiker QR raket" }: { phone: string; name: string; className?: string; label?: string }) {
+export default function RacketQrPrint({ phone, className, label = "Cetak stiker QR raket" }: { phone: string; className?: string; label?: string }) {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
   const [err, setErr] = useState(false);
@@ -22,7 +22,7 @@ export default function RacketQrPrint({ phone, name, className, label = "Cetak s
   async function print() {
     setBusy(true); setErr(false); setMsg("Menyambungkan ke printer…");
     try {
-      const canvas = await buildLabel(phone, name);
+      const canvas = await buildLabel(phone);
       const nb = await import("@mmote/niimbluelib");
       const client = nb.instantiateClient("bluetooth");
       await client.connect(); // memunculkan pemilih perangkat Web Bluetooth
@@ -64,9 +64,9 @@ export default function RacketQrPrint({ phone, name, className, label = "Cetak s
   );
 }
 
-// Gambar label 50×30mm: QR di kiri, logo + identitas customer di kanan.
+// Gambar label 5×2cm: QR di kiri, logo + ajakan scan di kanan.
 // Margin dibuat lega biar QR tidak kepotong tepi label.
-async function buildLabel(phone: string, name: string): Promise<HTMLCanvasElement> {
+async function buildLabel(phone: string): Promise<HTMLCanvasElement> {
   const canvas = document.createElement("canvas");
   canvas.width = LABEL.w;
   canvas.height = LABEL.h;
@@ -85,24 +85,24 @@ async function buildLabel(phone: string, name: string): Promise<HTMLCanvasElemen
   await QRCode.toCanvas(qrCanvas, url, { width: qrSize, margin: 1, errorCorrectionLevel: "M" });
   ctx.drawImage(qrCanvas, M, Math.round((LABEL.h - qrSize) / 2), qrSize, qrSize);
 
-  // Kolom kanan: logo + nama + nomor, center vertikal
+  // Kolom kanan: logo + ajakan scan, center vertikal
   const x = M + qrSize + 26;
   const colW = LABEL.w - x - M;
   const logo = await loadImage("/logo-wordmark.png");
   const logoH = Math.round(colW / (logo.width / logo.height));
-  const stackH = logoH + 22 + (name ? 38 : 0) + 30;
+  const lines = ["Scan QR untuk", "semua informasi"];
+  const lineH = 30;
+  const stackH = logoH + 18 + lines.length * lineH;
   let y = Math.round((LABEL.h - stackH) / 2);
 
   ctx.drawImage(logo, x, y, colW, logoH);
-  y += logoH + 22;
+  y += logoH + 18;
   ctx.textBaseline = "top";
-  if (name) {
-    ctx.font = "bold 32px Arial";
-    ctx.fillText(ellipsize(ctx, name, colW), x, y);
-    y += 38;
+  ctx.font = "24px Arial";
+  for (const ln of lines) {
+    ctx.fillText(ln, x, y);
+    y += lineH;
   }
-  ctx.font = "28px Arial";
-  ctx.fillText(phone, x, y);
   return canvas;
 }
 
@@ -113,11 +113,4 @@ function loadImage(src: string): Promise<HTMLImageElement> {
     img.onerror = reject;
     img.src = src;
   });
-}
-
-function ellipsize(ctx: CanvasRenderingContext2D, text: string, maxW: number): string {
-  if (ctx.measureText(text).width <= maxW) return text;
-  let t = text;
-  while (t.length > 1 && ctx.measureText(t + "…").width > maxW) t = t.slice(0, -1);
-  return t + "…";
 }
