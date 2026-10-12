@@ -277,7 +277,7 @@ export default async function AdminDashboard() {
                 <input name="nama" required className="field" placeholder="NIKE" />
               </div>
               <div>
-                <label className="label">Foto brand *</label>
+                <label className="label">Foto brand * (2160×1440 px, 3:2)</label>
                 <input name="gambar" type="file" accept="image/*" required className="text-sm" />
               </div>
               <div>

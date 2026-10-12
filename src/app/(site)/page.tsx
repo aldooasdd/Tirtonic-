@@ -80,9 +80,9 @@ function BrandPopular({ brands }: { brands: BrandItem[] }) {
             className="snap-item group block w-[240px] shrink-0 sm:w-[280px]"
           >
             <p className="mb-2 text-center text-sm font-bold uppercase text-gray-900">{b.nama}</p>
-            <div className="aspect-[4/3] overflow-hidden rounded-lg bg-gray-100">
+            <div className="aspect-[3/2] overflow-hidden rounded-lg bg-gray-100">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={b.foto} alt={b.nama} className="h-full w-full object-cover transition group-hover:scale-105" />
+              <img src={b.foto} alt={b.nama} className="h-full w-full object-cover" />
             </div>
           </Link>
         ))}
