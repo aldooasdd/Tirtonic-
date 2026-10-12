@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { RACKET_TYPES, racketLabel, type RacketType } from "@/lib/string-finder/racket";
-import RacketQrPrint from "./RacketQrPrint";
 
 export type Question = {
   id: string;
@@ -560,7 +559,6 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
             >
               Cetak resep
             </button>
-            <RacketQrPrint phone={wa} name={nama} />
           </div>
           {kiosk && (
             <div className="mt-8">

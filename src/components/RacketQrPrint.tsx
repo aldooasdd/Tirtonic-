@@ -14,7 +14,7 @@ const DENSITY = 3; // 1–5; naikkan kalau hasil tipis
 // niimblue). Kalau gagal/kosong, coba "B21_V1" atau "B1".
 const PRINT_TASK = "D110M_V4" as const;
 
-export default function RacketQrPrint({ phone, name }: { phone: string; name: string }) {
+export default function RacketQrPrint({ phone, name, className, label = "Cetak stiker QR raket" }: { phone: string; name: string; className?: string; label?: string }) {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
   const [err, setErr] = useState(false);
@@ -55,9 +55,9 @@ export default function RacketQrPrint({ phone, name }: { phone: string; name: st
       <button
         onClick={print}
         disabled={busy}
-        className="rounded-full border border-gray-300 px-6 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+        className={className ?? "rounded-full border border-gray-300 px-6 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50"}
       >
-        {busy ? "Memproses…" : "Cetak stiker QR raket"}
+        {busy ? "Memproses…" : label}
       </button>
       {msg && <span className={`text-xs ${err ? "text-red-600" : "text-gray-400"}`}>{msg}</span>}
     </span>

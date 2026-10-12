@@ -5,6 +5,7 @@ import { prisma, safeQuery } from "@/lib/prisma";
 import { displayPhone } from "@/lib/string-finder/phone";
 import { startStringing, finishStringing, cancelStringing } from "./actions";
 import { logout } from "../actions";
+import RacketQrPrint from "@/components/RacketQrPrint";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Antrian Stringing — Tirtonic" };
@@ -78,6 +79,8 @@ export default async function StringingQueuePage() {
                   <div className="flex flex-wrap gap-2">
                     <a href={`/api/slip/${o.resultCode}${o.chosenRank ? `?rank=${o.chosenRank}` : ""}`} target="_blank" rel="noreferrer"
                       className="rounded-full border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:border-primary hover:text-primary">Resep</a>
+                    <RacketQrPrint phone={o.phone} name={o.customerName ?? ""} label="Stiker QR" className="rounded-full border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:border-primary hover:text-primary disabled:opacity-50" />
+
                     {o.status === "antri" && (
                       <form action={startStringing.bind(null, o.id)}>
                         <button className="rounded-full bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90">Mulai kerjakan</button>
