@@ -65,7 +65,6 @@ function ForYou({ products }: { products: ProductCardData[] }) {
         <h2 className="flex items-center gap-2 text-xl font-extrabold text-gray-900">
           Recommended For You {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo.png" alt="" className="h-7 w-7" />
-          <span className="ml-1 text-xs font-medium text-gray-400">Paling banyak dilihat</span>
         </h2>
         <Link href="/shop?sort=popular" className="text-sm font-semibold text-primary hover:underline">
           View All
