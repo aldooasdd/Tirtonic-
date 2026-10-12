@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { RACKET_TYPES, racketLabel, type RacketType } from "@/lib/string-finder/racket";
+import RacketQrPrint from "./RacketQrPrint";
 
 export type Question = {
   id: string;
@@ -559,12 +560,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
             >
               Cetak resep
             </button>
-            <button
-              onClick={() => window.open(`/api/racket-qr/${encodeURIComponent(wa)}?name=${encodeURIComponent(nama)}&print=1`, "_blank", "noopener")}
-              className="rounded-full border border-gray-300 px-6 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50"
-            >
-              Cetak QR raket
-            </button>
+            <RacketQrPrint phone={wa} name={nama} />
           </div>
           {kiosk && (
             <div className="mt-8">
