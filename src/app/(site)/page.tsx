@@ -209,8 +209,8 @@ export default async function HomePage() {
         </p>
       </div>
       <ForYou products={forYou} />
-      <OurStore stores={storeItems} />
       <BestDeal products={bestDeals} />
+      <OurStore stores={storeItems} />
       <NewArrival products={arrivals} />
       <NewArticles articles={articles} />
       <SeoBlock />
