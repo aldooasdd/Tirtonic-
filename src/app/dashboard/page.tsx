@@ -270,7 +270,6 @@ export default async function AdminDashboard() {
             <span className="text-xs font-normal text-gray-400">{brands.length} brand</span>
           </summary>
           <div className="space-y-4 border-t p-5">
-            <p className="text-xs text-gray-500">Carousel di bawah &quot;Recommended For You&quot;. Diklik → buka Shop difilter brand ini. Nama harus sama dengan brand produk di Shop.</p>
             <form action={createPopularBrand} className="flex flex-wrap items-end gap-3">
               <div>
                 <label className="label">Nama brand * (mis. NIKE)</label>
