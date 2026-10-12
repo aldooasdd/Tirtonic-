@@ -40,7 +40,7 @@ export default async function RiwayatPage({ params }: { params: { phone: string 
         where: { phone },
         orderBy: { createdAt: "desc" },
         take: 100,
-        select: { resultCode: true, chosenString: true, tensionLbs: true, tensionCrossLbs: true, racket: true, status: true, createdAt: true, customerName: true },
+        select: { resultCode: true, chosenString: true, tensionLbs: true, tensionCrossLbs: true, racket: true, stringerName: true, status: true, createdAt: true, customerName: true },
       })
     : [];
 
@@ -130,7 +130,7 @@ export default async function RiwayatPage({ params }: { params: { phone: string 
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-100 text-left text-xs font-semibold text-gray-500">
-                    <th className="px-5 py-3">Tanggal</th><th className="px-5 py-3">Senar</th><th className="px-5 py-3">Tarikan</th><th className="px-5 py-3">Raket</th><th className="px-5 py-3">Status</th>
+                    <th className="px-5 py-3">Tanggal</th><th className="px-5 py-3">Senar</th><th className="px-5 py-3">Tarikan</th><th className="px-5 py-3">Raket</th><th className="px-5 py-3">Stringer</th><th className="px-5 py-3">Status</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -140,6 +140,7 @@ export default async function RiwayatPage({ params }: { params: { phone: string 
                       <td className="px-5 py-3 font-medium text-gray-900">{o.chosenString ?? "—"}</td>
                       <td className="whitespace-nowrap px-5 py-3 text-gray-700">{o.tensionLbs ? `${o.tensionLbs}${o.tensionCrossLbs ? `/${o.tensionCrossLbs}` : ""} lbs` : "—"}</td>
                       <td className="px-5 py-3 text-gray-700">{o.racket ?? "—"}</td>
+                      <td className="px-5 py-3 text-gray-700">{o.stringerName ?? "—"}</td>
                       <td className="px-5 py-3"><span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${badge(o.status)}`}>{STATUS_LABEL[o.status] ?? o.status}</span></td>
                     </tr>
                   ))}
