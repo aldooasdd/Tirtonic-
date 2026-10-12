@@ -79,7 +79,7 @@ async function buildLabel(phone: string, name: string): Promise<HTMLCanvasElemen
 
   // QR kiri
   const QRCode = (await import("qrcode")).default;
-  const qrSize = 290;
+  const qrSize = 235; // ~20mm, dikecilin biar pas di stiker & tak kepotong
   const qrCanvas = document.createElement("canvas");
   const url = `${window.location.origin}/riwayat/${encodeURIComponent(phone)}`;
   await QRCode.toCanvas(qrCanvas, url, { width: qrSize, margin: 0, errorCorrectionLevel: "M" });
