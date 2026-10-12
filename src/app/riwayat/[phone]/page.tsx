@@ -40,7 +40,7 @@ export default async function RiwayatPage({ params }: { params: { phone: string 
         where: { phone },
         orderBy: { createdAt: "desc" },
         take: 100,
-        select: { resultCode: true, chosenString: true, tensionLbs: true, racket: true, status: true, createdAt: true, customerName: true },
+        select: { resultCode: true, chosenString: true, tensionLbs: true, tensionCrossLbs: true, racket: true, status: true, createdAt: true, customerName: true },
       })
     : [];
 
@@ -138,7 +138,7 @@ export default async function RiwayatPage({ params }: { params: { phone: string 
                     <tr key={o.resultCode} className="border-b border-gray-50 last:border-0">
                       <td className="whitespace-nowrap px-5 py-3 text-gray-500">{new Date(o.createdAt).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</td>
                       <td className="px-5 py-3 font-medium text-gray-900">{o.chosenString ?? "—"}</td>
-                      <td className="whitespace-nowrap px-5 py-3 text-gray-700">{o.tensionLbs ? `${o.tensionLbs} lbs` : "—"}</td>
+                      <td className="whitespace-nowrap px-5 py-3 text-gray-700">{o.tensionLbs ? `${o.tensionLbs}${o.tensionCrossLbs ? `/${o.tensionCrossLbs}` : ""} lbs` : "—"}</td>
                       <td className="px-5 py-3 text-gray-700">{o.racket ?? "—"}</td>
                       <td className="px-5 py-3"><span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${badge(o.status)}`}>{STATUS_LABEL[o.status] ?? o.status}</span></td>
                     </tr>

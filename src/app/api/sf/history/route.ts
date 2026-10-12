@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
     where: { phone },
     orderBy: { createdAt: "desc" },
     take: 20,
-    select: { resultCode: true, chosenString: true, tensionLbs: true, racket: true, status: true, createdAt: true, customerName: true },
+    select: { resultCode: true, chosenString: true, tensionLbs: true, tensionCrossLbs: true, racket: true, status: true, createdAt: true, customerName: true },
   });
 
   return NextResponse.json({
@@ -29,6 +29,7 @@ export async function GET(req: NextRequest) {
       code: o.resultCode,
       senar: o.chosenString,
       tension: o.tensionLbs,
+      tensionCross: o.tensionCrossLbs,
       racket: o.racket,
       status: o.status,
       statusLabel: STATUS_LABEL[o.status] ?? o.status,

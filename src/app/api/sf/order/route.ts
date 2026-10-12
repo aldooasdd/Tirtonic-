@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 /** Customer pilih rekomendasi + isi WhatsApp → buat antrian stringing + WA "pesanan masuk". */
 export async function POST(req: NextRequest) {
-  let body: { code?: string; chosenRank?: number; phone?: string; customerName?: string; tensionLbs?: number; racket?: string };
+  let body: { code?: string; chosenRank?: number; phone?: string; customerName?: string; tensionLbs?: number; tensionCrossLbs?: number; racket?: string };
   try {
     body = await req.json();
   } catch {
@@ -33,8 +33,12 @@ export async function POST(req: NextRequest) {
   const chosenString = chosenRank ? picks[chosenRank - 1]?.name ?? null : null;
   const customerName = String(body.customerName ?? "").trim() || null;
   const racket = String(body.racket ?? "").trim() || null;
-  const tRaw = Number(body.tensionLbs);
-  const tensionLbs = Number.isFinite(tRaw) && tRaw >= 30 && tRaw <= 75 ? Math.round(tRaw) : null;
+  const validTension = (v: unknown) => {
+    const n = Number(v);
+    return Number.isFinite(n) && n >= 30 && n <= 75 ? Math.round(n) : null;
+  };
+  const tensionLbs = validTension(body.tensionLbs);
+  const tensionCrossLbs = validTension(body.tensionCrossLbs);
 
   const order = await prisma.sfOrder.create({
     data: {
@@ -45,6 +49,7 @@ export async function POST(req: NextRequest) {
       chosenRank,
       chosenString,
       tensionLbs,
+      tensionCrossLbs,
       racket,
       etaMinutes: branch.etaMinutes,
     },

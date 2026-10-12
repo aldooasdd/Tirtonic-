@@ -33,7 +33,7 @@ const RANK_LABEL = ["Paling cocok", "Alternatif", "Alternatif"];
 
 const rupiah = (n: number | null) => (n == null ? "—" : "Rp" + n.toLocaleString("id-ID"));
 
-type HistItem = { code: string; senar: string | null; tension: number | null; racket: string | null; status: string; statusLabel: string; date: string };
+type HistItem = { code: string; senar: string | null; tension: number | null; tensionCross: number | null; racket: string | null; status: string; statusLabel: string; date: string };
 
 export default function StringFinderFlow({ questions }: { questions: Question[] }) {
   const [phase, setPhase] = useState<"intro" | "identify" | "dashboard" | "quiz" | "loading" | "results" | "order" | "done">("intro");
@@ -47,7 +47,8 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
   // Konsep raket: customer isi head size (in²) + jenis raket (power/spin/control).
   const [racketHead, setRacketHead] = useState("");
   const [racketType, setRacketType] = useState<RacketType | "">("");
-  const [tension, setTension] = useState("");
+  const [tension, setTension] = useState(""); // Main
+  const [tensionCross, setTensionCross] = useState(""); // Cross
   const [submitting, setSubmitting] = useState(false);
   const [history, setHistory] = useState<HistItem[] | null>(null);
   const [histLoading, setHistLoading] = useState(false);
@@ -158,7 +159,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
       const res = await fetch("/api/sf/order", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ code: rec.code, chosenRank: chosen + 1, phone: wa, customerName: nama, racket: racketStr ?? undefined, tensionLbs: tension ? parseInt(tension, 10) : undefined }),
+        body: JSON.stringify({ code: rec.code, chosenRank: chosen + 1, phone: wa, customerName: nama, racket: racketStr ?? undefined, tensionLbs: tension ? parseInt(tension, 10) : undefined, tensionCrossLbs: tensionCross ? parseInt(tensionCross, 10) : undefined }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Gagal mengirim pesanan.");
@@ -326,7 +327,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
                           {new Date(x.date).toLocaleString("id-ID", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
                         </td>
                         <td className="px-5 py-3 font-medium text-gray-900">{x.senar ?? "—"}</td>
-                        <td className="whitespace-nowrap px-5 py-3 text-gray-700">{x.tension ? `${x.tension} lbs` : "—"}</td>
+                        <td className="whitespace-nowrap px-5 py-3 text-gray-700">{x.tension ? `${x.tension}${x.tensionCross ? `/${x.tensionCross}` : ""} lbs` : "—"}</td>
                         <td className="px-5 py-3 text-gray-700">{x.racket ?? "—"}</td>
                         <td className="px-5 py-3"><span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${badge(x.status)}`}>{x.statusLabel}</span></td>
                       </tr>
@@ -475,7 +476,8 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
                     // saran tarikan dari server; senar polyester dimainkan lebih enak −2 lbs
                     const poly = /poly/i.test(p.material);
                     const sug = Math.max(40, rec.tension_suggestion - (poly ? 2 : 0));
-                    setTension(String(sug));
+                    setTension(String(sug)); // Main
+                    setTensionCross(String(Math.max(40, sug - 2))); // Cross biasanya −2
                     setPhase("order");
                   }}
                   className={`mt-5 w-full rounded-full px-4 py-2.5 text-sm font-semibold transition ${i === 0 ? "btn-green" : "border border-primary text-primary hover:bg-primary/5"}`}
@@ -510,9 +512,18 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
             <div className="mt-5 space-y-3">
               <div>
                 <label className="label">Tarikan senar (lbs)</label>
-                <input value={tension} onChange={(e) => setTension(e.target.value.replace(/\D/g, ""))} inputMode="numeric" className="field w-32" placeholder="lbs" />
-                <p className="mt-1 text-xs text-gray-400">
-                  Saran kami <span className="font-semibold text-primary">{rec.tension_suggestion} lbs</span> — {rec.tension_note}. Kamu bisa ubah sesuai selera.
+                <div className="flex gap-3">
+                  <div>
+                    <input value={tension} onChange={(e) => setTension(e.target.value.replace(/\D/g, ""))} inputMode="numeric" className="field w-28" placeholder="Main" />
+                    <p className="mt-1 text-center text-xs font-medium text-gray-500">Main</p>
+                  </div>
+                  <div>
+                    <input value={tensionCross} onChange={(e) => setTensionCross(e.target.value.replace(/\D/g, ""))} inputMode="numeric" className="field w-28" placeholder="Cross" />
+                    <p className="mt-1 text-center text-xs font-medium text-gray-500">Cross</p>
+                  </div>
+                </div>
+                <p className="mt-2 text-xs text-gray-400">
+                  Sudah kami isi otomatis (Cross biasanya 2 lbs lebih rendah dari Main) — {rec.tension_note}. Kamu bisa ubah sesuai selera.
                 </p>
                 {rec.racket_label && rec.tension_racket_note ? (
                   <p className="mt-1 text-xs text-gray-500">
@@ -546,7 +557,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
         <div className="mx-auto max-w-md text-center">
           <h1 className="text-2xl font-extrabold text-gray-900">Pesanan diterima!</h1>
           <p className="mt-2 text-gray-600">
-            Senar <strong>{p.name}</strong>{tension ? <> · tarikan <strong>{tension} lbs</strong></> : null}{racketStr ? <> · raket <strong>{racketStr}</strong></> : null} sedang disiapkan. Kami kabari lewat WhatsApp begitu selesai dipasang.
+            Senar <strong>{p.name}</strong>{tension ? <> · tarikan <strong>Main {tension}{tensionCross ? ` / Cross ${tensionCross}` : ""} lbs</strong></> : null}{racketStr ? <> · raket <strong>{racketStr}</strong></> : null} sedang disiapkan. Kami kabari lewat WhatsApp begitu selesai dipasang.
           </p>
           <div className="mt-5 inline-block rounded-xl border border-dashed border-gray-300 px-6 py-3">
             <p className="text-xs text-gray-500">Kode resep</p>

@@ -67,7 +67,7 @@ export default async function StringingQueuePage() {
                     </div>
                     <p className="mt-1.5 font-semibold text-gray-900">{o.chosenString ?? "— (3 pilihan)"}</p>
                     <p className="text-sm text-gray-600">
-                      {o.tensionLbs ? `${o.tensionLbs} lbs` : "tarikan –"}
+                      {o.tensionLbs ? `Main ${o.tensionLbs}${o.tensionCrossLbs ? ` / Cross ${o.tensionCrossLbs}` : ""} lbs` : "tarikan –"}
                       {o.racket ? ` • Raket: ${o.racket}` : ""}
                     </p>
                     <p className="text-sm text-gray-500">
