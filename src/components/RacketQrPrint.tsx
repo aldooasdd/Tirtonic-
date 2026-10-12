@@ -75,38 +75,34 @@ async function buildLabel(phone: string, name: string): Promise<HTMLCanvasElemen
   ctx.fillRect(0, 0, LABEL.w, LABEL.h);
   ctx.fillStyle = "#000";
 
-  const M = 18; // margin aman
+  const M = 30; // margin aman lebar di semua sisi (biar tak ada yg kepotong)
 
-  // QR kiri
+  // QR kiri, center vertikal
   const QRCode = (await import("qrcode")).default;
-  const qrSize = 235; // ~20mm, dikecilin biar pas di stiker & tak kepotong
+  const qrSize = 168; // ~14mm, kecil & pasti masuk
   const qrCanvas = document.createElement("canvas");
   const url = `${window.location.origin}/riwayat/${encodeURIComponent(phone)}`;
-  await QRCode.toCanvas(qrCanvas, url, { width: qrSize, margin: 0, errorCorrectionLevel: "M" });
-  const qrY = Math.round((LABEL.h - qrSize) / 2);
-  ctx.drawImage(qrCanvas, M, qrY, qrSize, qrSize);
+  await QRCode.toCanvas(qrCanvas, url, { width: qrSize, margin: 1, errorCorrectionLevel: "M" });
+  ctx.drawImage(qrCanvas, M, Math.round((LABEL.h - qrSize) / 2), qrSize, qrSize);
 
-  // Kolom kanan: logo wordmark + nama + nomor
-  const x = M + qrSize + 24;
+  // Kolom kanan: logo + nama + nomor, center vertikal
+  const x = M + qrSize + 26;
   const colW = LABEL.w - x - M;
-
   const logo = await loadImage("/logo-wordmark.png");
-  const logoH = Math.round(colW / (logo.width / logo.height)); // jaga rasio
-  ctx.drawImage(logo, x, 34, colW, logoH);
+  const logoH = Math.round(colW / (logo.width / logo.height));
+  const stackH = logoH + 22 + (name ? 38 : 0) + 30;
+  let y = Math.round((LABEL.h - stackH) / 2);
 
-  let y = 34 + logoH + 28;
+  ctx.drawImage(logo, x, y, colW, logoH);
+  y += logoH + 22;
   ctx.textBaseline = "top";
   if (name) {
-    ctx.font = "bold 34px Arial";
+    ctx.font = "bold 32px Arial";
     ctx.fillText(ellipsize(ctx, name, colW), x, y);
-    y += 44;
+    y += 38;
   }
-  ctx.font = "30px Arial";
+  ctx.font = "28px Arial";
   ctx.fillText(phone, x, y);
-
-  ctx.font = "22px Arial";
-  ctx.fillStyle = "#333";
-  ctx.fillText("Scan: riwayat senar", x, LABEL.h - M - 26);
   return canvas;
 }
 
