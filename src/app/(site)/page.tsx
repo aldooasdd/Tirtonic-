@@ -63,7 +63,7 @@ function ForYou({ products }: { products: ProductCardData[] }) {
     <section className="mx-auto max-w-site px-4 py-2">
       <div className="mb-1.5 flex items-center justify-between gap-3">
         <h2 className="flex items-center gap-2 text-xl font-extrabold text-gray-900">
-          For You {/* eslint-disable-next-line @next/next/no-img-element */}
+          Recommended For You {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo.png" alt="" className="h-7 w-7" />
           <span className="ml-1 text-xs font-medium text-gray-400">Paling banyak dilihat</span>
         </h2>
