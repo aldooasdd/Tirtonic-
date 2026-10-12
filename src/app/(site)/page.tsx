@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { prisma, safeQuery } from "@/lib/prisma";
-import Footer from "@/components/Footer";
+import Footer, { Benefits } from "@/components/Footer";
 import { ArticleCardData } from "@/components/ArticleCard";
 import ProductCard, { ProductCardData } from "@/components/ProductCard";
 import SeoBlock from "@/components/SeoBlock";
@@ -211,10 +211,11 @@ export default async function HomePage() {
       <ForYou products={forYou} />
       <BestDeal products={bestDeals} />
       <NewArrival products={arrivals} />
+      <Benefits />
       <OurStore stores={storeItems} />
       <NewArticles articles={articles} />
       <SeoBlock />
-      <Footer benefits />
+      <Footer />
     </>
   );
 }

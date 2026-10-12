@@ -46,22 +46,26 @@ const BENEFITS = [
   { icon: "award", title: "100% Authentic", desc: "Seluruh produk dijamin asli (authentic) dengan garansi uang kembali." },
 ];
 
+export function Benefits() {
+  return (
+    <section className="bg-gray-50">
+      <div className="mx-auto grid max-w-site gap-8 px-4 py-12 sm:grid-cols-2 lg:grid-cols-4">
+        {BENEFITS.map((b, idx) => (
+          <Reveal key={b.title} delay={idx * 90} className="flex flex-col items-center text-center">
+            <div className="mb-3 text-[#2b3a42]">{ICONS[b.icon]}</div>
+            <div className="mb-1 font-semibold text-[#2b3a42]">{b.title}</div>
+            <p className="text-sm text-gray-500">{b.desc}</p>
+          </Reveal>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export default function Footer({ benefits = false }: { benefits?: boolean }) {
   return (
     <footer className="mt-16 border-t">
-      {benefits && (
-        <div className="bg-gray-50">
-          <div className="mx-auto grid max-w-site gap-8 px-4 py-12 sm:grid-cols-2 lg:grid-cols-4">
-            {BENEFITS.map((b, idx) => (
-              <Reveal key={b.title} delay={idx * 90} className="flex flex-col items-center text-center">
-                <div className="mb-3 text-[#2b3a42]">{ICONS[b.icon]}</div>
-                <div className="mb-1 font-semibold text-[#2b3a42]">{b.title}</div>
-                <p className="text-sm text-gray-500">{b.desc}</p>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      )}
+      {benefits && <Benefits />}
       <div className="bg-black text-white">
         <div className="mx-auto flex max-w-site flex-col items-center justify-between gap-4 px-4 pt-8 pb-24 text-sm text-gray-300 sm:flex-row sm:py-8">
           <nav className="flex gap-6">
