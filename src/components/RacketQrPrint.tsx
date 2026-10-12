@@ -7,7 +7,7 @@ import { useState } from "react";
 //
 // ponytail: knob hardware di bawah ini perlu dituning langsung di printer —
 // kalau hasil cetak kebalik/kepotong/ukuran salah, ubah di sini, bukan di logika.
-const LABEL = { w: 591, h: 354 }; // dots: lebar = printhead B21-PRO (50mm@300dpi) × 30mm feed
+const LABEL = { w: 591, h: 236 }; // dots: label 5×2 cm — lebar 50mm (printhead B21-PRO @300dpi) × tinggi 20mm feed
 const PRINT_DIRECTION: "top" | "left" = "top"; // putar kalau orientasi kebalik
 const DENSITY = 3; // 1–5; naikkan kalau hasil tipis
 // Nama "task" cetak (bukan nama model). B21-PRO pakai D110M_V4 (per contoh resmi
