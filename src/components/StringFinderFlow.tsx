@@ -34,9 +34,10 @@ const RANK_LABEL = ["Paling cocok", "Alternatif", "Alternatif"];
 const rupiah = (n: number | null) => (n == null ? "—" : "Rp" + n.toLocaleString("id-ID"));
 
 type HistItem = { code: string; senar: string | null; tension: number | null; tensionCross: number | null; racket: string | null; status: string; statusLabel: string; date: string };
+type SenarCard = { name: string; material: string; gauge: number | null; price: number | null; photo: string | null; st: number | null; sp: number | null; er: number | null };
 
 export default function StringFinderFlow({ questions }: { questions: Question[] }) {
-  const [phase, setPhase] = useState<"intro" | "identify" | "dashboard" | "quiz" | "loading" | "results" | "order" | "done">("intro");
+  const [phase, setPhase] = useState<"intro" | "identify" | "dashboard" | "quiz" | "loading" | "results" | "order" | "catalog" | "done">("intro");
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
   const [rec, setRec] = useState<RecResponse | null>(null);
@@ -52,6 +53,11 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
   const [submitting, setSubmitting] = useState(false);
   const [history, setHistory] = useState<HistItem[] | null>(null);
   const [histLoading, setHistLoading] = useState(false);
+  // "Pilih senar sendiri": katalog semua senar + senar yang dipilih manual (di luar 3 rekomendasi).
+  const [manualPick, setManualPick] = useState<SenarCard | null>(null);
+  const [catalog, setCatalog] = useState<SenarCard[] | null>(null);
+  const [catalogLoading, setCatalogLoading] = useState(false);
+  const [catalogSearch, setCatalogSearch] = useState("");
   // Kiosk mode (stand toko, ?kiosk=1): fullscreen + auto-reset tiap selesai.
   const [kiosk, setKiosk] = useState(false);
   const [resetIn, setResetIn] = useState(0);
@@ -68,7 +74,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
   function resetAll() {
     setPhase("intro"); setStep(0); setAnswers({}); setRec(null); setErr("");
     setChosen(null); setNama(""); setWa(""); setRacketHead(""); setRacketType("");
-    setTension(""); setHistory(null);
+    setTension(""); setHistory(null); setManualPick(null); setCatalogSearch("");
   }
 
   // Auto-reset 60 dtk setelah selesai, biar siap untuk customer berikutnya.
@@ -151,15 +157,53 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
     }
   }
 
+  // Senar yang dipakai pesanan: manual (katalog) menang; selainnya rekomendasi ke-`chosen`.
+  const selected: SenarCard | null = manualPick
+    ? manualPick
+    : rec && chosen != null
+      ? { name: rec.picks[chosen].name, material: rec.picks[chosen].material, gauge: rec.picks[chosen].gauge, price: rec.picks[chosen].price, photo: null, st: null, sp: null, er: null }
+      : null;
+
+  // Isi otomatis tarikan sesuai material (poly dimainkan −2 lbs), dari saran server.
+  function applyTension(material: string) {
+    if (!rec) return;
+    const sug = Math.max(40, rec.tension_suggestion - (/poly/i.test(material) ? 2 : 0));
+    setTension(String(sug));
+    setTensionCross(String(Math.max(40, sug - 2)));
+  }
+
+  async function openCatalog() {
+    setErr("");
+    setPhase("catalog");
+    if (catalog) return;
+    setCatalogLoading(true);
+    try {
+      const res = await fetch("/api/sf/strings");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Gagal memuat katalog senar.");
+      setCatalog(data.strings as SenarCard[]);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Terjadi kesalahan.");
+    } finally {
+      setCatalogLoading(false);
+    }
+  }
+
+  function pickManual(card: SenarCard) {
+    setManualPick(card);
+    applyTension(card.material);
+    setPhase("order");
+  }
+
   async function submitOrder() {
-    if (!rec || chosen == null) return;
+    if (!rec || !selected) return;
     setSubmitting(true);
     setErr("");
     try {
       const res = await fetch("/api/sf/order", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ code: rec.code, chosenRank: chosen + 1, phone: wa, customerName: nama, racket: racketStr ?? undefined, tensionLbs: tension ? parseInt(tension, 10) : undefined, tensionCrossLbs: tensionCross ? parseInt(tensionCross, 10) : undefined }),
+        body: JSON.stringify({ code: rec.code, chosenRank: manualPick ? undefined : (chosen! + 1), chosenString: selected.name, phone: wa, customerName: nama, racket: racketStr ?? undefined, tensionLbs: tension ? parseInt(tension, 10) : undefined, tensionCrossLbs: tensionCross ? parseInt(tensionCross, 10) : undefined }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Gagal mengirim pesanan.");
@@ -473,6 +517,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
                 <button
                   onClick={() => {
                     setChosen(i);
+                    setManualPick(null); // kembali ke rekomendasi, batalkan pilih-sendiri
                     // saran tarikan dari server; senar polyester dimainkan lebih enak −2 lbs
                     const poly = /poly/i.test(p.material);
                     const sug = Math.max(40, rec.tension_suggestion - (poly ? 2 : 0));
@@ -497,14 +542,14 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
   }
 
   // ---------- ORDER (pilih + WhatsApp) ----------
-  if (phase === "order" && rec && chosen != null) {
-    const p = rec.picks[chosen];
+  if (phase === "order" && rec && selected) {
+    const p = selected;
     return (
       <Shell>
         <div className="mx-auto max-w-md">
           <button onClick={() => setPhase("results")} className="mb-4 text-sm font-semibold text-gray-500 hover:text-gray-900">← Ganti pilihan</button>
           <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-            <p className="text-sm text-gray-500">Senar pilihanmu</p>
+            <p className="text-sm text-gray-500">Senar pilihanmu{manualPick ? " (pilih sendiri)" : ""}</p>
             <h2 className="mt-1 text-lg font-bold text-gray-900">{p.name}</h2>
             <p className="text-sm text-gray-500">{p.material}{p.gauge ? ` • ${p.gauge} mm` : ""} • <span className="font-semibold text-primary">{rupiah(p.price)}</span></p>
             {racketStr ? <p className="mt-1 text-sm text-gray-500">Raket: <span className="font-medium text-gray-700">{racketStr}</span></p> : null}
@@ -540,18 +585,80 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
 
             {err && <p className="mt-3 text-sm text-red-600">{err}</p>}
 
-            <button onClick={submitOrder} disabled={submitting || !wa.trim()} className="btn-green mt-5 w-full py-3 disabled:opacity-40">
-              {submitting ? "Mengirim…" : "Mulai stringing"}
-            </button>
+            <div className="mt-5 flex flex-col gap-2 sm:flex-row">
+              <button onClick={submitOrder} disabled={submitting || !wa.trim()} className="btn-green flex-1 py-3 disabled:opacity-40">
+                {submitting ? "Mengirim…" : "Mulai stringing"}
+              </button>
+              <button onClick={openCatalog} disabled={submitting} className="flex-1 rounded-full border border-primary py-3 text-sm font-semibold text-primary transition hover:bg-primary/5 disabled:opacity-40">
+                Pilih senar sendiri
+              </button>
+            </div>
           </div>
         </div>
       </Shell>
     );
   }
 
+  // ---------- KATALOG (pilih senar sendiri) ----------
+  if (phase === "catalog") {
+    const term = catalogSearch.trim().toLowerCase();
+    const list = (catalog ?? []).filter((s) => !term || s.name.toLowerCase().includes(term) || s.material.toLowerCase().includes(term));
+    return (
+      <Shell>
+        <div className="mx-auto max-w-5xl">
+          <button onClick={() => setPhase("order")} className="mb-4 text-sm font-semibold text-gray-500 hover:text-gray-900">← Kembali</button>
+          <h1 className="text-2xl font-extrabold text-gray-900 sm:text-3xl">Pilih senar sendiri</h1>
+          <p className="mt-1 text-gray-600">Semua senar di toko. Pilih satu, lalu langsung lanjut stringing.</p>
+          <input
+            value={catalogSearch}
+            onChange={(e) => setCatalogSearch(e.target.value)}
+            placeholder="Cari nama atau bahan senar…"
+            className="field mt-4 w-full max-w-md"
+          />
+          {err && <p className="mt-3 text-sm text-red-600">{err}</p>}
+          {catalogLoading ? (
+            <p className="mt-10 text-center text-gray-400">Memuat katalog senar…</p>
+          ) : list.length === 0 ? (
+            <p className="mt-10 text-center text-gray-400">Senar tidak ditemukan.</p>
+          ) : (
+            <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+              {list.map((s) => (
+                <button
+                  key={s.name}
+                  onClick={() => pickManual(s)}
+                  className="flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white text-left shadow-sm transition hover:border-primary hover:shadow-md"
+                >
+                  <div className="aspect-square w-full bg-gray-50">
+                    {s.photo ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={s.photo} alt={s.name} className="h-full w-full object-cover" loading="lazy" />
+                    ) : (
+                      <div className="flex h-full items-center justify-center text-xs text-gray-300">Tanpa foto</div>
+                    )}
+                  </div>
+                  <div className="flex flex-1 flex-col p-3">
+                    <h3 className="text-sm font-bold leading-tight text-gray-900">{s.name}</h3>
+                    <p className="mt-0.5 text-xs text-gray-500">{s.material}{s.gauge ? ` • ${s.gauge} mm` : ""}</p>
+                    <div className="mt-2 flex flex-wrap gap-x-2 gap-y-0.5 text-[11px] text-gray-500">
+                      {s.st != null && <span>Kekakuan {Math.round(s.st)}</span>}
+                      {s.sp != null && <span>Spin {Math.round(s.sp)}</span>}
+                      {s.er != null && <span>Energi {Math.round(s.er)}%</span>}
+                    </div>
+                    <p className="mt-2 text-sm font-extrabold text-primary">{rupiah(s.price)}</p>
+                    <span className="btn-green mt-2 py-1.5 text-center text-xs">Pilih senar ini</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </Shell>
+    );
+  }
+
   // ---------- DONE ----------
-  if (phase === "done" && rec && chosen != null) {
-    const p = rec.picks[chosen];
+  if (phase === "done" && rec && selected) {
+    const p = selected;
     return (
       <Shell>
         <div className="mx-auto max-w-md text-center">
@@ -565,7 +672,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
           </div>
           <div className="mt-6 flex flex-wrap justify-center gap-2">
             <button
-              onClick={() => window.open(`/api/slip/${rec.code}?rank=${chosen + 1}&qr=1&print=1`, "_blank", "noopener")}
+              onClick={() => window.open(`/api/slip/${rec.code}?${manualPick ? `name=${encodeURIComponent(manualPick.name)}` : `rank=${chosen! + 1}`}&qr=1&print=1`, "_blank", "noopener")}
               className="btn-green px-6 py-3"
             >
               Cetak resep

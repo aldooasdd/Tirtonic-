@@ -7,10 +7,11 @@ export const dynamic = "force-dynamic";
 export async function GET(req: NextRequest, { params }: { params: { code: string } }) {
   const rankParam = req.nextUrl.searchParams.get("rank");
   const rank = rankParam ? parseInt(rankParam, 10) : null;
+  const overrideName = req.nextUrl.searchParams.get("name"); // senar pilih-sendiri (tanpa rank)
   const qr = req.nextUrl.searchParams.get("qr") === "1";
   const print = req.nextUrl.searchParams.get("print") === "1";
 
-  const html = await renderSlipForCode(params.code, { rank, qr, origin: req.nextUrl.origin, print });
+  const html = await renderSlipForCode(params.code, { rank, overrideName, qr, origin: req.nextUrl.origin, print });
   if (!html) return new Response("Resep tidak ditemukan", { status: 404 });
   return new Response(html, { headers: { "content-type": "text/html; charset=utf-8" } });
 }

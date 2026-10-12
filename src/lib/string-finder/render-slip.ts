@@ -12,7 +12,7 @@ import type { Answers } from "./types";
  */
 export async function renderSlipForCode(
   code: string,
-  opts: { rank?: number | null; qr?: boolean; origin?: string; print?: boolean },
+  opts: { rank?: number | null; overrideName?: string | null; qr?: boolean; origin?: string; print?: boolean },
 ): Promise<string | null> {
   const rec = await prisma.sfResult.findUnique({ where: { code }, include: { branch: true } });
   if (!rec) return null;
@@ -33,6 +33,16 @@ export async function renderSlipForCode(
     qrUrl,
     paper: rec.branch?.paperMm ?? rules.slip.paper_default,
   });
+
+  // Customer pilih senar sendiri (di luar 3 rekomendasi): tampilkan senar itu sebagai pilihan,
+  // sembunyikan daftar alternatif. Material & gauge diambil dari DB biar meta benar.
+  const overrideName = opts.overrideName?.trim();
+  if (overrideName && !chosenRank) {
+    const ts = await prisma.twuString.findUnique({ where: { name: overrideName }, select: { material: true, gaugeMm: true } });
+    slip.mode = "single";
+    slip.chosen = { rank: 0, name: overrideName, material: ts?.material ?? "", gauge_mm: ts?.gaugeMm ?? null, score: -1, highlights: "" };
+    slip.options = [];
+  }
 
   let qrSvg = "";
   if (qrUrl) qrSvg = await QRCode.toString(qrUrl, { type: "svg", margin: 0, errorCorrectionLevel: "M" });

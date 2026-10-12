@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 /** Customer pilih rekomendasi + isi WhatsApp → buat antrian stringing + WA "pesanan masuk". */
 export async function POST(req: NextRequest) {
-  let body: { code?: string; chosenRank?: number; phone?: string; customerName?: string; tensionLbs?: number; tensionCrossLbs?: number; racket?: string };
+  let body: { code?: string; chosenRank?: number; chosenString?: string; phone?: string; customerName?: string; tensionLbs?: number; tensionCrossLbs?: number; racket?: string };
   try {
     body = await req.json();
   } catch {
@@ -30,7 +30,9 @@ export async function POST(req: NextRequest) {
   if (!branch) return NextResponse.json({ error: "Cabang tidak tersedia." }, { status: 500 });
 
   const picks = result.picks as unknown as PickDTO[];
-  const chosenString = chosenRank ? picks[chosenRank - 1]?.name ?? null : null;
+  // chosenString: dari rank (rekomendasi) ATAU dari body (customer pilih senar sendiri di katalog).
+  const manualString = String(body.chosenString ?? "").trim() || null;
+  const chosenString = chosenRank ? picks[chosenRank - 1]?.name ?? null : manualString;
   const customerName = String(body.customerName ?? "").trim() || null;
   const racket = String(body.racket ?? "").trim() || null;
   const validTension = (v: unknown) => {

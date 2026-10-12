@@ -144,8 +144,8 @@ const esc = (s: unknown) =>
 export function renderSlipHTML(slip: Slip, qrSvg = "", autoPrint = false): string {
   const w = slip.paper === "80" ? 72 : 48; // lebar area cetak (mm)
   const when = fmtWIB(new Date(slip.created_at));
-  const str = (x: SlipItem, big: boolean) => `<div class="${big ? "name big" : "name"}">${x.rank}. ${esc(x.name)}</div>
-      <div class="meta">${esc(x.material)}, ${x.gauge_mm ? fmt(x.gauge_mm) + " mm" : "gauge ?"} | Cocok ${x.score}/100</div>
+  const str = (x: SlipItem, big: boolean) => `<div class="${big ? "name big" : "name"}">${x.rank ? x.rank + ". " : ""}${esc(x.name)}</div>
+      <div class="meta">${esc(x.material)}${x.gauge_mm ? ", " + fmt(x.gauge_mm) + " mm" : ""}${x.score >= 0 ? " | Cocok " + x.score + "/100" : ""}</div>
       ${x.highlights ? `<div class="meta">${esc(x.highlights)}</div>` : ""}`;
   return `<!doctype html><html lang="id"><head><meta charset="utf-8"><title>Resep ${esc(slip.code)}</title><style>
 @page { size: ${slip.paper}mm auto; margin: 0; }
