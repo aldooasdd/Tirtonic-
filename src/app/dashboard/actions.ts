@@ -319,6 +319,29 @@ export async function deleteStore(id: string) {
   revalidatePath("/dashboard");
 }
 
+// ---------- Brand Popular (carousel landing → filter shop) ----------
+
+export async function createPopularBrand(formData: FormData) {
+  requireSection("brand");
+  const nama = ((formData.get("nama") as string) || "").trim();
+  if (!nama) throw new Error("Nama brand wajib diisi.");
+  const foto = await uploadOneImage(formData, "brands"); // input name="gambar"
+  if (!foto) throw new Error("Pilih foto brand dulu.");
+  await prisma.popularBrand.create({
+    data: { nama, foto, urutan: parseInt((formData.get("urutan") as string) || "0", 10) || 0 },
+  });
+  revalidatePath("/");
+  revalidatePath("/dashboard");
+  redirect("/dashboard");
+}
+
+export async function deletePopularBrand(id: string) {
+  requireSection("brand");
+  await prisma.popularBrand.delete({ where: { id } });
+  revalidatePath("/");
+  revalidatePath("/dashboard");
+}
+
 // ---------- Articles ----------
 
 function revalidateArticles(id?: string) {

@@ -1,7 +1,7 @@
 import "server-only";
 
 // Bagian-bagian dashboard yang bisa dibatasi per role.
-export const SECTIONS = ["produk", "kupon", "artikel", "hero", "store", "sponsor", "pesanan", "stringing", "trafik"] as const;
+export const SECTIONS = ["produk", "kupon", "artikel", "hero", "store", "brand", "sponsor", "pesanan", "stringing", "trafik"] as const;
 export type Section = (typeof SECTIONS)[number];
 
 // password = default kalau env ROLE_<KEY>_PASSWORD tidak di-set.
@@ -12,7 +12,7 @@ export type Role = { key: string; label: string; sections: readonly Section[] | 
 export const ROLES: Record<string, Role> = {
   bos: { key: "bos", label: "Bos", sections: "all" },
   admin: { key: "admin", label: "Admin", sections: ["produk", "kupon", "pesanan", "stringing"], password: "admin123" },
-  marketing: { key: "marketing", label: "Marketing", sections: ["trafik", "artikel", "hero", "store", "sponsor"], password: "marketing123" },
+  marketing: { key: "marketing", label: "Marketing", sections: ["trafik", "artikel", "hero", "store", "brand", "sponsor"], password: "marketing123" },
   stringer: { key: "stringer", label: "Stringer", sections: ["stringing"], password: "stringer123" },
 };
 

@@ -57,6 +57,40 @@ function OurStore({ stores }: { stores: StoreItem[] }) {
   );
 }
 
+type BrandItem = { id: string; nama: string; foto: string };
+
+function BrandPopular({ brands }: { brands: BrandItem[] }) {
+  if (brands.length === 0) return null;
+  return (
+    <section className="mx-auto max-w-site px-4 py-2">
+      <div className="mb-1.5 flex items-center justify-between gap-3">
+        <h2 className="flex items-center gap-2 text-xl font-extrabold text-gray-900">
+          Brand Popular {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.png" alt="" className="h-7 w-7" />
+        </h2>
+        <Link href="/shop" className="text-sm font-semibold text-primary hover:underline">
+          View All
+        </Link>
+      </div>
+      <div className="snap-x-carousel flex gap-4 overflow-x-auto pb-2">
+        {brands.map((b) => (
+          <Link
+            key={b.id}
+            href={`/shop?brand=${encodeURIComponent(b.nama)}`}
+            className="snap-item group block w-[240px] shrink-0 sm:w-[280px]"
+          >
+            <p className="mb-2 text-center text-sm font-bold uppercase text-gray-900">{b.nama}</p>
+            <div className="aspect-[4/3] overflow-hidden rounded-lg bg-gray-100">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={b.foto} alt={b.nama} className="h-full w-full object-cover transition group-hover:scale-105" />
+            </div>
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function ForYou({ products }: { products: ProductCardData[] }) {
   if (products.length === 0) return null;
   return (
@@ -172,7 +206,7 @@ function NewArticles({ articles }: { articles: ArticleCardData[] }) {
 }
 
 export default async function HomePage() {
-  const [stores, articles, slides, latest, deals, popular] = await Promise.all([
+  const [stores, articles, slides, latest, deals, popular, brands] = await Promise.all([
     safeQuery(() => prisma.store.findMany({ orderBy: [{ urutan: "asc" }, { nama: "asc" }] }), []),
     safeQuery(() => prisma.article.findMany({ orderBy: { tanggal: "desc" }, take: 8 }), []),
     safeQuery(
@@ -182,6 +216,7 @@ export default async function HomePage() {
     safeQuery(() => prisma.product.findMany({ orderBy: { createdAt: "desc" }, take: 12, include: { _count: { select: { variants: true } } } }), []),
     safeQuery(() => prisma.product.findMany({ where: { hargaDiskon: { not: null } }, orderBy: { updatedAt: "desc" }, take: 16, include: { _count: { select: { variants: true } } } }), []),
     safeQuery(() => prisma.product.findMany({ where: { status: "READY", views: { gt: 0 } }, orderBy: { views: "desc" }, take: 12, include: { _count: { select: { variants: true } } } }), []),
+    safeQuery(() => prisma.popularBrand.findMany({ orderBy: [{ urutan: "asc" }, { nama: "asc" }] }), []),
   ]);
   const toCard = (p: (typeof latest)[number]) => ({ id: p.id, nama: p.nama, harga: p.harga, hargaDiskon: p.hargaDiskon, gambar: p.gambar, status: p.status, fromPrice: p._count.variants > 0 });
   const arrivals = latest.map(toCard);
@@ -209,6 +244,7 @@ export default async function HomePage() {
         </p>
       </div>
       <ForYou products={forYou} />
+      <BrandPopular brands={brands.map((b) => ({ id: b.id, nama: b.nama, foto: b.foto }))} />
       <BestDeal products={bestDeals} />
       <NewArrival products={arrivals} />
       <Benefits />

@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { isAuthed, currentRole, can } from "@/lib/auth";
 import { prisma, safeQuery } from "@/lib/prisma";
 import { rupiah } from "@/lib/format";
-import { createProduct, logout, createHeroSlide, deleteHeroSlide, createStore, deleteStore, createArticle, createCoupon, deleteCoupon, toggleCoupon } from "./actions";
+import { createProduct, logout, createHeroSlide, deleteHeroSlide, createStore, deleteStore, createPopularBrand, deletePopularBrand, createArticle, createCoupon, deleteCoupon, toggleCoupon } from "./actions";
 import ProductForm from "@/components/ProductForm";
 import ProductList from "@/components/ProductList";
 import CouponManager from "@/components/CouponManager";
@@ -33,7 +33,7 @@ function Stat({ label, value, tone = "gray" }: { label: string; value: number; t
 export default async function AdminDashboard() {
   if (!isAuthed()) redirect("/dashboard/login");
   const role = currentRole();
-  const hasPanel = (["produk", "kupon", "artikel", "hero", "store", "sponsor"] as const).some((x) => can(x));
+  const hasPanel = (["produk", "kupon", "artikel", "hero", "store", "brand", "sponsor"] as const).some((x) => can(x));
 
   // Role tanpa panel di halaman ini (mis. Stringer) → langsung ke halaman kerjanya.
   const NAV_ROUTE: Record<string, string> = { stringing: "/dashboard/stringing", pesanan: "/dashboard/orders", trafik: "/dashboard/trafik" };
@@ -42,10 +42,11 @@ export default async function AdminDashboard() {
     if (target) redirect(target);
   }
 
-  const [products, slides, stores, articles, sponsorships, coupons] = await Promise.all([
+  const [products, slides, stores, brands, articles, sponsorships, coupons] = await Promise.all([
     safeQuery(() => prisma.product.findMany({ orderBy: { createdAt: "desc" }, include: { variants: { select: { stok: true } } } }), []),
     safeQuery(() => prisma.heroSlide.findMany({ orderBy: [{ urutan: "asc" }, { createdAt: "asc" }] }), []),
     safeQuery(() => prisma.store.findMany({ orderBy: [{ urutan: "asc" }, { nama: "asc" }] }), []),
+    safeQuery(() => prisma.popularBrand.findMany({ orderBy: [{ urutan: "asc" }, { nama: "asc" }] }), []),
     safeQuery(() => prisma.article.findMany({ orderBy: { tanggal: "desc" } }), []),
     safeQuery(() => prisma.sponsorshipSubmission.findMany({ orderBy: { createdAt: "desc" } }), []),
     safeQuery(() => prisma.coupon.findMany({ orderBy: { createdAt: "desc" } }), []),
@@ -251,6 +252,54 @@ export default async function AdminDashboard() {
                       </a>
                     )}
                     <form action={deleteStore.bind(null, s.id)}>
+                      <button className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white shadow">×</button>
+                    </form>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </details>
+        )}
+
+        {can("brand") && (
+
+        <details className="group overflow-hidden rounded-2xl border bg-white shadow-sm">
+          <summary className="flex cursor-pointer items-center justify-between px-5 py-4 font-bold text-gray-900">
+            <span className="flex items-center gap-2">Brand Popular (Home)</span>
+            <span className="text-xs font-normal text-gray-400">{brands.length} brand</span>
+          </summary>
+          <div className="space-y-4 border-t p-5">
+            <p className="text-xs text-gray-500">Carousel di bawah &quot;Recommended For You&quot;. Diklik → buka Shop difilter brand ini. Nama harus sama dengan brand produk di Shop.</p>
+            <form action={createPopularBrand} className="flex flex-wrap items-end gap-3">
+              <div>
+                <label className="label">Nama brand * (mis. NIKE)</label>
+                <input name="nama" required className="field" placeholder="NIKE" />
+              </div>
+              <div>
+                <label className="label">Foto brand *</label>
+                <input name="gambar" type="file" accept="image/*" required className="text-sm" />
+              </div>
+              <div>
+                <label className="label">Urutan</label>
+                <input name="urutan" type="number" defaultValue={0} className="field w-24" />
+              </div>
+              <button className="btn-green">Tambah Brand</button>
+            </form>
+
+            {brands.length === 0 ? (
+              <p className="text-sm text-gray-400">Belum ada brand.</p>
+            ) : (
+              <div className="flex flex-wrap gap-3">
+                {brands.map((b) => (
+                  <div key={b.id} className="relative w-40 rounded-xl border p-2">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={b.foto} alt="" className="mb-2 h-28 w-full rounded-lg border object-cover" />
+                    <p className="truncate text-sm font-semibold text-gray-900">{b.nama}</p>
+                    <a href={`/shop?brand=${encodeURIComponent(b.nama)}`} target="_blank" rel="noreferrer" className="mt-1 inline-block text-xs font-semibold text-primary hover:underline">
+                      Lihat di Shop ↗
+                    </a>
+                    <form action={deletePopularBrand.bind(null, b.id)}>
                       <button className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white shadow">×</button>
                     </form>
                   </div>

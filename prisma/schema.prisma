@@ -126,6 +126,15 @@ model HeroSlide {
   createdAt    DateTime @default(now())
 }
 
+// Carousel "Brand Popular" di landing. Klik → /shop?brand=<nama>. Admin isi
+// nama brand + foto (lihat src/app/dashboard panel Brand Popular).
+model PopularBrand {
+  id     String @id @default(cuid())
+  nama   String // nama brand, dipakai juga sebagai nilai filter ?brand=
+  foto   String // URL foto (Supabase Storage)
+  urutan Int    @default(0)
+}
+
 model Store {
   id      String  @id @default(cuid())
   nama    String // Yogyakarta | Solo
