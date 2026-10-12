@@ -51,6 +51,36 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
   const [submitting, setSubmitting] = useState(false);
   const [history, setHistory] = useState<HistItem[] | null>(null);
   const [histLoading, setHistLoading] = useState(false);
+  // Kiosk mode (stand toko, ?kiosk=1): fullscreen + auto-reset tiap selesai.
+  const [kiosk, setKiosk] = useState(false);
+  const [resetIn, setResetIn] = useState(0);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!new URLSearchParams(window.location.search).has("kiosk")) return;
+    setKiosk(true);
+    document.documentElement.classList.add("kiosk");
+    return () => document.documentElement.classList.remove("kiosk");
+  }, []);
+
+  // Bersihkan semua state → layar awal (data customer sebelumnya tidak tersisa).
+  function resetAll() {
+    setPhase("intro"); setStep(0); setAnswers({}); setRec(null); setErr("");
+    setChosen(null); setNama(""); setWa(""); setRacketHead(""); setRacketType("");
+    setTension(""); setHistory(null);
+  }
+
+  // Auto-reset 60 dtk setelah selesai, biar siap untuk customer berikutnya.
+  useEffect(() => {
+    if (!kiosk || phase !== "done") { setResetIn(0); return; }
+    setResetIn(60);
+    const t = setInterval(() => setResetIn((n) => {
+      if (n <= 1) { clearInterval(t); resetAll(); return 0; }
+      return n - 1;
+    }), 1000);
+    return () => clearInterval(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [kiosk, phase]);
 
   // Label raket untuk disimpan & ditampilkan, mis. "Power · 100 in²".
   const headNum = parseInt(racketHead, 10);
@@ -151,7 +181,15 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
             Jawab 7 pertanyaan singkat, lalu kami tunjukkan 3 senar paling cocok lengkap dengan harga. Rekomendasi diambil
             dari hasil penelitian Tennis Warehouse University String Performance Database, yang disesuaikan dengan kebutuhan mainmu.
           </p>
-          <button onClick={() => setPhase("identify")} className="btn-green mt-8 px-8 py-3 text-base">Mulai</button>
+          <button
+            onClick={() => {
+              if (kiosk) document.documentElement.requestFullscreen?.().catch(() => {});
+              setPhase("identify");
+            }}
+            className="btn-green mt-8 px-8 py-3 text-base"
+          >
+            Mulai
+          </button>
           <p className="mt-3 text-xs text-gray-400">Gratis • sekitar 1 menit</p>
         </div>
       </Shell>
@@ -528,6 +566,14 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
               Cetak QR raket
             </button>
           </div>
+          {kiosk && (
+            <div className="mt-8">
+              <button onClick={resetAll} className="rounded-full bg-gray-900 px-8 py-3 text-sm font-semibold text-white hover:bg-gray-700">
+                Selesai — mulai dari awal
+              </button>
+              <p className="mt-3 text-xs text-gray-400">Otomatis kembali ke awal dalam {resetIn} detik</p>
+            </div>
+          )}
         </div>
       </Shell>
     );

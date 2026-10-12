@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 const esc = (s: unknown) =>
   String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c] as string));
 
-// Stiker QR untuk ditempel di raket → buka dashboard riwayat customer. Thermal 58mm, bisa auto-print.
+// Stiker QR untuk ditempel di raket → buka dashboard riwayat customer. Thermal 80mm (BP-ECO80), bisa auto-print.
 export async function GET(req: NextRequest, { params }: { params: { phone: string } }) {
   const phone = normalizePhone(decodeURIComponent(params.phone));
   if (!phone) return new Response("Nomor tidak valid", { status: 400 });
@@ -17,12 +17,12 @@ export async function GET(req: NextRequest, { params }: { params: { phone: strin
   const qr = await QRCode.toString(url, { type: "svg", margin: 0, errorCorrectionLevel: "M" });
 
   const html = `<!doctype html><html lang="id"><head><meta charset="utf-8"><title>QR Raket</title><style>
-@page { size: 58mm auto; margin: 0; }
+@page { size: 80mm auto; margin: 0; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { width: 48mm; margin: 0 auto; padding: 3mm 0; font: 9pt/1.3 Arial, sans-serif; color: #000; text-align: center; }
-.shop { font-weight: 700; font-size: 10pt; }
-.t { font-size: 8.5pt; margin-bottom: 1mm; }
-.qr { display: flex; justify-content: center; margin: 1.5mm 0; } .qr svg { width: 34mm; height: 34mm; }
+body { width: 72mm; margin: 0 auto; padding: 3mm 0; font: 10pt/1.3 Arial, sans-serif; color: #000; text-align: center; }
+.shop { font-weight: 700; font-size: 11pt; }
+.t { font-size: 9pt; margin-bottom: 1mm; }
+.qr { display: flex; justify-content: center; margin: 2mm 0; } .qr svg { width: 44mm; height: 44mm; }
 .name { font-weight: 700; font-size: 9.5pt; } .ph { font-size: 8.5pt; }
 .hint { font-size: 7.5pt; margin-top: 1mm; }
 </style></head><body>

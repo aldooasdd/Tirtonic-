@@ -90,3 +90,13 @@ body {
 .snap-item {
   scroll-snap-align: start;
 }
+
+/* Kiosk mode (String Finder self-service, ?kiosk=1): sembunyikan navbar &
+   tombol WA melayang biar customer fokus di funnel, tak bisa navigasi keluar. */
+html.kiosk header.fixed,
+html.kiosk a[aria-label="Chat WhatsApp"] {
+  display: none !important;
+}
+html.kiosk main {
+  padding-top: 0 !important;
+}

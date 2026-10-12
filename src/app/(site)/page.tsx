@@ -57,6 +57,31 @@ function OurStore({ stores }: { stores: StoreItem[] }) {
   );
 }
 
+function ForYou({ products }: { products: ProductCardData[] }) {
+  if (products.length === 0) return null;
+  return (
+    <section className="mx-auto max-w-site px-4 py-2">
+      <div className="mb-1.5 flex items-center justify-between gap-3">
+        <h2 className="flex items-center gap-2 text-xl font-extrabold text-gray-900">
+          For You {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.png" alt="" className="h-7 w-7" />
+          <span className="ml-1 text-xs font-medium text-gray-400">Paling banyak dilihat</span>
+        </h2>
+        <Link href="/shop?sort=popular" className="text-sm font-semibold text-primary hover:underline">
+          View All
+        </Link>
+      </div>
+      <div className="snap-x-carousel flex gap-4 overflow-x-auto pb-2">
+        {products.map((p) => (
+          <div key={p.id} className="snap-item w-[200px] shrink-0 sm:w-[220px]">
+            <ProductCard p={p} thinPrice />
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function NewArrival({ products }: { products: ProductCardData[] }) {
   if (products.length === 0) return null;
   return (
@@ -148,7 +173,7 @@ function NewArticles({ articles }: { articles: ArticleCardData[] }) {
 }
 
 export default async function HomePage() {
-  const [stores, articles, slides, latest, deals] = await Promise.all([
+  const [stores, articles, slides, latest, deals, popular] = await Promise.all([
     safeQuery(() => prisma.store.findMany({ orderBy: [{ urutan: "asc" }, { nama: "asc" }] }), []),
     safeQuery(() => prisma.article.findMany({ orderBy: { tanggal: "desc" }, take: 8 }), []),
     safeQuery(
@@ -157,9 +182,11 @@ export default async function HomePage() {
     ),
     safeQuery(() => prisma.product.findMany({ orderBy: { createdAt: "desc" }, take: 12, include: { _count: { select: { variants: true } } } }), []),
     safeQuery(() => prisma.product.findMany({ where: { hargaDiskon: { not: null } }, orderBy: { updatedAt: "desc" }, take: 16, include: { _count: { select: { variants: true } } } }), []),
+    safeQuery(() => prisma.product.findMany({ where: { status: "READY", views: { gt: 0 } }, orderBy: { views: "desc" }, take: 12, include: { _count: { select: { variants: true } } } }), []),
   ]);
   const toCard = (p: (typeof latest)[number]) => ({ id: p.id, nama: p.nama, harga: p.harga, hargaDiskon: p.hargaDiskon, gambar: p.gambar, status: p.status, fromPrice: p._count.variants > 0 });
   const arrivals = latest.map(toCard);
+  const forYou = popular.map(toCard);
   // only keep real discounts (diskon < harga), cap at 12
   const bestDeals = deals.filter((p) => p.hargaDiskon != null && p.hargaDiskon < p.harga).slice(0, 12).map(toCard);
   const storeItems = stores.map((s) => ({
@@ -182,6 +209,7 @@ export default async function HomePage() {
           Berdiri sejak 2022 • 3 Lokasi Cabang • Ribuan Customer • Bisa kirim seluruh Indonesia gratis ongkir
         </p>
       </div>
+      <ForYou products={forYou} />
       <OurStore stores={storeItems} />
       <BestDeal products={bestDeals} />
       <NewArrival products={arrivals} />
