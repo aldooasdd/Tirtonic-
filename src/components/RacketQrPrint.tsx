@@ -7,7 +7,7 @@ import { useState } from "react";
 //
 // ponytail: knob hardware di bawah ini perlu dituning langsung di printer —
 // kalau hasil cetak kebalik/kepotong/ukuran salah, ubah di sini, bukan di logika.
-const LABEL = { w: 584, h: 354 }; // dots, label 50×30mm @ ~300dpi (sesuai contoh resmi B21_PRO)
+const LABEL = { w: 591, h: 354 }; // dots: lebar = printhead B21-PRO (50mm@300dpi) × 30mm feed
 const PRINT_DIRECTION: "top" | "left" = "top"; // putar kalau orientasi kebalik
 const DENSITY = 3; // 1–5; naikkan kalau hasil tipis
 // Nama "task" cetak (bukan nama model). B21-PRO pakai D110M_V4 (per contoh resmi
@@ -64,7 +64,8 @@ export default function RacketQrPrint({ phone, name, className, label = "Cetak s
   );
 }
 
-// Gambar label 50×30mm: QR di kiri, identitas toko + customer di kanan.
+// Gambar label 50×30mm: QR di kiri, logo + identitas customer di kanan.
+// Margin dibuat lega biar QR tidak kepotong tepi label.
 async function buildLabel(phone: string, name: string): Promise<HTMLCanvasElement> {
   const canvas = document.createElement("canvas");
   canvas.width = LABEL.w;
@@ -74,34 +75,48 @@ async function buildLabel(phone: string, name: string): Promise<HTMLCanvasElemen
   ctx.fillRect(0, 0, LABEL.w, LABEL.h);
   ctx.fillStyle = "#000";
 
+  const M = 18; // margin aman
+
   // QR kiri
   const QRCode = (await import("qrcode")).default;
-  const qrSize = 300;
+  const qrSize = 290;
   const qrCanvas = document.createElement("canvas");
   const url = `${window.location.origin}/riwayat/${encodeURIComponent(phone)}`;
   await QRCode.toCanvas(qrCanvas, url, { width: qrSize, margin: 0, errorCorrectionLevel: "M" });
   const qrY = Math.round((LABEL.h - qrSize) / 2);
-  ctx.drawImage(qrCanvas, 24, qrY, qrSize, qrSize);
+  ctx.drawImage(qrCanvas, M, qrY, qrSize, qrSize);
 
-  // Teks kanan
-  const x = 24 + qrSize + 28;
-  const maxW = LABEL.w - x - 16;
+  // Kolom kanan: logo wordmark + nama + nomor
+  const x = M + qrSize + 24;
+  const colW = LABEL.w - x - M;
+
+  const logo = await loadImage("/logo-wordmark.png");
+  const logoH = Math.round(colW / (logo.width / logo.height)); // jaga rasio
+  ctx.drawImage(logo, x, 34, colW, logoH);
+
+  let y = 34 + logoH + 28;
   ctx.textBaseline = "top";
-  ctx.font = "bold 40px Arial";
-  ctx.fillText("TIRTONIC", x, 56);
-  ctx.font = "26px Arial";
-  ctx.fillText("TENNIS STORE", x, 104);
   if (name) {
-    ctx.font = "bold 30px Arial";
-    ctx.fillText(ellipsize(ctx, name, maxW), x, 162);
+    ctx.font = "bold 34px Arial";
+    ctx.fillText(ellipsize(ctx, name, colW), x, y);
+    y += 44;
   }
-  ctx.font = "26px Arial";
-  ctx.fillText(phone, x, name ? 202 : 178);
+  ctx.font = "30px Arial";
+  ctx.fillText(phone, x, y);
+
   ctx.font = "22px Arial";
   ctx.fillStyle = "#333";
-  ctx.fillText("Scan: riwayat", x, 252);
-  ctx.fillText("senar & raket", x, 280);
+  ctx.fillText("Scan: riwayat senar", x, LABEL.h - M - 26);
   return canvas;
+}
+
+function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = src;
+  });
 }
 
 function ellipsize(ctx: CanvasRenderingContext2D, text: string, maxW: number): string {
