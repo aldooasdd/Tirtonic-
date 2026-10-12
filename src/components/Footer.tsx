@@ -49,7 +49,7 @@ const BENEFITS = [
 export function Benefits() {
   return (
     <section className="bg-gray-50">
-      <div className="mx-auto grid max-w-site gap-8 px-4 py-12 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mx-auto grid max-w-site gap-8 px-4 py-5 sm:grid-cols-2 lg:grid-cols-4">
         {BENEFITS.map((b, idx) => (
           <Reveal key={b.title} delay={idx * 90} className="flex flex-col items-center text-center">
             <div className="mb-3 text-[#2b3a42]">{ICONS[b.icon]}</div>
