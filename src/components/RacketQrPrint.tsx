@@ -92,7 +92,7 @@ async function buildLabel(phone: string): Promise<HTMLCanvasElement> {
   const logoW = Math.round(colW * 0.68); // ponytail: logo dikecilin; ubah faktor kalau mau beda
   const logoX = x; // rata kiri, sejajar teks
   const logoH = Math.round(logoW / (logo.width / logo.height));
-  const lines = ["Scan QR untuk", "semua informasi"];
+  const lines = ["Scan QR untuk", "semua informasimu"];
   const lineH = 30;
   const stackH = logoH + 18 + lines.length * lineH;
   let y = Math.round((LABEL.h - stackH) / 2);
