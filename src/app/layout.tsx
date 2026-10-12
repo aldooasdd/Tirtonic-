@@ -10,7 +10,7 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://tirtonic.com"),
+  metadataBase: new URL("https://www.tirtonic.com"),
   title: "Tirtonic Tennis Store — Toko Spesialis Tenis Jogja, Solo & Semarang",
   description:
     "Toko spesialis tenis original terlengkap di Jogja, Solo, dan Semarang: raket, sepatu, senar, tas, grip, bola dari brand terbaik dunia. Pengiriman ke seluruh Indonesia.",
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: "Tirtonic Tennis Store",
-    url: "https://tirtonic.com",
+    url: "https://www.tirtonic.com",
     title: "Tirtonic Tennis Store — Toko Spesialis Tenis Jogja, Solo & Semarang",
     description:
       "Toko spesialis tenis original terlengkap di Jogja, Solo, dan Semarang.",
@@ -33,22 +33,22 @@ const jsonLd = {
   "@graph": [
     {
       "@type": "Organization",
-      "@id": "https://tirtonic.com/#org",
+      "@id": "https://www.tirtonic.com/#org",
       name: "Tirtonic Tennis Store",
       alternateName: "Tirtonic",
-      url: "https://tirtonic.com",
-      logo: "https://tirtonic.com/logo.png",
+      url: "https://www.tirtonic.com",
+      logo: "https://www.tirtonic.com/logo.png",
     },
     {
       "@type": "WebSite",
-      "@id": "https://tirtonic.com/#website",
+      "@id": "https://www.tirtonic.com/#website",
       name: "Tirtonic Tennis Store",
       alternateName: "Tirtonic",
-      url: "https://tirtonic.com",
-      publisher: { "@id": "https://tirtonic.com/#org" },
+      url: "https://www.tirtonic.com",
+      publisher: { "@id": "https://www.tirtonic.com/#org" },
       potentialAction: {
         "@type": "SearchAction",
-        target: { "@type": "EntryPoint", urlTemplate: "https://tirtonic.com/shop?q={search_term_string}" },
+        target: { "@type": "EntryPoint", urlTemplate: "https://www.tirtonic.com/shop?q={search_term_string}" },
         "query-input": "required name=search_term_string",
       },
     },

@@ -8,6 +8,6 @@ export default function robots(): MetadataRoute.Robots {
       // halaman privat/transaksional & API tak perlu diindeks
       disallow: ["/dashboard", "/checkout", "/cart", "/order", "/api", "/riwayat"],
     },
-    sitemap: "https://tirtonic.com/sitemap.xml",
+    sitemap: "https://www.tirtonic.com/sitemap.xml",
   };
 }
