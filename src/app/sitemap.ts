@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/prisma";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 3600; // regenerate tiap 1 jam (cepat & anti-timeout; produk baru masuk ≤1 jam)
 
 const BASE = "https://www.tirtonic.com";
 
