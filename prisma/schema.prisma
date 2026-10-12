@@ -277,6 +277,7 @@ model SfOrder {
   tensionLbs   Int? // tarikan Main (lbs) — saran finder, bisa diubah customer
   tensionCrossLbs Int? // tarikan Cross (lbs) — saran finder (biasanya Main −2), bisa diubah
   racket       String? // label raket dari finder, mis. "Power · 100 in²" (head size + jenis)
+  stringerName String? // nama stringer yang mengerjakan — wajib diisi saat mulai kerjakan
   status       SfOrderStatus @default(antri)
   etaMinutes   Int           @default(30)
   createdAt    DateTime      @default(now())

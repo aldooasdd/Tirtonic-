@@ -69,6 +69,7 @@ export default async function StringingQueuePage() {
                     <p className="text-sm text-gray-600">
                       {o.tensionLbs ? `Main ${o.tensionLbs}${o.tensionCrossLbs ? ` / Cross ${o.tensionCrossLbs}` : ""} lbs` : "tarikan –"}
                       {o.racket ? ` • Raket: ${o.racket}` : ""}
+                      {o.stringerName ? ` • Stringer: ${o.stringerName}` : ""}
                     </p>
                     <p className="text-sm text-gray-500">
                       {o.customerName ? `${o.customerName} • ` : ""}
@@ -82,7 +83,8 @@ export default async function StringingQueuePage() {
                     <RacketQrPrint phone={o.phone} label="Stiker QR" className="rounded-full border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:border-primary hover:text-primary disabled:opacity-50" />
 
                     {o.status === "antri" && (
-                      <form action={startStringing.bind(null, o.id)}>
+                      <form action={startStringing.bind(null, o.id)} className="flex items-center gap-1.5">
+                        <input name="stringer" required placeholder="Nama stringer" className="w-32 rounded-full border border-gray-300 px-3 py-1.5 text-xs focus:border-primary focus:outline-none" />
                         <button className="rounded-full bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90">Mulai kerjakan</button>
                       </form>
                     )}

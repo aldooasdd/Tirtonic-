@@ -7,9 +7,11 @@ import { notify } from "@/lib/string-finder/notify";
 
 const requireAuth = () => requireSection("stringing");
 
-export async function startStringing(id: string) {
+export async function startStringing(id: string, formData: FormData) {
   requireAuth();
-  await prisma.sfOrder.update({ where: { id }, data: { status: "dikerjakan", startedAt: new Date() } });
+  const stringerName = String(formData.get("stringer") ?? "").trim();
+  if (!stringerName) return; // nama stringer wajib (input juga sudah `required` di UI)
+  await prisma.sfOrder.update({ where: { id }, data: { status: "dikerjakan", startedAt: new Date(), stringerName } });
   revalidatePath("/dashboard/stringing");
 }
 
