@@ -17,7 +17,7 @@ function fmt(d: Date) {
 
 type Order = Awaited<ReturnType<typeof prisma.sfOrder.findMany>>[number];
 
-function OrderCard({ o, highlight }: { o: Order; highlight?: boolean }) {
+function OrderCard({ o, price, highlight }: { o: Order; price: number | null; highlight?: boolean }) {
   const wa = displayPhone(o.phone);
   return (
     <div className={`rounded-2xl border bg-white p-4 shadow-sm ${highlight ? "border-primary ring-1 ring-primary" : o.paidAt ? "border-emerald-200" : "border-red-200"}`}>
@@ -30,15 +30,15 @@ function OrderCard({ o, highlight }: { o: Order; highlight?: boolean }) {
               ? <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">LUNAS</span>
               : <span className="rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-semibold text-red-600">BELUM LUNAS</span>}
           </div>
-          <p className="mt-1.5 font-semibold text-gray-900">{o.chosenString ?? "—"}</p>
+          <p className="mt-1.5 text-base font-bold text-gray-900">{o.chosenString ?? "—"}</p>
           <p className="text-sm text-gray-600">
             {o.tensionLbs ? `Main ${o.tensionLbs}${o.tensionCrossLbs ? ` / Cross ${o.tensionCrossLbs}` : ""} lbs` : "tarikan –"}
             {o.racket ? ` • ${o.racket}` : ""}
           </p>
-          <p className="text-sm text-gray-500">{o.customerName ? `${o.customerName} • ` : ""}{wa}</p>
+          <p className="text-sm text-gray-500"><span className="font-semibold text-gray-700">{o.customerName ?? "—"}</span> • {wa}</p>
         </div>
         <div className="flex flex-col items-end gap-2">
-          <p className="text-lg font-extrabold text-primary">{rupiah(o.price)}</p>
+          <p className="text-xl font-extrabold text-primary">{rupiah(price)}</p>
           {o.paidAt ? (
             <form action={unmarkPaid.bind(null, o.id)}>
               <button className="rounded-full border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-500 hover:border-red-400 hover:text-red-600">Batalkan lunas</button>
@@ -70,6 +70,23 @@ export default async function KasirPage({ searchParams }: { searchParams: { code
     [[], []] as [Order[], Order[]]
   );
 
+  // Harga tampil: pakai yang tersimpan; kalau kosong (order lama) ambil dari harga senarnya.
+  const all = [...found, ...unpaid];
+  const needNames = [...new Set(all.filter((o) => o.price == null && o.chosenString).map((o) => o.chosenString!.split(" — ")[0]))];
+  const priceMap = new Map<string, number>();
+  if (needNames.length) {
+    const [prods, twus] = await safeQuery(
+      () => Promise.all([
+        prisma.product.findMany({ where: { nama: { in: needNames } }, select: { nama: true, harga: true, hargaDiskon: true } }),
+        prisma.twuString.findMany({ where: { name: { in: needNames } }, select: { name: true, product: { select: { harga: true, hargaDiskon: true } } } }),
+      ]),
+      [[], []] as [{ nama: string; harga: number; hargaDiskon: number | null }[], { name: string; product: { harga: number; hargaDiskon: number | null } | null }[]]
+    );
+    for (const t of twus) if (t.product) priceMap.set(t.name, t.product.hargaDiskon ?? t.product.harga);
+    for (const p of prods) priceMap.set(p.nama, p.hargaDiskon ?? p.harga); // produk langsung menang
+  }
+  const priceOf = (o: Order) => o.price ?? (o.chosenString ? priceMap.get(o.chosenString.split(" — ")[0]) ?? null : null);
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
       <div className="mb-6 flex items-center justify-between">
@@ -100,7 +117,7 @@ export default async function KasirPage({ searchParams }: { searchParams: { code
           {found.length === 0 ? (
             <p className="rounded-2xl border border-dashed p-6 text-center text-gray-400">Tidak ada pesanan dengan kode ini.</p>
           ) : (
-            <div className="space-y-3">{found.map((o) => <OrderCard key={o.id} o={o} highlight />)}</div>
+            <div className="space-y-3">{found.map((o) => <OrderCard key={o.id} o={o} price={priceOf(o)} highlight />)}</div>
           )}
         </div>
       )}
@@ -109,7 +126,7 @@ export default async function KasirPage({ searchParams }: { searchParams: { code
       {unpaid.length === 0 ? (
         <p className="rounded-2xl border border-dashed p-6 text-center text-gray-400">Semua pesanan sudah lunas. 🎉</p>
       ) : (
-        <div className="space-y-3">{unpaid.map((o) => <OrderCard key={o.id} o={o} />)}</div>
+        <div className="space-y-3">{unpaid.map((o) => <OrderCard key={o.id} o={o} price={priceOf(o)} />)}</div>
       )}
     </div>
   );
