@@ -22,6 +22,7 @@ type Pick = {
   score: number;
   attrs: Record<Attr, number | null>;
   explanation: { strengths: { attr: Attr; text: string }[]; weakness: { attr: Attr | null; text: string }; notes: string[] };
+  variants?: SenarVariant[]; // varian warna/gauge senar ini (kalau ada stok)
 };
 type RecResponse = { code: string; condition: string; profile_summary: string; picks: Pick[]; tension_suggestion: number; tension_note: string; racket_label: string | null; tension_racket_note: string | null; racket_string_note: string | null };
 
@@ -523,21 +524,38 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
                   {p.explanation.notes.map((n, j) => <p key={j} className="text-xs text-gray-400">{n}</p>)}
                 </div>
 
-                <button
-                  onClick={() => {
-                    setChosen(i);
-                    setManualPick(null); // kembali ke rekomendasi, batalkan pilih-sendiri
-                    // saran tarikan dari server; senar polyester dimainkan lebih enak −2 lbs
-                    const poly = /poly/i.test(p.material);
-                    const sug = Math.max(40, rec.tension_suggestion - (poly ? 2 : 0));
-                    setTension(String(sug)); // Main
-                    setTensionCross(String(Math.max(40, sug - 2))); // Cross biasanya −2
-                    setPhase("order");
-                  }}
-                  className={`mt-5 w-full rounded-full px-4 py-2.5 text-sm font-semibold transition ${i === 0 ? "btn-green" : "border border-primary text-primary hover:bg-primary/5"}`}
-                >
-                  Pilih senar ini
-                </button>
+                {p.variants && p.variants.length ? (
+                  <div className="mt-auto pt-4">
+                    <p className="text-xs font-medium text-gray-500">Pilih warna/varian:</p>
+                    <div className="mt-1.5 flex flex-wrap gap-1.5">
+                      {p.variants.map((v) => (
+                        <button
+                          key={v.label}
+                          onClick={() => pickManual({ name: p.name, material: p.material, gauge: p.gauge, price: p.price, photo: null, st: null, sp: null, er: null, variants: [] }, v)}
+                          className="rounded-full border border-primary px-3 py-1.5 text-xs font-semibold text-primary transition hover:bg-primary hover:text-white"
+                        >
+                          {v.label || "Pilih"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setChosen(i);
+                      setManualPick(null); // kembali ke rekomendasi, batalkan pilih-sendiri
+                      // saran tarikan dari server; senar polyester dimainkan lebih enak −2 lbs
+                      const poly = /poly/i.test(p.material);
+                      const sug = Math.max(40, rec.tension_suggestion - (poly ? 2 : 0));
+                      setTension(String(sug)); // Main
+                      setTensionCross(String(Math.max(40, sug - 2))); // Cross biasanya −2
+                      setPhase("order");
+                    }}
+                    className={`mt-auto w-full rounded-full px-4 py-2.5 text-sm font-semibold transition ${i === 0 ? "btn-green" : "border border-primary text-primary hover:bg-primary/5"}`}
+                  >
+                    Pilih senar ini
+                  </button>
+                )}
               </div>
             ))}
           </div>

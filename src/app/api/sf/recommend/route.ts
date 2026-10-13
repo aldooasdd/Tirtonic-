@@ -79,8 +79,22 @@ export async function POST(req: NextRequest) {
     },
   });
 
+  // Varian (warna/gauge) live untuk 3 senar rekomendasi — hanya yang ada stok.
+  const twuVar = await prisma.twuString.findMany({
+    where: { name: { in: picks.map((p) => p.name) } },
+    select: { name: true, product: { select: { variants: { select: { warna: true, ukuran: true, harga: true, hargaDiskon: true, stok: true, urutan: true }, orderBy: { urutan: "asc" } } } } },
+  });
+  const varByName = new Map<string, { label: string; price: number | null }[]>();
+  for (const t of twuVar) {
+    const vs = (t.product?.variants ?? [])
+      .filter((v) => v.stok > 0)
+      .map((v) => ({ label: [v.warna, v.ukuran].filter(Boolean).join(" ").trim(), price: v.hargaDiskon ?? v.harga }));
+    varByName.set(t.name, vs);
+  }
+  const picksOut = picks.map((p) => ({ ...p, variants: varByName.get(p.name) ?? [] }));
+
   return NextResponse.json({
-    code, condition, profile_summary, picks,
+    code, condition, profile_summary, picks: picksOut,
     tension_suggestion: tension.lbs,
     tension_note: tension.note,
     racket_label: hasRacket ? racketLabel(racket) : null,
