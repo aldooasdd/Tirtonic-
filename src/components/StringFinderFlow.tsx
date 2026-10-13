@@ -264,11 +264,12 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
               <input
                 value={racketHead}
                 onChange={(e) => setRacketHead(e.target.value.replace(/[^\d]/g, "").slice(0, 3))}
+                onBlur={() => setRacketHead((v) => (v ? String(Math.min(120, Math.max(95, parseInt(v, 10)))) : v))}
                 inputMode="numeric"
                 className="field"
-                placeholder="mis. 100"
+                placeholder="95–120"
               />
-              <p className="mt-1 text-xs text-gray-400">Umumnya 95–110 in². Lihat di frame/ganggang raket.</p>
+              <p className="mt-1 text-xs text-gray-400">Umumnya 95–120 in². Lihat di frame/gagang raket.</p>
             </div>
             <div>
               <label className="label">Jenis raket <span className="text-gray-400">(opsional)</span></label>
