@@ -32,7 +32,6 @@ const ATTR_LABEL: Record<Attr, string> = {
 const ATTRS: Attr[] = ["spin", "power", "control", "comfort", "stability", "durability"];
 const RANK_LABEL = ["Paling cocok", "Alternatif", "Alternatif"];
 
-const rupiah = (n: number | null) => (n == null ? "—" : "Rp" + n.toLocaleString("id-ID"));
 
 type HistItem = { code: string; senar: string | null; tension: number | null; tensionCross: number | null; racket: string | null; status: string; statusLabel: string; date: string };
 type SenarVariant = { label: string; price: number | null };
@@ -498,7 +497,6 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
               <div key={p.name} className={`flex flex-col rounded-2xl border bg-white p-5 shadow-sm ${i === 0 ? "border-primary ring-1 ring-primary" : "border-gray-200"}`}>
                 <div className="flex items-center justify-between">
                   <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${i === 0 ? "bg-primary text-white" : "bg-gray-100 text-gray-600"}`}>{RANK_LABEL[i]}</span>
-                  <span className="text-lg font-extrabold text-primary">{rupiah(p.price)}</span>
                 </div>
                 <h3 className="mt-3 text-lg font-bold leading-tight text-gray-900">{p.name}</h3>
                 <p className="text-sm text-gray-500">{p.material}{p.gauge ? ` • ${p.gauge} mm` : ""}</p>
@@ -578,7 +576,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
           <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
             <p className="text-sm text-gray-500">Senar pilihanmu{manualPick ? " (pilih sendiri)" : ""}</p>
             <h2 className="mt-1 text-lg font-bold text-gray-900">{p.name}</h2>
-            <p className="text-sm text-gray-500">{p.material}{p.gauge ? ` • ${p.gauge} mm` : ""} • <span className="font-semibold text-primary">{rupiah(p.price)}</span></p>
+            <p className="text-sm text-gray-500">{p.material}{p.gauge ? ` • ${p.gauge} mm` : ""}</p>
             {racketStr ? <p className="mt-1 text-sm text-gray-500">Raket: <span className="font-medium text-gray-700">{racketStr}</span></p> : null}
 
             <div className="mt-5 space-y-3">
@@ -670,7 +668,6 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
                       {s.sp != null && <span>Spin {Math.round(s.sp)}</span>}
                       {s.er != null && <span>Energi {Math.round(s.er)}%</span>}
                     </div>
-                    <p className="mt-2 text-sm font-extrabold text-primary">{s.variants.length ? `mulai ${rupiah(s.price)}` : rupiah(s.price)}</p>
                     {s.variants.length ? (
                       <div className="mt-auto pt-2">
                         <p className="text-[11px] font-medium text-gray-500">Pilih varian/gauge:</p>
@@ -714,7 +711,6 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
           <div className="mt-5 rounded-2xl border-2 border-primary bg-primary/5 px-6 py-5">
             <p className="text-sm font-semibold text-primary">Tunjukkan kode ini ke kasir untuk bayar</p>
             <p className="mt-1 text-3xl font-extrabold tracking-wider text-primary">{rec.code}</p>
-            {p.price ? <p className="mt-2 text-lg font-bold text-gray-900">Total: {rupiah(p.price)}</p> : null}
             <p className="mt-1 text-xs text-gray-500">Senar dipasang setelah pembayaran lunas.</p>
           </div>
 
