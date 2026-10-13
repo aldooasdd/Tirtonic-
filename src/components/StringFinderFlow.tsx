@@ -707,19 +707,14 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
         <div className="mx-auto max-w-md text-center">
           <h1 className="text-2xl font-extrabold text-gray-900">Pesanan diterima!</h1>
           <p className="mt-2 text-gray-600">
-            Senar <strong>{p.name}</strong>{tension ? <> · tarikan <strong>Main {tension}{tensionCross ? ` / Cross ${tensionCross}` : ""} lbs</strong></> : null}{racketStr ? <> · raket <strong>{racketStr}</strong></> : null} sedang disiapkan. Kami kabari lewat WhatsApp begitu selesai dipasang.
+            Senar <strong>{p.name}</strong>{tension ? <> · tarikan <strong>Main {tension}{tensionCross ? ` / Cross ${tensionCross}` : ""} lbs</strong></> : null}{racketStr ? <> · raket <strong>{racketStr}</strong></> : null} sedang disiapkan.
           </p>
+          <div className="mt-4 rounded-xl bg-green-50 px-5 py-3 text-sm text-green-800">
+            Detail resep sudah dikirim ke WhatsApp <strong>{wa}</strong>. Kami kabari lagi begitu senar selesai dipasang.
+          </div>
           <div className="mt-5 inline-block rounded-xl border border-dashed border-gray-300 px-6 py-3">
             <p className="text-xs text-gray-500">Kode resep</p>
             <p className="text-2xl font-extrabold tracking-wider text-primary">{rec.code}</p>
-          </div>
-          <div className="mt-6 flex flex-wrap justify-center gap-2">
-            <button
-              onClick={() => window.open(`/api/slip/${rec.code}?${manualPick ? `name=${encodeURIComponent(manualPick.name)}` : `rank=${chosen! + 1}`}&qr=1&print=1`, "_blank", "noopener")}
-              className="btn-green px-6 py-3"
-            >
-              Cetak resep
-            </button>
           </div>
           {kiosk && (
             <div className="mt-8">

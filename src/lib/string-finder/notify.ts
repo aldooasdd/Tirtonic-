@@ -15,6 +15,10 @@ export interface NotifyPayload {
   chosenString?: string | null;
   etaMinutes?: number;
   customerName?: string | null;
+  // Data resep untuk dikirim ke WA customer (ganti struk cetak).
+  tensionLbs?: number | null; // tarikan Main
+  tensionCrossLbs?: number | null; // tarikan Cross
+  racket?: string | null;
 }
 
 export async function notify(payload: NotifyPayload): Promise<boolean> {

@@ -66,6 +66,9 @@ export async function POST(req: NextRequest) {
     chosenString,
     etaMinutes: branch.etaMinutes,
     customerName,
+    tensionLbs,
+    tensionCrossLbs,
+    racket,
   });
   if (ok) await prisma.sfOrder.update({ where: { id: order.id }, data: { notifiedInAt: new Date() } });
 
