@@ -209,7 +209,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
       const res = await fetch("/api/sf/order", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ code: rec.code, chosenRank: manualPick ? undefined : (chosen! + 1), chosenString: selected.name, phone: wa, customerName: nama, racket: racketStr ?? undefined, tensionLbs: tension ? parseInt(tension, 10) : undefined, tensionCrossLbs: tensionCross ? parseInt(tensionCross, 10) : undefined }),
+        body: JSON.stringify({ code: rec.code, chosenRank: manualPick ? undefined : (chosen! + 1), chosenString: selected.name, price: selected.price ?? undefined, phone: wa, customerName: nama, racket: racketStr ?? undefined, tensionLbs: tension ? parseInt(tension, 10) : undefined, tensionCrossLbs: tensionCross ? parseInt(tensionCross, 10) : undefined }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Gagal mengirim pesanan.");
@@ -707,14 +707,19 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
         <div className="mx-auto max-w-md text-center">
           <h1 className="text-2xl font-extrabold text-gray-900">Pesanan diterima!</h1>
           <p className="mt-2 text-gray-600">
-            Senar <strong>{p.name}</strong>{tension ? <> · tarikan <strong>Main {tension}{tensionCross ? ` / Cross ${tensionCross}` : ""} lbs</strong></> : null}{racketStr ? <> · raket <strong>{racketStr}</strong></> : null} sedang disiapkan.
+            Senar <strong>{p.name}</strong>{tension ? <> · tarikan <strong>Main {tension}{tensionCross ? ` / Cross ${tensionCross}` : ""} lbs</strong></> : null}{racketStr ? <> · raket <strong>{racketStr}</strong></> : null}.
           </p>
-          <div className="mt-4 rounded-xl bg-green-50 px-5 py-3 text-sm text-green-800">
-            Detail resep sudah dikirim ke WhatsApp <strong>{wa}</strong>. Kami kabari lagi begitu senar selesai dipasang.
+
+          {/* Bayar dulu di kasir — pakai kode ini */}
+          <div className="mt-5 rounded-2xl border-2 border-primary bg-primary/5 px-6 py-5">
+            <p className="text-sm font-semibold text-primary">Tunjukkan kode ini ke kasir untuk bayar</p>
+            <p className="mt-1 text-3xl font-extrabold tracking-wider text-primary">{rec.code}</p>
+            {p.price ? <p className="mt-2 text-lg font-bold text-gray-900">Total: {rupiah(p.price)}</p> : null}
+            <p className="mt-1 text-xs text-gray-500">Senar dipasang setelah pembayaran lunas.</p>
           </div>
-          <div className="mt-5 inline-block rounded-xl border border-dashed border-gray-300 px-6 py-3">
-            <p className="text-xs text-gray-500">Kode resep</p>
-            <p className="text-2xl font-extrabold tracking-wider text-primary">{rec.code}</p>
+
+          <div className="mt-4 rounded-xl bg-green-50 px-5 py-3 text-sm text-green-800">
+            Detail resep juga sudah dikirim ke WhatsApp <strong>{wa}</strong>. Kami kabari lagi begitu senar selesai dipasang.
           </div>
           {kiosk && (
             <div className="mt-8">

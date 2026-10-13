@@ -11,6 +11,9 @@ export async function startStringing(id: string, formData: FormData) {
   requireAuth();
   const stringerName = String(formData.get("stringer") ?? "").trim();
   if (!stringerName) return; // nama stringer wajib (input juga sudah `required` di UI)
+  // Bayar dulu baru dikerjakan: tolak kalau belum lunas.
+  const order = await prisma.sfOrder.findUnique({ where: { id }, select: { paidAt: true } });
+  if (!order?.paidAt) return;
   await prisma.sfOrder.update({ where: { id }, data: { status: "dikerjakan", startedAt: new Date(), stringerName } });
   revalidatePath("/dashboard/stringing");
 }

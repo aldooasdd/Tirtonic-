@@ -278,6 +278,8 @@ model SfOrder {
   tensionCrossLbs Int? // tarikan Cross (lbs) — saran finder (biasanya Main −2), bisa diubah
   racket       String? // label raket dari finder, mis. "Power · 100 in²" (head size + jenis)
   stringerName String? // nama stringer yang mengerjakan — wajib diisi saat mulai kerjakan
+  price        Int? // total harga senar (rupiah) saat order — untuk kasir
+  paidAt       DateTime? // waktu dibayar/lunas (null = belum lunas). Bayar dulu baru dikerjakan.
   status       SfOrderStatus @default(antri)
   etaMinutes   Int           @default(30)
   createdAt    DateTime      @default(now())

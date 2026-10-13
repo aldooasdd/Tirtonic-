@@ -19,6 +19,7 @@ export interface NotifyPayload {
   tensionLbs?: number | null; // tarikan Main
   tensionCrossLbs?: number | null; // tarikan Cross
   racket?: string | null;
+  price?: number | null; // total harga senar (buat instruksi bayar ke kasir)
 }
 
 export async function notify(payload: NotifyPayload): Promise<boolean> {

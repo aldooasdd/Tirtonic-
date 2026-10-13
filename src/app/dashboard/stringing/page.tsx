@@ -71,6 +71,12 @@ export default async function StringingQueuePage() {
                       {o.racket ? ` • Raket: ${o.racket}` : ""}
                       {o.stringerName ? ` • Stringer: ${o.stringerName}` : ""}
                     </p>
+                    <p className="text-sm">
+                      {o.price ? `Rp${o.price.toLocaleString("id-ID")} • ` : ""}
+                      {o.paidAt
+                        ? <span className="font-semibold text-emerald-600">LUNAS</span>
+                        : <span className="font-semibold text-red-600">BELUM LUNAS</span>}
+                    </p>
                     <p className="text-sm text-gray-500">
                       {o.customerName ? `${o.customerName} • ` : ""}
                       <a href={`https://wa.me/${o.phone}`} target="_blank" rel="noreferrer" className="text-primary hover:underline">{wa}</a>
@@ -83,10 +89,14 @@ export default async function StringingQueuePage() {
                     <RacketQrPrint phone={o.phone} label="Stiker QR" className="rounded-full border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:border-primary hover:text-primary disabled:opacity-50" />
 
                     {o.status === "antri" && (
-                      <form action={startStringing.bind(null, o.id)} className="flex items-center gap-1.5">
-                        <input name="stringer" required placeholder="Nama stringer" className="w-32 rounded-full border border-gray-300 px-3 py-1.5 text-xs focus:border-primary focus:outline-none" />
-                        <button className="rounded-full bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90">Mulai kerjakan</button>
-                      </form>
+                      o.paidAt ? (
+                        <form action={startStringing.bind(null, o.id)} className="flex items-center gap-1.5">
+                          <input name="stringer" required placeholder="Nama stringer" className="w-32 rounded-full border border-gray-300 px-3 py-1.5 text-xs focus:border-primary focus:outline-none" />
+                          <button className="rounded-full bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90">Mulai kerjakan</button>
+                        </form>
+                      ) : (
+                        <span className="rounded-full bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-500">Belum lunas — bayar di kasir dulu</span>
+                      )
                     )}
                     {o.status === "dikerjakan" && (
                       <form action={finishStringing.bind(null, o.id)}>
