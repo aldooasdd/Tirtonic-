@@ -47,7 +47,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
   const [wa, setWa] = useState("");
   // Konsep raket: customer isi head size (in²) + jenis raket (power/spin/control).
   const [racketHead, setRacketHead] = useState("");
-  const [racketType, setRacketType] = useState<RacketType | "">("");
+  const [racketTypes, setRacketTypes] = useState<RacketType[]>([]);
   const [tension, setTension] = useState(""); // Main
   const [tensionCross, setTensionCross] = useState(""); // Cross
   const [submitting, setSubmitting] = useState(false);
@@ -73,8 +73,9 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
   // Bersihkan semua state → layar awal (data customer sebelumnya tidak tersisa).
   function resetAll() {
     setPhase("intro"); setStep(0); setAnswers({}); setRec(null); setErr("");
-    setChosen(null); setNama(""); setWa(""); setRacketHead(""); setRacketType("");
+    setChosen(null); setNama(""); setWa(""); setRacketHead("");
     setTension(""); setHistory(null); setManualPick(null); setCatalogSearch("");
+    setRacketTypes([]);
   }
 
   // Auto-reset 60 dtk setelah selesai, biar siap untuk customer berikutnya.
@@ -91,7 +92,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
 
   // Label raket untuk disimpan & ditampilkan, mis. "Power · 100 in²".
   const headNum = parseInt(racketHead, 10);
-  const racketStr = racketLabel({ head: Number.isFinite(headNum) ? headNum : null, type: racketType || null });
+  const racketStr = racketLabel({ head: Number.isFinite(headNum) ? headNum : null, types: racketTypes.length ? racketTypes : null });
 
   const q = questions[step];
 
@@ -145,7 +146,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
       const res = await fetch("/api/sf/recommend", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ answers, racketHead: Number.isFinite(headNum) ? headNum : null, racketType: racketType || null }),
+        body: JSON.stringify({ answers, racketHead: Number.isFinite(headNum) ? headNum : null, racketType: racketTypes }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Gagal menghitung rekomendasi.");
@@ -274,20 +275,23 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
             <div>
               <label className="label">Jenis raket <span className="text-gray-400">(opsional)</span></label>
               <div className="flex flex-wrap gap-2">
-                {RACKET_TYPES.map((t) => (
-                  <button
-                    key={t.key}
-                    type="button"
-                    onClick={() => setRacketType(racketType === t.key ? "" : t.key)}
-                    className={`rounded-lg border px-4 py-2 text-sm font-medium transition ${
-                      racketType === t.key ? "border-primary bg-primary text-white" : "border-gray-300 text-gray-700 hover:border-primary"
-                    }`}
-                  >
-                    {t.label}
-                  </button>
-                ))}
+                {RACKET_TYPES.map((t) => {
+                  const on = racketTypes.includes(t.key);
+                  return (
+                    <button
+                      key={t.key}
+                      type="button"
+                      onClick={() => setRacketTypes((cur) => (on ? cur.filter((x) => x !== t.key) : [...cur, t.key]))}
+                      className={`rounded-lg border px-4 py-2 text-sm font-medium transition ${
+                        on ? "border-primary bg-primary text-white" : "border-gray-300 text-gray-700 hover:border-primary"
+                      }`}
+                    >
+                      {t.label}
+                    </button>
+                  );
+                })}
               </div>
-              <p className="mt-1 text-xs text-gray-400">Karakter raketmu — memengaruhi rekomendasi senar & tarikan.</p>
+              <p className="mt-1 text-xs text-gray-400">Boleh pilih lebih dari satu (mis. Spin + Control). Memengaruhi rekomendasi senar & tarikan.</p>
             </div>
             {err && <p className="text-sm text-red-600">{err}</p>}
 

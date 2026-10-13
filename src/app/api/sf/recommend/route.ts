@@ -40,10 +40,12 @@ export async function POST(req: NextRequest) {
 
   const b = body as { racketHead?: unknown; racketType?: unknown };
   const headNum = Number(b?.racketHead);
-  const typeRaw = typeof b?.racketType === "string" ? b.racketType : null;
+  // racketType bisa array (multi) atau string (lama). Saring hanya nilai valid.
+  const rawTypes = Array.isArray(b?.racketType) ? b.racketType : b?.racketType != null ? [b.racketType] : [];
+  const types = rawTypes.filter((t): t is RacketType => t === "power" || t === "spin" || t === "control");
   const racket: RacketInput = {
     head: Number.isFinite(headNum) ? headNum : null,
-    type: typeRaw === "power" || typeRaw === "spin" || typeRaw === "control" ? (typeRaw as RacketType) : null,
+    types: types.length ? types : null,
   };
   const hasRacket = hasRacketInput(racket);
 
