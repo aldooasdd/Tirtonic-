@@ -34,7 +34,8 @@ const RANK_LABEL = ["Paling cocok", "Alternatif", "Alternatif"];
 const rupiah = (n: number | null) => (n == null ? "—" : "Rp" + n.toLocaleString("id-ID"));
 
 type HistItem = { code: string; senar: string | null; tension: number | null; tensionCross: number | null; racket: string | null; status: string; statusLabel: string; date: string };
-type SenarCard = { name: string; material: string; gauge: number | null; price: number | null; photo: string | null; st: number | null; sp: number | null; er: number | null };
+type SenarVariant = { label: string; price: number | null };
+type SenarCard = { name: string; material: string; gauge: number | null; price: number | null; photo: string | null; st: number | null; sp: number | null; er: number | null; variants: SenarVariant[] };
 
 export default function StringFinderFlow({ questions }: { questions: Question[] }) {
   const [phase, setPhase] = useState<"intro" | "identify" | "dashboard" | "quiz" | "loading" | "results" | "order" | "catalog" | "done">("intro");
@@ -162,7 +163,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
   const selected: SenarCard | null = manualPick
     ? manualPick
     : rec && chosen != null
-      ? { name: rec.picks[chosen].name, material: rec.picks[chosen].material, gauge: rec.picks[chosen].gauge, price: rec.picks[chosen].price, photo: null, st: null, sp: null, er: null }
+      ? { name: rec.picks[chosen].name, material: rec.picks[chosen].material, gauge: rec.picks[chosen].gauge, price: rec.picks[chosen].price, photo: null, st: null, sp: null, er: null, variants: [] }
       : null;
 
   // Isi otomatis tarikan sesuai material (poly dimainkan −2 lbs), dari saran server.
@@ -190,9 +191,12 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
     }
   }
 
-  function pickManual(card: SenarCard) {
-    setManualPick(card);
-    applyTension(card.material);
+  function pickManual(card: SenarCard, variant?: SenarVariant) {
+    const pick: SenarCard = variant
+      ? { ...card, name: `${card.name} — ${variant.label}`, price: variant.price ?? card.price, variants: [] }
+      : card;
+    setManualPick(pick);
+    applyTension(pick.material);
     setPhase("order");
   }
 
@@ -628,10 +632,9 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
           ) : (
             <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
               {list.map((s) => (
-                <button
+                <div
                   key={s.name}
-                  onClick={() => pickManual(s)}
-                  className="flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white text-left shadow-sm transition hover:border-primary hover:shadow-md"
+                  className="flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white text-left shadow-sm transition hover:shadow-md"
                 >
                   <div className="aspect-square w-full bg-gray-50">
                     {s.photo ? (
@@ -649,10 +652,27 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
                       {s.sp != null && <span>Spin {Math.round(s.sp)}</span>}
                       {s.er != null && <span>Energi {Math.round(s.er)}%</span>}
                     </div>
-                    <p className="mt-2 text-sm font-extrabold text-primary">{rupiah(s.price)}</p>
-                    <span className="btn-green mt-2 py-1.5 text-center text-xs">Pilih senar ini</span>
+                    <p className="mt-2 text-sm font-extrabold text-primary">{s.variants.length ? `mulai ${rupiah(s.price)}` : rupiah(s.price)}</p>
+                    {s.variants.length ? (
+                      <div className="mt-auto pt-2">
+                        <p className="text-[11px] font-medium text-gray-500">Pilih varian/gauge:</p>
+                        <div className="mt-1 flex flex-wrap gap-1.5">
+                          {s.variants.map((v) => (
+                            <button
+                              key={v.label}
+                              onClick={() => pickManual(s, v)}
+                              className="rounded-full border border-primary px-2.5 py-1 text-[11px] font-semibold text-primary transition hover:bg-primary hover:text-white"
+                            >
+                              {v.label || "Pilih"}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <button onClick={() => pickManual(s)} className="btn-green mt-auto py-1.5 text-center text-xs">Pilih senar ini</button>
+                    )}
                   </div>
-                </button>
+                </div>
               ))}
             </div>
           )}
