@@ -42,6 +42,8 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
   const [rec, setRec] = useState<RecResponse | null>(null);
+  const [askTeam, setAskTeam] = useState(false); // gate password "Tirtonic Team"
+  const [teamPw, setTeamPw] = useState("");
   const [err, setErr] = useState("");
   const [chosen, setChosen] = useState<number | null>(null);
   const [nama, setNama] = useState("");
@@ -76,7 +78,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
     setPhase("intro"); setStep(0); setAnswers({}); setRec(null); setErr("");
     setChosen(null); setNama(""); setWa(""); setRacketHead("");
     setTension(""); setHistory(null); setManualPick(null); setCatalogSearch("");
-    setRacketTypes([]);
+    setRacketTypes([]); setAskTeam(false); setTeamPw("");
   }
 
   // Auto-reset 10 dtk setelah selesai, biar siap untuk customer berikutnya.
@@ -107,6 +109,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
   // "Tirtonic Team": kasir pilih senar manual (tanpa mesin rekomendasi).
   // Bikin kode order minimal dulu, lalu langsung ke katalog senar.
   async function startManual() {
+    if (teamPw.trim() !== "123") { setErr("Password Tirtonic Team salah."); return; }
     if (!wa.trim()) { setErr("Isi nomor WhatsApp dulu ya."); return; }
     setErr(""); setPhase("loading");
     try {
@@ -349,13 +352,30 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
               <p className="mt-1 text-sm text-gray-600">Jawab beberapa pertanyaan, dapat 3 rekomendasi senar yang pas. Untuk customer.</p>
             </button>
 
-            <button
-              onClick={startManual}
-              className="block w-full rounded-2xl border-2 border-gray-300 px-6 py-5 text-left transition hover:border-gray-400 hover:bg-gray-50"
-            >
-              <p className="text-lg font-extrabold text-gray-900">Tirtonic Team</p>
-              <p className="mt-1 text-sm text-gray-600">Langsung pilih senar sendiri dari katalog, tanpa mesin rekomendasi. Untuk kasir.</p>
-            </button>
+            {askTeam ? (
+              <div className="rounded-2xl border-2 border-gray-300 px-6 py-5">
+                <p className="text-lg font-extrabold text-gray-900">Tirtonic Team</p>
+                <p className="mt-1 text-sm text-gray-600">Masukkan password untuk lanjut pilih senar sendiri.</p>
+                <input
+                  type="password"
+                  value={teamPw}
+                  onChange={(e) => setTeamPw(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") startManual(); }}
+                  autoFocus
+                  placeholder="Password"
+                  className="mt-3 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-primary focus:outline-none"
+                />
+                <button onClick={startManual} className="btn-green mt-3 w-full py-2.5">Lanjut →</button>
+              </div>
+            ) : (
+              <button
+                onClick={() => { setErr(""); setAskTeam(true); }}
+                className="block w-full rounded-2xl border-2 border-gray-300 px-6 py-5 text-left transition hover:border-gray-400 hover:bg-gray-50"
+              >
+                <p className="text-lg font-extrabold text-gray-900">Tirtonic Team</p>
+                <p className="mt-1 text-sm text-gray-600">Langsung pilih senar sendiri dari katalog, tanpa mesin rekomendasi. Untuk kasir.</p>
+              </button>
+            )}
           </div>
         </div>
       </Shell>
