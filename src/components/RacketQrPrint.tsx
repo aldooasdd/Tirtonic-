@@ -7,7 +7,7 @@ import { useState } from "react";
 //
 // ponytail: knob hardware di bawah ini perlu dituning langsung di printer —
 // kalau hasil cetak kebalik/kepotong/ukuran salah, ubah di sini, bukan di logika.
-const LABEL = { w: 591, h: 236 }; // dots: label 5×2 cm — lebar 50mm (printhead B21-PRO @300dpi) × tinggi 20mm feed
+const LABEL = { w: 295, h: 177 }; // dots: label 2,5×1,5 cm @300dpi (25mm×11.81 ≈ 295, 15mm ≈ 177)
 const PRINT_DIRECTION: "top" | "left" = "top"; // putar kalau orientasi kebalik
 const DENSITY = 3; // 1–5; naikkan kalau hasil tipis
 // Nama "task" cetak (bukan nama model). B21-PRO pakai D110M_V4 (per contoh resmi
@@ -64,8 +64,7 @@ export default function RacketQrPrint({ phone, className, label = "Cetak stiker 
   );
 }
 
-// Gambar label 5×2cm: QR di kiri, logo + ajakan scan di kanan.
-// Margin dibuat lega biar QR tidak kepotong tepi label.
+// Gambar label 2,5×1,5cm: QR di kiri (isi tinggi), logo di kanan. Tanpa teks.
 async function buildLabel(phone: string): Promise<HTMLCanvasElement> {
   const canvas = document.createElement("canvas");
   canvas.width = LABEL.w;
@@ -73,38 +72,24 @@ async function buildLabel(phone: string): Promise<HTMLCanvasElement> {
   const ctx = canvas.getContext("2d")!;
   ctx.fillStyle = "#fff";
   ctx.fillRect(0, 0, LABEL.w, LABEL.h);
-  ctx.fillStyle = "#000";
 
-  const M = 30; // margin aman lebar di semua sisi (biar tak ada yg kepotong)
+  const M = 12; // margin aman tiap sisi
 
-  // QR kiri, center vertikal
+  // QR kiri, isi tinggi label, center vertikal
   const QRCode = (await import("qrcode")).default;
-  const qrSize = 168; // ~14mm, kecil & pasti masuk
+  const qrSize = LABEL.h - M * 2; // ~153 dots (~13mm)
   const qrCanvas = document.createElement("canvas");
   const url = `${window.location.origin}/riwayat/${encodeURIComponent(phone)}`;
   await QRCode.toCanvas(qrCanvas, url, { width: qrSize, margin: 1, errorCorrectionLevel: "M" });
   ctx.drawImage(qrCanvas, M, Math.round((LABEL.h - qrSize) / 2), qrSize, qrSize);
 
-  // Kolom kanan: logo + ajakan scan, center vertikal
-  const x = M + qrSize + 26;
-  const colW = LABEL.w - x - M;
+  // Logo di kanan, isi sisa lebar, center vertikal
+  const x = M + qrSize + 12;
+  const logoW = LABEL.w - x - M;
   const logo = await loadImage("/logo-wordmark.png");
-  const logoW = Math.round(colW * 0.68); // ponytail: logo dikecilin; ubah faktor kalau mau beda
-  const logoX = x; // rata kiri, sejajar teks
   const logoH = Math.round(logoW / (logo.width / logo.height));
-  const lines = ["Scan QR untuk", "semua informasimu"];
-  const lineH = 30;
-  const stackH = logoH + 18 + lines.length * lineH;
-  let y = Math.round((LABEL.h - stackH) / 2);
+  ctx.drawImage(logo, x, Math.round((LABEL.h - logoH) / 2), logoW, logoH);
 
-  ctx.drawImage(logo, logoX, y, logoW, logoH);
-  y += logoH + 18;
-  ctx.textBaseline = "top";
-  ctx.font = "24px Arial";
-  for (const ln of lines) {
-    ctx.fillText(ln, x, y);
-    y += lineH;
-  }
   return canvas;
 }
 
