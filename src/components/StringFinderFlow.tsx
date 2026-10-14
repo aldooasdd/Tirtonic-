@@ -38,7 +38,7 @@ type SenarVariant = { label: string; price: number | null };
 type SenarCard = { name: string; material: string; gauge: number | null; price: number | null; photo: string | null; st: number | null; sp: number | null; er: number | null; variants: SenarVariant[] };
 
 export default function StringFinderFlow({ questions }: { questions: Question[] }) {
-  const [phase, setPhase] = useState<"intro" | "identify" | "dashboard" | "quiz" | "loading" | "results" | "order" | "catalog" | "done">("intro");
+  const [phase, setPhase] = useState<"intro" | "identify" | "choice" | "dashboard" | "quiz" | "loading" | "results" | "order" | "catalog" | "done">("intro");
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
   const [rec, setRec] = useState<RecResponse | null>(null);
@@ -102,6 +102,23 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
     setErr("");
     setPhase("quiz");
     setStep(0);
+  }
+
+  // "Tirtonic Team": kasir pilih senar manual (tanpa mesin rekomendasi).
+  // Bikin kode order minimal dulu, lalu langsung ke katalog senar.
+  async function startManual() {
+    if (!wa.trim()) { setErr("Isi nomor WhatsApp dulu ya."); return; }
+    setErr(""); setPhase("loading");
+    try {
+      const res = await fetch("/api/sf/manual", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Gagal memulai.");
+      setRec({ code: data.code, condition: "manual", profile_summary: "", picks: [], tension_suggestion: data.tension_suggestion ?? 50, tension_note: "", racket_label: null, tension_racket_note: null, racket_string_note: null });
+      await openCatalog();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Terjadi kesalahan.");
+      setPhase("choice");
+    }
   }
 
   async function loadHistoryAndContinue() {
@@ -300,13 +317,45 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
             {err && <p className="text-sm text-red-600">{err}</p>}
 
             <div className="space-y-2">
-              <button onClick={startQuiz} disabled={!wa.trim()} className="btn-green w-full py-3 disabled:opacity-40">
+              <button onClick={() => { if (!wa.trim()) { setErr("Isi nomor WhatsApp dulu ya."); return; } setErr(""); setPhase("choice"); }} disabled={!wa.trim()} className="btn-green w-full py-3 disabled:opacity-40">
                 Langsung cari senar →
               </button>
               <button onClick={loadHistoryAndContinue} disabled={histLoading || !wa.trim()} className="w-full rounded-full border border-gray-300 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-40">
                 {histLoading ? "Mengecek…" : "Lihat riwayat stringing"}
               </button>
             </div>
+          </div>
+        </div>
+      </Shell>
+    );
+  }
+
+  // ---------- CHOICE (String Finder vs Tirtonic Team) ----------
+  if (phase === "choice") {
+    return (
+      <Shell>
+        <div className="mx-auto max-w-md">
+          <button onClick={() => { setPhase("identify"); setErr(""); }} className="mb-4 text-sm font-semibold text-gray-500 hover:text-gray-900">← Kembali</button>
+          <h1 className="text-2xl font-extrabold text-gray-900">Mau pakai yang mana?</h1>
+          <p className="mt-2 text-gray-600">Pilih cara menentukan senar.</p>
+          {err && <p className="mt-3 text-sm text-red-600">{err}</p>}
+
+          <div className="mt-6 space-y-3">
+            <button
+              onClick={startQuiz}
+              className="block w-full rounded-2xl border-2 border-primary bg-primary/5 px-6 py-5 text-left transition hover:bg-primary/10"
+            >
+              <p className="text-lg font-extrabold text-primary">String Finder</p>
+              <p className="mt-1 text-sm text-gray-600">Jawab beberapa pertanyaan, dapat 3 rekomendasi senar yang pas. Untuk customer.</p>
+            </button>
+
+            <button
+              onClick={startManual}
+              className="block w-full rounded-2xl border-2 border-gray-300 px-6 py-5 text-left transition hover:border-gray-400 hover:bg-gray-50"
+            >
+              <p className="text-lg font-extrabold text-gray-900">Tirtonic Team</p>
+              <p className="mt-1 text-sm text-gray-600">Langsung pilih senar sendiri dari katalog, tanpa mesin rekomendasi. Untuk kasir.</p>
+            </button>
           </div>
         </div>
       </Shell>
@@ -572,7 +621,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
     return (
       <Shell>
         <div className="mx-auto max-w-md">
-          <button onClick={() => setPhase("results")} className="mb-4 text-sm font-semibold text-gray-500 hover:text-gray-900">← Ganti pilihan</button>
+          <button onClick={() => setPhase(rec.picks.length ? "results" : "catalog")} className="mb-4 text-sm font-semibold text-gray-500 hover:text-gray-900">← Ganti pilihan</button>
           <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
             <p className="text-sm text-gray-500">Senar pilihanmu{manualPick ? " (pilih sendiri)" : ""}</p>
             <h2 className="mt-1 text-lg font-bold text-gray-900">{p.name}</h2>
@@ -631,7 +680,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
     return (
       <Shell>
         <div className="mx-auto max-w-5xl">
-          <button onClick={() => setPhase("order")} className="mb-4 text-sm font-semibold text-gray-500 hover:text-gray-900">← Kembali</button>
+          <button onClick={() => setPhase(selected ? "order" : "choice")} className="mb-4 text-sm font-semibold text-gray-500 hover:text-gray-900">← Kembali</button>
           <h1 className="text-2xl font-extrabold text-gray-900 sm:text-3xl">Pilih senar sendiri</h1>
           <p className="mt-1 text-gray-600">Semua senar di toko. Pilih satu, lalu langsung lanjut stringing.</p>
           <input
