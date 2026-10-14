@@ -245,7 +245,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
           <span className="inline-block rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">String Finder</span>
           <h1 className="mt-4 text-3xl font-extrabold text-gray-900 sm:text-4xl">Temukan senar tenis yang pas</h1>
           <p className="mt-3 text-gray-600">
-            Jawab 7 pertanyaan singkat, lalu kami tunjukkan 3 senar paling cocok lengkap dengan harga,
+            Jawab 7 pertanyaan singkat, lalu kami tunjukkan 3 senar paling cocok,
             disesuaikan dengan kebutuhan mainmu.
           </p>
           <button
