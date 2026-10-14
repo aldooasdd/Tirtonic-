@@ -42,12 +42,19 @@ export default async function ShopPage({ searchParams }: { searchParams: SP }) {
     { variants: { none: {} }, stok: null }, // non-varian, stok tak terbatas
   ];
 
+  // Pagination server-side: 48/halaman. Tanpa ini query ngambil 500+ produk + semua
+  // variannya tiap request (force-dynamic) → respon ~5 dtk & egress DB boros.
+  const PER = 48;
+  const page = Math.max(1, parseInt(searchParams.page || "1", 10) || 1);
+
   const [products, brandRows] = await Promise.all([
     safeQuery(
       () =>
         prisma.product.findMany({
           where,
           orderBy: orderBy(searchParams.sort),
+          take: PER + 1, // +1 buat deteksi ada halaman berikutnya
+          skip: (page - 1) * PER,
           include: { _count: { select: { variants: true } }, variants: { select: { warna: true, ukuran: true, stok: true }, orderBy: { urutan: "asc" } } },
         }),
       []
@@ -75,7 +82,9 @@ export default async function ShopPage({ searchParams }: { searchParams: SP }) {
     return order.map((label) => ({ label, sold: grup.get(label)!.every((s) => s <= 0) }));
   };
 
-  const cards = products.map((p) => ({
+  const hasMore = products.length > PER;
+  const pageItems = products.slice(0, PER);
+  const cards = pageItems.map((p) => ({
     id: p.id,
     nama: p.nama,
     harga: p.harga,
@@ -89,7 +98,7 @@ export default async function ShopPage({ searchParams }: { searchParams: SP }) {
   return (
     <>
       <Suspense fallback={null}>
-        <ShopClient products={cards} brands={brands} q={searchParams.q} />
+        <ShopClient products={cards} brands={brands} q={searchParams.q} page={page} hasMore={hasMore} />
       </Suspense>
       <Footer />
     </>

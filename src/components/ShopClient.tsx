@@ -21,20 +21,27 @@ export default function ShopClient({
   products,
   brands,
   q,
+  page,
+  hasMore,
 }: {
   products: ProductCardData[];
   brands: string[];
   q?: string;
+  page: number;
+  hasMore: boolean;
 }) {
   const [open, setOpen] = useState(true);
   const router = useRouter();
   const sp = useSearchParams();
 
-  // Render bertahap: 48 kartu dulu, sisanya lewat tombol. Tanpa ini, 1000+ kartu
-  // bikin DOM berat & halaman nge-lag (~6 dtk ke interaktif). Reset tiap filter berubah.
-  const PAGE = 48;
-  const [visible, setVisible] = useState(PAGE);
-  useEffect(() => { setVisible(PAGE); }, [products]);
+  // URL halaman lain, mempertahankan filter/sort yang aktif.
+  const pageUrl = (n: number) => {
+    const next = new URLSearchParams(sp.toString());
+    if (n <= 1) next.delete("page");
+    else next.set("page", String(n));
+    const qs = next.toString();
+    return qs ? `/shop?${qs}` : "/shop";
+  };
 
   // Desktop (lg+): filter always shown & can't be hidden. Below lg: toggle allowed
   // (open on tablet, hidden on phone).
@@ -82,20 +89,21 @@ export default function ShopClient({
             : "grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
         }`}
       >
-        {products.slice(0, visible).map((p) => (
+        {products.map((p) => (
           <ProductCard key={p.id} p={p} hoverExpand />
         ))}
       </div>
     );
 
-  const moreBtn = visible < products.length && (
-    <div className="mt-8 flex justify-center">
-      <button
-        onClick={() => setVisible((v) => v + PAGE)}
-        className="rounded-full border border-gray-300 px-8 py-3 text-sm font-semibold text-gray-700 transition hover:border-primary hover:text-primary"
-      >
-        Muat lebih banyak ({products.length - visible} lagi)
-      </button>
+  const pager = (page > 1 || hasMore) && (
+    <div className="mt-8 flex items-center justify-center gap-3">
+      {page > 1 ? (
+        <Link href={pageUrl(page - 1)} className="rounded-full border border-gray-300 px-5 py-2.5 text-sm font-semibold text-gray-700 transition hover:border-primary hover:text-primary">← Sebelumnya</Link>
+      ) : <span />}
+      <span className="text-sm text-gray-500">Halaman {page}</span>
+      {hasMore ? (
+        <Link href={pageUrl(page + 1)} className="rounded-full border border-gray-300 px-5 py-2.5 text-sm font-semibold text-gray-700 transition hover:border-primary hover:text-primary">Selanjutnya →</Link>
+      ) : <span />}
     </div>
   );
 
@@ -129,17 +137,16 @@ export default function ShopClient({
             <div className="mb-6 flex items-center justify-between gap-4">
               <p className="text-sm text-gray-500">
                 {q ? (
-                  <>
-                    Hasil untuk <strong>&ldquo;{q}&rdquo;</strong> ({products.length})
-                  </>
+                  <>Hasil untuk <strong>&ldquo;{q}&rdquo;</strong></>
                 ) : (
-                  `${products.length} produk`
+                  `${products.length}${hasMore ? "+" : ""} produk`
                 )}
+                {page > 1 && ` • Halaman ${page}`}
               </p>
               {sortEl}
             </div>
             {grid}
-            {moreBtn}
+            {pager}
           </div>
         </div>
       ) : (
@@ -156,7 +163,7 @@ export default function ShopClient({
             {sortEl}
           </div>
           {grid}
-          {moreBtn}
+          {pager}
         </div>
       )}
     </div>
