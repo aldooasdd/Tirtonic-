@@ -200,7 +200,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
   async function openCatalog() {
     setErr("");
     setPhase("catalog");
-    if (catalog) return;
+    // Selalu fetch fresh — biar ganti nama/stok produk di dashboard langsung kebaca (realtime).
     setCatalogLoading(true);
     try {
       const res = await fetch("/api/sf/strings");

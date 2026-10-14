@@ -3,9 +3,10 @@ import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
-// Katalog senar untuk "Pilih senar sendiri": SEMUA produk senar di shop (kategori
-// "String", READY & masih ada stok) — sama seperti yang tampil di halaman Shop.
-// Senar bervarian (mis. gauge 16g/17g) ikut dikirim varian-nya (hanya yang ada stok).
+// Katalog senar untuk "Pilih senar sendiri": SEMUA produk senar kategori "String".
+// Beda dari Shop: di sini stok & status TIDAK difilter — walau di shop sold/habis,
+// di toko fisik stringer tetap punya senarnya, jadi semua ditampilkan & bisa dipilih.
+// Nama senar diambil live dari produk (ganti nama di dashboard → langsung ikut).
 // Spesifikasi lab TWU (acuan 51 lbs / swing M) ikut ditampilkan kalau senarnya terpetakan.
 export type SenarVariant = { label: string; price: number | null };
 export type SenarCard = {
@@ -22,16 +23,7 @@ export type SenarCard = {
 
 export async function GET() {
   const products = await prisma.product.findMany({
-    where: {
-      kategori: "String",
-      status: "READY",
-      // sembunyikan yang benar-benar habis (logika sama seperti Shop)
-      OR: [
-        { variants: { some: { stok: { gt: 0 } } } },
-        { variants: { none: {} }, stok: { gt: 0 } },
-        { variants: { none: {} }, stok: null },
-      ],
-    },
+    where: { kategori: "String" }, // tanpa filter stok/status — stringer punya semua senar
     orderBy: { nama: "asc" },
     select: {
       nama: true,
@@ -48,9 +40,10 @@ export async function GET() {
     const ms = twu?.measurements ?? [];
     const ref = ms.find((m) => m.tensionLbs === 51 && m.swing === "M") ?? ms.find((m) => m.tensionLbs === 51) ?? ms[0];
     const productPrice = p.hargaDiskon ?? p.harga;
+    // Semua varian tampil (tak peduli stok) — stringer punya stoknya di toko.
     const variants: SenarVariant[] = p.variants
-      .filter((v) => v.stok > 0)
-      .map((v) => ({ label: [v.warna, v.ukuran].filter(Boolean).join(" ").trim(), price: v.hargaDiskon ?? v.harga }));
+      .map((v) => ({ label: [v.warna, v.ukuran].filter(Boolean).join(" ").trim(), price: v.hargaDiskon ?? v.harga }))
+      .filter((v) => v.label);
     const price = variants.length ? Math.min(...variants.map((v) => v.price ?? productPrice)) : productPrice;
     return {
       name: p.nama,
