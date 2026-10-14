@@ -14,7 +14,6 @@ export const ROLES: Record<string, Role> = {
   admin: { key: "admin", label: "Admin", sections: ["produk", "kupon", "pesanan", "stringing", "kasir"], password: "admin123" },
   marketing: { key: "marketing", label: "Marketing", sections: ["trafik", "artikel", "hero", "store", "brand", "sponsor"], password: "marketing123" },
   stringer: { key: "stringer", label: "Stringer", sections: ["stringing"], password: "stringer123" },
-  kasir: { key: "kasir", label: "Kasir", sections: ["kasir", "pesanan"], password: "kasir123" },
 };
 
 // Password per role: env ROLE_<KEY>_PASSWORD → default di config → (bos) ADMIN_PASSWORD.
