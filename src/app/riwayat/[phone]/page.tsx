@@ -139,13 +139,13 @@ function BottomNav({ phone }: { phone: string | null }) {
     { key: "search", label: "Search", href: "#", active: false, icon: ICONS.search },
   ];
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-20 mx-auto max-w-md border-t border-gray-100 bg-white/95 px-1 py-1.5 backdrop-blur">
-      <div className="flex items-stretch justify-around">
+    <nav className="fixed inset-x-0 bottom-4 z-20 mx-auto max-w-md px-4">
+      <div className="flex items-stretch justify-around rounded-full border border-gray-100 bg-white/95 px-2 py-1.5 shadow-[0_8px_30px_rgba(0,0,0,0.12)] backdrop-blur">
         {items.map((it) => (
           <Link
             key={it.key}
             href={it.href}
-            className={`flex min-h-[48px] flex-1 flex-col items-center justify-center gap-0.5 rounded-xl py-1.5 text-[11px] font-semibold transition ${it.active ? "text-primary" : "text-gray-400 hover:text-gray-600"}`}
+            className={`flex min-h-[48px] flex-1 flex-col items-center justify-center gap-0.5 rounded-full py-1.5 text-[11px] font-semibold transition ${it.active ? "text-primary" : "text-gray-400 hover:text-gray-600"}`}
           >
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{it.icon}</svg>
             <span>{it.label}</span>
