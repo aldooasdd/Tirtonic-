@@ -24,14 +24,23 @@ function fmt(d: Date) {
   return new Date(d).toLocaleString("id-ID", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 }
 
-export default async function StringingQueuePage() {
+export default async function StringingQueuePage({ searchParams }: { searchParams: { cabang?: string } }) {
   if (!isAuthed()) redirect("/dashboard/login");
   if (!can("stringing")) redirect("/dashboard");
 
-  const orders = await safeQuery(
-    () => prisma.sfOrder.findMany({ orderBy: [{ status: "asc" }, { createdAt: "desc" }], take: 200, include: { branch: { select: { name: true } } } }),
-    []
-  );
+  const cabang = searchParams.cabang;
+  const [branches, orders] = await Promise.all([
+    safeQuery(() => prisma.sfBranch.findMany({ where: { isActive: true }, orderBy: { name: "asc" }, select: { slug: true, name: true } }), []),
+    safeQuery(
+      () => prisma.sfOrder.findMany({
+        where: cabang ? { branch: { slug: cabang } } : undefined,
+        orderBy: [{ status: "asc" }, { createdAt: "desc" }],
+        take: 200,
+        include: { branch: { select: { name: true } } },
+      }),
+      []
+    ),
+  ]);
   const aktif = orders.filter((o) => o.status === "antri" || o.status === "dikerjakan").length;
 
   return (
@@ -48,6 +57,21 @@ export default async function StringingQueuePage() {
             <button className="rounded-full border px-4 py-1.5 text-sm font-semibold text-gray-600 transition hover:border-red-400 hover:text-red-600">Logout</button>
           </form>
         </div>
+      </div>
+
+      <div className="mb-5 flex flex-wrap gap-2">
+        {[{ slug: "", name: "Semua" }, ...branches].map((b) => {
+          const active = (b.slug || undefined) === cabang;
+          return (
+            <Link
+              key={b.slug || "all"}
+              href={b.slug ? `/dashboard/stringing?cabang=${b.slug}` : "/dashboard/stringing"}
+              className={`rounded-full border px-3.5 py-1.5 text-sm font-semibold transition ${active ? "border-primary bg-primary text-white" : "border-gray-300 text-gray-600 hover:border-primary hover:text-primary"}`}
+            >
+              {b.name}
+            </Link>
+          );
+        })}
       </div>
 
       {orders.length === 0 ? (
