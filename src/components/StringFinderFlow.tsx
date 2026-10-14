@@ -337,25 +337,25 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
   if (phase === "choice") {
     return (
       <Shell>
-        <div className="mx-auto max-w-md">
+        <div className="mx-auto max-w-xl">
           <button onClick={() => { setPhase("identify"); setErr(""); }} className="mb-4 text-sm font-semibold text-gray-500 hover:text-gray-900">← Kembali</button>
           <h1 className="text-2xl font-extrabold text-gray-900">Mau pakai yang mana?</h1>
           <p className="mt-2 text-gray-600">Pilih cara menentukan senar.</p>
           {err && <p className="mt-3 text-sm text-red-600">{err}</p>}
 
-          <div className="mt-6 space-y-3">
+          <div className="mt-6 grid grid-cols-2 items-stretch gap-3">
             <button
               onClick={startQuiz}
-              className="block w-full rounded-2xl border-2 border-primary bg-primary/5 px-6 py-5 text-left transition hover:bg-primary/10"
+              className="rounded-2xl border-2 border-primary bg-primary px-5 py-5 text-left text-white transition hover:opacity-90"
             >
-              <p className="text-lg font-extrabold text-primary">String Finder</p>
-              <p className="mt-1 text-sm text-gray-600">Jawab beberapa pertanyaan, dapat 3 rekomendasi senar yang pas. Untuk customer.</p>
+              <p className="text-lg font-extrabold">String Finder</p>
+              <p className="mt-1 text-sm text-white/80">Jawab beberapa pertanyaan, dapat 3 rekomendasi senar yang pas. Untuk customer.</p>
             </button>
 
             {askTeam ? (
-              <div className="rounded-2xl border-2 border-gray-300 px-6 py-5">
+              <div className="rounded-2xl border-2 border-gray-300 bg-white px-5 py-5">
                 <p className="text-lg font-extrabold text-gray-900">Tirtonic Team</p>
-                <p className="mt-1 text-sm text-gray-600">Masukkan password untuk lanjut pilih senar sendiri.</p>
+                <p className="mt-1 text-sm text-gray-600">Masukkan password untuk lanjut.</p>
                 <input
                   type="password"
                   value={teamPw}
@@ -370,7 +370,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
             ) : (
               <button
                 onClick={() => { setErr(""); setAskTeam(true); }}
-                className="block w-full rounded-2xl border-2 border-gray-300 px-6 py-5 text-left transition hover:border-gray-400 hover:bg-gray-50"
+                className="rounded-2xl border-2 border-gray-300 bg-white px-5 py-5 text-left text-gray-900 transition hover:border-gray-400 hover:bg-gray-50"
               >
                 <p className="text-lg font-extrabold text-gray-900">Tirtonic Team</p>
                 <p className="mt-1 text-sm text-gray-600">Langsung pilih senar sendiri dari katalog, tanpa mesin rekomendasi. Untuk kasir.</p>
