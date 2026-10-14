@@ -64,7 +64,7 @@ export default function RacketQrPrint({ phone, className, label = "Cetak stiker 
   );
 }
 
-// Gambar label 5×2cm: QR di kiri (isi tinggi), logo di kanan. Tanpa teks.
+// Gambar label 5×2cm: QR + (logo + teks) dipusatkan sebagai satu grup di tengah.
 async function buildLabel(phone: string): Promise<HTMLCanvasElement> {
   const canvas = document.createElement("canvas");
   canvas.width = LABEL.w;
@@ -74,34 +74,42 @@ async function buildLabel(phone: string): Promise<HTMLCanvasElement> {
   ctx.fillRect(0, 0, LABEL.w, LABEL.h);
 
   const M = 12; // margin aman tiap sisi
+  const gapX = 20; // jarak QR ↔ kolom kanan
+  const gapY = 14; // jarak logo ↔ teks
 
-  // QR kiri, isi tinggi label, center vertikal
+  // QR isi tinggi label
   const QRCode = (await import("qrcode")).default;
-  const qrSize = LABEL.h - M * 2; // ~153 dots (~13mm)
+  const qrSize = LABEL.h - M * 2;
   const qrCanvas = document.createElement("canvas");
   const url = `${window.location.origin}/riwayat/${encodeURIComponent(phone)}`;
   await QRCode.toCanvas(qrCanvas, url, { width: qrSize, margin: 1, errorCorrectionLevel: "M" });
-  ctx.drawImage(qrCanvas, M, Math.round((LABEL.h - qrSize) / 2), qrSize, qrSize);
 
-  // Kolom kanan: logo (dikecilin) + ajakan scan di bawahnya, semua center.
-  const colX0 = M + qrSize + 12;
-  const colW = LABEL.w - colX0 - M;
-  const colCenter = colX0 + colW / 2;
+  // Kolom kanan: logo + teks. Lebar kolom = yang terlebar antara logo & teks.
   const logo = await loadImage("/logo-wordmark.png");
-  const logoW = Math.round(colW * 0.7);
+  const logoW = 200;
   const logoH = Math.round(logoW / (logo.width / logo.height));
   const lines = ["Scan QR untuk", "semua informasimu"];
   const lineH = 28;
-  const gap = 14;
-  const stackH = logoH + gap + lines.length * lineH;
-  let y = Math.round((LABEL.h - stackH) / 2);
+  ctx.font = "22px Arial";
+  const textW = Math.max(...lines.map((l) => ctx.measureText(l).width));
+  const colW = Math.max(logoW, textW);
 
+  // Pusatkan seluruh grup (QR + gap + kolom) secara horizontal.
+  const groupW = qrSize + gapX + colW;
+  const startX = Math.round((LABEL.w - groupW) / 2);
+
+  // QR center vertikal
+  ctx.drawImage(qrCanvas, startX, Math.round((LABEL.h - qrSize) / 2), qrSize, qrSize);
+
+  // Kolom kanan: stack (logo + teks) center vertikal, center horizontal di kolomnya
+  const colCenter = startX + qrSize + gapX + colW / 2;
+  const stackH = logoH + gapY + lines.length * lineH;
+  let y = Math.round((LABEL.h - stackH) / 2);
   ctx.drawImage(logo, Math.round(colCenter - logoW / 2), y, logoW, logoH);
-  y += logoH + gap;
+  y += logoH + gapY;
   ctx.fillStyle = "#000";
   ctx.textAlign = "center";
   ctx.textBaseline = "top";
-  ctx.font = "22px Arial";
   for (const ln of lines) {
     ctx.fillText(ln, colCenter, y);
     y += lineH;
