@@ -92,7 +92,7 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
   const rows: Row[] = [...map.entries()]
     .map(([phone, v]) => ({ phone, name: v.name, n: v.n }))
     .sort((a, b) => b.n - a.n)
-    .slice(0, 30);
+    .slice(0, 10);
 
   const top3 = rows.slice(0, 3);
   const rest = rows.slice(3);
