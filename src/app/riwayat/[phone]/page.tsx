@@ -29,6 +29,19 @@ export default async function RiwayatPage({ params }: { params: { phone: string 
   const batal = orders.filter((o) => o.status === "batal").length;
   const pct = orders.length ? Math.round((selesai / orders.length) * 100) : 0;
 
+  // Jumlah stringing per bulan — 6 bulan terakhir (termasuk bulan ini).
+  const now = new Date();
+  const months = Array.from({ length: 6 }, (_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
+    return { y: d.getFullYear(), m: d.getMonth(), label: d.toLocaleDateString("id-ID", { month: "short" }), n: 0 };
+  });
+  for (const o of orders) {
+    const d = new Date(o.createdAt);
+    const b = months.find((x) => x.y === d.getFullYear() && x.m === d.getMonth());
+    if (b) b.n++;
+  }
+  const maxN = Math.max(1, ...months.map((x) => x.n));
+
   const cards = [
     { l: "Selesai", n: selesai, c: "text-emerald-600" },
     { l: "Sedang proses", n: proses, c: "text-amber-600" },
@@ -91,6 +104,30 @@ export default async function RiwayatPage({ params }: { params: { phone: string 
                 <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
               </div>
               <p className="mt-2 text-xs text-gray-500">{selesai} dari {orders.length} stringing selesai ({pct}%)</p>
+            </div>
+          </div>
+
+          {/* Stringing per bulan (6 bulan terakhir) */}
+          <div className="mt-4 px-4">
+            <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+              <h2 className="font-bold text-gray-900">Stringing per bulan</h2>
+              <div className="mt-5 flex items-end gap-2">
+                {months.map((mo, i) => (
+                  <div key={i} className="flex flex-1 flex-col items-center">
+                    <div className="flex h-32 w-full items-end justify-center">
+                      <div
+                        className="relative w-7 rounded-t-md bg-primary/30"
+                        style={{ height: `${Math.max(3, Math.round((mo.n / maxN) * 100))}%` }}
+                      >
+                        {mo.n > 0 && (
+                          <span className="absolute inset-x-0 -top-5 text-center text-[11px] font-bold text-gray-600">{mo.n}</span>
+                        )}
+                      </div>
+                    </div>
+                    <span className="mt-1.5 text-[11px] text-gray-400">{mo.label}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
