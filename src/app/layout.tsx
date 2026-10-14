@@ -15,6 +15,7 @@ export const metadata: Metadata = {
   description:
     "Toko spesialis tenis original terlengkap di Jogja, Solo, dan Semarang: raket, sepatu, senar, tas, grip, bola dari brand terbaik dunia. Pengiriman ke seluruh Indonesia.",
   alternates: { canonical: "/" },
+  appleWebApp: { capable: true, title: "Stringer", statusBarStyle: "default" },
   openGraph: {
     type: "website",
     siteName: "Tirtonic Tennis Store",
