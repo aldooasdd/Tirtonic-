@@ -29,8 +29,8 @@ export default async function StringingQueuePage() {
   if (!can("stringing")) redirect("/dashboard");
 
   const orders = await safeQuery(
-    () => prisma.sfOrder.findMany({ orderBy: [{ status: "asc" }, { createdAt: "desc" }], take: 200 }),
-    [] as Awaited<ReturnType<typeof prisma.sfOrder.findMany>>
+    () => prisma.sfOrder.findMany({ orderBy: [{ status: "asc" }, { createdAt: "desc" }], take: 200, include: { branch: { select: { name: true } } } }),
+    []
   );
   const aktif = orders.filter((o) => o.status === "antri" || o.status === "dikerjakan").length;
 
@@ -62,6 +62,7 @@ export default async function StringingQueuePage() {
                   <div>
                     <div className="flex items-center gap-2">
                       <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${BADGE[o.status]}`}>{LABEL[o.status]}</span>
+                      {o.branch?.name && <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-bold text-primary">{o.branch.name}</span>}
                       <span className="font-mono text-sm font-bold text-primary">{o.resultCode}</span>
                       <span className="text-xs text-gray-400">{fmt(o.createdAt)}</span>
                     </div>

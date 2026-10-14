@@ -17,11 +17,6 @@ function safeEqual(a: string, b: string): boolean {
   return ba.length === bb.length && crypto.timingSafeEqual(ba, bb);
 }
 
-export function checkStringerPassword(input: string): boolean {
-  const pw = process.env.STRINGER_PASSWORD || process.env.ADMIN_PASSWORD || "";
-  return pw.length > 0 && safeEqual(input, pw);
-}
-
 export function createStringerSession() {
   cookies().set(COOKIE, token(), {
     httpOnly: true,

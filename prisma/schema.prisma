@@ -237,6 +237,7 @@ model SfBranch {
   id                String       @id @default(cuid())
   name              String
   slug              String       @unique
+  accessCode        String?      @unique // kode login kiosk stringer per cabang
   paperMm           String       @default("58") // "58" | "80"
   etaMinutes        Int          @default(30)
   isActive          Boolean      @default(true)

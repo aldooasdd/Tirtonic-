@@ -9,6 +9,7 @@ import { profileSentence } from "@/lib/string-finder/profile";
 import { suggestTension } from "@/lib/string-finder/tension";
 import { racketStringWeights, racketStringNote, racketLabel, hasRacketInput, type RacketType, type RacketInput } from "@/lib/string-finder/racket";
 import type { LabMetric, PickDTO } from "@/lib/string-finder/dto";
+import { getActiveBranch } from "@/lib/string-finder/session";
 
 export const dynamic = "force-dynamic";
 
@@ -56,8 +57,10 @@ export async function POST(req: NextRequest) {
   const condition = result.plan.condition;
   const tension = suggestTension(answers, racket);
 
-  // Website: satu cabang default (tanpa cookie perangkat).
-  const branch = await prisma.sfBranch.findFirst({ where: { slug: "tirtonic", isActive: true }, select: { id: true } });
+  // Kiosk stringer: cabang dari cookie login (jogja/solo/semarang). Website publik: default tirtonic.
+  const branch =
+    (await getActiveBranch()) ??
+    (await prisma.sfBranch.findFirst({ where: { slug: "tirtonic", isActive: true }, select: { id: true } }));
 
   let code = makeCode(rules);
   for (let i = 0; i < 20; i++) {
