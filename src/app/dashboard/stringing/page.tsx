@@ -38,13 +38,13 @@ export default async function StringingQueuePage({ searchParams }: { searchParam
 
   const cabang = searchParams.cabang;
   const [branches, orders] = await Promise.all([
-    safeQuery(() => prisma.sfBranch.findMany({ where: { isActive: true }, orderBy: { name: "asc" }, select: { slug: true, name: true } }), []),
+    safeQuery(() => prisma.sfBranch.findMany({ where: { isActive: true, slug: { not: "tirtonic" } }, orderBy: { name: "asc" }, select: { slug: true, name: true } }), []),
     safeQuery(
       () => prisma.sfOrder.findMany({
         where: cabang ? { branch: { slug: cabang } } : undefined,
         orderBy: [{ status: "asc" }, { createdAt: "desc" }],
         take: 200,
-        include: { branch: { select: { name: true } } },
+        include: { branch: { select: { name: true } }, result: { select: { condition: true } } },
       }),
       []
     ),
@@ -95,6 +95,9 @@ export default async function StringingQueuePage({ searchParams }: { searchParam
                     <div className="flex items-center gap-2">
                       <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${BADGE[o.status]}`}>{LABEL[o.status]}</span>
                       {o.branch?.name && <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-bold text-primary">{o.branch.name}</span>}
+                      {o.result && (o.result.condition === "manual"
+                        ? <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-semibold text-gray-600">Input sendiri</span>
+                        : <span className="rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-semibold text-indigo-700">Finder</span>)}
                       <span className="font-mono text-sm font-bold text-primary">{o.resultCode}</span>
                       <span className="text-xs text-gray-400">{fmt(o.createdAt)}</span>
                     </div>
