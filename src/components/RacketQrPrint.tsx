@@ -7,7 +7,7 @@ import { useState } from "react";
 //
 // ponytail: knob hardware di bawah ini perlu dituning langsung di printer —
 // kalau hasil cetak kebalik/kepotong/ukuran salah, ubah di sini, bukan di logika.
-const LABEL = { w: 295, h: 177 }; // dots: label 2,5×1,5 cm @300dpi (25mm×11.81 ≈ 295, 15mm ≈ 177)
+const LABEL = { w: 591, h: 236 }; // dots: label 5×2 cm @300dpi (seperti sebelumnya)
 const PRINT_DIRECTION: "top" | "left" = "top"; // putar kalau orientasi kebalik
 const DENSITY = 3; // 1–5; naikkan kalau hasil tipis
 // Nama "task" cetak (bukan nama model). B21-PRO pakai D110M_V4 (per contoh resmi
@@ -64,7 +64,7 @@ export default function RacketQrPrint({ phone, className, label = "Cetak stiker 
   );
 }
 
-// Gambar label 2,5×1,5cm: QR di kiri (isi tinggi), logo di kanan. Tanpa teks.
+// Gambar label 5×2cm: QR di kiri (isi tinggi), logo di kanan. Tanpa teks.
 async function buildLabel(phone: string): Promise<HTMLCanvasElement> {
   const canvas = document.createElement("canvas");
   canvas.width = LABEL.w;
