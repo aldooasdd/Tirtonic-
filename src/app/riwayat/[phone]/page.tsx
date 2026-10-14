@@ -51,7 +51,7 @@ export default async function RiwayatPage({ params }: { params: { phone: string 
   return (
     <div className="mx-auto min-h-screen max-w-md bg-gray-50 pb-24">
       {/* Header hijau */}
-      <header className="rounded-b-[2rem] bg-gradient-to-br from-primaryDark to-primary px-5 pb-10 pt-10 text-white">
+      <header className="rounded-b-[1.25rem] bg-gradient-to-br from-primaryDark to-primary px-5 pb-10 pt-10 text-white">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-white">
