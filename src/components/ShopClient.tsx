@@ -30,6 +30,12 @@ export default function ShopClient({
   const router = useRouter();
   const sp = useSearchParams();
 
+  // Render bertahap: 48 kartu dulu, sisanya lewat tombol. Tanpa ini, 1000+ kartu
+  // bikin DOM berat & halaman nge-lag (~6 dtk ke interaktif). Reset tiap filter berubah.
+  const PAGE = 48;
+  const [visible, setVisible] = useState(PAGE);
+  useEffect(() => { setVisible(PAGE); }, [products]);
+
   // Desktop (lg+): filter always shown & can't be hidden. Below lg: toggle allowed
   // (open on tablet, hidden on phone).
   useEffect(() => {
@@ -76,11 +82,22 @@ export default function ShopClient({
             : "grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
         }`}
       >
-        {products.map((p) => (
+        {products.slice(0, visible).map((p) => (
           <ProductCard key={p.id} p={p} hoverExpand />
         ))}
       </div>
     );
+
+  const moreBtn = visible < products.length && (
+    <div className="mt-8 flex justify-center">
+      <button
+        onClick={() => setVisible((v) => v + PAGE)}
+        className="rounded-full border border-gray-300 px-8 py-3 text-sm font-semibold text-gray-700 transition hover:border-primary hover:text-primary"
+      >
+        Muat lebih banyak ({products.length - visible} lagi)
+      </button>
+    </div>
+  );
 
   return (
     <div className="mx-auto max-w-[1600px] px-4 pb-10 pt-3">
@@ -122,6 +139,7 @@ export default function ShopClient({
               {sortEl}
             </div>
             {grid}
+            {moreBtn}
           </div>
         </div>
       ) : (
@@ -138,6 +156,7 @@ export default function ShopClient({
             {sortEl}
           </div>
           {grid}
+          {moreBtn}
         </div>
       )}
     </div>
