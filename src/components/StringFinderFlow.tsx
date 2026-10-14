@@ -50,6 +50,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
   const [wa, setWa] = useState("");
   // Konsep raket: customer isi head size (in²) + jenis raket (power/spin/control).
   const [racketHead, setRacketHead] = useState("");
+  const [racketName, setRacketName] = useState(""); // merk/tipe raket, diketik manual
   const [racketTypes, setRacketTypes] = useState<RacketType[]>([]);
   const [tension, setTension] = useState(""); // Main
   const [tensionCross, setTensionCross] = useState(""); // Cross
@@ -78,7 +79,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
     setPhase("intro"); setStep(0); setAnswers({}); setRec(null); setErr("");
     setChosen(null); setNama(""); setWa(""); setRacketHead("");
     setTension(""); setHistory(null); setManualPick(null); setCatalogSearch("");
-    setRacketTypes([]); setAskTeam(false); setTeamPw("");
+    setRacketTypes([]); setAskTeam(false); setTeamPw(""); setRacketName("");
   }
 
   // Auto-reset 10 dtk setelah selesai, biar siap untuk customer berikutnya.
@@ -95,7 +96,9 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
 
   // Label raket untuk disimpan & ditampilkan, mis. "Power · 100 in²".
   const headNum = parseInt(racketHead, 10);
-  const racketStr = racketLabel({ head: Number.isFinite(headNum) ? headNum : null, types: racketTypes.length ? racketTypes : null });
+  const racketLbl = racketLabel({ head: Number.isFinite(headNum) ? headNum : null, types: racketTypes.length ? racketTypes : null });
+  // Raket final: merk/tipe manual + label turunan (head/jenis), digabung.
+  const racketStr = [racketName.trim() || null, racketLbl].filter(Boolean).join(" · ") || null;
 
   const q = questions[step];
 
@@ -283,6 +286,10 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
             <div>
               <label className="label">Nomor WhatsApp <span className="text-red-500">*</span></label>
               <input value={wa} onChange={(e) => { setWa(e.target.value); setHistory(null); }} inputMode="tel" className="field" placeholder="08xxxxxxxxxx" />
+            </div>
+            <div>
+              <label className="label">Raket <span className="text-gray-400">(opsional, merk/tipe)</span></label>
+              <input value={racketName} onChange={(e) => setRacketName(e.target.value)} className="field" placeholder="mis. Yonex Ezone 98" />
             </div>
             <div>
               <label className="label">Head size raket <span className="text-gray-400">(opsional, in²)</span></label>
