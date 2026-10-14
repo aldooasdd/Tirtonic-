@@ -29,7 +29,7 @@ function PodiumSlot({ row, rank }: { row: Row; rank: number }) {
   const big = rank === 1;
   const ring = rank === 1 ? "ring-amber-400" : rank === 2 ? "ring-gray-300" : "ring-orange-400";
   return (
-    <Link href={`/riwayat/${encodeURIComponent(row.phone)}`} className="flex flex-1 flex-col items-center">
+    <div className="flex flex-1 flex-col items-center">
       <div className="relative">
         <div className={`flex items-center justify-center rounded-full bg-primary/5 ring-4 ${ring} ${big ? "h-20 w-20" : "h-16 w-16"}`}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -42,7 +42,7 @@ function PodiumSlot({ row, rank }: { row: Row; rank: number }) {
         <Medal className={`h-3.5 w-3.5 ${rank === 1 ? "text-amber-400" : rank === 2 ? "text-gray-400" : "text-orange-400"}`} />
         {row.n}
       </span>
-    </Link>
+    </div>
   );
 }
 
@@ -177,10 +177,9 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
                 {rest.map((r, i) => {
                   const nama = r.name ?? "Tanpa nama";
                   return (
-                    <Link
+                    <div
                       key={r.phone}
-                      href={`/riwayat/${encodeURIComponent(r.phone)}`}
-                      className="flex items-center gap-3 rounded-2xl border border-gray-100 bg-white p-3 shadow-sm transition hover:border-primary/40"
+                      className="flex items-center gap-3 rounded-2xl border border-gray-100 bg-white p-3 shadow-sm"
                     >
                       <span className="w-5 shrink-0 text-center text-sm font-bold text-gray-400">{i + 4}</span>
                       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/5">
@@ -189,7 +188,7 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
                       </div>
                       <p className="min-w-0 flex-1 truncate font-semibold text-gray-900">{nama}</p>
                       <span className="shrink-0 rounded-full border border-gray-200 px-3 py-0.5 text-sm font-bold text-gray-800">{r.n}</span>
-                    </Link>
+                    </div>
                   );
                 })}
               </div>
