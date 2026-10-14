@@ -101,7 +101,7 @@ export default async function RiwayatPage({ params }: { params: { phone: string 
                   o.tensionLbs ? `Tarikan ${o.tensionLbs}${o.tensionCrossLbs ? `/${o.tensionCrossLbs}` : ""} lbs` : null,
                   o.racket ? `Raket ${o.racket}` : null,
                   o.stringerName ? `Stringer ${o.stringerName}` : null,
-                ].filter(Boolean);
+                ].filter((m): m is string => m != null);
                 return (
                   <div key={o.resultCode} className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
                     <div className="flex items-start justify-between gap-2">
@@ -115,7 +115,7 @@ export default async function RiwayatPage({ params }: { params: { phone: string 
                     </div>
                     {meta.length > 0 && (
                       <div className="mt-2 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-gray-500">
-                        {meta.map((m) => <span key={m as string}>{m}</span>)}
+                        {meta.map((m) => <span key={m}>{m}</span>)}
                       </div>
                     )}
                   </div>
@@ -132,9 +132,9 @@ export default async function RiwayatPage({ params }: { params: { phone: string 
 }
 
 // Navbar bawah ala app. Shop → /shop; Leaderboard/Event/Search masih placeholder (fitur nyusul).
-function BottomNav({ phone }: { phone: string }) {
+function BottomNav({ phone }: { phone: string | null }) {
   const items = [
-    { key: "home", label: "Home", href: `/riwayat/${encodeURIComponent(phone)}`, active: true, icon: ICONS.home },
+    { key: "home", label: "Home", href: phone ? `/riwayat/${encodeURIComponent(phone)}` : "#", active: true, icon: ICONS.home },
     { key: "shop", label: "Shop", href: "/shop", active: false, icon: ICONS.shop },
     { key: "leaderboard", label: "Leaderboard", href: "#", active: false, icon: ICONS.trophy },
     { key: "event", label: "Event", href: "#", active: false, icon: ICONS.event },
