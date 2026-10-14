@@ -8,6 +8,19 @@ import { findRoleByPassword, roleMatches, setRolePassword } from "@/lib/role-pas
 import { uploadFile, uploadFromUrl, storageConfigured } from "@/lib/storage";
 import { fetchTokopedia } from "@/lib/tokopedia";
 import { markOrderPaid, markOrderShipped, cancelOrder } from "@/lib/orders";
+import { slugify } from "@/lib/article-slug";
+
+/** Slug unik untuk artikel: dari judul, tambah -2/-3 kalau bentrok. */
+async function uniqueArticleSlug(judul: string, excludeId?: string): Promise<string> {
+  const base = slugify(judul) || "artikel";
+  let slug = base;
+  // ponytail: naive probe; artikel sedikit, bentrok judul langka
+  for (let n = 2; ; n++) {
+    const found = await prisma.article.findUnique({ where: { slug }, select: { id: true } });
+    if (!found || found.id === excludeId) return slug;
+    slug = `${base}-${n}`;
+  }
+}
 
 export type LoginState = { error: string };
 
@@ -378,7 +391,8 @@ export async function createArticle(formData: FormData) {
   const data = parseArticle(formData);
   if (!data.judul || !data.konten) throw new Error("Judul dan konten wajib diisi.");
   const gambar = await uploadOneImage(formData, "articles");
-  await prisma.article.create({ data: { ...data, gambar } });
+  const slug = await uniqueArticleSlug(data.judul);
+  await prisma.article.create({ data: { ...data, slug, gambar } });
   revalidateArticles();
   redirect("/dashboard");
 }
@@ -389,7 +403,10 @@ export async function updateArticle(id: string, formData: FormData) {
   if (!data.judul || !data.konten) throw new Error("Judul dan konten wajib diisi.");
   const uploaded = await uploadOneImage(formData, "articles");
   const existing = ((formData.get("existingGambar") as string) || "") || null;
-  await prisma.article.update({ where: { id }, data: { ...data, gambar: uploaded ?? existing } });
+  // Slug tetap stabil (jaga SEO/link lama); hanya diisi kalau artikel belum punya.
+  const cur = await prisma.article.findUnique({ where: { id }, select: { slug: true } });
+  const slug = cur?.slug ?? (await uniqueArticleSlug(data.judul, id));
+  await prisma.article.update({ where: { id }, data: { ...data, slug, gambar: uploaded ?? existing } });
   revalidateArticles(id);
   redirect("/dashboard");
 }

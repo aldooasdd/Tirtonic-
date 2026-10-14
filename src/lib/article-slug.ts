@@ -1,5 +1,6 @@
-// URL artikel ramah-SEO: "/articles/<judul-slug>-<id>". ID (cuid, tanpa tanda hubung)
-// selalu jadi token terakhir, jadi tetap unik & URL lama "/articles/<id>" masih valid.
+// URL artikel ramah-SEO: "/articles/<slug>". Slug tersimpan unik di DB (kolom Article.slug).
+// Fallback (artikel lama tanpa slug): "/articles/<id>". URL legacy "<slug>-<id>" tetap dilayani
+// via articleIdFromParam lalu di-redirect ke slug kanonik.
 
 export function slugify(s: string): string {
   return s
@@ -11,12 +12,11 @@ export function slugify(s: string): string {
     .replace(/-+$/g, "");
 }
 
-export function articleHref(a: { id: string; judul: string }): string {
-  const s = slugify(a.judul);
-  return s ? `/articles/${s}-${a.id}` : `/articles/${a.id}`;
+export function articleHref(a: { id: string; slug?: string | null }): string {
+  return `/articles/${a.slug || a.id}`;
 }
 
-/** Ambil id dari parameter rute (token setelah tanda hubung terakhir; cuid tak berisi "-"). */
+/** Ambil id dari parameter rute legacy "<slug>-<id>" (cuid tak berisi "-" → token terakhir). */
 export function articleIdFromParam(param: string): string {
   const i = param.lastIndexOf("-");
   return i >= 0 ? param.slice(i + 1) : param;
@@ -24,10 +24,9 @@ export function articleIdFromParam(param: string): string {
 
 // ponytail: self-check. Jalankan: npx tsx src/lib/article-slug.ts
 if (require.main === module) {
-  const a = { id: "cmv1ovitu0000ia4fvhi6xjab", judul: "Toko Tenis di Semarang Dekat Simpang Lima!" };
-  const href = articleHref(a);
-  if (href !== "/articles/toko-tenis-di-semarang-dekat-simpang-lima-cmv1ovitu0000ia4fvhi6xjab") throw new Error("FAIL href: " + href);
-  if (articleIdFromParam(href.split("/").pop()!) !== a.id) throw new Error("FAIL extract slug-id");
-  if (articleIdFromParam(a.id) !== a.id) throw new Error("FAIL extract bare id (URL lama)");
+  if (slugify("Toko Raket Tenis di Solo!") !== "toko-raket-tenis-di-solo") throw new Error("FAIL slugify");
+  if (articleHref({ id: "abc", slug: "toko-raket" }) !== "/articles/toko-raket") throw new Error("FAIL href slug");
+  if (articleHref({ id: "abc", slug: null }) !== "/articles/abc") throw new Error("FAIL href fallback");
+  if (articleIdFromParam("toko-raket-cmv3255a3000095qgmmn5o53p") !== "cmv3255a3000095qgmmn5o53p") throw new Error("FAIL extract");
   console.log("article-slug self-check OK");
 }

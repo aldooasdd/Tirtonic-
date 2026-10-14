@@ -3,6 +3,7 @@ import { articleHref } from "@/lib/article-slug";
 
 export type ArticleCardData = {
   id: string;
+  slug: string | null;
   judul: string;
   tag: string | null;
   penulis: string;

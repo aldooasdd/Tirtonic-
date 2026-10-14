@@ -9,7 +9,7 @@ const BASE = "https://www.tirtonic.com";
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [products, articles] = await Promise.all([
     prisma.product.findMany({ where: { status: "READY" }, select: { id: true, updatedAt: true } }),
-    prisma.article.findMany({ select: { id: true, judul: true, tanggal: true } }),
+    prisma.article.findMany({ select: { id: true, slug: true, tanggal: true } }),
   ]);
 
   const staticPages = ["", "/shop", "/articles", "/string-finder", "/sponsorship", "/contact"].map((p) => ({

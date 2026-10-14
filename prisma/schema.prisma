@@ -107,6 +107,7 @@ model ProductVariant {
 
 model Article {
   id        String   @id @default(cuid())
+  slug      String?  @unique // URL ramah-SEO (dari judul); null → fallback ke id
   judul     String
   tag       String? // e.g. "News, Tennis Racket"
   penulis   String   @default("admin")

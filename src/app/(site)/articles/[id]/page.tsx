@@ -7,7 +7,10 @@ import { articleHref, articleIdFromParam } from "@/lib/article-slug";
 // ISR: artikel di-cache 5 menit → hemat egress DB.
 export const revalidate = 300;
 
+// Param bisa: slug baru, slug-id legacy, atau id murni (URL lama). Coba slug dulu, lalu id.
 async function getArticle(param: string) {
+  const bySlug = await safeQuery(() => prisma.article.findUnique({ where: { slug: param } }), null);
+  if (bySlug) return bySlug;
   const id = articleIdFromParam(param);
   return safeQuery(() => prisma.article.findUnique({ where: { id } }), null);
 }
