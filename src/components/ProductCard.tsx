@@ -1,7 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
 import { rupiah } from "@/lib/format";
-import HeartButton from "./HeartButton";
 
 export type ProductCardData = {
   id: string;
@@ -35,7 +34,6 @@ export default function ProductCard({ p, thinPrice = false, hoverExpand = false 
             <Image src={p.gambar[1]} alt="" fill sizes="(max-width: 640px) 50vw, 240px" className="object-cover opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
           )}
         </Link>
-        <HeartButton product={{ id: p.id, nama: p.nama, harga: p.harga, gambar: p.gambar[0] ?? null }} />
       </div>
 
       <Link href={href} className="block p-3">
@@ -69,8 +67,7 @@ export default function ProductCard({ p, thinPrice = false, hoverExpand = false 
                 ))}
               </div>
             )}
-            <div className="mt-2 flex items-stretch justify-around divide-x border-t pt-2 text-gray-500">
-              <HeartButton product={{ id: p.id, nama: p.nama, harga: p.harga, gambar: p.gambar[0] ?? null }} className="flex flex-1 items-center justify-center py-1" />
+            <div className="mt-2 flex items-stretch justify-around border-t pt-2 text-gray-500">
               <Link href={href} aria-label="Lihat & tambah ke keranjang" className="flex flex-1 items-center justify-center py-1 hover:text-primary">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" />

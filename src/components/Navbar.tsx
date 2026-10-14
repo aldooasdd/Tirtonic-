@@ -5,7 +5,6 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Logo from "./Logo";
 import { waLink } from "@/lib/format";
-import { useCart } from "./CartProvider";
 import { useShopCart } from "./ShopCartProvider";
 
 const MENU = [
@@ -33,7 +32,6 @@ export default function Navbar() {
   const [q, setQ] = useState("");
   const router = useRouter();
   const pathname = usePathname();
-  const { count, setOpen: setCartOpen } = useCart();
   const { count: cartCount } = useShopCart();
   const ig = process.env.NEXT_PUBLIC_INSTAGRAM || "https://instagram.com/tirtonic";
 
@@ -140,21 +138,6 @@ export default function Navbar() {
                 className="hover:opacity-80"
               >
                 <SearchIcon />
-              </button>
-              <button
-                type="button"
-                onClick={() => setCartOpen(true)}
-                aria-label="Favorit"
-                className="relative hover:opacity-80"
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 1 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z" />
-                </svg>
-                {count > 0 && (
-                  <span className="absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-white px-1 text-[10px] font-bold text-primary">
-                    {count}
-                  </span>
-                )}
               </button>
               <Link href="/cart" aria-label="Keranjang" className="relative hover:opacity-80">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
