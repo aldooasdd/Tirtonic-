@@ -636,7 +636,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
 
           <div className="mt-8 flex items-center justify-between gap-3">
             <button onClick={() => { setPhase("quiz"); setStep(0); }} className="rounded-full border border-gray-300 px-5 py-2.5 text-sm font-semibold text-gray-600 transition hover:border-gray-400 hover:text-gray-900">← Ulangi kuesioner</button>
-            <button onClick={openCatalog} className="rounded-full border border-primary px-5 py-2.5 text-sm font-semibold text-primary transition hover:bg-primary/5">Pilih senar sendiri →</button>
+            <button onClick={openCatalog} className="rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-white transition hover:opacity-90">Pilih senar sendiri →</button>
           </div>
         </div>
       </Shell>
