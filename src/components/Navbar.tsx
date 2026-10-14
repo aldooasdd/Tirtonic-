@@ -33,7 +33,7 @@ export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
   const { count: cartCount } = useShopCart();
-  const ig = process.env.NEXT_PUBLIC_INSTAGRAM || "https://instagram.com/tirtonic";
+  const ig = "https://www.instagram.com/tirtonic.id";
 
   function submitSearch(e: React.FormEvent) {
     e.preventDefault();
