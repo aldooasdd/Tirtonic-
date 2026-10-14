@@ -5,7 +5,7 @@ import "server-only";
  * fungsi ini diam saja tanpa error — jadi antrian stringing tetap jalan tanpa WA.
  * Kegagalan jaringan tidak boleh menggagalkan aksi utama (buat pesanan / tandai selesai).
  */
-export type NotifyEvent = "pesanan_masuk" | "selesai";
+export type NotifyEvent = "pesanan_masuk" | "dikerjakan" | "selesai";
 
 export interface NotifyPayload {
   event: NotifyEvent;
@@ -19,6 +19,7 @@ export interface NotifyPayload {
   tensionLbs?: number | null; // tarikan Main
   tensionCrossLbs?: number | null; // tarikan Cross
   racket?: string | null;
+  stringerName?: string | null; // stringer yang mengerjakan (event "dikerjakan")
   price?: number | null; // total harga senar (buat instruksi bayar ke kasir)
 }
 

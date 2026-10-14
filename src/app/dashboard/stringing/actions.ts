@@ -7,11 +7,33 @@ import { notify } from "@/lib/string-finder/notify";
 
 const requireAuth = () => requireSection("stringing");
 
+// Ambil hanya merek + headsize dari field racket (buang jenis Power/Spin/Control).
+function racketMerkHead(racket: string | null): string | null {
+  if (!racket) return null;
+  const isJenis = (s: string) => /^(Power|Spin|Control)( \+ (Power|Spin|Control))*$/.test(s);
+  const kept = racket.split(" · ").map((s) => s.trim()).filter((s) => s && !isJenis(s));
+  return kept.join(" · ") || null;
+}
+
 export async function startStringing(id: string, formData: FormData) {
   requireAuth();
   const stringerName = String(formData.get("stringer") ?? "").trim();
   if (!stringerName) return; // nama stringer wajib (input juga sudah `required` di UI)
-  await prisma.sfOrder.update({ where: { id }, data: { status: "dikerjakan", startedAt: new Date(), stringerName } });
+  const order = await prisma.sfOrder.update({
+    where: { id },
+    data: { status: "dikerjakan", startedAt: new Date(), stringerName },
+    include: { branch: true },
+  });
+  // WA "senar mulai dikerjakan" + nama stringer. Tanpa estimasi & resep — cuma merek + headsize.
+  await notify({
+    event: "dikerjakan",
+    phone: order.phone,
+    code: order.resultCode,
+    branch: order.branch.name,
+    customerName: order.customerName,
+    racket: racketMerkHead(order.racket),
+    stringerName,
+  });
   revalidatePath("/dashboard/stringing");
 }
 
