@@ -56,7 +56,6 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
   const [tensionCross, setTensionCross] = useState(""); // Cross
   const [submitting, setSubmitting] = useState(false);
   const [history, setHistory] = useState<HistItem[] | null>(null);
-  const [histLoading, setHistLoading] = useState(false);
   // "Pilih senar sendiri": katalog semua senar + senar yang dipilih manual (di luar 3 rekomendasi).
   const [manualPick, setManualPick] = useState<SenarCard | null>(null);
   const [catalog, setCatalog] = useState<SenarCard[] | null>(null);
@@ -124,24 +123,6 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Terjadi kesalahan.");
       setPhase("choice");
-    }
-  }
-
-  async function loadHistoryAndContinue() {
-    if (!wa.trim()) { setErr("Isi nomor WhatsApp dulu ya."); return; }
-    setErr("");
-    setHistLoading(true);
-    try {
-      const res = await fetch(`/api/sf/history?phone=${encodeURIComponent(wa)}`);
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Nomor WhatsApp tidak valid.");
-      setHistory(data.history as HistItem[]);
-      if (!nama.trim() && data.lastName) setNama(data.lastName as string);
-      setPhase("dashboard");
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : "Terjadi kesalahan.");
-    } finally {
-      setHistLoading(false);
     }
   }
 
@@ -329,9 +310,6 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
             <div className="space-y-2">
               <button onClick={() => { if (!wa.trim()) { setErr("Isi nomor WhatsApp dulu ya."); return; } setErr(""); setPhase("choice"); }} disabled={!wa.trim()} className="btn-green w-full py-3 disabled:opacity-40">
                 Langsung cari senar →
-              </button>
-              <button onClick={loadHistoryAndContinue} disabled={histLoading || !wa.trim()} className="w-full rounded-full border border-gray-300 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-40">
-                {histLoading ? "Mengecek…" : "Lihat riwayat stringing"}
               </button>
             </div>
           </div>
