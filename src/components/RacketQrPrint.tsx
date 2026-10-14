@@ -83,13 +83,29 @@ async function buildLabel(phone: string): Promise<HTMLCanvasElement> {
   await QRCode.toCanvas(qrCanvas, url, { width: qrSize, margin: 1, errorCorrectionLevel: "M" });
   ctx.drawImage(qrCanvas, M, Math.round((LABEL.h - qrSize) / 2), qrSize, qrSize);
 
-  // Logo di kanan — dikecilin (0.7× sisa lebar), center di area sisa & vertikal
-  const area = LABEL.w - (M + qrSize + 12) - M; // lebar sisa buat logo
-  const logoW = Math.round(area * 0.7);
+  // Kolom kanan: logo (dikecilin) + ajakan scan di bawahnya, semua center.
+  const colX0 = M + qrSize + 12;
+  const colW = LABEL.w - colX0 - M;
+  const colCenter = colX0 + colW / 2;
   const logo = await loadImage("/logo-wordmark.png");
+  const logoW = Math.round(colW * 0.7);
   const logoH = Math.round(logoW / (logo.width / logo.height));
-  const x = M + qrSize + 12 + Math.round((area - logoW) / 2); // center horizontal di area sisa
-  ctx.drawImage(logo, x, Math.round((LABEL.h - logoH) / 2), logoW, logoH);
+  const lines = ["Scan QR untuk", "semua informasimu"];
+  const lineH = 28;
+  const gap = 14;
+  const stackH = logoH + gap + lines.length * lineH;
+  let y = Math.round((LABEL.h - stackH) / 2);
+
+  ctx.drawImage(logo, Math.round(colCenter - logoW / 2), y, logoW, logoH);
+  y += logoH + gap;
+  ctx.fillStyle = "#000";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "top";
+  ctx.font = "22px Arial";
+  for (const ln of lines) {
+    ctx.fillText(ln, colCenter, y);
+    y += lineH;
+  }
 
   return canvas;
 }
