@@ -6,6 +6,7 @@ import { displayPhone } from "@/lib/string-finder/phone";
 import { startStringing, finishStringing, cancelStringing } from "./actions";
 import { logout } from "../actions";
 import RacketQrPrint from "@/components/RacketQrPrint";
+import DeleteStringingButton from "@/components/DeleteStringingButton";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Antrian Stringing — Tirtonic" };
@@ -133,6 +134,7 @@ export default async function StringingQueuePage({ searchParams }: { searchParam
                         <button className="rounded-full border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-500 hover:bg-red-50">Batal</button>
                       </form>
                     )}
+                    {(o.status === "selesai" || o.status === "batal") && <DeleteStringingButton id={o.id} />}
                   </div>
                 </div>
               </div>

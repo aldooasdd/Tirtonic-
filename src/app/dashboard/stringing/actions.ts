@@ -40,3 +40,9 @@ export async function cancelStringing(id: string) {
   await prisma.sfOrder.update({ where: { id }, data: { status: "batal" } });
   revalidatePath("/dashboard/stringing");
 }
+
+export async function deleteStringingOrder(id: string) {
+  requireAuth();
+  await prisma.sfOrder.delete({ where: { id } });
+  revalidatePath("/dashboard/stringing");
+}
