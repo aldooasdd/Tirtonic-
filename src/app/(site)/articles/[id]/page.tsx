@@ -1,13 +1,37 @@
-import { notFound } from "next/navigation";
+import type { Metadata } from "next";
+import { notFound, permanentRedirect } from "next/navigation";
 import { prisma, safeQuery } from "@/lib/prisma";
 import Footer from "@/components/Footer";
+import { articleHref, articleIdFromParam } from "@/lib/article-slug";
 
 // ISR: artikel di-cache 5 menit → hemat egress DB.
 export const revalidate = 300;
 
+async function getArticle(param: string) {
+  const id = articleIdFromParam(param);
+  return safeQuery(() => prisma.article.findUnique({ where: { id } }), null);
+}
+
+export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+  const a = await getArticle(params.id);
+  if (!a) return {};
+  const desc = (a.excerpt || a.konten).replace(/\s+/g, " ").trim().slice(0, 155);
+  const canonical = articleHref(a);
+  return {
+    title: `${a.judul} — Tirtonic`,
+    description: desc,
+    alternates: { canonical },
+    openGraph: { title: a.judul, description: desc, type: "article", url: canonical, images: a.gambar ? [a.gambar] : [] },
+  };
+}
+
 export default async function ArticleDetail({ params }: { params: { id: string } }) {
-  const a = await safeQuery(() => prisma.article.findUnique({ where: { id: params.id } }), null);
+  const a = await getArticle(params.id);
   if (!a) notFound();
+
+  // Paksa ke URL kanonik "/articles/<judul-slug>-<id>" (URL lama / slug basi → 308).
+  const canonical = articleHref(a);
+  if (`/articles/${params.id}` !== canonical) permanentRedirect(canonical);
 
   return (
     <>

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { articleHref } from "@/lib/article-slug";
 
 export type ArticleCardData = {
   id: string;
@@ -41,7 +42,7 @@ export default function ArticleCard({ a, compact = false }: { a: ArticleCardData
         {compact && <p className="mt-1 text-xs text-gray-500">{fmtDate(a.tanggal)}</p>}
         {a.excerpt && <p className="mt-2 line-clamp-3 text-sm text-gray-600">{a.excerpt}</p>}
         <div className="mt-auto pt-4">
-          <Link href={`/articles/${a.id}`} className={compact ? "text-sm font-semibold text-primary" : "btn-green"}>
+          <Link href={articleHref(a)} className={compact ? "text-sm font-semibold text-primary" : "btn-green"}>
             {compact ? "Read More" : "Baca selengkapnya.."}
           </Link>
         </div>

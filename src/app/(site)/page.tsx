@@ -2,6 +2,7 @@ import Link from "next/link";
 import { prisma, safeQuery } from "@/lib/prisma";
 import Footer, { Benefits } from "@/components/Footer";
 import { ArticleCardData } from "@/components/ArticleCard";
+import { articleHref } from "@/lib/article-slug";
 import ProductCard, { ProductCardData } from "@/components/ProductCard";
 import SeoBlock from "@/components/SeoBlock";
 import HeroCarousel from "@/components/HeroCarousel";
@@ -182,7 +183,7 @@ function NewArticles({ articles }: { articles: ArticleCardData[] }) {
       ) : (
         <div className="snap-x-carousel flex gap-4 overflow-x-auto pb-2">
           {articles.map((a) => (
-            <Link key={a.id} href={`/articles/${a.id}`} className="snap-item group block w-[240px] shrink-0 sm:w-[260px]">
+            <Link key={a.id} href={articleHref(a)} className="snap-item group block w-[240px] shrink-0 sm:w-[260px]">
               <div className="aspect-[4/3] overflow-hidden rounded-lg bg-gray-100">
                 {a.gambar ? (
                   // eslint-disable-next-line @next/next/no-img-element

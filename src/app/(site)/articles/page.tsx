@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { prisma, safeQuery } from "@/lib/prisma";
 import Footer from "@/components/Footer";
+import { articleHref } from "@/lib/article-slug";
 
 export const dynamic = "force-dynamic";
 
@@ -43,7 +44,7 @@ export default async function ArticlesPage({ searchParams }: { searchParams: { p
                 {pageArticles.map((a) => (
                   <Link
                     key={a.id}
-                    href={`/articles/${a.id}`}
+                    href={articleHref(a)}
                     className="group block break-inside-avoid"
                   >
                     <div className="overflow-hidden rounded-lg bg-gray-100">
@@ -97,7 +98,7 @@ export default async function ArticlesPage({ searchParams }: { searchParams: { p
               <ul className="space-y-4">
                 {popular.map((a) => (
                   <li key={a.id}>
-                    <Link href={`/articles/${a.id}`} className="group flex gap-3">
+                    <Link href={articleHref(a)} className="group flex gap-3">
                       <div className="h-16 w-16 shrink-0 overflow-hidden rounded-md bg-gray-100">
                         {a.gambar ? (
                           // eslint-disable-next-line @next/next/no-img-element
