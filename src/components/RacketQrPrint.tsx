@@ -89,9 +89,9 @@ async function buildLabel(phone: string): Promise<HTMLCanvasElement> {
   const colX = M + qrSize + gapX;
   const colW = LABEL.w - colX - M;
   const logo = await loadImage("/logo-wordmark.png");
-  const logoW = colW;
+  const logoW = colW - 20; // ponytail: logo dikecilin dikit; ubah angka ini kalau mau beda
   const logoH = Math.round(logoW / (logo.width / logo.height));
-  const lines = ["scan QR untuk", "semua detail", "informasimu"];
+  const lines = ["Scan QR untuk", "semua detail", "informasimu"];
   const lineH = 28;
   const stackH = logoH + gapY + lines.length * lineH;
   let y = Math.round((LABEL.h - stackH) / 2);
