@@ -132,7 +132,7 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
         </div>
         <div className="mt-5">
           <h1 className="text-2xl font-extrabold leading-tight">Leaderboard</h1>
-          <p className="mt-1.5 text-sm text-white/80">Paling banyak stringing</p>
+          <p className="mt-1.5 text-sm text-white/80">Top stringing of the month</p>
         </div>
         {/* Switch lokasi */}
         <div className="mt-5 flex gap-1 rounded-full bg-white/15 p-1">
