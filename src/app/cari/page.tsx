@@ -9,10 +9,8 @@ export default function CariPage() {
     <div className="mx-auto min-h-screen max-w-md bg-gray-50 pb-24">
       <header className="rounded-b-[1.25rem] bg-gradient-to-br from-primaryDark to-primary px-5 pb-10 pt-10 text-white">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-white">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="Tirtonic" className="h-8 w-8 object-contain" />
-          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.png" alt="Tirtonic" className="h-11 w-11 object-contain" />
           <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">Tirtonic Stringing Room</span>
         </div>
         <div className="mt-7">

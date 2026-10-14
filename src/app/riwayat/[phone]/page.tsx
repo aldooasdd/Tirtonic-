@@ -54,10 +54,8 @@ export default async function RiwayatPage({ params }: { params: { phone: string 
       <header className="rounded-b-[1.25rem] bg-gradient-to-br from-primaryDark to-primary px-5 pb-10 pt-10 text-white">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-white">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo.png" alt="Tirtonic" className="h-8 w-8 object-contain" />
-            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.png" alt="Tirtonic" className="h-11 w-11 object-contain" />
             <div>
               <p className="text-base font-bold leading-tight">{name ?? "Halo!"}</p>
               <p className="text-xs text-white/70">{phone ? displayPhone(phone) : "Nomor tidak valid"}</p>
