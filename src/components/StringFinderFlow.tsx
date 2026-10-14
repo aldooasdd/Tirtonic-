@@ -634,8 +634,9 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
             ))}
           </div>
 
-          <div className="mt-8 text-center">
-            <button onClick={() => { setPhase("quiz"); setStep(0); }} className="text-sm font-semibold text-gray-500 hover:text-gray-900">Ulangi kuesioner</button>
+          <div className="mt-8 flex items-center justify-between gap-3">
+            <button onClick={() => { setPhase("quiz"); setStep(0); }} className="rounded-full border border-gray-300 px-5 py-2.5 text-sm font-semibold text-gray-600 transition hover:border-gray-400 hover:text-gray-900">← Ulangi kuesioner</button>
+            <button onClick={openCatalog} className="rounded-full border border-primary px-5 py-2.5 text-sm font-semibold text-primary transition hover:bg-primary/5">Pilih senar sendiri →</button>
           </div>
         </div>
       </Shell>
@@ -707,7 +708,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
     return (
       <Shell>
         <div className="mx-auto max-w-5xl">
-          <button onClick={() => setPhase(selected ? "order" : "choice")} className="mb-4 text-sm font-semibold text-gray-500 hover:text-gray-900">← Kembali</button>
+          <button onClick={() => setPhase(selected ? "order" : rec && rec.picks.length ? "results" : "choice")} className="mb-4 text-sm font-semibold text-gray-500 hover:text-gray-900">← Kembali</button>
           <h1 className="text-2xl font-extrabold text-gray-900 sm:text-3xl">Pilih senar sendiri</h1>
           <p className="mt-1 text-gray-600">Semua senar di toko. Pilih satu, lalu langsung lanjut stringing.</p>
           <input
