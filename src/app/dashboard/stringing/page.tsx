@@ -96,8 +96,8 @@ export default async function StringingQueuePage({ searchParams }: { searchParam
                       <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${BADGE[o.status]}`}>{LABEL[o.status]}</span>
                       {o.branch?.name && <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-bold text-primary">{o.branch.name}</span>}
                       {o.result && (o.result.condition === "manual"
-                        ? <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-semibold text-gray-600">Input sendiri</span>
-                        : <span className="rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-semibold text-indigo-700">Finder</span>)}
+                        ? <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-semibold text-gray-600">Tirtonic Team</span>
+                        : <span className="rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-semibold text-indigo-700">String Finder</span>)}
                       <span className="font-mono text-sm font-bold text-primary">{o.resultCode}</span>
                       <span className="text-xs text-gray-400">{fmt(o.createdAt)}</span>
                     </div>
