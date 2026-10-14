@@ -20,6 +20,13 @@ const LABEL: Record<string, string> = {
   antri: "Antri", dikerjakan: "Dikerjakan", selesai: "Selesai", batal: "Batal",
 };
 
+// Daftar stringer. Tambah/hapus nama = edit baris ini.
+const STRINGERS = [
+  "Yopi", "Indy", "Edo", "Delfia", "Aldi",
+  "Mutia", "Mawa", "Gifari", "Afi", "Lala",
+  "Irvan", "Rahma", "N Taufiq", "Taufiq", "Jose",
+];
+
 function fmt(d: Date) {
   return new Date(d).toLocaleString("id-ID", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 }
@@ -109,7 +116,10 @@ export default async function StringingQueuePage({ searchParams }: { searchParam
 
                     {o.status === "antri" && (
                       <form action={startStringing.bind(null, o.id)} className="flex items-center gap-1.5">
-                        <input name="stringer" required placeholder="Nama stringer" className="w-32 rounded-full border border-gray-300 px-3 py-1.5 text-xs focus:border-primary focus:outline-none" />
+                        <select name="stringer" required defaultValue="" className="w-32 rounded-full border border-gray-300 px-3 py-1.5 text-xs focus:border-primary focus:outline-none">
+                          <option value="" disabled>Pilih stringer</option>
+                          {STRINGERS.map((s) => <option key={s} value={s}>{s}</option>)}
+                        </select>
                         <button className="rounded-full bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90">Mulai kerjakan</button>
                       </form>
                     )}
