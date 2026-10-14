@@ -1,10 +1,40 @@
 import { Prisma } from "@prisma/client";
+import { unstable_cache } from "next/cache";
 import { prisma, safeQuery } from "@/lib/prisma";
 import ShopClient from "@/components/ShopClient";
 import Footer from "@/components/Footer";
 import { Suspense } from "react";
 
 export const dynamic = "force-dynamic";
+
+const PER = 48;
+
+// Cache hasil query per-kombinasi filter (120 dtk). Tanpa ini tiap kunjungan
+// nge-query 500+ produk ke Supabase (Tokyo) → respon ~5 dtk & egress boros.
+// Argumen diserialisasi jadi cache key otomatis oleh unstable_cache.
+const getShopProducts = unstable_cache(
+  async (whereJson: string, sort: string | undefined, page: number) => {
+    const where = JSON.parse(whereJson) as Prisma.ProductWhereInput;
+    return prisma.product.findMany({
+      where,
+      orderBy: orderBy(sort),
+      take: PER + 1,
+      skip: (page - 1) * PER,
+      include: { _count: { select: { variants: true } }, variants: { select: { warna: true, ukuran: true, stok: true }, orderBy: { urutan: "asc" } } },
+    });
+  },
+  ["shop-products"],
+  { revalidate: 120, tags: ["products"] }
+);
+
+const getShopBrands = unstable_cache(
+  async () => {
+    const rows = await prisma.product.findMany({ where: { brand: { not: null } }, distinct: ["brand"], select: { brand: true } });
+    return rows.map((r) => r.brand!).filter(Boolean).sort();
+  },
+  ["shop-brands"],
+  { revalidate: 300, tags: ["products"] }
+);
 
 type SP = { sort?: string; size?: string; brand?: string; type?: string; q?: string; price?: string; page?: string; deal?: string };
 
@@ -42,29 +72,13 @@ export default async function ShopPage({ searchParams }: { searchParams: SP }) {
     { variants: { none: {} }, stok: null }, // non-varian, stok tak terbatas
   ];
 
-  // Pagination server-side: 48/halaman. Tanpa ini query ngambil 500+ produk + semua
-  // variannya tiap request (force-dynamic) → respon ~5 dtk & egress DB boros.
-  const PER = 48;
+  // Pagination server-side: 48/halaman (+1 buat deteksi halaman berikutnya).
   const page = Math.max(1, parseInt(searchParams.page || "1", 10) || 1);
 
-  const [products, brandRows] = await Promise.all([
-    safeQuery(
-      () =>
-        prisma.product.findMany({
-          where,
-          orderBy: orderBy(searchParams.sort),
-          take: PER + 1, // +1 buat deteksi ada halaman berikutnya
-          skip: (page - 1) * PER,
-          include: { _count: { select: { variants: true } }, variants: { select: { warna: true, ukuran: true, stok: true }, orderBy: { urutan: "asc" } } },
-        }),
-      []
-    ),
-    safeQuery(
-      () => prisma.product.findMany({ where: { brand: { not: null } }, distinct: ["brand"], select: { brand: true } }),
-      []
-    ),
+  const [products, brands] = await Promise.all([
+    safeQuery(() => getShopProducts(JSON.stringify(where), searchParams.sort, page), []),
+    safeQuery(() => getShopBrands(), []),
   ]);
-  const brands = brandRows.map((r) => r.brand!).filter(Boolean).sort();
 
   // Label varian untuk panel hover: pakai sumbu ukuran kalau ada, kalau tidak
   // pakai warna (mis. sepatu, warna = ukuran). sold = semua stok label itu 0.
