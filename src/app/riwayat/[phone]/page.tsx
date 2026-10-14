@@ -52,7 +52,7 @@ export default async function RiwayatPage({ params }: { params: { phone: string 
         </div>
         <div className="mt-7">
           <p className="text-4xl font-extrabold leading-none">{orders.length}</p>
-          <p className="mt-1.5 text-sm text-white/80">Total stringing kamu di Tirtonic</p>
+          <p className="mt-1.5 text-sm text-white/80">Total stringing di Tirtonic</p>
         </div>
       </header>
 
