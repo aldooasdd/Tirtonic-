@@ -687,12 +687,9 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
 
             {err && <p className="mt-3 text-sm text-red-600">{err}</p>}
 
-            <div className="mt-5 flex flex-col gap-2 sm:flex-row">
-              <button onClick={submitOrder} disabled={submitting || !wa.trim()} className="btn-green flex-1 py-3 disabled:opacity-40">
+            <div className="mt-5">
+              <button onClick={submitOrder} disabled={submitting || !wa.trim()} className="btn-green w-full py-3 disabled:opacity-40">
                 {submitting ? "Mengirim…" : "Mulai stringing"}
-              </button>
-              <button onClick={openCatalog} disabled={submitting} className="flex-1 rounded-full border border-primary py-3 text-sm font-semibold text-primary transition hover:bg-primary/5 disabled:opacity-40">
-                Pilih senar sendiri
               </button>
             </div>
           </div>
