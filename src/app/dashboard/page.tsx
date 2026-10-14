@@ -36,7 +36,7 @@ export default async function AdminDashboard() {
   const hasPanel = (["produk", "kupon", "artikel", "hero", "store", "brand", "sponsor"] as const).some((x) => can(x));
 
   // Role tanpa panel di halaman ini (mis. Stringer) → langsung ke halaman kerjanya.
-  const NAV_ROUTE: Record<string, string> = { stringing: "/dashboard/stringing", pesanan: "/dashboard/orders", trafik: "/dashboard/trafik", kasir: "/dashboard/kasir" };
+  const NAV_ROUTE: Record<string, string> = { stringing: "/dashboard/stringing", pesanan: "/dashboard/orders", trafik: "/dashboard/trafik" };
   if (!hasPanel && role && role.sections !== "all") {
     const target = role.sections.map((s) => NAV_ROUTE[s]).find(Boolean);
     if (target) redirect(target);
@@ -78,11 +78,6 @@ export default async function AdminDashboard() {
             {can("stringing") && (
               <Link href="/dashboard/stringing" className="text-sm font-medium text-gray-500 hover:text-primary">
                 Stringing
-              </Link>
-            )}
-            {can("kasir") && (
-              <Link href="/dashboard/kasir" className="text-sm font-medium text-gray-500 hover:text-primary">
-                Kasir
               </Link>
             )}
             {can("trafik") && (

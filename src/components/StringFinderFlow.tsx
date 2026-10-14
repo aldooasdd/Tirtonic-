@@ -707,11 +707,11 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
             Senar <strong>{p.name}</strong>{tension ? <> · tarikan <strong>Main {tension}{tensionCross ? ` / Cross ${tensionCross}` : ""} lbs</strong></> : null}{racketStr ? <> · raket <strong>{racketStr}</strong></> : null}.
           </p>
 
-          {/* Bayar dulu di kasir — pakai kode ini */}
+          {/* Kode pesanan — buat referensi & ambil raket */}
           <div className="mt-5 rounded-2xl border-2 border-primary bg-primary/5 px-6 py-5">
-            <p className="text-sm font-semibold text-primary">Tunjukkan kode ini ke kasir untuk bayar</p>
+            <p className="text-sm font-semibold text-primary">Kode pesananmu</p>
             <p className="mt-1 text-3xl font-extrabold tracking-wider text-primary">{rec.code}</p>
-            <p className="mt-1 text-xs text-gray-500">Senar dipasang setelah pembayaran lunas.</p>
+            <p className="mt-1 text-xs text-gray-500">Simpan kode ini untuk ambil raket.</p>
           </div>
 
           <div className="mt-4 rounded-xl bg-green-50 px-5 py-3 text-sm text-green-800">
