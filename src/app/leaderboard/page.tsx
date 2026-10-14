@@ -46,13 +46,35 @@ function PodiumSlot({ row, rank }: { row: Row; rank: number }) {
   );
 }
 
-export default async function LeaderboardPage({ searchParams }: { searchParams: { loc?: string } }) {
+export default async function LeaderboardPage({ searchParams }: { searchParams: { loc?: string; ym?: string } }) {
   const loc = searchParams.loc && LOCS.has(searchParams.loc) ? searchParams.loc : "global";
 
-  const now = new Date();
-  const start = new Date(now.getFullYear(), now.getMonth(), 1);
-  const end = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-  const bulan = now.toLocaleDateString("id-ID", { month: "long", year: "numeric" });
+  // Bulan yang dilihat: dari ?ym=YYYY-MM, default bulan ini. Tidak boleh ke masa depan.
+  const real = new Date();
+  const curY = real.getFullYear();
+  const curM = real.getMonth();
+  let y = curY, m = curM;
+  const ymMatch = searchParams.ym?.match(/^(\d{4})-(\d{2})$/);
+  if (ymMatch) {
+    const yy = Number(ymMatch[1]);
+    const mi = Number(ymMatch[2]) - 1;
+    if (mi >= 0 && mi <= 11 && (yy < curY || (yy === curY && mi <= curM))) { y = yy; m = mi; }
+  }
+  const start = new Date(y, m, 1);
+  const end = new Date(y, m + 1, 1);
+  const bulanShort = start.toLocaleDateString("id-ID", { month: "short", year: "numeric" });
+
+  // URL ke leaderboard dgn lokasi + bulan tertentu (ym dihilangkan kalau bulan ini).
+  const mkUrl = (locV: string, yy: number, mm: number) => {
+    const p = new URLSearchParams();
+    if (locV !== "global") p.set("loc", locV);
+    if (!(yy === curY && mm === curM)) p.set("ym", `${yy}-${String(mm + 1).padStart(2, "0")}`);
+    const qs = p.toString();
+    return qs ? `/leaderboard?${qs}` : "/leaderboard";
+  };
+  const prev = new Date(y, m - 1, 1);
+  const next = new Date(y, m + 1, 1);
+  const canNext = next <= new Date(curY, curM, 1);
 
   const orders = await prisma.sfOrder.findMany({
     where: { createdAt: { gte: start, lt: end }, ...(loc !== "global" ? { branch: { slug: loc } } : {}) },
@@ -80,11 +102,37 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
   return (
     <div className="mx-auto min-h-screen max-w-md bg-gray-50 pb-24">
       <header className="rounded-b-[1.25rem] bg-gradient-to-br from-primaryDark to-primary px-5 pb-8 pt-10 text-white">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logo.png" alt="Tirtonic" className="h-11 w-11 object-contain" />
+        <div className="flex items-start justify-between">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.png" alt="Tirtonic" className="h-11 w-11 object-contain" />
+          {/* Pilih bulan (pojok kanan atas) */}
+          <div className="flex items-center gap-1 rounded-full bg-white/15 px-1.5 py-1">
+            <Link
+              href={mkUrl(loc, prev.getFullYear(), prev.getMonth())}
+              aria-label="Bulan sebelumnya"
+              className="flex h-6 w-6 items-center justify-center rounded-full text-white/90 hover:bg-white/20"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6" /></svg>
+            </Link>
+            <span className="min-w-[4.5rem] text-center text-xs font-bold">{bulanShort}</span>
+            {canNext ? (
+              <Link
+                href={mkUrl(loc, next.getFullYear(), next.getMonth())}
+                aria-label="Bulan berikutnya"
+                className="flex h-6 w-6 items-center justify-center rounded-full text-white/90 hover:bg-white/20"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6" /></svg>
+              </Link>
+            ) : (
+              <span className="flex h-6 w-6 items-center justify-center text-white/25">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6" /></svg>
+              </span>
+            )}
+          </div>
+        </div>
         <div className="mt-5">
           <h1 className="text-2xl font-extrabold leading-tight">Leaderboard</h1>
-          <p className="mt-1.5 text-sm text-white/80">Paling banyak stringing · {bulan}</p>
+          <p className="mt-1.5 text-sm text-white/80">Paling banyak stringing</p>
         </div>
         {/* Switch lokasi */}
         <div className="mt-5 flex gap-1 rounded-full bg-white/15 p-1">
@@ -96,7 +144,7 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
           ].map((o) => (
             <Link
               key={o.v}
-              href={o.v === "global" ? "/leaderboard" : `/leaderboard?loc=${o.v}`}
+              href={mkUrl(o.v, y, m)}
               className={`flex-1 rounded-full py-1.5 text-center text-xs font-semibold transition ${o.v === loc ? "bg-white text-primary shadow-sm" : "text-white/80 hover:text-white"}`}
             >
               {o.label}
@@ -108,7 +156,7 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
       {rows.length === 0 ? (
         <div className="-mt-6 px-4">
           <p className="rounded-2xl border border-gray-100 bg-white p-8 text-center text-sm text-gray-400 shadow-sm">
-            Belum ada stringing bulan ini.
+            Belum ada stringing di {bulanShort}.
           </p>
         </div>
       ) : (
