@@ -1,0 +1,39 @@
+import Link from "next/link";
+
+const ICONS = {
+  home: <><path d="M3 10.5 12 3l9 7.5" /><path d="M5 9.5V21h14V9.5" /></>,
+  shop: <><path d="M6 2 4 6v13a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V6l-2-4Z" /><path d="M4 6h16" /><path d="M16 10a4 4 0 0 1-8 0" /></>,
+  trophy: <><path d="M6 4h12v4a6 6 0 0 1-12 0Z" /><path d="M6 6H3v2a3 3 0 0 0 3 3" /><path d="M18 6h3v2a3 3 0 0 1-3 3" /><path d="M9 20h6" /><path d="M12 14v6" /></>,
+  event: <><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></>,
+  search: <><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></>,
+};
+
+type Key = "home" | "shop" | "leaderboard" | "event" | "search";
+
+// Navbar bawah ala app (capsule terbang). Shop → /shop, Search → /cari.
+// Leaderboard & Event masih placeholder (fitur nyusul).
+export default function StringingBottomNav({ active, phone }: { active: Key; phone?: string | null }) {
+  const items: { key: Key; label: string; href: string; icon: JSX.Element }[] = [
+    { key: "home", label: "Home", href: phone ? `/riwayat/${encodeURIComponent(phone)}` : "/cari", icon: ICONS.home },
+    { key: "shop", label: "Shop", href: "/shop", icon: ICONS.shop },
+    { key: "leaderboard", label: "Leaderboard", href: "#", icon: ICONS.trophy },
+    { key: "event", label: "Event", href: "#", icon: ICONS.event },
+    { key: "search", label: "Search", href: "/cari", icon: ICONS.search },
+  ];
+  return (
+    <nav className="fixed inset-x-0 bottom-4 z-20 mx-auto max-w-md px-4">
+      <div className="flex items-stretch justify-around rounded-full border border-gray-100 bg-white/95 px-2 py-1.5 shadow-[0_8px_30px_rgba(0,0,0,0.12)] backdrop-blur">
+        {items.map((it) => (
+          <Link
+            key={it.key}
+            href={it.href}
+            className={`flex min-h-[48px] flex-1 flex-col items-center justify-center gap-0.5 rounded-full py-1.5 text-[11px] font-semibold transition ${it.key === active ? "text-primary" : "text-gray-400 hover:text-gray-600"}`}
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{it.icon}</svg>
+            <span>{it.label}</span>
+          </Link>
+        ))}
+      </div>
+    </nav>
+  );
+}
