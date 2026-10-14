@@ -32,8 +32,9 @@ function PodiumSlot({ row, rank }: { row: Row; rank: number }) {
   return (
     <Link href={`/riwayat/${encodeURIComponent(row.phone)}`} className="flex flex-1 flex-col items-center">
       <div className="relative">
-        <div className={`flex items-center justify-center rounded-full bg-primary/10 font-extrabold text-primary ring-4 ${ring} ${big ? "h-20 w-20 text-2xl" : "h-16 w-16 text-xl"}`}>
-          {nama.trim().charAt(0).toUpperCase()}
+        <div className={`flex items-center justify-center rounded-full bg-primary/5 ring-4 ${ring} ${big ? "h-20 w-20" : "h-16 w-16"}`}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.png" alt="" className={big ? "h-12 w-12 object-contain" : "h-10 w-10 object-contain"} />
         </div>
         <span className={`absolute -top-1.5 right-0 flex h-6 w-6 items-center justify-center rounded-full text-xs font-extrabold ring-2 ring-gray-50 ${rankStyle(rank)}`}>{rank}</span>
       </div>
@@ -123,8 +124,9 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
                       className="flex items-center gap-3 rounded-2xl border border-gray-100 bg-white p-3 shadow-sm transition hover:border-primary/40"
                     >
                       <span className="w-5 shrink-0 text-center text-sm font-bold text-gray-400">{i + 4}</span>
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
-                        {nama.trim().charAt(0).toUpperCase()}
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/5">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src="/logo.png" alt="" className="h-6 w-6 object-contain" />
                       </div>
                       <p className="min-w-0 flex-1 truncate font-semibold text-gray-900">{nama}</p>
                       <span className="shrink-0 rounded-full border border-gray-200 px-3 py-0.5 text-sm font-bold text-gray-800">{r.n}</span>
