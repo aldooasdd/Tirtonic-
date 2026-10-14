@@ -3,8 +3,11 @@ import { prisma, safeQuery } from "@/lib/prisma";
 import Footer from "@/components/Footer";
 import ProductDetail from "@/components/ProductDetail";
 import ProductCard from "@/components/ProductCard";
+import ViewBeacon from "@/components/ViewBeacon";
 
-export const dynamic = "force-dynamic";
+// ISR: halaman produk di-cache 5 menit → DB cuma dibaca sekali per 5 menit (hemat egress),
+// bukan tiap kunjungan/crawler. Stok/harga telat maks 5 menit — oke buat toko.
+export const revalidate = 300;
 
 export default async function ProductPage({ params }: { params: { id: string } }) {
   const p = await safeQuery(
@@ -16,9 +19,6 @@ export default async function ProductPage({ params }: { params: { id: string } }
     null
   );
   if (!p) notFound();
-
-  // Count the view — fire-and-forget so it never blocks or breaks the page render.
-  prisma.product.update({ where: { id: p.id }, data: { views: { increment: 1 } } }).catch(() => {});
 
   const related = await safeQuery(
     () =>
@@ -33,6 +33,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
 
   return (
     <>
+      <ViewBeacon id={p.id} />
       <ProductDetail
         p={{
           id: p.id,

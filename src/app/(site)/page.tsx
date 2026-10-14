@@ -10,7 +10,8 @@ function fmtTanggal(d: Date) {
   return d.toLocaleDateString("id-ID", { weekday: "short", day: "numeric", month: "short", year: "numeric" });
 }
 
-export const dynamic = "force-dynamic";
+// ISR: beranda di-cache 2 menit → hemat egress DB (gak query tiap kunjungan/crawler).
+export const revalidate = 120;
 
 type StoreItem = { id: string; nama: string; alamat: string; jam: string | null; foto: string | null; maps: string | null };
 

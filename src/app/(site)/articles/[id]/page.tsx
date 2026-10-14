@@ -2,7 +2,8 @@ import { notFound } from "next/navigation";
 import { prisma, safeQuery } from "@/lib/prisma";
 import Footer from "@/components/Footer";
 
-export const dynamic = "force-dynamic";
+// ISR: artikel di-cache 5 menit → hemat egress DB.
+export const revalidate = 300;
 
 export default async function ArticleDetail({ params }: { params: { id: string } }) {
   const a = await safeQuery(() => prisma.article.findUnique({ where: { id: params.id } }), null);
