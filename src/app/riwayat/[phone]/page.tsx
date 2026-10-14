@@ -92,35 +92,31 @@ export default async function RiwayatPage({ params }: { params: { phone: string 
             </div>
           </div>
 
-          {/* Semua stringing (list) */}
+          {/* Semua stringing (tabel) */}
           <div className="mt-5 px-4">
-            <h2 className="mb-2.5 font-bold text-gray-900">Semua stringing</h2>
-            <div className="space-y-2.5">
-              {orders.map((o) => {
-                const meta = [
-                  o.tensionLbs ? `Tarikan ${o.tensionLbs}${o.tensionCrossLbs ? `/${o.tensionCrossLbs}` : ""} lbs` : null,
-                  o.racket ? `Raket ${o.racket}` : null,
-                  o.stringerName ? `Stringer ${o.stringerName}` : null,
-                ].filter((m): m is string => m != null);
-                return (
-                  <div key={o.resultCode} className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <p className="truncate font-semibold text-gray-900">{o.chosenString ?? "—"}</p>
-                        <p className="mt-0.5 text-xs text-gray-400">
-                          {new Date(o.createdAt).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })} · {o.resultCode}
-                        </p>
-                      </div>
-                      <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold ${badge(o.status)}`}>{STATUS_LABEL[o.status] ?? o.status}</span>
-                    </div>
-                    {meta.length > 0 && (
-                      <div className="mt-2 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-gray-500">
-                        {meta.map((m) => <span key={m}>{m}</span>)}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+            <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white">
+              <div className="border-b border-gray-100 px-5 py-4"><h2 className="font-bold text-gray-900">Semua stringing</h2></div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-100 text-left text-xs font-semibold text-gray-500">
+                      <th className="px-5 py-3">Tanggal</th><th className="px-5 py-3">Senar</th><th className="px-5 py-3">Tarikan</th><th className="px-5 py-3">Raket</th><th className="px-5 py-3">Stringer</th><th className="px-5 py-3">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {orders.map((o) => (
+                      <tr key={o.resultCode} className="border-b border-gray-50 last:border-0">
+                        <td className="whitespace-nowrap px-5 py-3 text-gray-500">{new Date(o.createdAt).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</td>
+                        <td className="px-5 py-3 font-medium text-gray-900">{o.chosenString ?? "—"}</td>
+                        <td className="whitespace-nowrap px-5 py-3 text-gray-700">{o.tensionLbs ? `${o.tensionLbs}${o.tensionCrossLbs ? `/${o.tensionCrossLbs}` : ""} lbs` : "—"}</td>
+                        <td className="px-5 py-3 text-gray-700">{o.racket ?? "—"}</td>
+                        <td className="px-5 py-3 text-gray-700">{o.stringerName ?? "—"}</td>
+                        <td className="px-5 py-3"><span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${badge(o.status)}`}>{STATUS_LABEL[o.status] ?? o.status}</span></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </>
