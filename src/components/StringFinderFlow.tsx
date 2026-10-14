@@ -79,17 +79,17 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
     setRacketTypes([]);
   }
 
-  // Auto-reset 60 dtk setelah selesai, biar siap untuk customer berikutnya.
+  // Auto-reset 10 dtk setelah selesai, biar siap untuk customer berikutnya.
   useEffect(() => {
-    if (!kiosk || phase !== "done") { setResetIn(0); return; }
-    setResetIn(60);
+    if (phase !== "done") { setResetIn(0); return; }
+    setResetIn(10);
     const t = setInterval(() => setResetIn((n) => {
       if (n <= 1) { clearInterval(t); resetAll(); return 0; }
       return n - 1;
     }), 1000);
     return () => clearInterval(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [kiosk, phase]);
+  }, [phase]);
 
   // Label raket untuk disimpan & ditampilkan, mis. "Power · 100 in²".
   const headNum = parseInt(racketHead, 10);
@@ -717,14 +717,12 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
           <div className="mt-4 rounded-xl bg-green-50 px-5 py-3 text-sm text-green-800">
             Detail resep juga sudah dikirim ke WhatsApp <strong>{wa}</strong>. Kami kabari lagi begitu senar selesai dipasang.
           </div>
-          {kiosk && (
-            <div className="mt-8">
-              <button onClick={resetAll} className="rounded-full bg-gray-900 px-8 py-3 text-sm font-semibold text-white hover:bg-gray-700">
-                Selesai — mulai dari awal
-              </button>
-              <p className="mt-3 text-xs text-gray-400">Otomatis kembali ke awal dalam {resetIn} detik</p>
-            </div>
-          )}
+          <div className="mt-8">
+            <button onClick={resetAll} className="rounded-full bg-gray-900 px-8 py-3 text-sm font-semibold text-white hover:bg-gray-700">
+              Selesai — mulai dari awal
+            </button>
+            <p className="mt-3 text-xs text-gray-400">Otomatis kembali ke awal dalam {resetIn} detik</p>
+          </div>
         </div>
       </Shell>
     );
