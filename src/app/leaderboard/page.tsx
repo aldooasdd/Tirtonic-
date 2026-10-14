@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import StringingBottomNav from "@/components/StringingBottomNav";
-import LeaderboardLocation from "@/components/LeaderboardLocation";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Leaderboard Stringing — Tirtonic", robots: { index: false } };
@@ -80,17 +79,29 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
 
   return (
     <div className="mx-auto min-h-screen max-w-md bg-gray-50 pb-24">
-      <header className="rounded-b-[1.25rem] bg-gradient-to-br from-primaryDark to-primary px-5 pb-10 pt-10 text-white">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="Tirtonic" className="h-11 w-11 object-contain" />
-          </div>
-          <LeaderboardLocation value={loc} />
-        </div>
-        <div className="mt-6">
+      <header className="rounded-b-[1.25rem] bg-gradient-to-br from-primaryDark to-primary px-5 pb-8 pt-10 text-white">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logo.png" alt="Tirtonic" className="h-11 w-11 object-contain" />
+        <div className="mt-5">
           <h1 className="text-2xl font-extrabold leading-tight">Leaderboard</h1>
           <p className="mt-1.5 text-sm text-white/80">Paling banyak stringing · {bulan}</p>
+        </div>
+        {/* Switch lokasi */}
+        <div className="mt-5 flex gap-1 rounded-full bg-white/15 p-1">
+          {[
+            { v: "global", label: "Global" },
+            { v: "jogja", label: "Jogja" },
+            { v: "solo", label: "Solo" },
+            { v: "semarang", label: "Semarang" },
+          ].map((o) => (
+            <Link
+              key={o.v}
+              href={o.v === "global" ? "/leaderboard" : `/leaderboard?loc=${o.v}`}
+              className={`flex-1 rounded-full py-1.5 text-center text-xs font-semibold transition ${o.v === loc ? "bg-white text-primary shadow-sm" : "text-white/80 hover:text-white"}`}
+            >
+              {o.label}
+            </Link>
+          ))}
         </div>
       </header>
 
