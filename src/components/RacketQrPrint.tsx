@@ -83,11 +83,12 @@ async function buildLabel(phone: string): Promise<HTMLCanvasElement> {
   await QRCode.toCanvas(qrCanvas, url, { width: qrSize, margin: 1, errorCorrectionLevel: "M" });
   ctx.drawImage(qrCanvas, M, Math.round((LABEL.h - qrSize) / 2), qrSize, qrSize);
 
-  // Logo di kanan, isi sisa lebar, center vertikal
-  const x = M + qrSize + 12;
-  const logoW = LABEL.w - x - M;
+  // Logo di kanan — dikecilin (0.7× sisa lebar), center di area sisa & vertikal
+  const area = LABEL.w - (M + qrSize + 12) - M; // lebar sisa buat logo
+  const logoW = Math.round(area * 0.7);
   const logo = await loadImage("/logo-wordmark.png");
   const logoH = Math.round(logoW / (logo.width / logo.height));
+  const x = M + qrSize + 12 + Math.round((area - logoW) / 2); // center horizontal di area sisa
   ctx.drawImage(logo, x, Math.round((LABEL.h - logoH) / 2), logoW, logoH);
 
   return canvas;
