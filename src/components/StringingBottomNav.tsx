@@ -17,7 +17,7 @@ export default function StringingBottomNav({ active, phone }: { active: Key; pho
     { key: "home", label: "Home", href: phone ? `/riwayat/${encodeURIComponent(phone)}` : "/cari", icon: ICONS.home },
     { key: "shop", label: "Shop", href: "/shop", icon: ICONS.shop },
     { key: "leaderboard", label: "Leaderboard", href: "/leaderboard", icon: ICONS.trophy },
-    { key: "event", label: "Event", href: "#", icon: ICONS.event },
+    { key: "event", label: "Event", href: "/event", icon: ICONS.event },
     { key: "search", label: "Search", href: "/cari", icon: ICONS.search },
   ];
   return (

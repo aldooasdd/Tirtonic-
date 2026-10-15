@@ -344,3 +344,65 @@ model RolePassword {
   hash      String
   updatedAt DateTime @updatedAt
 }
+
+// ──────────────── Event Demo Produk (brand → komunitas) ────────────────
+
+// Akun komunitas tenis wilayah. Password = instagram + 3 angka (dikirim via WA).
+model Community {
+  id           String      @id @default(cuid())
+  name         String
+  logo         String?
+  waPhone      String // 62xxx — penanggung jawab komunitas
+  instagram    String      @unique // username tanpa @ (dipakai juga untuk login)
+  passwordHash String
+  createdAt    DateTime    @default(now())
+  claims       DemoClaim[]
+}
+
+// Kampanye demo yang dibuat toko (brand, produk, periode). Komunitas mengklaim ini.
+model DemoCampaign {
+  id          String      @id @default(cuid())
+  brand       String
+  productType String // jenis produk yang didemokan
+  title       String
+  description String
+  banner      String?
+  startDate   DateTime // periode tersedia (mulai)
+  endDate     DateTime // periode tersedia (selesai)
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  claims      DemoClaim[]
+}
+
+// Klaim demo oleh komunitas atas sebuah kampanye → jadi acara setelah di-ACC toko.
+model DemoClaim {
+  id            String            @id @default(cuid())
+  campaignId    String
+  campaign      DemoCampaign      @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  communityId   String
+  community     Community         @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  court         String // lapangan tenis
+  quotaType     String // "closed" (kuota fix) | "open" (orang bisa join dari web)
+  quota         Int // minimal 10
+  demoDate      DateTime // tanggal demo mulai
+  eventPicPhone String // 62xxx — penanggung jawab acara
+  status        String            @default("pending") // pending | accepted | rejected
+  createdAt     DateTime          @default(now())
+  participants  DemoParticipant[]
+
+  @@index([status])
+  @@index([communityId])
+}
+
+// Peserta yang join acara demo "open" dari web — perlu di-ACC komunitas.
+model DemoParticipant {
+  id        String    @id @default(cuid())
+  claimId   String
+  claim     DemoClaim @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  name      String
+  phone     String // 62xxx
+  status    String    @default("pending") // pending | accepted | rejected
+  createdAt DateTime  @default(now())
+
+  @@index([claimId])
+}

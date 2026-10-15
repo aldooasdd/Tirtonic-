@@ -80,6 +80,11 @@ export default async function AdminDashboard() {
                 Stringing
               </Link>
             )}
+            {can("event") && (
+              <Link href="/dashboard/event" className="text-sm font-medium text-gray-500 hover:text-primary">
+                Event
+              </Link>
+            )}
             {can("trafik") && (
               <Link href="/dashboard/trafik" className="text-sm font-medium text-gray-500 hover:text-primary">
                 Trafik

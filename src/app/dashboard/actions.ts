@@ -9,6 +9,7 @@ import { uploadFile, uploadFromUrl, storageConfigured } from "@/lib/storage";
 import { fetchTokopedia } from "@/lib/tokopedia";
 import { markOrderPaid, markOrderShipped, cancelOrder } from "@/lib/orders";
 import { slugify } from "@/lib/article-slug";
+import { sendWa } from "@/lib/wa";
 
 /** Slug unik untuk artikel: dari judul, tambah -2/-3 kalau bentrok. */
 async function uniqueArticleSlug(judul: string, excludeId?: string): Promise<string> {
@@ -502,4 +503,59 @@ export async function changePassword(_prev: PasswordState, formData: FormData): 
   if (!(await roleMatches(role.key, lama))) return { error: "Kata sandi lama salah." };
   await setRolePassword(role.key, baru);
   return { ok: true };
+}
+
+// ──────────────── Event Demo: Kampanye & Klaim (admin) ────────────────
+
+export async function createCampaign(formData: FormData) {
+  requireSection("event");
+  const brand = ((formData.get("brand") as string) || "").trim();
+  const productType = ((formData.get("productType") as string) || "").trim();
+  const title = ((formData.get("title") as string) || "").trim();
+  const description = ((formData.get("description") as string) || "").trim();
+  const startRaw = (formData.get("startDate") as string) || "";
+  const endRaw = (formData.get("endDate") as string) || "";
+  if (!brand || !title || !productType) throw new Error("Brand, judul, dan jenis produk wajib diisi.");
+  if (!startRaw || !endRaw) throw new Error("Periode mulai & selesai wajib diisi.");
+  const banner = await uploadOneImage(formData, "events"); // input name="gambar"
+  await prisma.demoCampaign.create({
+    data: { brand, productType, title, description, banner, startDate: new Date(startRaw), endDate: new Date(endRaw) },
+  });
+  revalidatePath("/dashboard/event");
+  revalidatePath("/event");
+  redirect("/dashboard/event");
+}
+
+export async function toggleCampaign(id: string) {
+  requireSection("event");
+  const c = await prisma.demoCampaign.findUnique({ where: { id }, select: { isActive: true } });
+  if (c) await prisma.demoCampaign.update({ where: { id }, data: { isActive: !c.isActive } });
+  revalidatePath("/dashboard/event");
+  revalidatePath("/event");
+}
+
+export async function deleteCampaign(id: string) {
+  requireSection("event");
+  await prisma.demoCampaign.delete({ where: { id } });
+  revalidatePath("/dashboard/event");
+  revalidatePath("/event");
+}
+
+/** ACC / tolak klaim demo komunitas → kirim WA ke penanggung jawab acara. */
+export async function decideClaim(id: string, decision: "accepted" | "rejected") {
+  requireSection("event");
+  const claim = await prisma.demoClaim.update({
+    where: { id },
+    data: { status: decision },
+    include: { campaign: { select: { brand: true, title: true } }, community: { select: { name: true } } },
+  });
+  const tgl = claim.demoDate.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+  const msg =
+    decision === "accepted"
+      ? `✅ *Demo DITERIMA!*\n\nAcara demo ${claim.campaign.brand} — ${claim.campaign.title}\nKomunitas: ${claim.community.name}\nLapangan: ${claim.court}\nTanggal: ${tgl}\n\nAcara sudah masuk ke dashboard komunitas & tampil di halaman Event Tirtonic. Siap-siap ya! 🎾`
+      : `❌ *Demo belum bisa kami terima*\n\nPengajuan demo ${claim.campaign.brand} (${claim.community.name}) untuk ${tgl} belum bisa kami proses kali ini. Silakan hubungi admin Tirtonic untuk info lebih lanjut. Terima kasih 🙏`;
+  await sendWa(claim.eventPicPhone, msg);
+  revalidatePath("/dashboard/event");
+  revalidatePath("/event");
+  revalidatePath("/komunitas");
 }

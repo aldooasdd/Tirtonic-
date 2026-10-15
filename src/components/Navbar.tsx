@@ -10,6 +10,7 @@ import { useShopCart } from "./ShopCartProvider";
 const MENU = [
   { href: "/", label: "Home" },
   { href: "/shop", label: "Shop" },
+  { href: "/event", label: "Event" },
   { href: "/articles", label: "Articles" },
   { href: "/contact", label: "Contact" },
   { href: "/sponsorship", label: "Sponsorship" },
