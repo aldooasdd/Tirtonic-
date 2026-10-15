@@ -49,7 +49,7 @@ export default async function KomunitasHome() {
   const claims = await safeQuery(
     () =>
       prisma.demoClaim.findMany({
-        where: { communityId: community.id },
+        where: { communityId: community.id, status: { not: "rejected" } }, // history ditolak disembunyikan
         orderBy: { demoDate: "desc" },
         include: {
           campaign: { select: { brand: true, title: true } },
@@ -126,7 +126,8 @@ export default async function KomunitasHome() {
               const meta = PHASE_META[phase];
               const tgl = c.demoDate.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
               const open = c.quotaType === "open";
-              const accepted = c.participants.filter((p) => p.status === "accepted").length;
+              const acceptedParts = c.participants.filter((p) => p.status === "accepted");
+              const accepted = acceptedParts.length;
               const pendingParts = c.participants.filter((p) => p.status === "pending");
 
               return (
@@ -173,8 +174,22 @@ export default async function KomunitasHome() {
                     </div>
                   )}
 
+                  {/* Peserta terdaftar (sudah diterima) */}
+                  {open && acceptedParts.length > 0 && (
+                    <div className="mt-3 rounded-xl border border-gray-100 p-3">
+                      <p className="mb-2 text-xs font-bold text-gray-700">{acceptedParts.length} peserta terdaftar</p>
+                      <div className="space-y-1.5">
+                        {acceptedParts.map((p) => (
+                          <div key={p.id} className="flex items-center justify-between gap-2 text-sm">
+                            <span className="truncate font-semibold text-gray-800">{p.name}</span>
+                            <a href={`https://wa.me/${p.phone}`} target="_blank" rel="noreferrer" className="shrink-0 text-xs font-semibold text-primary hover:underline">{p.phone} ↗</a>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {phase === "pending" && <p className="mt-2 text-xs text-amber-600">Menunggu persetujuan Tirtonic.</p>}
-                  {phase === "rejected" && <p className="mt-2 text-xs text-red-500">Pengajuan ditolak Tirtonic.</p>}
                 </div>
               );
             })}
