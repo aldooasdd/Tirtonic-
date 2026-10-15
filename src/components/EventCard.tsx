@@ -7,9 +7,9 @@ export type EventCardData = {
   quotaType: string;
   quota: number;
   demoDate: Date;
+  time: string;
   status: string;
   acceptedCount: number;
-  sessionCount: number;
   campaign: { brand: string; title: string; productType: string; banner: string | null };
   community: { name: string; logo: string | null };
 };
@@ -20,8 +20,7 @@ export default function EventCard({ e }: { e: EventCardData }) {
   const phase = phaseOf(e);
   const meta = PHASE_META[phase];
   const open = e.quotaType === "open";
-  const cap = e.quota * Math.max(1, e.sessionCount);
-  const sisa = Math.max(0, cap - e.acceptedCount);
+  const sisa = Math.max(0, e.quota - e.acceptedCount);
   const canJoin = open && (phase === "coming_soon" || phase === "ongoing") && sisa > 0;
 
   return (
@@ -59,8 +58,8 @@ export default function EventCard({ e }: { e: EventCardData }) {
             {open ? "Open · bisa join" : "Closed"}
           </span>
           <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] text-gray-500">{e.campaign.brand}</span>
-          {e.sessionCount > 0 && <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] text-gray-500">{e.sessionCount} sesi</span>}
-          {open && phase !== "done" && <span className="text-[11px] text-gray-400">Sisa {sisa}</span>}
+          {e.time && <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] text-gray-500">🕒 {e.time}</span>}
+          {open && phase !== "done" && <span className="text-[11px] text-gray-400">Sisa {sisa}/{e.quota}</span>}
         </div>
 
         {/* Join acara — di atas stretched link (z-2) biar bisa diklik terpisah */}

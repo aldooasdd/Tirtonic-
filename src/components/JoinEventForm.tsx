@@ -1,24 +1,19 @@
 "use client";
 
-import { useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import { joinEvent, JoinState } from "@/app/event/actions";
-
-export type SessionSlot = { index: number; time: string; sisa: number; full: boolean };
 
 function Btn() {
   const { pending } = useFormStatus();
   return (
     <button type="submit" disabled={pending} className="btn-green w-full py-3 disabled:opacity-60">
-      {pending ? "Mengirim…" : "Join acara ini"}
+      {pending ? "Mengirim…" : "Join sesi ini"}
     </button>
   );
 }
 
-export default function JoinEventForm({ claimId, sessions }: { claimId: string; sessions: SessionSlot[] }) {
+export default function JoinEventForm({ claimId }: { claimId: string }) {
   const [state, action] = useFormState<JoinState, FormData>(joinEvent, {});
-  const firstOpen = sessions.find((s) => !s.full);
-  const [picked, setPicked] = useState<number | null>(firstOpen ? firstOpen.index : null);
 
   if (state.ok) {
     return (
@@ -32,28 +27,6 @@ export default function JoinEventForm({ claimId, sessions }: { claimId: string; 
   return (
     <form action={action} className="space-y-3">
       <input type="hidden" name="claimId" value={claimId} />
-      <input type="hidden" name="sessionIndex" value={picked ?? ""} />
-
-      <div>
-        <label className="label">Pilih sesi *</label>
-        <div className="mt-1 grid grid-cols-2 gap-2">
-          {sessions.map((s) => (
-            <button
-              key={s.index}
-              type="button"
-              disabled={s.full}
-              onClick={() => setPicked(s.index)}
-              className={`rounded-xl border px-3 py-2 text-left text-sm transition disabled:cursor-not-allowed disabled:opacity-50 ${
-                picked === s.index ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-gray-200"
-              }`}
-            >
-              <span className="block font-bold text-gray-900">Sesi {s.index + 1} · {s.time}</span>
-              <span className="block text-xs text-gray-500">{s.full ? "Penuh" : `Sisa ${s.sisa}`}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
       <div>
         <label className="label">Nama kamu</label>
         <input name="name" required className="field" placeholder="Nama lengkap" />

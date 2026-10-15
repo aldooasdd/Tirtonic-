@@ -50,28 +50,22 @@ export default function ClaimForm({ campaignId }: { campaignId: string }) {
       </div>
 
       <div>
-        <label className="label">{quotaType === "open" ? "Maksimal peserta / sesi *" : "Jumlah peserta / sesi *"}</label>
+        <label className="label">{quotaType === "open" ? "Maksimal peserta *" : "Jumlah peserta *"}</label>
         <input name="quota" required type="number" min={10} defaultValue={10} className="field" />
-        <p className="mt-1 text-xs text-gray-400">Minimal 10 orang, berlaku per sesi.</p>
+        <p className="mt-1 text-xs text-gray-400">Minimal 10 orang (untuk sesi ini).</p>
       </div>
 
-      <div>
-        <label className="label">Tanggal demo *</label>
-        <input name="demoDate" required type="date" className="field" />
-      </div>
-
-      <div>
-        <label className="label">4 sesi waktu demo *</label>
-        <div className="mt-1 grid grid-cols-2 gap-2">
-          {["08:00", "10:00", "13:00", "15:00"].map((t, i) => (
-            <div key={i}>
-              <span className="mb-0.5 block text-xs text-gray-400">Sesi {i + 1}</span>
-              <input name={`session${i}`} required type="time" defaultValue={t} className="field" />
-            </div>
-          ))}
+      <div className="grid grid-cols-2 gap-2">
+        <div>
+          <label className="label">Tanggal sesi *</label>
+          <input name="demoDate" required type="date" className="field" />
         </div>
-        <p className="mt-1 text-xs text-gray-400">4 sesi dalam 1 hari, atur jamnya sesuai komunitasmu.</p>
+        <div>
+          <label className="label">Jam sesi *</label>
+          <input name="time" required type="time" defaultValue="08:00" className="field" />
+        </div>
       </div>
+      <p className="-mt-2 text-xs text-gray-400">1 pengajuan = 1 sesi. Mau beberapa sesi? Ajukan lagi dengan jam berbeda.</p>
 
       <div>
         <label className="label">Nomor WhatsApp penanggung jawab acara *</label>

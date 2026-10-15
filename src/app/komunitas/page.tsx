@@ -143,17 +143,10 @@ export default async function KomunitasHome() {
                   </div>
 
                   <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
-                    <span>📅 {tgl}</span>
+                    <span>📅 {tgl}{c.time ? ` · ${c.time}` : ""}</span>
                     <span>📍 {c.court}</span>
-                    <span>{open ? `👥 Open · ${c.quota}/sesi` : `👥 Closed · ${c.quota}/sesi`}</span>
+                    <span>{open ? `👥 Open · ${accepted}/${c.quota}` : `👥 Closed · ${c.quota}`}</span>
                   </div>
-                  {c.sessions.length > 0 && (
-                    <div className="mt-1.5 flex flex-wrap gap-1">
-                      {c.sessions.map((t, i) => (
-                        <span key={i} className="rounded-full bg-primary/5 px-2 py-0.5 text-[10px] font-semibold text-primary">Sesi {i + 1} · {t}</span>
-                      ))}
-                    </div>
-                  )}
 
                   {/* Peserta menunggu konfirmasi (acara open) */}
                   {open && phase !== "done" && phase !== "pending" && pendingParts.length > 0 && (
@@ -164,7 +157,7 @@ export default async function KomunitasHome() {
                           <div key={p.id} className="flex items-center justify-between gap-2">
                             <div className="min-w-0">
                               <p className="truncate text-sm font-semibold text-gray-800">{p.name}</p>
-                              <p className="text-xs text-gray-400">{p.phone} · Sesi {p.sessionIndex + 1}{c.sessions[p.sessionIndex] ? ` (${c.sessions[p.sessionIndex]})` : ""}</p>
+                              <p className="text-xs text-gray-400">{p.phone}</p>
                             </div>
                             <div className="flex shrink-0 gap-1.5">
                               <form action={decideParticipant.bind(null, p.id, "accepted")}>

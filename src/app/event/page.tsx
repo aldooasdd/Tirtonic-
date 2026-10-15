@@ -36,8 +36,8 @@ export default async function EventLanding() {
     quota: c.quota,
     demoDate: c.demoDate,
     status: c.status,
+    time: c.time,
     acceptedCount: c.participants.filter((p) => p.status === "accepted").length,
-    sessionCount: c.sessions.length,
     campaign: c.campaign,
     community: c.community,
   }));

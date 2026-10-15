@@ -384,9 +384,9 @@ model DemoClaim {
   community     Community         @relation(fields: [communityId], references: [id], onDelete: Cascade)
   court         String // lapangan tenis
   quotaType     String // "closed" (kuota fix) | "open" (orang bisa join dari web)
-  quota         Int // minimal 10 — kuota PER SESI
-  demoDate      DateTime // tanggal demo
-  sessions      String[] // 4 jam sesi "HH:mm" yang diatur komunitas
+  quota         Int // minimal 10 — kuota sesi ini
+  demoDate      DateTime // tanggal sesi
+  time          String   @default("") // jam sesi "HH:mm" yang diatur komunitas (1 card = 1 sesi)
   eventPicPhone String // 62xxx — penanggung jawab acara
   status        String            @default("pending") // pending | accepted | rejected
   createdAt     DateTime          @default(now())
@@ -401,11 +401,10 @@ model DemoParticipant {
   id        String    @id @default(cuid())
   claimId   String
   claim     DemoClaim @relation(fields: [claimId], references: [id], onDelete: Cascade)
-  name         String
-  phone        String // 62xxx
-  sessionIndex Int       @default(0) // sesi ke-berapa (0..3)
-  status       String    @default("pending") // pending | accepted | rejected
-  createdAt    DateTime  @default(now())
+  name      String
+  phone     String // 62xxx
+  status    String    @default("pending") // pending | accepted | rejected
+  createdAt DateTime  @default(now())
 
   @@index([claimId])
 }
