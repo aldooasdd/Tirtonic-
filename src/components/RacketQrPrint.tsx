@@ -2,17 +2,17 @@
 
 import { useState } from "react";
 
-// Cetak stiker QR raket ke printer label NIIMBOT B21-PRO lewat Web Bluetooth
+// Cetak stiker QR raket ke printer label NIIMBOT lewat Web Bluetooth
 // (niimbluelib). HANYA jalan di Chrome Android. QR membuka /riwayat/<nomor>.
 //
-// ponytail: knob hardware di bawah ini perlu dituning langsung di printer —
-// kalau hasil cetak kebalik/kepotong/ukuran salah, ubah di sini, bukan di logika.
-const LABEL = { w: 591, h: 236 }; // dots: label 5×2 cm @300dpi (seperti sebelumnya)
-const PRINT_DIRECTION: "top" | "left" = "top"; // putar kalau orientasi kebalik
+// ponytail: ukuran label dikunci 50×20mm, TAPI dimensi dot dihitung dari dpi
+// printer yang benar-benar kesambung (203 vs 300dpi beda jauh) + dibatasi lebar
+// printhead. Dulu di-hardcode 591px/300dpi → di printer 203dpi konten jadi ~74mm
+// (kebesaran) dan kepotong di kanan. Task cetak & arah juga diambil dari printer.
+const LABEL_MM = { w: 50, h: 20 };
 const DENSITY = 3; // 1–5; naikkan kalau hasil tipis
-// Nama "task" cetak (bukan nama model). B21-PRO pakai D110M_V4 (per contoh resmi
-// niimblue). Kalau gagal/kosong, coba "B21_V1" atau "B1".
-const PRINT_TASK = "D110M_V4" as const;
+const FALLBACK_DPI = 203; // kalau model tak terdeteksi (B-series umumnya 203dpi)
+const FALLBACK_TASK = "D110M_V4" as const; // kalau task tak terdeteksi
 
 export default function RacketQrPrint({ phone, className, label = "Cetak stiker QR raket" }: { phone: string; className?: string; label?: string }) {
   const [busy, setBusy] = useState(false);
@@ -21,14 +21,22 @@ export default function RacketQrPrint({ phone, className, label = "Cetak stiker 
 
   async function print() {
     setBusy(true); setErr(false); setMsg("Menyambungkan ke printer…");
+    let client: Awaited<ReturnType<typeof connect>> | undefined;
     try {
-      const canvas = await buildLabel(phone);
       const nb = await import("@mmote/niimbluelib");
-      const client = nb.instantiateClient("bluetooth");
+      client = nb.instantiateClient("bluetooth");
       await client.connect(); // memunculkan pemilih perangkat Web Bluetooth
+
+      // Pakai spesifikasi printer yang beneran kesambung, bukan asumsi.
+      const meta = client.getModelMetadata();
+      const dpi = meta?.dpi ?? FALLBACK_DPI;
+      const direction = meta?.printDirection ?? "top";
+      const taskType = client.getPrintTaskType() ?? FALLBACK_TASK;
+
       setMsg("Mencetak…");
-      const encoded = nb.ImageEncoder.encodeCanvas(canvas, nb.PageColorType.SingleColor, PRINT_DIRECTION);
-      const printTask = client.protocol.newPrintTask(PRINT_TASK, {
+      const canvas = await buildLabel(phone, dpi, meta?.printheadPixels);
+      const encoded = nb.ImageEncoder.encodeCanvas(canvas, nb.PageColorType.SingleColor, direction);
+      const printTask = client.protocol.newPrintTask(taskType, {
         totalPages: 1,
         statusPollIntervalMs: 100,
         statusTimeoutMs: 8_000,
@@ -45,6 +53,7 @@ export default function RacketQrPrint({ phone, className, label = "Cetak stiker 
     } catch (e) {
       setErr(true);
       setMsg(e instanceof Error ? e.message : "Gagal mencetak. Pastikan printer nyala, Bluetooth aktif, dan pakai Chrome Android.");
+      try { await client?.disconnect(); } catch { /* abaikan */ }
     } finally {
       setBusy(false);
     }
@@ -64,44 +73,61 @@ export default function RacketQrPrint({ phone, className, label = "Cetak stiker 
   );
 }
 
-// Gambar label 5×2cm: QR di kiri, kolom kanan (logo + teks 3 baris) rata kiri.
-async function buildLabel(phone: string): Promise<HTMLCanvasElement> {
+// hanya untuk inferensi tipe client (niimbluelib di-import dinamis)
+async function connect() {
+  const nb = await import("@mmote/niimbluelib");
+  return nb.instantiateClient("bluetooth");
+}
+
+const mm2dots = (mm: number, dpi: number) => Math.round((mm / 25.4) * dpi);
+
+// Gambar label 50×20mm: QR di kiri, kolom kanan (logo + teks 3 baris) rata kiri.
+// Dimensi & layout diskalakan dari dpi printer; referensi layout = 236 dot tinggi.
+async function buildLabel(phone: string, dpi: number, headPx?: number): Promise<HTMLCanvasElement> {
+  let w = mm2dots(LABEL_MM.w, dpi);
+  const h = mm2dots(LABEL_MM.h, dpi);
+  if (headPx && w > headPx) w = headPx; // jangan lebihi lebar printhead
+
   const canvas = document.createElement("canvas");
-  canvas.width = LABEL.w;
-  canvas.height = LABEL.h;
+  canvas.width = w;
+  canvas.height = h;
   const ctx = canvas.getContext("2d")!;
   ctx.fillStyle = "#fff";
-  ctx.fillRect(0, 0, LABEL.w, LABEL.h);
+  ctx.fillRect(0, 0, w, h);
 
-  const M = 24; // margin aman tiap sisi
-  const gapX = 26; // jarak QR ↔ kolom kanan
-  const gapY = 12; // jarak logo ↔ teks
+  // Skala layout relatif tinggi referensi 236 dot (desain lama @300dpi/20mm).
+  const s = h / 236;
+  const M = Math.round(24 * s); // margin aman tiap sisi
+  const gapX = Math.round(26 * s); // jarak QR ↔ kolom kanan
+  const gapY = Math.round(12 * s); // jarak logo ↔ teks
+  const lineH = Math.round(28 * s);
+  const fontPx = Math.round(22 * s);
+  const logoShrink = Math.round(22 * s);
 
   // QR kiri, isi tinggi label, center vertikal
   const QRCode = (await import("qrcode")).default;
-  const qrSize = LABEL.h - M * 2;
+  const qrSize = h - M * 2;
   const qrCanvas = document.createElement("canvas");
   const url = `${window.location.origin}/riwayat/${encodeURIComponent(phone)}`;
   await QRCode.toCanvas(qrCanvas, url, { width: qrSize, margin: 1, errorCorrectionLevel: "M" });
-  ctx.drawImage(qrCanvas, M, Math.round((LABEL.h - qrSize) / 2), qrSize, qrSize);
+  ctx.drawImage(qrCanvas, M, Math.round((h - qrSize) / 2), qrSize, qrSize);
 
   // Kolom kanan: logo + teks, semua rata kiri di kolom.
   const colX = M + qrSize + gapX;
-  const colW = LABEL.w - colX - M;
+  const colW = w - colX - M;
   const logo = await loadImage("/logo-wordmark.png");
-  const logoW = colW - 22; // ponytail: logo dikecilin dikit; ubah angka ini kalau mau beda
+  const logoW = Math.max(1, colW - logoShrink);
   const logoH = Math.round(logoW / (logo.width / logo.height));
   const lines = ["Scan QR untuk", "semua detail", "informasimu"];
-  const lineH = 28;
   const stackH = logoH + gapY + lines.length * lineH;
-  let y = Math.round((LABEL.h - stackH) / 2);
+  let y = Math.round((h - stackH) / 2);
 
   ctx.drawImage(logo, colX, y, logoW, logoH);
   y += logoH + gapY;
   ctx.fillStyle = "#000";
   ctx.textAlign = "left";
   ctx.textBaseline = "top";
-  ctx.font = "22px Arial";
+  ctx.font = `${fontPx}px Arial`;
   for (const ln of lines) {
     ctx.fillText(ln, colX, y);
     y += lineH;
