@@ -541,6 +541,15 @@ export async function deleteCampaign(id: string) {
   revalidatePath("/event");
 }
 
+/** ACC brand: pindahkan kampanye dari "Coming soon" (rencana) ke "Now" (siap diklaim), atau sebaliknya. */
+export async function toggleBrandApproved(id: string) {
+  requireSection("event");
+  const c = await prisma.demoCampaign.findUnique({ where: { id }, select: { brandApproved: true } });
+  if (c) await prisma.demoCampaign.update({ where: { id }, data: { brandApproved: !c.brandApproved } });
+  revalidatePath("/dashboard/event");
+  revalidatePath("/event");
+}
+
 /** ACC / tolak klaim demo komunitas → kirim WA ke penanggung jawab acara. */
 export async function decideClaim(id: string, decision: "accepted" | "rejected") {
   requireSection("event");

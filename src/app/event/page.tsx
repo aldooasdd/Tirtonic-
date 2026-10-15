@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: "Event Demo Produk — Tirtonic", des
 
 export default async function EventLanding() {
   const [campaigns, claims] = await Promise.all([
-    safeQuery(() => prisma.demoCampaign.findMany({ where: { isActive: true }, orderBy: { createdAt: "desc" }, take: 12 }), []),
+    safeQuery(() => prisma.demoCampaign.findMany({ where: { isActive: true }, orderBy: { createdAt: "desc" }, take: 24 }), []),
     safeQuery(
       () =>
         prisma.demoClaim.findMany({
@@ -25,6 +25,10 @@ export default async function EventLanding() {
     ),
   ]);
 
+  // Kampanye: ACC brand → Now (siap diklaim); belum ACC → Coming soon.
+  const nowCampaigns = campaigns.filter((c) => c.brandApproved);
+  const soonCampaigns = campaigns.filter((c) => !c.brandApproved);
+
   const events: EventCardData[] = claims.map((c) => ({
     id: c.id,
     court: c.court,
@@ -36,11 +40,14 @@ export default async function EventLanding() {
     campaign: c.campaign,
     community: c.community,
   }));
-  // Feed: on going + coming soon, diurut tanggal, dikelompokkan per hari (timeline ala Luma).
-  const feed = events.filter((e) => ["ongoing", "coming_soon"].includes(phaseOf(e)));
+  // Acara terjadwal (belum lewat) → Now; sudah terlaksana → Lasted event.
+  const nowEvents = events.filter((e) => ["ongoing", "coming_soon"].includes(phaseOf(e)));
+  const lastedEvents = events.filter((e) => phaseOf(e) === "done").reverse(); // terbaru dulu
+
+  // Timeline per hari untuk acara di "Now" (ala Luma).
   const todayKey = new Date().toLocaleDateString("en-CA");
   const groups: { key: string; label: string; sub: string; items: EventCardData[] }[] = [];
-  for (const e of feed) {
+  for (const e of nowEvents) {
     const key = e.demoDate.toLocaleDateString("en-CA");
     let g = groups.find((x) => x.key === key);
     if (!g) {
@@ -54,6 +61,7 @@ export default async function EventLanding() {
     }
     g.items.push(e);
   }
+  const nowEmpty = nowCampaigns.length === 0 && groups.length === 0;
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
@@ -87,62 +95,114 @@ export default async function EventLanding() {
       </header>
 
       <main className="mx-auto max-w-5xl px-5 py-10 sm:px-8">
-        {/* Demo tersedia untuk diklaim */}
-        {campaigns.length > 0 && (
-          <section className="mb-10">
-            <h2 className="mb-3 text-lg font-bold text-gray-900">Demo tersedia untuk diklaim</h2>
-            <div className="flex gap-3 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              {campaigns.map((c) => (
-                <Link
-                  key={c.id}
-                  href="/komunitas"
-                  className="group w-64 shrink-0 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:border-primary/40 hover:shadow-md"
-                >
-                  <div className="relative h-28 bg-gradient-to-br from-primaryDark to-primary">
+        {/* NOW: demo siap diklaim + acara terjadwal */}
+        <section className="mb-12">
+          <div className="mb-4 flex items-center gap-2.5">
+            <span className="flex h-2 w-2 rounded-full bg-primary">
+              <span className="h-full w-full animate-ping rounded-full bg-primary" />
+            </span>
+            <h2 className="text-lg font-bold text-gray-900">Now</h2>
+            <span className="text-sm text-gray-400">Siap diklaim &amp; sedang berjalan</span>
+          </div>
+
+          {nowCampaigns.length > 0 && (
+            <div className="mb-6">
+              <p className="mb-2.5 text-sm font-semibold text-gray-500">Demo siap diklaim komunitas</p>
+              <div className="flex gap-3 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                {nowCampaigns.map((c) => (
+                  <Link
+                    key={c.id}
+                    href="/komunitas"
+                    className="group w-64 shrink-0 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:border-primary/40 hover:shadow-md"
+                  >
+                    <div className="relative h-28 bg-gradient-to-br from-primaryDark to-primary">
+                      {c.banner && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={c.banner} alt="" className="h-full w-full object-cover" />
+                      )}
+                      <span className="absolute left-2.5 top-2.5 rounded-full bg-black/40 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white backdrop-blur-sm">{c.brand}</span>
+                    </div>
+                    <div className="p-3.5">
+                      <h3 className="line-clamp-2 text-sm font-bold leading-snug text-gray-900">{c.title}</h3>
+                      <p className="mt-0.5 text-xs text-gray-400">{c.productType}</p>
+                      <span className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-bold text-white transition group-hover:bg-primaryDark">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M19 8v6M22 11h-6" /></svg>
+                        Join as komunitas
+                      </span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {groups.length > 0 && (
+            <div>
+              {nowCampaigns.length > 0 && <p className="mb-3 text-sm font-semibold text-gray-500">Acara terjadwal</p>}
+              {groups.map((g) => (
+                <div key={g.key} className="flex gap-4 sm:gap-6">
+                  <div className="w-20 shrink-0 pt-0.5 sm:w-32">
+                    <p className="text-sm font-bold text-gray-900">{g.label}</p>
+                    <p className="text-xs capitalize text-gray-400">{g.sub}</p>
+                  </div>
+                  <div className="relative flex-1 border-l border-gray-200 pb-8 pl-5 last:border-l-transparent sm:pl-6">
+                    <span className="absolute -left-[5px] top-1.5 h-2.5 w-2.5 rounded-full bg-primary ring-4 ring-gray-50" />
+                    <div className="space-y-3">
+                      {g.items.map((e) => <EventCard key={e.id} e={e} />)}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {nowEmpty && (
+            <div className="rounded-2xl border border-gray-200 bg-white p-10 text-center shadow-sm">
+              <p className="text-sm text-gray-500">Belum ada demo yang siap saat ini.</p>
+              <p className="mt-1 text-sm text-gray-400">Pantau terus, atau daftarkan komunitasmu untuk mulai.</p>
+            </div>
+          )}
+        </section>
+
+        {/* COMING SOON: kampanye belum ACC brand */}
+        {soonCampaigns.length > 0 && (
+          <section className="mb-12">
+            <div className="mb-4 flex items-center gap-2.5">
+              <h2 className="text-lg font-bold text-gray-900">Coming soon</h2>
+              <span className="text-sm text-gray-400">Lagi kami siapkan bareng brand</span>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {soonCampaigns.map((c) => (
+                <div key={c.id} className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+                  <div className="relative h-28 bg-gradient-to-br from-gray-300 to-gray-400">
                     {c.banner && (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={c.banner} alt="" className="h-full w-full object-cover" />
+                      <img src={c.banner} alt="" className="h-full w-full object-cover opacity-80" />
                     )}
                     <span className="absolute left-2.5 top-2.5 rounded-full bg-black/40 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white backdrop-blur-sm">{c.brand}</span>
+                    <span className="absolute right-2.5 top-2.5 rounded-full bg-white/90 px-2.5 py-0.5 text-[10px] font-bold text-gray-600 backdrop-blur-sm">Menunggu brand</span>
                   </div>
                   <div className="p-3.5">
                     <h3 className="line-clamp-2 text-sm font-bold leading-snug text-gray-900">{c.title}</h3>
                     <p className="mt-0.5 text-xs text-gray-400">{c.productType}</p>
-                    <span className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-bold text-white transition group-hover:bg-primaryDark">
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M19 8v6M22 11h-6" /></svg>
-                      Join as komunitas
-                    </span>
                   </div>
-                </Link>
+                </div>
               ))}
             </div>
           </section>
         )}
 
-        {/* Timeline acara */}
-        <h2 className="mb-5 text-lg font-bold text-gray-900">Acara</h2>
-        {groups.length === 0 ? (
-          <div className="rounded-2xl border border-gray-200 bg-white p-10 text-center shadow-sm">
-            <p className="text-sm text-gray-500">Belum ada acara demo terjadwal.</p>
-            <p className="mt-1 text-sm text-gray-400">Pantau terus, atau daftarkan komunitasmu untuk mulai.</p>
-          </div>
-        ) : (
-          <div>
-            {groups.map((g) => (
-              <div key={g.key} className="flex gap-4 sm:gap-6">
-                <div className="w-20 shrink-0 pt-0.5 sm:w-32">
-                  <p className="text-sm font-bold text-gray-900">{g.label}</p>
-                  <p className="text-xs capitalize text-gray-400">{g.sub}</p>
-                </div>
-                <div className="relative flex-1 border-l border-gray-200 pb-8 pl-5 last:border-l-transparent sm:pl-6">
-                  <span className="absolute -left-[5px] top-1.5 h-2.5 w-2.5 rounded-full bg-primary ring-4 ring-gray-50" />
-                  <div className="space-y-3">
-                    {g.items.map((e) => <EventCard key={e.id} e={e} />)}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+        {/* LASTED EVENT: demo yang sudah terlaksana */}
+        {lastedEvents.length > 0 && (
+          <section>
+            <div className="mb-4 flex items-center gap-2.5">
+              <h2 className="text-lg font-bold text-gray-900">Lasted event</h2>
+              <span className="text-sm text-gray-400">Demo yang sudah terlaksana</span>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {lastedEvents.map((e) => <EventCard key={e.id} e={e} />)}
+            </div>
+          </section>
         )}
       </main>
     </div>

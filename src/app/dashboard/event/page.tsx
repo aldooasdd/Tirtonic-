@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { isAuthed, can } from "@/lib/auth";
 import { prisma, safeQuery } from "@/lib/prisma";
-import { createCampaign, toggleCampaign, deleteCampaign, decideClaim } from "../actions";
+import { createCampaign, toggleCampaign, toggleBrandApproved, deleteCampaign, decideClaim } from "../actions";
 import { phaseOf, PHASE_META } from "@/lib/event-phase";
 import { displayPhone } from "@/lib/string-finder/phone";
 
@@ -150,12 +150,18 @@ export default async function AdminEvent() {
                     <p className="truncate font-medium text-gray-900">{c.title}</p>
                     <p className="text-xs text-gray-400">{c.brand} · {fmt(c.startDate)}–{fmt(c.endDate)}</p>
                   </div>
-                  <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${c.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-400"}`}>
-                    {c.isActive ? "Aktif" : "Nonaktif"}
+                  <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${c.brandApproved ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>
+                    {c.brandApproved ? "Now · ACC brand" : "Coming soon"}
                   </span>
+                  {!c.isActive && <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-bold text-gray-400">Nonaktif</span>}
+                  <form action={toggleBrandApproved.bind(null, c.id)}>
+                    <button className={`rounded-full px-3 py-1 text-xs font-semibold text-white ${c.brandApproved ? "bg-gray-400 hover:bg-gray-500" : "bg-primary hover:bg-primaryDark"}`}>
+                      {c.brandApproved ? "Batal ACC" : "ACC Brand"}
+                    </button>
+                  </form>
                   <form action={toggleCampaign.bind(null, c.id)}>
                     <button className="rounded-full border px-3 py-1 text-xs font-semibold text-gray-600 hover:border-primary hover:text-primary">
-                      {c.isActive ? "Nonaktifkan" : "Aktifkan"}
+                      {c.isActive ? "Sembunyikan" : "Tampilkan"}
                     </button>
                   </form>
                   <form action={deleteCampaign.bind(null, c.id)}>

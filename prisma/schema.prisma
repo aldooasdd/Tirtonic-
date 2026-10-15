@@ -366,12 +366,13 @@ model DemoCampaign {
   productType String // jenis produk yang didemokan
   title       String
   description String
-  banner      String?
-  startDate   DateTime // periode tersedia (mulai)
-  endDate     DateTime // periode tersedia (selesai)
-  isActive    Boolean     @default(true)
-  createdAt   DateTime    @default(now())
-  claims      DemoClaim[]
+  banner       String?
+  startDate    DateTime // periode tersedia (mulai)
+  endDate      DateTime // periode tersedia (selesai)
+  isActive     Boolean     @default(true)
+  brandApproved Boolean    @default(false) // true = sudah di-ACC brand → "Now" (siap diklaim); false = masih rencana → "Coming soon"
+  createdAt    DateTime    @default(now())
+  claims       DemoClaim[]
 }
 
 // Klaim demo oleh komunitas atas sebuah kampanye → jadi acara setelah di-ACC toko.
