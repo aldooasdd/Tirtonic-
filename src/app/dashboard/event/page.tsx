@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { isAuthed, can } from "@/lib/auth";
 import { prisma, safeQuery } from "@/lib/prisma";
-import { createCampaign, updateCampaign, toggleCampaign, approveCampaign, unapproveCampaign, deleteCampaign, decideClaim, decideCommunity, deleteCommunity } from "../actions";
+import { createCampaign, updateCampaign, toggleCampaign, approveCampaign, unapproveCampaign, deleteCampaign, decideClaim, deleteClaim, decideCommunity, deleteCommunity } from "../actions";
 import { phaseOf, PHASE_META } from "@/lib/event-phase";
 import { displayPhone } from "@/lib/string-finder/phone";
 
@@ -60,16 +60,21 @@ export default async function AdminEvent() {
           <span>{c.quotaType === "open" ? `👥 Open · ${accepted}/${c.quota}` : `👥 Closed · ${c.quota}`}</span>
           <a href={`https://wa.me/${c.eventPicPhone}`} target="_blank" rel="noreferrer" className="font-semibold text-primary hover:underline">PIC: {displayPhone(c.eventPicPhone)} ↗</a>
         </div>
-        {c.status === "pending" && (
-          <div className="mt-3 flex gap-2">
-            <form action={decideClaim.bind(null, c.id, "accepted")}>
-              <button className="rounded-full bg-primary px-4 py-1.5 text-xs font-bold text-white hover:bg-primaryDark">Terima</button>
-            </form>
-            <form action={decideClaim.bind(null, c.id, "rejected")}>
-              <button className="rounded-full border px-4 py-1.5 text-xs font-semibold text-gray-600 hover:border-red-400 hover:text-red-600">Tolak</button>
-            </form>
-          </div>
-        )}
+        <div className="mt-3 flex gap-2">
+          {c.status === "pending" && (
+            <>
+              <form action={decideClaim.bind(null, c.id, "accepted")}>
+                <button className="rounded-full bg-primary px-4 py-1.5 text-xs font-bold text-white hover:bg-primaryDark">Terima</button>
+              </form>
+              <form action={decideClaim.bind(null, c.id, "rejected")}>
+                <button className="rounded-full border px-4 py-1.5 text-xs font-semibold text-gray-600 hover:border-red-400 hover:text-red-600">Tolak</button>
+              </form>
+            </>
+          )}
+          <form action={deleteClaim.bind(null, c.id)} className="ml-auto">
+            <button className="rounded-full border px-4 py-1.5 text-xs font-semibold text-gray-500 hover:border-red-400 hover:text-red-600">Hapus</button>
+          </form>
+        </div>
       </div>
     );
   };

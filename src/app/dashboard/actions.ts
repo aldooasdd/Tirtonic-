@@ -609,6 +609,15 @@ export async function decideCommunity(id: string, decision: "accepted" | "reject
   revalidatePath("/dashboard/event");
 }
 
+/** Hapus 1 pengajuan/klaim demo (cascade: peserta ikut terhapus). */
+export async function deleteClaim(id: string) {
+  requireSection("event");
+  await prisma.demoClaim.delete({ where: { id } }).catch(() => {});
+  revalidatePath("/dashboard/event");
+  revalidatePath("/event");
+  revalidatePath("/komunitas");
+}
+
 /** Hapus akun komunitas (cascade: klaim demo & peserta ikut terhapus). */
 export async function deleteCommunity(id: string) {
   requireSection("event");
