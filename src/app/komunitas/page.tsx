@@ -4,6 +4,7 @@ import { prisma, safeQuery } from "@/lib/prisma";
 import { currentCommunity } from "@/lib/community-auth";
 import { logoutCommunity, decideParticipant } from "./actions";
 import { phaseOf, PHASE_META } from "@/lib/event-phase";
+import EventTopBar from "@/components/EventTopBar";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Komunitas — Tirtonic", robots: { index: false } };
@@ -15,30 +16,31 @@ export default async function KomunitasHome() {
   if (!community) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <header className="rounded-b-[1.5rem] bg-gradient-to-br from-primaryDark to-primary text-white sm:rounded-b-[2rem]">
-          <div className="mx-auto max-w-5xl px-5 pb-14 pt-12 sm:px-8 lg:pb-20 lg:pt-16">
-            <Link href="/event" className="inline-flex items-center gap-3 transition hover:opacity-90">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo.png" alt="Tirtonic" className="h-12 w-12 object-contain" />
-              <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">Event Demo Produk</span>
+        <EventTopBar right={<Link href="/event" className="text-sm font-medium text-gray-500 transition hover:text-primary">Semua event</Link>} />
+        <main className="mx-auto max-w-3xl px-5 py-10 sm:px-8 lg:py-14">
+          <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
+            <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Untuk komunitas tenis
+          </span>
+          <h1 className="mt-4 text-3xl font-extrabold leading-[1.1] tracking-tight text-gray-900 sm:text-4xl">Join as komunitas</h1>
+          <p className="mt-3 max-w-xl text-base text-gray-500">Bawa demo produk brand tenis ke komunitasmu. Daftarkan komunitas atau login untuk mulai.</p>
+
+          <div className="mt-8 grid gap-3 sm:grid-cols-2 sm:gap-4">
+            <Link href="/komunitas/daftar" className="group block rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition hover:border-primary/40 hover:shadow-md">
+              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M19 8v6M22 11h-6" /></svg>
+              </div>
+              <p className="text-lg font-bold text-gray-900">Daftar komunitas baru</p>
+              <p className="mt-0.5 text-sm text-gray-500">Isi data komunitas → password login dikirim via WhatsApp.</p>
             </Link>
-            <h1 className="mt-6 text-2xl font-extrabold leading-tight sm:text-3xl lg:text-4xl">Join as komunitas</h1>
-            <p className="mt-2 max-w-xl text-sm text-white/80 sm:text-base">Bawa demo produk brand tenis ke komunitasmu. Daftarkan komunitas atau login untuk mulai.</p>
-          </div>
-        </header>
-        <div className="mx-auto -mt-8 max-w-3xl px-4 sm:px-8">
-          <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
-            <Link href="/komunitas/daftar" className="block rounded-2xl bg-primary p-5 text-white shadow-sm transition hover:bg-primaryDark lg:p-6">
-              <p className="text-lg font-bold">Daftar komunitas baru</p>
-              <p className="mt-0.5 text-sm text-white/80">Isi data komunitas → password login dikirim via WhatsApp.</p>
-            </Link>
-            <Link href="/komunitas/login" className="block rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:border-primary/40 lg:p-6">
+            <Link href="/komunitas/login" className="group block rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition hover:border-primary/40 hover:shadow-md">
+              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-600">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3" /></svg>
+              </div>
               <p className="text-lg font-bold text-gray-900">Sudah punya akun</p>
               <p className="mt-0.5 text-sm text-gray-500">Login pakai username Instagram &amp; password.</p>
             </Link>
           </div>
-          <Link href="/event" className="mt-5 block text-center text-sm font-semibold text-primary">← Lihat semua event dulu</Link>
-        </div>
+        </main>
       </div>
     );
   }
@@ -71,49 +73,48 @@ export default async function KomunitasHome() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-16">
-      <header className="rounded-b-[1.5rem] bg-gradient-to-br from-primaryDark to-primary text-white sm:rounded-b-[2rem]">
-        <div className="mx-auto max-w-5xl px-5 pb-8 pt-10 sm:px-8 lg:pb-10 lg:pt-12">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white/15 lg:h-14 lg:w-14">
-                {community.logo ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={community.logo} alt="" className="h-full w-full object-cover" />
-                ) : (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src="/logo.png" alt="" className="h-6 w-6 object-contain" />
-                )}
-              </div>
-              <div>
-                <p className="text-base font-bold leading-tight lg:text-xl">{community.name}</p>
-                <p className="text-xs text-white/70">@{community.instagram}</p>
-              </div>
-            </div>
-            <form action={logoutCommunity}>
-              <button className="rounded-full bg-white/15 px-3 py-1.5 text-xs font-semibold text-white hover:bg-white/25">Logout</button>
-            </form>
-          </div>
+      <EventTopBar
+        right={
+          <form action={logoutCommunity}>
+            <button className="rounded-full border border-gray-200 px-4 py-1.5 text-sm font-medium text-gray-600 transition hover:border-red-300 hover:text-red-600">Logout</button>
+          </form>
+        }
+      />
 
-          <div className="mt-6 grid grid-cols-4 gap-2 sm:max-w-xl sm:gap-3">
-            {stats.map((s) => (
-              <div key={s.l} className="rounded-xl bg-white/10 p-2.5 text-center sm:p-3">
-                <p className="text-xl font-extrabold lg:text-2xl">{s.n}</p>
-                <p className="mt-0.5 text-[10px] leading-tight text-white/80 sm:text-xs">{s.l}</p>
-              </div>
-            ))}
+      <main className="mx-auto max-w-5xl px-5 py-8 sm:px-8">
+        {/* Identitas komunitas */}
+        <div className="flex items-center gap-3">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full border border-gray-200 bg-white">
+            {community.logo ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={community.logo} alt="" className="h-full w-full object-cover" />
+            ) : (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src="/logo.png" alt="" className="h-7 w-7 object-contain" />
+            )}
+          </div>
+          <div>
+            <h1 className="text-xl font-extrabold leading-tight text-gray-900 sm:text-2xl">{community.name}</h1>
+            <p className="text-sm text-gray-400">@{community.instagram}</p>
           </div>
         </div>
-      </header>
 
-      <div className="mx-auto -mt-5 max-w-5xl px-4 sm:px-8">
-        <Link href="/komunitas/klaim" className="flex items-center justify-center gap-2 rounded-2xl bg-primary py-3.5 font-bold text-white shadow-sm transition hover:bg-primaryDark sm:max-w-xs">
+        {/* Stats */}
+        <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {stats.map((s) => (
+            <div key={s.l} className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+              <p className={`text-2xl font-extrabold ${s.c}`}>{s.n}</p>
+              <p className="mt-0.5 text-xs font-medium text-gray-500">{s.l}</p>
+            </div>
+          ))}
+        </div>
+
+        <Link href="/komunitas/klaim" className="mt-5 flex items-center justify-center gap-2 rounded-full bg-primary py-3 font-bold text-white shadow-sm transition hover:bg-primaryDark sm:inline-flex sm:px-6">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14" /></svg>
           Ajukan demo baru
         </Link>
-      </div>
 
-      <section className="mx-auto mt-6 max-w-5xl px-4 sm:px-8">
-        <h2 className="mb-2.5 text-base font-bold text-gray-900">Demo komunitas</h2>
+        <h2 className="mb-2.5 mt-8 text-lg font-bold text-gray-900">Demo komunitas</h2>
         {claims.length === 0 ? (
           <p className="rounded-2xl border border-gray-100 bg-white p-8 text-center text-sm text-gray-400 shadow-sm">
             Belum ada demo. Pilih kampanye brand lalu ajukan demo untuk komunitasmu.
@@ -179,7 +180,7 @@ export default async function KomunitasHome() {
             })}
           </div>
         )}
-      </section>
+      </main>
     </div>
   );
 }

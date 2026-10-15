@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { prisma, safeQuery } from "@/lib/prisma";
 import { currentCommunityId } from "@/lib/community-auth";
 import ClaimForm from "@/components/ClaimForm";
+import EventTopBar from "@/components/EventTopBar";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Ajukan Demo — Tirtonic", robots: { index: false } };
@@ -17,17 +18,12 @@ export default async function KlaimPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-16">
-      <header className="rounded-b-[1.5rem] bg-gradient-to-br from-primaryDark to-primary text-white sm:rounded-b-[2rem]">
-        <div className="mx-auto max-w-2xl px-5 pb-8 pt-10 sm:px-8 lg:pb-10 lg:pt-12">
-          <Link href="/komunitas" className="mb-5 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/15">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6" /></svg>
-          </Link>
-          <h1 className="text-2xl font-extrabold leading-tight sm:text-3xl">Ajukan demo</h1>
-          <p className="mt-2 text-sm text-white/80 sm:text-base">Pilih kampanye demo brand, lalu isi detail acara di komunitasmu.</p>
-        </div>
-      </header>
+      <EventTopBar right={<Link href="/komunitas" className="text-sm font-medium text-gray-500 transition hover:text-primary">Kembali</Link>} />
+      <main className="mx-auto max-w-2xl px-5 py-8 sm:px-8">
+        <h1 className="text-2xl font-extrabold leading-tight tracking-tight text-gray-900 sm:text-3xl">Ajukan demo</h1>
+        <p className="mt-2 text-sm text-gray-500 sm:text-base">Pilih kampanye demo brand, lalu isi detail acara di komunitasmu.</p>
 
-      <div className="mx-auto mt-5 max-w-2xl px-4 sm:px-8">
+        <div className="mt-6">
         {campaigns.length === 0 ? (
           <p className="rounded-2xl border border-gray-100 bg-white p-8 text-center text-sm text-gray-400 shadow-sm">
             Belum ada kampanye demo yang tersedia. Pantau terus ya!
@@ -63,7 +59,8 @@ export default async function KlaimPage() {
             })}
           </div>
         )}
-      </div>
+        </div>
+      </main>
     </div>
   );
 }
