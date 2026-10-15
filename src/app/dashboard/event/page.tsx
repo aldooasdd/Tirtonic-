@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { isAuthed, can } from "@/lib/auth";
 import { prisma, safeQuery } from "@/lib/prisma";
-import { createCampaign, toggleCampaign, toggleBrandApproved, deleteCampaign, decideClaim, decideCommunity } from "../actions";
+import { createCampaign, toggleCampaign, toggleBrandApproved, deleteCampaign, decideClaim, decideCommunity, deleteCommunity } from "../actions";
 import { phaseOf, PHASE_META } from "@/lib/event-phase";
 import { displayPhone } from "@/lib/string-finder/phone";
 
@@ -13,7 +13,7 @@ export default async function AdminEvent() {
   if (!isAuthed()) redirect("/dashboard/login");
   if (!can("event")) redirect("/dashboard");
 
-  const [campaigns, claims, pendingCommunities] = await Promise.all([
+  const [campaigns, claims, communities] = await Promise.all([
     safeQuery(() => prisma.demoCampaign.findMany({ orderBy: { createdAt: "desc" } }), []),
     safeQuery(
       () =>
@@ -27,9 +27,11 @@ export default async function AdminEvent() {
         }),
       [],
     ),
-    safeQuery(() => prisma.community.findMany({ where: { status: "pending" }, orderBy: { createdAt: "desc" } }), []),
+    safeQuery(() => prisma.community.findMany({ orderBy: { createdAt: "desc" }, include: { _count: { select: { claims: true } } } }), []),
   ]);
 
+  const pendingCommunities = communities.filter((k) => k.status === "pending");
+  const otherCommunities = communities.filter((k) => k.status !== "pending");
   const pendingClaims = claims.filter((c) => c.status === "pending");
   const otherClaims = claims.filter((c) => c.status !== "pending");
   const fmt = (d: Date) => new Date(d).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
@@ -120,6 +122,41 @@ export default async function AdminEvent() {
                 </li>
               ))}
             </ul>
+          </div>
+        )}
+
+        {/* Komunitas terdaftar — kelola / hapus akun */}
+        {otherCommunities.length > 0 && (
+          <div className="overflow-hidden rounded-2xl border bg-white shadow-sm">
+            <div className="flex items-center justify-between border-b px-5 py-4">
+              <h2 className="font-bold text-gray-900">Komunitas terdaftar</h2>
+              <span className="text-xs text-gray-400">{otherCommunities.length} akun</span>
+            </div>
+            <ul className="divide-y">
+              {otherCommunities.map((k) => (
+                <li key={k.id} className="flex items-center gap-3 px-5 py-3">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-primaryDark to-primary">
+                    {k.logo ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={k.logo} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      <span className="text-[10px] font-bold uppercase text-white">{k.name.slice(0, 3)}</span>
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-medium text-gray-900">{k.name}</p>
+                    <p className="text-xs text-gray-500">
+                      @{k.instagram} · <a href={`https://wa.me/${k.waPhone}`} target="_blank" rel="noreferrer" className="font-semibold text-primary hover:underline">{displayPhone(k.waPhone)} ↗</a> · {k._count.claims} demo
+                    </p>
+                  </div>
+                  {k.status === "rejected" && <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-bold text-gray-400">Ditolak</span>}
+                  <form action={deleteCommunity.bind(null, k.id)}>
+                    <button className="rounded-full border px-4 py-1.5 text-xs font-semibold text-gray-500 hover:border-red-400 hover:text-red-600">Hapus akun</button>
+                  </form>
+                </li>
+              ))}
+            </ul>
+            <p className="border-t px-5 py-2.5 text-[11px] text-gray-400">Hapus akun otomatis menghapus semua demo &amp; peserta komunitas tsb.</p>
           </div>
         )}
 
