@@ -353,8 +353,9 @@ model Community {
   name         String
   logo         String?
   waPhone      String // 62xxx — penanggung jawab komunitas
-  instagram    String      @unique // username tanpa @ (dipakai juga untuk login)
-  passwordHash String
+  instagram    String      @unique // username tanpa @
+  passwordHash String      @default("") // diisi saat admin meng-ACC (password dikirim via WA)
+  status       String      @default("pending") // pending | accepted | rejected — harus di-ACC admin dulu
   createdAt    DateTime    @default(now())
   claims       DemoClaim[]
 }

@@ -129,7 +129,6 @@ export default async function EventDetail({ params }: { params: { id: string } }
                 <div>
                   <p className="text-xs text-gray-400">Diselenggarakan oleh</p>
                   <p className="text-sm font-semibold text-gray-900">{e.community.name} <span className="text-gray-400">×</span> Tirtonic Tennis Store</p>
-                  <p className="text-xs text-gray-400">@{e.community.instagram}</p>
                 </div>
               </div>
             </div>

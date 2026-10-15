@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { createSession, destroySession, isAuthed, requireSection, currentRole } from "@/lib/auth";
-import { findRoleByPassword, roleMatches, setRolePassword } from "@/lib/role-password";
+import { findRoleByPassword, roleMatches, setRolePassword, hashPassword } from "@/lib/role-password";
 import { uploadFile, uploadFromUrl, storageConfigured } from "@/lib/storage";
 import { fetchTokopedia } from "@/lib/tokopedia";
 import { markOrderPaid, markOrderShipped, cancelOrder } from "@/lib/orders";
@@ -548,6 +548,26 @@ export async function toggleBrandApproved(id: string) {
   if (c) await prisma.demoCampaign.update({ where: { id }, data: { brandApproved: !c.brandApproved } });
   revalidatePath("/dashboard/event");
   revalidatePath("/event");
+}
+
+/** ACC / tolak akun komunitas baru. ACC → buat password & kirim akses via WA. */
+export async function decideCommunity(id: string, decision: "accepted" | "rejected") {
+  requireSection("event");
+  const c = await prisma.community.findUnique({ where: { id } });
+  if (!c || c.status !== "pending") return;
+
+  if (decision === "accepted") {
+    const password = `${c.instagram}${Math.floor(100 + Math.random() * 900)}`;
+    await prisma.community.update({ where: { id }, data: { status: "accepted", passwordHash: hashPassword(password) } });
+    await sendWa(
+      c.waPhone,
+      `✅ *Akun komunitas ${c.name} disetujui!*\n\n*Akses login:*\nPassword: ${password}\n\nLogin di tirtonic.com/komunitas untuk klaim demo produk brand. Cukup pakai password ini. 🎾`,
+    );
+  } else {
+    await prisma.community.update({ where: { id }, data: { status: "rejected" } });
+    await sendWa(c.waPhone, `Mohon maaf, pendaftaran komunitas *${c.name}* belum bisa kami setujui saat ini. 🙏`);
+  }
+  revalidatePath("/dashboard/event");
 }
 
 /** ACC / tolak klaim demo komunitas → kirim WA ke penanggung jawab acara. */

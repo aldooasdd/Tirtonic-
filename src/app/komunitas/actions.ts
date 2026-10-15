@@ -3,13 +3,13 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { hashPassword, verifyHash } from "@/lib/role-password";
+import { verifyHash } from "@/lib/role-password";
 import { createCommunitySession, destroyCommunitySession, currentCommunityId } from "@/lib/community-auth";
-import { normalizePhone, displayPhone } from "@/lib/string-finder/phone";
+import { normalizePhone } from "@/lib/string-finder/phone";
 import { uploadFile, storageConfigured } from "@/lib/storage";
 import { sendWa } from "@/lib/wa";
 
-export type FormState = { error?: string };
+export type FormState = { error?: string; ok?: boolean };
 
 const cleanIg = (s: string) => s.trim().replace(/^@+/, "").replace(/[^a-zA-Z0-9._]/g, "").toLowerCase();
 
@@ -33,18 +33,16 @@ export async function registerCommunity(_prev: FormState, formData: FormData): P
     logo = await uploadFile(file, "communities");
   }
 
-  // Password otomatis = instagram + 3 angka acak (dikirim via WA, hanya hash disimpan).
-  const password = `${instagram}${Math.floor(100 + Math.random() * 900)}`;
-  const community = await prisma.community.create({
-    data: { name, instagram, waPhone, logo, passwordHash: hashPassword(password) },
+  // Akun baru harus di-ACC admin dulu. Password dibuat & dikirim saat admin meng-ACC.
+  await prisma.community.create({
+    data: { name, instagram, waPhone, logo, status: "pending" },
   });
-
-  createCommunitySession(community.id);
+  revalidatePath("/dashboard/event");
   await sendWa(
     waPhone,
-    `🎾 *Pendaftaran Komunitas Tirtonic berhasil!*\n\nKomunitas: ${name}\nInstagram: @${instagram}\nWhatsApp: ${displayPhone(waPhone)}\n\n*Akses login:*\nUsername: ${instagram}\nPassword: ${password}\n\nSimpan baik-baik ya. Login di tirtonic.com/komunitas untuk klaim demo produk brand. 🚀`,
+    `🎾 *Pendaftaran Komunitas Tirtonic diterima!*\n\nKomunitas: ${name}\nInstagram: @${instagram}\n\nAkun kamu sedang *ditinjau admin Tirtonic*. Password untuk login akan dikirim ke WhatsApp ini begitu disetujui. 🙏`,
   );
-  redirect("/komunitas");
+  return { ok: true };
 }
 
 export async function loginCommunity(_prev: FormState, formData: FormData): Promise<FormState> {
@@ -52,9 +50,9 @@ export async function loginCommunity(_prev: FormState, formData: FormData): Prom
   if (!password) return { error: "Password wajib diisi." };
   // Password = instagram+3digit (unik per komunitas). Cocokkan ke semua komunitas.
   // ponytail: O(n) scan — aman selama komunitas sedikit; pakai index kalau sudah ribuan.
-  const communities = await prisma.community.findMany();
-  const c = communities.find((x) => verifyHash(password, x.passwordHash));
-  if (!c) return { error: "Password salah." };
+  const communities = await prisma.community.findMany({ where: { status: "accepted" } });
+  const c = communities.find((x) => x.passwordHash && verifyHash(password, x.passwordHash));
+  if (!c) return { error: "Password salah, atau akun belum disetujui admin." };
   createCommunitySession(c.id);
   redirect("/komunitas");
 }
