@@ -16,6 +16,7 @@ function Btn() {
 export default function ClaimForm({ campaignId }: { campaignId: string }) {
   const [state, action] = useFormState<FormState, FormData>(claimDemo, {});
   const [quotaType, setQuotaType] = useState<"closed" | "open">("open");
+  const [court, setCourt] = useState("");
 
   return (
     <form action={action} className="space-y-4">
@@ -24,7 +25,27 @@ export default function ClaimForm({ campaignId }: { campaignId: string }) {
 
       <div>
         <label className="label">Lapangan tenis *</label>
-        <input name="court" required className="field" placeholder="GOR / Lapangan ... , kota" />
+        <input
+          name="court"
+          required
+          value={court}
+          onChange={(e) => setCourt(e.target.value)}
+          className="field"
+          placeholder="GOR / Lapangan ... , kota"
+        />
+        <div className="mt-1 flex items-center justify-between gap-2">
+          <p className="text-xs text-gray-400">Tulis nama + kota biar pas di peta.</p>
+          {court.trim() && (
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(court.trim())}`}
+              target="_blank"
+              rel="noreferrer"
+              className="shrink-0 text-xs font-bold text-primary hover:underline"
+            >
+              Cek di Google Maps ↗
+            </a>
+          )}
+        </div>
       </div>
 
       <div>
