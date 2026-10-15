@@ -5,6 +5,7 @@ import { currentCommunity } from "@/lib/community-auth";
 import { logoutCommunity, decideParticipant } from "./actions";
 import { phaseOf, PHASE_META } from "@/lib/event-phase";
 import EventTopBar from "@/components/EventTopBar";
+import ClaimForm from "@/components/ClaimForm";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Komunitas — Tirtonic", robots: { index: false } };
@@ -59,6 +60,19 @@ export default async function KomunitasHome() {
     [],
   );
 
+  // Penawaran demo brand: bisa diklaim (brandApproved) + coming soon (belum ACC brand).
+  const campaigns = await safeQuery(
+    () =>
+      prisma.demoCampaign.findMany({
+        where: { isActive: true },
+        orderBy: [{ brandApproved: "desc" }, { createdAt: "desc" }],
+        include: { claims: { where: { status: { not: "rejected" } }, select: { demoDate: true, time: true, timeEnd: true } } },
+      }),
+    [],
+  );
+  const claimable = campaigns.filter((c) => c.brandApproved && c.startDate && c.endDate);
+  const soon = campaigns.filter((c) => !c.brandApproved);
+
   const phases = claims.map((c) => phaseOf(c));
   const nPending = phases.filter((p) => p === "pending").length;
   const nOngoing = phases.filter((p) => p === "ongoing").length;
@@ -109,10 +123,65 @@ export default async function KomunitasHome() {
           ))}
         </div>
 
-        <Link href="/komunitas/klaim" className="mt-5 flex items-center justify-center gap-2 rounded-full bg-primary py-3 font-bold text-white shadow-sm transition hover:bg-primaryDark sm:inline-flex sm:px-6">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14" /></svg>
-          Ajukan demo baru
-        </Link>
+        {/* Penawaran demo brand — langsung klaim di sini */}
+        <h2 className="mb-2.5 mt-8 text-lg font-bold text-gray-900">Penawaran demo brand</h2>
+        {claimable.length === 0 && soon.length === 0 ? (
+          <p className="rounded-2xl border border-gray-100 bg-white p-8 text-center text-sm text-gray-400 shadow-sm">Belum ada penawaran demo. Pantau terus ya!</p>
+        ) : (
+          <div className="space-y-3">
+            {claimable.map((c) => {
+              const periode = `${c.startDate!.toLocaleDateString("id-ID", { day: "numeric", month: "short" })} – ${c.endDate!.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}`;
+              const todayStr = new Date().toISOString().slice(0, 10);
+              const startStr = c.startDate!.toISOString().slice(0, 10);
+              const minDate = startStr > todayStr ? startStr : todayStr;
+              const maxDate = c.endDate!.toISOString().slice(0, 10);
+              const bookings = c.claims.map((cl) => ({ date: cl.demoDate.toISOString().slice(0, 10), start: cl.time, end: cl.timeEnd }));
+              return (
+                <details key={c.id} className="group overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
+                  <summary className="flex cursor-pointer items-start gap-3 p-4">
+                    <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-primaryDark to-primary">
+                      {c.banner ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={c.banner} alt="" className="h-full w-full object-cover" />
+                      ) : (
+                        <span className="text-[10px] font-bold uppercase text-white">{c.brand.slice(0, 4)}</span>
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase text-primary">{c.brand}</span>
+                      <h3 className="mt-1 line-clamp-2 text-sm font-bold leading-snug text-gray-900">{c.title}</h3>
+                      <p className="mt-0.5 text-[11px] text-gray-400">{c.productType} · {periode}</p>
+                    </div>
+                    <span className="mt-1 shrink-0 text-xs font-bold text-primary group-open:hidden">Ajukan →</span>
+                  </summary>
+                  <div className="border-t border-gray-50 p-4">
+                    {c.description && <p className="mb-4 whitespace-pre-line text-sm leading-relaxed text-gray-600">{c.description}</p>}
+                    <ClaimForm campaignId={c.id} minDate={minDate} maxDate={maxDate} bookings={bookings} />
+                  </div>
+                </details>
+              );
+            })}
+
+            {soon.map((c) => (
+              <div key={c.id} className="flex items-start gap-3 rounded-2xl border border-gray-100 bg-white p-4 opacity-80 shadow-sm">
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-gray-300 to-gray-400">
+                  {c.banner ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={c.banner} alt="" className="h-full w-full object-cover opacity-80" />
+                  ) : (
+                    <span className="text-[10px] font-bold uppercase text-white">{c.brand.slice(0, 4)}</span>
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase text-primary">{c.brand}</span>
+                  <h3 className="mt-1 line-clamp-2 text-sm font-bold leading-snug text-gray-900">{c.title}</h3>
+                  <p className="mt-0.5 text-[11px] text-gray-400">{c.productType}</p>
+                </div>
+                <span className="mt-1 shrink-0 rounded-full bg-blue-50 px-2.5 py-0.5 text-[11px] font-bold text-blue-600">Coming soon</span>
+              </div>
+            ))}
+          </div>
+        )}
 
         <h2 className="mb-2.5 mt-8 text-lg font-bold text-gray-900">Demo komunitas</h2>
         {claims.length === 0 ? (
