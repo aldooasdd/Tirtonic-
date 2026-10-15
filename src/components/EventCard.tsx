@@ -14,6 +14,7 @@ export type EventCardData = {
 };
 
 // Kartu event horizontal ala Luma: info di kiri, thumbnail di kanan.
+// Seluruh kartu nge-link ke detail (stretched link); tombol "Join as komunitas" di atasnya.
 export default function EventCard({ e }: { e: EventCardData }) {
   const phase = phaseOf(e);
   const meta = PHASE_META[phase];
@@ -21,10 +22,10 @@ export default function EventCard({ e }: { e: EventCardData }) {
   const sisa = Math.max(0, e.quota - e.acceptedCount);
 
   return (
-    <Link
-      href={`/event/${e.id}`}
-      className="group flex gap-4 rounded-2xl border border-gray-200 bg-white p-3.5 shadow-sm transition hover:border-primary/40 hover:shadow-md"
-    >
+    <div className="group relative flex gap-4 rounded-2xl border border-gray-200 bg-white p-3.5 shadow-sm transition hover:border-primary/40 hover:shadow-md">
+      {/* Stretched link: klik area kartu mana pun → detail */}
+      <Link href={`/event/${e.id}`} aria-label={e.campaign.title} className="absolute inset-0 z-[1] rounded-2xl" />
+
       <div className="min-w-0 flex-1">
         <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-bold ${meta.chip}`}>
           <span className={`h-1.5 w-1.5 rounded-full ${meta.dot}`} />
@@ -57,6 +58,15 @@ export default function EventCard({ e }: { e: EventCardData }) {
           <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] text-gray-500">{e.campaign.brand}</span>
           {open && phase !== "done" && <span className="text-[11px] text-gray-400">Sisa {sisa}/{e.quota}</span>}
         </div>
+
+        {/* Join as komunitas — di atas stretched link (z-2) biar bisa diklik terpisah */}
+        <Link
+          href="/komunitas"
+          className="relative z-[2] mt-3 inline-flex items-center gap-1.5 rounded-full border border-primary/30 px-3 py-1 text-[11px] font-bold text-primary transition hover:bg-primary hover:text-white"
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg>
+          Join as komunitas
+        </Link>
       </div>
 
       <div className="h-24 w-24 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br from-primaryDark to-primary sm:h-28 sm:w-28">
@@ -67,6 +77,6 @@ export default function EventCard({ e }: { e: EventCardData }) {
           <span className="flex h-full w-full items-center justify-center text-[11px] font-bold uppercase tracking-wide text-white/90">{e.campaign.brand.slice(0, 6)}</span>
         )}
       </div>
-    </Link>
+    </div>
   );
 }
