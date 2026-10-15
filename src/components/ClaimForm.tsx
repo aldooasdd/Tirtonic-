@@ -1,8 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import { claimDemo, FormState } from "@/app/komunitas/actions";
+
+// Label tempat dari hasil Photon (OpenStreetMap) — gratis, tanpa API key.
+type Place = { properties: Record<string, string> };
+function placeLabel(p: Record<string, string>): string {
+  const head = p.name || [p.street, p.housenumber].filter(Boolean).join(" ");
+  const rest = [p.city || p.county || p.district, p.state, p.country].filter(Boolean);
+  return [head, ...rest].filter(Boolean).join(", ");
+}
 
 function Btn() {
   const { pending } = useFormStatus();
@@ -17,35 +25,63 @@ export default function ClaimForm({ campaignId }: { campaignId: string }) {
   const [state, action] = useFormState<FormState, FormData>(claimDemo, {});
   const [quotaType, setQuotaType] = useState<"closed" | "open">("open");
   const [court, setCourt] = useState("");
+  const [suggests, setSuggests] = useState<string[]>([]);
+  const [showSug, setShowSug] = useState(false);
+  const pickedRef = useRef(false);
+
+  // Autocomplete lokasi via Photon (debounce). Tempat dibias ke Indonesia.
+  useEffect(() => {
+    if (pickedRef.current) { pickedRef.current = false; return; }
+    const q = court.trim();
+    if (q.length < 3) { setSuggests([]); return; }
+    const ctrl = new AbortController();
+    const t = setTimeout(async () => {
+      try {
+        const r = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=5&lang=en`, { signal: ctrl.signal });
+        const data: { features?: Place[] } = await r.json();
+        const labels = Array.from(new Set((data.features || []).map((f) => placeLabel(f.properties)).filter(Boolean)));
+        setSuggests(labels);
+        setShowSug(true);
+      } catch { /* ponytail: abaikan error jaringan, input manual tetap jalan */ }
+    }, 300);
+    return () => { clearTimeout(t); ctrl.abort(); };
+  }, [court]);
 
   return (
     <form action={action} className="space-y-4">
       <input type="hidden" name="campaignId" value={campaignId} />
       <input type="hidden" name="quotaType" value={quotaType} />
 
-      <div>
+      <div className="relative">
         <label className="label">Lapangan tenis *</label>
         <input
           name="court"
           required
+          autoComplete="off"
           value={court}
           onChange={(e) => setCourt(e.target.value)}
+          onFocus={() => suggests.length > 0 && setShowSug(true)}
+          onBlur={() => setTimeout(() => setShowSug(false), 150)}
           className="field"
-          placeholder="GOR / Lapangan ... , kota"
+          placeholder="Ketik nama lapangan / GOR / kota…"
         />
-        <div className="mt-1 flex items-center justify-between gap-2">
-          <p className="text-xs text-gray-400">Tulis nama + kota biar pas di peta.</p>
-          {court.trim() && (
-            <a
-              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(court.trim())}`}
-              target="_blank"
-              rel="noreferrer"
-              className="shrink-0 text-xs font-bold text-primary hover:underline"
-            >
-              Cek di Google Maps ↗
-            </a>
-          )}
-        </div>
+        {showSug && suggests.length > 0 && (
+          <ul className="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-xl border border-gray-200 bg-white py-1 shadow-lg">
+            {suggests.map((s) => (
+              <li key={s}>
+                <button
+                  type="button"
+                  onMouseDown={(e) => { e.preventDefault(); pickedRef.current = true; setCourt(s); setShowSug(false); }}
+                  className="flex w-full items-start gap-2 px-3 py-2 text-left text-sm text-gray-700 hover:bg-primary/5"
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 shrink-0 text-primary"><path d="M12 21s-7-4.35-7-10a7 7 0 0 1 14 0c0 5.65-7 10-7 10Z" /><circle cx="12" cy="11" r="2.5" /></svg>
+                  <span>{s}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        <p className="mt-1 text-xs text-gray-400">Pilih dari saran lokasi biar akurat di peta.</p>
       </div>
 
       <div>
