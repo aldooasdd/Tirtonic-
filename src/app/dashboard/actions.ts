@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { createSession, destroySession, isAuthed, requireSection, currentRole } from "@/lib/auth";
 import { findRoleByPassword, roleMatches, setRolePassword, hashPassword } from "@/lib/role-password";
-import { verifyPickupToken } from "@/lib/pickup-token";
+import { verifyPickupToken, verifyReturnToken } from "@/lib/pickup-token";
 import { uploadFile, uploadFromUrl, storageConfigured } from "@/lib/storage";
 import { fetchTokopedia } from "@/lib/tokopedia";
 import { markOrderPaid, markOrderShipped, cancelOrder } from "@/lib/orders";
@@ -617,6 +617,17 @@ export async function markPickedUp(token: string) {
   if (!claimId) return;
   // updateMany + pickedUpAt null → idempoten, pertahankan waktu ambil pertama.
   await prisma.demoClaim.updateMany({ where: { id: claimId, pickedUpAt: null }, data: { pickedUpAt: new Date() } });
+  revalidatePath("/dashboard/event");
+  revalidatePath("/komunitas");
+}
+
+/** Tandai produk demo sudah dikembalikan ke toko (dipanggil saat admin scan QR). */
+export async function markReturned(token: string) {
+  requireSection("event");
+  const claimId = verifyReturnToken(token);
+  if (!claimId) return;
+  // idempoten; pertahankan waktu kembali pertama.
+  await prisma.demoClaim.updateMany({ where: { id: claimId, returnedAt: null }, data: { returnedAt: new Date() } });
   revalidatePath("/dashboard/event");
   revalidatePath("/komunitas");
 }

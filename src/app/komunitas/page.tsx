@@ -7,7 +7,7 @@ import { phaseOf, PHASE_META } from "@/lib/event-phase";
 import EventTopBar from "@/components/EventTopBar";
 import ClaimForm from "@/components/ClaimForm";
 import PickupButton from "@/components/PickupButton";
-import { pickupToken } from "@/lib/pickup-token";
+import { pickupToken, returnToken } from "@/lib/pickup-token";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Komunitas — Tirtonic", robots: { index: false } };
@@ -230,6 +230,18 @@ export default async function KomunitasHome() {
                     ) : phase !== "done" ? (
                       <PickupButton token={pickupToken(c.id)} />
                     ) : null
+                  )}
+
+                  {/* Kembalikan produk ke toko (via scan QR admin) — setelah diambil */}
+                  {c.pickedUpAt && (
+                    c.returnedAt ? (
+                      <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-green-50 px-3 py-1 text-xs font-bold text-green-700">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+                        Produk sudah dikembalikan
+                      </p>
+                    ) : (
+                      <PickupButton token={returnToken(c.id)} qrPath="return-qr" label="Kembalikan produk" hint="Tunjukkan QR ini ke admin Tirtonic saat mengembalikan produk demo ke toko." />
+                    )
                   )}
 
                   {/* Peserta menunggu konfirmasi (acara open) */}

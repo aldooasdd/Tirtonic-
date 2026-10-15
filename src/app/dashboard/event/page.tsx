@@ -61,9 +61,16 @@ export default async function AdminEvent() {
           <a href={`https://wa.me/${c.eventPicPhone}`} target="_blank" rel="noreferrer" className="font-semibold text-primary hover:underline">PIC: {displayPhone(c.eventPicPhone)} ↗</a>
         </div>
         {c.status === "accepted" && (
-          <p className={`mt-1.5 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold ${c.pickedUpAt ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
-            📦 {c.pickedUpAt ? `Produk diambil ${fmt(c.pickedUpAt)}` : "Produk belum diambil"}
-          </p>
+          <div className="mt-1.5 flex flex-wrap gap-1.5">
+            <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold ${c.pickedUpAt ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
+              📦 {c.pickedUpAt ? `Diambil ${fmt(c.pickedUpAt)}` : "Belum diambil"}
+            </span>
+            {c.pickedUpAt && (
+              <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold ${c.returnedAt ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
+                ↩️ {c.returnedAt ? `Dikembalikan ${fmt(c.returnedAt)}` : "Belum dikembalikan"}
+              </span>
+            )}
+          </div>
         )}
         <div className="mt-3 flex gap-2">
           {c.status === "pending" && (

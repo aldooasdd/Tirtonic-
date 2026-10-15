@@ -392,6 +392,7 @@ model DemoClaim {
   eventPicPhone String // 62xxx — penanggung jawab acara
   status        String            @default("pending") // pending | accepted | rejected
   pickedUpAt    DateTime? // waktu produk demo diambil komunitas (via scan QR admin)
+  returnedAt    DateTime? // waktu produk demo dikembalikan ke toko (via scan QR admin)
   createdAt     DateTime          @default(now())
   participants  DemoParticipant[]
 
