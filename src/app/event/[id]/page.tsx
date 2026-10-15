@@ -42,6 +42,11 @@ export default async function EventDetail({ params }: { params: { id: string } }
   const tanggal = e.demoDate.getDate();
   const canJoin = open && (phase === "coming_soon" || phase === "ongoing") && sisa > 0;
 
+  // Google Maps dari teks lapangan (tanpa API key).
+  const mapsQuery = encodeURIComponent(e.court);
+  const mapsLink = `https://www.google.com/maps/search/?api=1&query=${mapsQuery}`;
+  const mapsEmbed = `https://maps.google.com/maps?q=${mapsQuery}&z=15&output=embed`;
+
   const Tile = ({ icon, title, sub }: { icon: React.ReactNode; title: string; sub?: string }) => (
     <div className="flex items-center gap-3">
       <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-gray-200 bg-gray-50 text-primary">{icon}</div>
@@ -78,6 +83,24 @@ export default async function EventDetail({ params }: { params: { id: string } }
                 <p className="whitespace-pre-line text-sm leading-relaxed text-gray-600">{e.campaign.description}</p>
               </div>
             )}
+
+            {/* Lokasi lapangan (Google Maps) */}
+            <div className="mt-6">
+              <div className="mb-2 flex items-center justify-between border-b border-gray-200 pb-2">
+                <h2 className="text-sm font-bold text-gray-700">Lokasi</h2>
+                <a href={mapsLink} target="_blank" rel="noreferrer" className="text-xs font-bold text-primary hover:underline">Buka di Google Maps ↗</a>
+              </div>
+              <p className="mb-3 text-sm text-gray-600">{e.court}</p>
+              <div className="overflow-hidden rounded-2xl border border-gray-200">
+                <iframe
+                  title={`Peta ${e.court}`}
+                  src={mapsEmbed}
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  className="h-56 w-full"
+                />
+              </div>
+            </div>
           </div>
 
           {/* Kanan: judul + info + registrasi */}
@@ -121,11 +144,15 @@ export default async function EventDetail({ params }: { params: { id: string } }
                   <p className="text-xs text-gray-400">Sepanjang hari</p>
                 </div>
               </div>
-              <Tile
-                icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 21s-7-4.35-7-10a7 7 0 0 1 14 0c0 5.65-7 10-7 10Z" /><circle cx="12" cy="11" r="2.5" /></svg>}
-                title={e.court}
-                sub="Lapangan tenis"
-              />
+              <a href={mapsLink} target="_blank" rel="noreferrer" className="group flex items-center gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-gray-200 bg-gray-50 text-primary">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 21s-7-4.35-7-10a7 7 0 0 1 14 0c0 5.65-7 10-7 10Z" /><circle cx="12" cy="11" r="2.5" /></svg>
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-gray-900 group-hover:text-primary">{e.court}</p>
+                  <p className="truncate text-xs text-gray-400">Lapangan tenis · lihat di Maps ↗</p>
+                </div>
+              </a>
               <Tile
                 icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg>}
                 title={open ? `Open · ${accepted}/${e.quota} terisi` : `Closed · ${e.quota} orang`}
