@@ -524,6 +524,31 @@ export async function createCampaign(formData: FormData) {
   redirect("/dashboard/event");
 }
 
+/** Edit isi kampanye (brand/produk/judul/deskripsi, banner & periode opsional). */
+export async function updateCampaign(formData: FormData) {
+  requireSection("event");
+  const id = ((formData.get("id") as string) || "").trim();
+  const brand = ((formData.get("brand") as string) || "").trim();
+  const productType = ((formData.get("productType") as string) || "").trim();
+  const title = ((formData.get("title") as string) || "").trim();
+  const description = ((formData.get("description") as string) || "").trim();
+  if (!id) throw new Error("Kampanye tidak ditemukan.");
+  if (!brand || !title || !productType) throw new Error("Brand, judul, dan jenis produk wajib diisi.");
+  const startRaw = (formData.get("startDate") as string) || "";
+  const endRaw = (formData.get("endDate") as string) || "";
+  const data: Record<string, unknown> = { brand, productType, title, description };
+  const banner = await uploadOneImage(formData, "events"); // null kalau tak ganti
+  if (banner) data.banner = banner;
+  if (startRaw && endRaw) {
+    if (endRaw < startRaw) throw new Error("Periode selesai harus setelah mulai.");
+    data.startDate = new Date(startRaw);
+    data.endDate = new Date(endRaw);
+  }
+  await prisma.demoCampaign.update({ where: { id }, data });
+  revalidatePath("/dashboard/event");
+  revalidatePath("/event");
+}
+
 export async function toggleCampaign(id: string) {
   requireSection("event");
   const c = await prisma.demoCampaign.findUnique({ where: { id }, select: { isActive: true } });

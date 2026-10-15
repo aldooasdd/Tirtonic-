@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { isAuthed, can } from "@/lib/auth";
 import { prisma, safeQuery } from "@/lib/prisma";
-import { createCampaign, toggleCampaign, approveCampaign, unapproveCampaign, deleteCampaign, decideClaim, decideCommunity, deleteCommunity } from "../actions";
+import { createCampaign, updateCampaign, toggleCampaign, approveCampaign, unapproveCampaign, deleteCampaign, decideClaim, decideCommunity, deleteCommunity } from "../actions";
 import { phaseOf, PHASE_META } from "@/lib/event-phase";
 import { displayPhone } from "@/lib/string-finder/phone";
 
@@ -252,6 +252,45 @@ export default async function AdminEvent() {
                       <button className="rounded-full bg-primary px-4 py-1.5 text-xs font-bold text-white hover:bg-primaryDark">ACC Brand</button>
                     </form>
                   )}
+
+                  {/* Edit kampanye */}
+                  <details className="mt-2">
+                    <summary className="inline-flex cursor-pointer list-none rounded-full border px-3 py-1 text-xs font-semibold text-gray-600 hover:border-primary hover:text-primary [&::-webkit-details-marker]:hidden">Edit kampanye</summary>
+                    <form action={updateCampaign} className="mt-2 grid gap-2 rounded-xl bg-gray-50 p-3 sm:grid-cols-2">
+                      <input type="hidden" name="id" value={c.id} />
+                      <div>
+                        <span className="block text-[10px] font-semibold text-gray-500">Brand *</span>
+                        <input name="brand" required defaultValue={c.brand} className="field" />
+                      </div>
+                      <div>
+                        <span className="block text-[10px] font-semibold text-gray-500">Jenis produk *</span>
+                        <input name="productType" required defaultValue={c.productType} className="field" />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <span className="block text-[10px] font-semibold text-gray-500">Judul *</span>
+                        <input name="title" required defaultValue={c.title} className="field" />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <span className="block text-[10px] font-semibold text-gray-500">Deskripsi</span>
+                        <textarea name="description" rows={3} defaultValue={c.description} className="field" />
+                      </div>
+                      <div>
+                        <span className="block text-[10px] font-semibold text-gray-500">Periode mulai</span>
+                        <input name="startDate" type="date" defaultValue={c.startDate ? c.startDate.toISOString().slice(0, 10) : ""} className="field" />
+                      </div>
+                      <div>
+                        <span className="block text-[10px] font-semibold text-gray-500">Periode selesai</span>
+                        <input name="endDate" type="date" defaultValue={c.endDate ? c.endDate.toISOString().slice(0, 10) : ""} className="field" />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <span className="block text-[10px] font-semibold text-gray-500">Ganti banner (opsional)</span>
+                        <input name="gambar" type="file" accept="image/*" className="text-sm" />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <button className="rounded-full bg-primary px-4 py-1.5 text-xs font-bold text-white hover:bg-primaryDark">Simpan perubahan</button>
+                      </div>
+                    </form>
+                  </details>
                 </li>
               ))}
             </ul>
