@@ -35,7 +35,7 @@ export async function joinEvent(_prev: JoinState, formData: FormData): Promise<J
   await prisma.demoParticipant.create({ data: { claimId, name, phone, status: "pending" } });
   await sendWa(
     claim.community.waPhone,
-    `🔔 Ada peserta baru mau join demo ${claim.campaign.brand}!\n\nNama: ${name}\nWA: ${phone}\nSesi: ${claim.demoDate.toLocaleDateString("id-ID", { day: "numeric", month: "short" })} ${claim.time}\n\nTerima/tolak di dashboard komunitas: tirtonic.com/komunitas`,
+    `🔔 Ada peserta baru mau join demo ${claim.campaign.brand}!\n\nNama: ${name}\nWA: ${phone}\nSesi: ${claim.demoDate.toLocaleDateString("id-ID", { day: "numeric", month: "short" })} ${claim.time}${claim.timeEnd ? `–${claim.timeEnd}` : ""}\n\nTerima/tolak di dashboard komunitas: tirtonic.com/komunitas`,
   );
   revalidatePath(`/event/${claimId}`);
   revalidatePath("/komunitas");

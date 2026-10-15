@@ -55,7 +55,7 @@ export default async function AdminEvent() {
           </span>
         </div>
         <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
-          <span>📅 {fmt(c.demoDate)}{c.time ? ` · ${c.time}` : ""}</span>
+          <span>📅 {fmt(c.demoDate)}{c.time ? ` · ${c.time}${c.timeEnd ? `–${c.timeEnd}` : ""}` : ""}</span>
           <span>📍 {c.court}</span>
           <span>{c.quotaType === "open" ? `👥 Open · ${accepted}/${c.quota}` : `👥 Closed · ${c.quota}`}</span>
           <a href={`https://wa.me/${c.eventPicPhone}`} target="_blank" rel="noreferrer" className="font-semibold text-primary hover:underline">PIC: {displayPhone(c.eventPicPhone)} ↗</a>

@@ -75,20 +75,39 @@ export async function claimDemo(_prev: FormState, formData: FormData): Promise<F
   const demoRaw = (formData.get("demoDate") as string) || "";
   const eventPicPhone = normalizePhone((formData.get("eventPicPhone") as string) || "");
   const time = ((formData.get("time") as string) || "").trim();
+  const timeEnd = ((formData.get("timeEnd") as string) || "").trim();
 
-  const campaign = await prisma.demoCampaign.findUnique({ where: { id: campaignId }, select: { id: true, isActive: true } });
+  const campaign = await prisma.demoCampaign.findUnique({ where: { id: campaignId }, select: { id: true, isActive: true, startDate: true, endDate: true } });
   if (!campaign || !campaign.isActive) return { error: "Kampanye demo tidak tersedia." };
   if (!court) return { error: "Lapangan tenis wajib diisi." };
   if (quota < 10) return { error: "Kuota peserta minimal 10 orang." };
   if (!demoRaw) return { error: "Tanggal demo wajib diisi." };
-  const demoDate = new Date(demoRaw);
-  const today = new Date(); today.setHours(0, 0, 0, 0);
-  if (demoDate < today) return { error: "Tanggal demo tidak boleh di masa lalu." };
+  if (!/^\d{2}:\d{2}$/.test(time) || !/^\d{2}:\d{2}$/.test(timeEnd)) return { error: "Jam mulai & selesai wajib diisi." };
+  if (timeEnd <= time) return { error: "Jam selesai harus setelah jam mulai." };
   if (!eventPicPhone) return { error: "Nomor penanggung jawab acara tidak valid." };
-  if (!/^\d{2}:\d{2}$/.test(time)) return { error: "Jam sesi wajib diisi." };
+
+  // Tanggal wajib dalam periode kampanye (dan tidak di masa lalu).
+  const demoDate = new Date(demoRaw);
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const startStr = campaign.startDate.toISOString().slice(0, 10);
+  const endStr = campaign.endDate.toISOString().slice(0, 10);
+  if (demoRaw < todayStr) return { error: "Tanggal demo tidak boleh di masa lalu." };
+  if (demoRaw < startStr || demoRaw > endStr) {
+    const fmt = (s: string) => new Date(s).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
+    return { error: `Tanggal harus dalam periode demo: ${fmt(startStr)} – ${fmt(endStr)}.` };
+  }
+
+  // Anti double-booking: satu campaign + tanggal sama, rentang jam tidak boleh tumpang-tindih dgn booking lain (pending/accepted).
+  // Overlap: mulaiBaru < selesaiLama && mulaiLama < selesaiBaru. ponytail: cek di app, race kembar nyaris mustahil di form manual.
+  const sameDay = await prisma.demoClaim.findMany({
+    where: { campaignId, demoDate, status: { not: "rejected" } },
+    select: { time: true, timeEnd: true },
+  });
+  const bentrok = sameDay.find((b) => time < (b.timeEnd || "99:99") && (b.time || "") < timeEnd);
+  if (bentrok) return { error: `Jam ${bentrok.time}–${bentrok.timeEnd} di tanggal itu sudah dibooking komunitas lain. Pilih jam/tanggal lain.` };
 
   await prisma.demoClaim.create({
-    data: { campaignId, communityId, court, quotaType, quota, demoDate, time, eventPicPhone, status: "pending" },
+    data: { campaignId, communityId, court, quotaType, quota, demoDate, time, timeEnd, eventPicPhone, status: "pending" },
   });
   revalidatePath("/komunitas");
   revalidatePath("/dashboard/event");

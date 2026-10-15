@@ -387,7 +387,8 @@ model DemoClaim {
   quotaType     String // "closed" (kuota fix) | "open" (orang bisa join dari web)
   quota         Int // minimal 10 — kuota sesi ini
   demoDate      DateTime // tanggal sesi
-  time          String   @default("") // jam sesi "HH:mm" yang diatur komunitas (1 card = 1 sesi)
+  time          String   @default("") // jam mulai "HH:mm" (1 card = 1 sesi)
+  timeEnd       String   @default("") // jam selesai "HH:mm"
   eventPicPhone String // 62xxx — penanggung jawab acara
   status        String            @default("pending") // pending | accepted | rejected
   createdAt     DateTime          @default(now())

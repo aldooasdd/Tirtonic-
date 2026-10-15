@@ -8,6 +8,7 @@ export type EventCardData = {
   quota: number;
   demoDate: Date;
   time: string;
+  timeEnd: string;
   status: string;
   acceptedCount: number;
   campaign: { brand: string; title: string; productType: string; banner: string | null };
@@ -58,7 +59,7 @@ export default function EventCard({ e }: { e: EventCardData }) {
             {open ? "Open · bisa join" : "Closed"}
           </span>
           <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] text-gray-500">{e.campaign.brand}</span>
-          {e.time && <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] text-gray-500">🕒 {e.time}</span>}
+          {e.time && <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] text-gray-500">🕒 {e.time}{e.timeEnd ? `–${e.timeEnd}` : ""}</span>}
           {open && phase !== "done" && <span className="text-[11px] text-gray-400">Sisa {sisa}/{e.quota}</span>}
         </div>
 

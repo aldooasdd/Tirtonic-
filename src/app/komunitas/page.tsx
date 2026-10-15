@@ -143,7 +143,7 @@ export default async function KomunitasHome() {
                   </div>
 
                   <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
-                    <span>📅 {tgl}{c.time ? ` · ${c.time}` : ""}</span>
+                    <span>📅 {tgl}{c.time ? ` · ${c.time}${c.timeEnd ? `–${c.timeEnd}` : ""}` : ""}</span>
                     <span>📍 {c.court}</span>
                     <span>{open ? `👥 Open · ${accepted}/${c.quota}` : `👥 Closed · ${c.quota}`}</span>
                   </div>

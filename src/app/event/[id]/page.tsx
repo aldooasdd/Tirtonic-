@@ -141,7 +141,7 @@ export default async function EventDetail({ params }: { params: { id: string } }
                 </div>
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold text-gray-900">{hari}</p>
-                  <p className="text-xs text-gray-400">Jam {e.time}</p>
+                  <p className="text-xs text-gray-400">Jam {e.time}{e.timeEnd ? `–${e.timeEnd}` : ""}</p>
                 </div>
               </div>
               <a href={mapsLink} target="_blank" rel="noreferrer" className="group flex items-center gap-3">

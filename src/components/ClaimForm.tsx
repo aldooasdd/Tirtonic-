@@ -42,7 +42,7 @@ function Btn() {
   );
 }
 
-export default function ClaimForm({ campaignId }: { campaignId: string }) {
+export default function ClaimForm({ campaignId, minDate, maxDate }: { campaignId: string; minDate: string; maxDate: string }) {
   const [state, action] = useFormState<FormState, FormData>(claimDemo, {});
   const [quotaType, setQuotaType] = useState<"closed" | "open">("open");
   const [court, setCourt] = useState("");
@@ -146,17 +146,22 @@ export default function ClaimForm({ campaignId }: { campaignId: string }) {
         <p className="mt-1 text-xs text-gray-400">Minimal 10 orang (untuk sesi ini).</p>
       </div>
 
+      <div>
+        <label className="label">Tanggal sesi *</label>
+        <input name="demoDate" required type="date" min={minDate} max={maxDate} className="field" />
+        <p className="mt-1 text-xs text-gray-400">Hanya dalam periode demo brand.</p>
+      </div>
       <div className="grid grid-cols-2 gap-2">
         <div>
-          <label className="label">Tanggal sesi *</label>
-          <input name="demoDate" required type="date" className="field" />
-        </div>
-        <div>
-          <label className="label">Jam sesi *</label>
+          <label className="label">Jam mulai *</label>
           <input name="time" required type="time" defaultValue="08:00" className="field" />
         </div>
+        <div>
+          <label className="label">Jam selesai *</label>
+          <input name="timeEnd" required type="time" defaultValue="10:00" className="field" />
+        </div>
       </div>
-      <p className="-mt-2 text-xs text-gray-400">1 pengajuan = 1 sesi. Mau beberapa sesi? Ajukan lagi dengan jam berbeda.</p>
+      <p className="-mt-2 text-xs text-gray-400">1 pengajuan = 1 sesi. Jam yang sudah dibooking komunitas lain nggak bisa dipilih. Mau sesi lain? Ajukan lagi.</p>
 
       <div>
         <label className="label">Nomor WhatsApp penanggung jawab acara *</label>

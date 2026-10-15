@@ -32,6 +32,10 @@ export default async function KlaimPage() {
           <div className="space-y-3">
             {campaigns.map((c) => {
               const periode = `${c.startDate.toLocaleDateString("id-ID", { day: "numeric", month: "short" })} – ${c.endDate.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}`;
+              const todayStr = new Date().toISOString().slice(0, 10);
+              const startStr = c.startDate.toISOString().slice(0, 10);
+              const minDate = startStr > todayStr ? startStr : todayStr;
+              const maxDate = c.endDate.toISOString().slice(0, 10);
               return (
                 <details key={c.id} className="group overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
                   <summary className="flex cursor-pointer items-start gap-3 p-4">
@@ -52,7 +56,7 @@ export default async function KlaimPage() {
                   </summary>
                   <div className="border-t border-gray-50 p-4">
                     {c.description && <p className="mb-4 whitespace-pre-line text-sm leading-relaxed text-gray-600">{c.description}</p>}
-                    <ClaimForm campaignId={c.id} />
+                    <ClaimForm campaignId={c.id} minDate={minDate} maxDate={maxDate} />
                   </div>
                 </details>
               );
