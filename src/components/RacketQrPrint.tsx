@@ -5,14 +5,16 @@ import { useState } from "react";
 // Cetak stiker QR raket ke printer label NIIMBOT lewat Web Bluetooth
 // (niimbluelib). HANYA jalan di Chrome Android. QR membuka /riwayat/<nomor>.
 //
-// ponytail: ukuran label dikunci 50×20mm, TAPI dimensi dot dihitung dari dpi
-// printer yang benar-benar kesambung (203 vs 300dpi beda jauh) + dibatasi lebar
-// printhead. Dulu di-hardcode 591px/300dpi → di printer 203dpi konten jadi ~74mm
-// (kebesaran) dan kepotong di kanan. Task cetak & arah juga diambil dari printer.
+// ponytail: ukuran label dikunci 50×20mm, dimensi dot dihitung dari dpi printer
+// yang benar-benar kesambung (203 vs 300dpi beda jauh) + dibatasi lebar printhead.
+// Dulu di-hardcode 591px/300dpi → di printer 203dpi konten jadi ~74mm (kebesaran,
+// kepotong). TASK & ARAH tetap hardcode ke nilai yang TERBUKTI nyetak — auto-detect
+// (getPrintTaskType/printDirection) pernah bikin cetakan blank (arah ke-rotate "left").
 const LABEL_MM = { w: 50, h: 20 };
 const DENSITY = 3; // 1–5; naikkan kalau hasil tipis
-const FALLBACK_DPI = 203; // kalau model tak terdeteksi (B-series umumnya 203dpi)
-const FALLBACK_TASK = "D110M_V4" as const; // kalau task tak terdeteksi
+const FALLBACK_DPI = 203; // kalau dpi model tak terdeteksi (B-series umumnya 203dpi)
+const PRINT_DIRECTION: "top" | "left" = "top"; // putar kalau orientasi kebalik
+const PRINT_TASK = "D110M_V4" as const; // task yang kepakai pas print pertama berhasil
 
 export default function RacketQrPrint({ phone, className, label = "Cetak stiker QR raket" }: { phone: string; className?: string; label?: string }) {
   const [busy, setBusy] = useState(false);
@@ -27,16 +29,14 @@ export default function RacketQrPrint({ phone, className, label = "Cetak stiker 
       client = nb.instantiateClient("bluetooth");
       await client.connect(); // memunculkan pemilih perangkat Web Bluetooth
 
-      // Pakai spesifikasi printer yang beneran kesambung, bukan asumsi.
+      // Ukuran canvas ikut dpi printer yang kesambung; task & arah tetap hardcode.
       const meta = client.getModelMetadata();
       const dpi = meta?.dpi ?? FALLBACK_DPI;
-      const direction = meta?.printDirection ?? "top";
-      const taskType = client.getPrintTaskType() ?? FALLBACK_TASK;
 
       setMsg("Mencetak…");
       const canvas = await buildLabel(phone, dpi, meta?.printheadPixels);
-      const encoded = nb.ImageEncoder.encodeCanvas(canvas, nb.PageColorType.SingleColor, direction);
-      const printTask = client.protocol.newPrintTask(taskType, {
+      const encoded = nb.ImageEncoder.encodeCanvas(canvas, nb.PageColorType.SingleColor, PRINT_DIRECTION);
+      const printTask = client.protocol.newPrintTask(PRINT_TASK, {
         totalPages: 1,
         statusPollIntervalMs: 100,
         statusTimeoutMs: 8_000,
