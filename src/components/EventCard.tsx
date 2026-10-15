@@ -20,6 +20,7 @@ export default function EventCard({ e }: { e: EventCardData }) {
   const meta = PHASE_META[phase];
   const open = e.quotaType === "open";
   const sisa = Math.max(0, e.quota - e.acceptedCount);
+  const canJoin = open && (phase === "coming_soon" || phase === "ongoing") && sisa > 0;
 
   return (
     <div className="group relative flex gap-4 rounded-2xl border border-gray-200 bg-white p-3.5 shadow-sm transition hover:border-primary/40 hover:shadow-md">
@@ -59,14 +60,16 @@ export default function EventCard({ e }: { e: EventCardData }) {
           {open && phase !== "done" && <span className="text-[11px] text-gray-400">Sisa {sisa}/{e.quota}</span>}
         </div>
 
-        {/* Join as komunitas — di atas stretched link (z-2) biar bisa diklik terpisah */}
-        <Link
-          href="/komunitas"
-          className="relative z-[2] mt-3 inline-flex items-center gap-1.5 rounded-full border border-primary/30 px-3 py-1 text-[11px] font-bold text-primary transition hover:bg-primary hover:text-white"
-        >
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg>
-          Join as komunitas
-        </Link>
+        {/* Join acara — di atas stretched link (z-2) biar bisa diklik terpisah */}
+        {canJoin && (
+          <Link
+            href={`/event/${e.id}`}
+            className="relative z-[2] mt-3 inline-flex items-center gap-1.5 rounded-full border border-primary/30 px-3.5 py-1 text-[11px] font-bold text-primary transition hover:bg-primary hover:text-white"
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M19 8v6M22 11h-6" /></svg>
+            Join
+          </Link>
+        )}
       </div>
 
       <div className="h-24 w-24 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br from-primaryDark to-primary sm:h-28 sm:w-28">

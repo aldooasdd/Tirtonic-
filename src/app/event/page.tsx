@@ -96,7 +96,7 @@ export default async function EventLanding() {
                 <Link
                   key={c.id}
                   href="/komunitas"
-                  className="w-64 shrink-0 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:border-primary/40 hover:shadow-md"
+                  className="group w-64 shrink-0 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:border-primary/40 hover:shadow-md"
                 >
                   <div className="relative h-28 bg-gradient-to-br from-primaryDark to-primary">
                     {c.banner && (
@@ -108,7 +108,10 @@ export default async function EventLanding() {
                   <div className="p-3.5">
                     <h3 className="line-clamp-2 text-sm font-bold leading-snug text-gray-900">{c.title}</h3>
                     <p className="mt-0.5 text-xs text-gray-400">{c.productType}</p>
-                    <span className="mt-2 inline-block text-xs font-semibold text-primary">Klaim buat komunitasmu →</span>
+                    <span className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-bold text-white transition group-hover:bg-primaryDark">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M19 8v6M22 11h-6" /></svg>
+                      Join as komunitas
+                    </span>
                   </div>
                 </Link>
               ))}
