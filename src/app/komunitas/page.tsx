@@ -6,7 +6,6 @@ import { logoutCommunity, decideParticipant, removeParticipant } from "./actions
 import { phaseOf, PHASE_META } from "@/lib/event-phase";
 import EventTopBar from "@/components/EventTopBar";
 import ClaimForm from "@/components/ClaimForm";
-import PickupButton from "@/components/PickupButton";
 import { pickupToken } from "@/lib/pickup-token";
 
 export const dynamic = "force-dynamic";
@@ -228,7 +227,14 @@ export default async function KomunitasHome() {
                         Produk sudah diambil
                       </p>
                     ) : phase !== "done" ? (
-                      <PickupButton token={pickupToken(c.id)} />
+                      <div className="mt-3 flex items-center gap-3 rounded-xl border border-primary/20 bg-primary/5 p-3">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={`/api/pickup-qr/${pickupToken(c.id)}`} alt="QR ambil produk" className="h-24 w-24 shrink-0 rounded-lg bg-white p-1" />
+                        <div className="min-w-0 text-xs text-gray-600">
+                          <p className="font-bold text-primary">Ambil produk demo</p>
+                          <p className="mt-0.5">Tunjukkan QR ini ke admin Tirtonic untuk discan saat ambil produk.</p>
+                        </div>
+                      </div>
                     ) : null
                   )}
 
