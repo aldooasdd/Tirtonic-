@@ -513,13 +513,11 @@ export async function createCampaign(formData: FormData) {
   const productType = ((formData.get("productType") as string) || "").trim();
   const title = ((formData.get("title") as string) || "").trim();
   const description = ((formData.get("description") as string) || "").trim();
-  const startRaw = (formData.get("startDate") as string) || "";
-  const endRaw = (formData.get("endDate") as string) || "";
   if (!brand || !title || !productType) throw new Error("Brand, judul, dan jenis produk wajib diisi.");
-  if (!startRaw || !endRaw) throw new Error("Periode mulai & selesai wajib diisi.");
   const banner = await uploadOneImage(formData, "events"); // input name="gambar"
+  // Periode (startDate/endDate) diisi nanti saat ACC brand.
   await prisma.demoCampaign.create({
-    data: { brand, productType, title, description, banner, startDate: new Date(startRaw), endDate: new Date(endRaw) },
+    data: { brand, productType, title, description, banner },
   });
   revalidatePath("/dashboard/event");
   revalidatePath("/event");
@@ -542,10 +540,26 @@ export async function deleteCampaign(id: string) {
 }
 
 /** ACC brand: pindahkan kampanye dari "Coming soon" (rencana) ke "Now" (siap diklaim), atau sebaliknya. */
-export async function toggleBrandApproved(id: string) {
+/** ACC brand: set periode (mulai–selesai) lalu tandai brandApproved → masuk "Now" (siap diklaim). */
+export async function approveCampaign(formData: FormData) {
   requireSection("event");
-  const c = await prisma.demoCampaign.findUnique({ where: { id }, select: { brandApproved: true } });
-  if (c) await prisma.demoCampaign.update({ where: { id }, data: { brandApproved: !c.brandApproved } });
+  const id = ((formData.get("id") as string) || "").trim();
+  const startRaw = (formData.get("startDate") as string) || "";
+  const endRaw = (formData.get("endDate") as string) || "";
+  if (!startRaw || !endRaw) throw new Error("Periode mulai & selesai wajib diisi.");
+  if (endRaw < startRaw) throw new Error("Periode selesai harus setelah mulai.");
+  await prisma.demoCampaign.update({
+    where: { id },
+    data: { brandApproved: true, startDate: new Date(startRaw), endDate: new Date(endRaw) },
+  });
+  revalidatePath("/dashboard/event");
+  revalidatePath("/event");
+}
+
+/** Batal ACC: kembalikan ke "Coming soon" (periode tetap tersimpan untuk ACC ulang). */
+export async function unapproveCampaign(id: string) {
+  requireSection("event");
+  await prisma.demoCampaign.update({ where: { id }, data: { brandApproved: false } });
   revalidatePath("/dashboard/event");
   revalidatePath("/event");
 }

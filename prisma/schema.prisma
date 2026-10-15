@@ -368,8 +368,8 @@ model DemoCampaign {
   title       String
   description String
   banner       String?
-  startDate    DateTime // periode tersedia (mulai)
-  endDate      DateTime // periode tersedia (selesai)
+  startDate    DateTime? // periode tersedia (mulai) — diisi saat ACC brand
+  endDate      DateTime? // periode tersedia (selesai) — diisi saat ACC brand
   isActive     Boolean     @default(true)
   brandApproved Boolean    @default(false) // true = sudah di-ACC brand → "Now" (siap diklaim); false = masih rencana → "Coming soon"
   createdAt    DateTime    @default(now())

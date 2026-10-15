@@ -12,7 +12,7 @@ export const metadata: Metadata = { title: "Ajukan Demo — Tirtonic", robots: {
 export default async function KlaimPage() {
   if (!currentCommunityId()) redirect("/komunitas/login");
   const campaigns = await safeQuery(
-    () => prisma.demoCampaign.findMany({ where: { isActive: true }, orderBy: { createdAt: "desc" } }),
+    () => prisma.demoCampaign.findMany({ where: { isActive: true, brandApproved: true }, orderBy: { createdAt: "desc" } }),
     [],
   );
 
@@ -31,6 +31,7 @@ export default async function KlaimPage() {
         ) : (
           <div className="space-y-3">
             {campaigns.map((c) => {
+              if (!c.startDate || !c.endDate) return null;
               const periode = `${c.startDate.toLocaleDateString("id-ID", { day: "numeric", month: "short" })} – ${c.endDate.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}`;
               const todayStr = new Date().toISOString().slice(0, 10);
               const startStr = c.startDate.toISOString().slice(0, 10);

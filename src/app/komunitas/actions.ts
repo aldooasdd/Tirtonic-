@@ -79,6 +79,7 @@ export async function claimDemo(_prev: FormState, formData: FormData): Promise<F
 
   const campaign = await prisma.demoCampaign.findUnique({ where: { id: campaignId }, select: { id: true, isActive: true, startDate: true, endDate: true } });
   if (!campaign || !campaign.isActive) return { error: "Kampanye demo tidak tersedia." };
+  if (!campaign.startDate || !campaign.endDate) return { error: "Kampanye belum siap diklaim (periode belum ditentukan)." };
   if (!court) return { error: "Lapangan tenis wajib diisi." };
   if (quota < 10) return { error: "Kuota peserta minimal 10 orang." };
   if (!demoRaw) return { error: "Tanggal demo wajib diisi." };
