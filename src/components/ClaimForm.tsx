@@ -4,12 +4,33 @@ import { useEffect, useRef, useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import { claimDemo, FormState } from "@/app/komunitas/actions";
 
-// Label tempat dari hasil Photon (OpenStreetMap) — gratis, tanpa API key.
+// Autocomplete lokasi: Google Places (New) kalau ada API key, selain itu fallback Photon/OSM (gratis).
+const GKEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+
+// Label tempat dari hasil Photon (OpenStreetMap).
 type Place = { properties: Record<string, string> };
 function placeLabel(p: Record<string, string>): string {
   const head = p.name || [p.street, p.housenumber].filter(Boolean).join(" ");
   const rest = [p.city || p.county || p.district, p.state, p.country].filter(Boolean);
   return [head, ...rest].filter(Boolean).join(", ");
+}
+
+// Muat Google Maps JS (Places lib) sekali, lalu ambil library 'places'.
+// ponytail: pakai importLibrary (API baru) — classic Autocomplete sudah dibatasi untuk key baru.
+async function loadGooglePlaces(): Promise<any> {
+  const w = window as any;
+  if (!w.__gmapsPromise) {
+    w.__gmapsPromise = new Promise<void>((res, rej) => {
+      const s = document.createElement("script");
+      s.src = `https://maps.googleapis.com/maps/api/js?key=${GKEY}&v=weekly&libraries=places&loading=async`;
+      s.async = true;
+      s.onload = () => res();
+      s.onerror = () => rej(new Error("gmaps load failed"));
+      document.head.appendChild(s);
+    });
+  }
+  await w.__gmapsPromise;
+  return w.google.maps.importLibrary("places");
 }
 
 function Btn() {
@@ -29,22 +50,35 @@ export default function ClaimForm({ campaignId }: { campaignId: string }) {
   const [showSug, setShowSug] = useState(false);
   const pickedRef = useRef(false);
 
-  // Autocomplete lokasi via Photon (debounce). Tempat dibias ke Indonesia.
+  // Autocomplete lokasi (debounce). Google Places kalau ada key, else Photon/OSM. Dibias ke Indonesia.
   useEffect(() => {
     if (pickedRef.current) { pickedRef.current = false; return; }
     const q = court.trim();
     if (q.length < 3) { setSuggests([]); return; }
-    const ctrl = new AbortController();
+    let active = true;
     const t = setTimeout(async () => {
       try {
-        const r = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=5&lang=en`, { signal: ctrl.signal });
-        const data: { features?: Place[] } = await r.json();
-        const labels = Array.from(new Set((data.features || []).map((f) => placeLabel(f.properties)).filter(Boolean)));
-        setSuggests(labels);
+        let labels: string[] = [];
+        if (GKEY) {
+          const places = await loadGooglePlaces();
+          const { suggestions } = await places.AutocompleteSuggestion.fetchAutocompleteSuggestions({
+            input: q,
+            includedRegionCodes: ["id"],
+            language: "id",
+            region: "id",
+          });
+          labels = (suggestions || []).map((s: any) => s.placePrediction?.text?.text).filter(Boolean);
+        } else {
+          const r = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=5&lang=en`);
+          const data: { features?: Place[] } = await r.json();
+          labels = (data.features || []).map((f) => placeLabel(f.properties)).filter(Boolean);
+        }
+        if (!active) return;
+        setSuggests(Array.from(new Set(labels)).slice(0, 6));
         setShowSug(true);
-      } catch { /* ponytail: abaikan error jaringan, input manual tetap jalan */ }
+      } catch { /* ponytail: abaikan error jaringan/quota — input manual tetap jalan */ }
     }, 300);
-    return () => { clearTimeout(t); ctrl.abort(); };
+    return () => { active = false; clearTimeout(t); };
   }, [court]);
 
   return (
