@@ -42,13 +42,29 @@ function Btn() {
   );
 }
 
-export default function ClaimForm({ campaignId, minDate, maxDate }: { campaignId: string; minDate: string; maxDate: string }) {
+// Booking existing (per tanggal) untuk padamkan jam yang bentrok + jeda 1 jam.
+export type Booking = { date: string; start: string; end: string };
+const toMin = (t: string) => { const [h, m] = t.split(":").map(Number); return h * 60 + m; };
+const toHHMM = (min: number) => `${String(Math.floor(min / 60)).padStart(2, "0")}:${String(min % 60).padStart(2, "0")}`;
+// Slot 06:00–22:00 tiap 30 menit.
+const SLOTS = Array.from({ length: (22 - 6) * 2 + 1 }, (_, i) => toHHMM(6 * 60 + i * 30));
+const GAP = 60; // menit jeda minimal antar booking
+
+export default function ClaimForm({ campaignId, minDate, maxDate, bookings }: { campaignId: string; minDate: string; maxDate: string; bookings: Booking[] }) {
   const [state, action] = useFormState<FormState, FormData>(claimDemo, {});
   const [quotaType, setQuotaType] = useState<"closed" | "open">("open");
   const [court, setCourt] = useState("");
   const [suggests, setSuggests] = useState<string[]>([]);
   const [showSug, setShowSug] = useState(false);
   const pickedRef = useRef(false);
+  const [date, setDate] = useState("");
+  const [startT, setStartT] = useState("08:00");
+  const [endT, setEndT] = useState("10:00");
+
+  // Booking pada tanggal terpilih → zona terblokir [mulai-60, selesai+60].
+  const dayBlocks = bookings.filter((b) => b.date === date && b.start && b.end).map((b) => ({ s: toMin(b.start), e: toMin(b.end), raw: `${b.start}–${b.end}` }));
+  const startBlocked = (t: string) => { const m = toMin(t); return dayBlocks.some((b) => b.s - GAP < m && m < b.e + GAP); };
+  const endBlocked = (t: string) => { const m = toMin(t), sm = toMin(startT); return m <= sm || dayBlocks.some((b) => sm < b.e + GAP && m > b.s - GAP); };
 
   // Autocomplete lokasi (debounce). Google Places kalau ada key, else Photon/OSM. Dibias ke Indonesia.
   useEffect(() => {
@@ -148,20 +164,57 @@ export default function ClaimForm({ campaignId, minDate, maxDate }: { campaignId
 
       <div>
         <label className="label">Tanggal sesi *</label>
-        <input name="demoDate" required type="date" min={minDate} max={maxDate} className="field" />
+        <input
+          name="demoDate"
+          required
+          type="date"
+          min={minDate}
+          max={maxDate}
+          value={date}
+          onChange={(e) => {
+            const d = e.target.value;
+            setDate(d);
+            // kalau jam mulai yang dipilih jadi terblokir di tanggal baru, lompat ke slot kosong pertama.
+            const blocks = bookings.filter((b) => b.date === d && b.start && b.end).map((b) => ({ s: toMin(b.start), e: toMin(b.end) }));
+            const blk = (m: number) => blocks.some((b) => b.s - GAP < m && m < b.e + GAP);
+            if (blk(toMin(startT))) {
+              const free = SLOTS.find((t) => !blk(toMin(t)));
+              if (free) { setStartT(free); setEndT(toHHMM(Math.min(toMin(free) + 60, toMin("22:00")))); }
+            }
+          }}
+          className="field"
+        />
         <p className="mt-1 text-xs text-gray-400">Hanya dalam periode demo brand.</p>
       </div>
+
+      {date && dayBlocks.length > 0 && (
+        <p className="-mt-1 flex flex-wrap items-center gap-1.5 text-xs text-gray-500">
+          Sudah dibooking:
+          {dayBlocks.map((b) => (
+            <span key={b.raw} className="rounded-full bg-gray-100 px-2 py-0.5 font-semibold text-gray-500 line-through">{b.raw}</span>
+          ))}
+        </p>
+      )}
+
       <div className="grid grid-cols-2 gap-2">
         <div>
           <label className="label">Jam mulai *</label>
-          <input name="time" required type="time" defaultValue="08:00" className="field" />
+          <select name="time" required value={startT} onChange={(e) => { const v = e.target.value; setStartT(v); if (toMin(endT) <= toMin(v)) setEndT(toHHMM(Math.min(toMin(v) + 60, toMin("22:00")))); }} className="field">
+            {SLOTS.map((t) => (
+              <option key={t} value={t} disabled={startBlocked(t)}>{t}{startBlocked(t) ? " — penuh" : ""}</option>
+            ))}
+          </select>
         </div>
         <div>
           <label className="label">Jam selesai *</label>
-          <input name="timeEnd" required type="time" defaultValue="10:00" className="field" />
+          <select name="timeEnd" required value={endT} onChange={(e) => setEndT(e.target.value)} className="field">
+            {SLOTS.map((t) => (
+              <option key={t} value={t} disabled={endBlocked(t)}>{t}{endBlocked(t) && toMin(t) > toMin(startT) ? " — penuh" : ""}</option>
+            ))}
+          </select>
         </div>
       </div>
-      <p className="-mt-2 text-xs text-gray-400">1 pengajuan = 1 sesi. Jam yang sudah dibooking komunitas lain nggak bisa dipilih. Mau sesi lain? Ajukan lagi.</p>
+      <p className="-mt-2 text-xs text-gray-400">1 pengajuan = 1 sesi. Jam yang bentrok (termasuk jeda 1 jam) otomatis non-aktif. Mau sesi lain? Ajukan lagi.</p>
 
       <div>
         <label className="label">Nomor WhatsApp penanggung jawab acara *</label>

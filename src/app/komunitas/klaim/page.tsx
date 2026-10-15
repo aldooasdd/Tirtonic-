@@ -12,7 +12,11 @@ export const metadata: Metadata = { title: "Ajukan Demo — Tirtonic", robots: {
 export default async function KlaimPage() {
   if (!currentCommunityId()) redirect("/komunitas/login");
   const campaigns = await safeQuery(
-    () => prisma.demoCampaign.findMany({ where: { isActive: true, brandApproved: true }, orderBy: { createdAt: "desc" } }),
+    () => prisma.demoCampaign.findMany({
+      where: { isActive: true, brandApproved: true },
+      orderBy: { createdAt: "desc" },
+      include: { claims: { where: { status: { not: "rejected" } }, select: { demoDate: true, time: true, timeEnd: true } } },
+    }),
     [],
   );
 
@@ -37,6 +41,7 @@ export default async function KlaimPage() {
               const startStr = c.startDate.toISOString().slice(0, 10);
               const minDate = startStr > todayStr ? startStr : todayStr;
               const maxDate = c.endDate.toISOString().slice(0, 10);
+              const bookings = c.claims.map((cl) => ({ date: cl.demoDate.toISOString().slice(0, 10), start: cl.time, end: cl.timeEnd }));
               return (
                 <details key={c.id} className="group overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
                   <summary className="flex cursor-pointer items-start gap-3 p-4">
@@ -57,7 +62,7 @@ export default async function KlaimPage() {
                   </summary>
                   <div className="border-t border-gray-50 p-4">
                     {c.description && <p className="mb-4 whitespace-pre-line text-sm leading-relaxed text-gray-600">{c.description}</p>}
-                    <ClaimForm campaignId={c.id} minDate={minDate} maxDate={maxDate} />
+                    <ClaimForm campaignId={c.id} minDate={minDate} maxDate={maxDate} bookings={bookings} />
                   </div>
                 </details>
               );

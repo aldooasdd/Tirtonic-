@@ -98,14 +98,19 @@ export async function claimDemo(_prev: FormState, formData: FormData): Promise<F
     return { error: `Tanggal harus dalam periode demo: ${fmt(startStr)} – ${fmt(endStr)}.` };
   }
 
-  // Anti double-booking: satu campaign + tanggal sama, rentang jam tidak boleh tumpang-tindih dgn booking lain (pending/accepted).
-  // Overlap: mulaiBaru < selesaiLama && mulaiLama < selesaiBaru. ponytail: cek di app, race kembar nyaris mustahil di form manual.
+  // Anti double-booking + JEDA 1 JAM: satu campaign + tanggal sama, rentang baru harus berjarak >= 60 menit dari booking lain.
+  // Konflik bila: mulaiBaru < (selesaiLama+60) && selesaiBaru > (mulaiLama-60). ponytail: cek di app, race kembar nyaris mustahil.
+  const toMin = (t: string) => { const [h, m] = t.split(":").map(Number); return h * 60 + m; };
+  const s = toMin(time), e = toMin(timeEnd);
   const sameDay = await prisma.demoClaim.findMany({
     where: { campaignId, demoDate, status: { not: "rejected" } },
     select: { time: true, timeEnd: true },
   });
-  const bentrok = sameDay.find((b) => time < (b.timeEnd || "99:99") && (b.time || "") < timeEnd);
-  if (bentrok) return { error: `Jam ${bentrok.time}–${bentrok.timeEnd} di tanggal itu sudah dibooking komunitas lain. Pilih jam/tanggal lain.` };
+  const bentrok = sameDay.find((b) => {
+    const bs = toMin(b.time || "00:00"), be = toMin(b.timeEnd || "23:59");
+    return s < be + 60 && e > bs - 60;
+  });
+  if (bentrok) return { error: `Jam ${bentrok.time}–${bentrok.timeEnd} sudah dibooking komunitas lain (butuh jeda 1 jam). Pilih jam/tanggal lain.` };
 
   await prisma.demoClaim.create({
     data: { campaignId, communityId, court, quotaType, quota, demoDate, time, timeEnd, eventPicPhone, status: "pending" },
