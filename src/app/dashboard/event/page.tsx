@@ -60,6 +60,11 @@ export default async function AdminEvent() {
           <span>{c.quotaType === "open" ? `👥 Open · ${accepted}/${c.quota}` : `👥 Closed · ${c.quota}`}</span>
           <a href={`https://wa.me/${c.eventPicPhone}`} target="_blank" rel="noreferrer" className="font-semibold text-primary hover:underline">PIC: {displayPhone(c.eventPicPhone)} ↗</a>
         </div>
+        {c.status === "accepted" && (
+          <p className={`mt-1.5 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold ${c.pickedUpAt ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
+            📦 {c.pickedUpAt ? `Produk diambil ${fmt(c.pickedUpAt)}` : "Produk belum diambil"}
+          </p>
+        )}
         <div className="mt-3 flex gap-2">
           {c.status === "pending" && (
             <>

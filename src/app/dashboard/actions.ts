@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { createSession, destroySession, isAuthed, requireSection, currentRole } from "@/lib/auth";
 import { findRoleByPassword, roleMatches, setRolePassword, hashPassword } from "@/lib/role-password";
+import { verifyPickupToken } from "@/lib/pickup-token";
 import { uploadFile, uploadFromUrl, storageConfigured } from "@/lib/storage";
 import { fetchTokopedia } from "@/lib/tokopedia";
 import { markOrderPaid, markOrderShipped, cancelOrder } from "@/lib/orders";
@@ -607,6 +608,17 @@ export async function decideCommunity(id: string, decision: "accepted" | "reject
     await sendWa(c.waPhone, `Mohon maaf, pendaftaran komunitas *${c.name}* belum bisa kami setujui saat ini. 🙏`);
   }
   revalidatePath("/dashboard/event");
+}
+
+/** Tandai produk demo sudah diambil komunitas (dipanggil saat admin scan QR). */
+export async function markPickedUp(token: string) {
+  requireSection("event");
+  const claimId = verifyPickupToken(token);
+  if (!claimId) return;
+  // updateMany + pickedUpAt null → idempoten, pertahankan waktu ambil pertama.
+  await prisma.demoClaim.updateMany({ where: { id: claimId, pickedUpAt: null }, data: { pickedUpAt: new Date() } });
+  revalidatePath("/dashboard/event");
+  revalidatePath("/komunitas");
 }
 
 /** Hapus 1 pengajuan/klaim demo (cascade: peserta ikut terhapus). */

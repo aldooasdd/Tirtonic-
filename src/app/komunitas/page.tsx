@@ -6,6 +6,8 @@ import { logoutCommunity, decideParticipant, removeParticipant } from "./actions
 import { phaseOf, PHASE_META } from "@/lib/event-phase";
 import EventTopBar from "@/components/EventTopBar";
 import ClaimForm from "@/components/ClaimForm";
+import PickupButton from "@/components/PickupButton";
+import { pickupToken } from "@/lib/pickup-token";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Komunitas — Tirtonic", robots: { index: false } };
@@ -217,6 +219,18 @@ export default async function KomunitasHome() {
                     <span>📍 {c.court}</span>
                     <span>{open ? `👥 Open · ${accepted}/${c.quota}` : `👥 Closed · ${c.quota}`}</span>
                   </div>
+
+                  {/* Ambil produk demo (via scan QR admin) */}
+                  {phase !== "pending" && (
+                    c.pickedUpAt ? (
+                      <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-green-50 px-3 py-1 text-xs font-bold text-green-700">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+                        Produk sudah diambil
+                      </p>
+                    ) : phase !== "done" ? (
+                      <PickupButton token={pickupToken(c.id)} />
+                    ) : null
+                  )}
 
                   {/* Peserta menunggu konfirmasi (acara open) */}
                   {open && phase !== "done" && phase !== "pending" && pendingParts.length > 0 && (
