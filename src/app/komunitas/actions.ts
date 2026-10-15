@@ -74,6 +74,7 @@ export async function claimDemo(_prev: FormState, formData: FormData): Promise<F
   const quota = parseInt(((formData.get("quota") as string) || "").replace(/\D/g, ""), 10) || 0;
   const demoRaw = (formData.get("demoDate") as string) || "";
   const eventPicPhone = normalizePhone((formData.get("eventPicPhone") as string) || "");
+  const sessions = [0, 1, 2, 3].map((i) => ((formData.get(`session${i}`) as string) || "").trim());
 
   const campaign = await prisma.demoCampaign.findUnique({ where: { id: campaignId }, select: { id: true, isActive: true } });
   if (!campaign || !campaign.isActive) return { error: "Kampanye demo tidak tersedia." };
@@ -84,9 +85,10 @@ export async function claimDemo(_prev: FormState, formData: FormData): Promise<F
   const today = new Date(); today.setHours(0, 0, 0, 0);
   if (demoDate < today) return { error: "Tanggal demo tidak boleh di masa lalu." };
   if (!eventPicPhone) return { error: "Nomor penanggung jawab acara tidak valid." };
+  if (sessions.some((s) => !/^\d{2}:\d{2}$/.test(s))) return { error: "Keempat jam sesi wajib diisi." };
 
   await prisma.demoClaim.create({
-    data: { campaignId, communityId, court, quotaType, quota, demoDate, eventPicPhone, status: "pending" },
+    data: { campaignId, communityId, court, quotaType, quota, demoDate, sessions, eventPicPhone, status: "pending" },
   });
   revalidatePath("/komunitas");
   revalidatePath("/dashboard/event");

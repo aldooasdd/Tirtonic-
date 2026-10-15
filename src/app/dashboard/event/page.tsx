@@ -54,9 +54,12 @@ export default async function AdminEvent() {
         <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
           <span>📅 {fmt(c.demoDate)}</span>
           <span>📍 {c.court}</span>
-          <span>{c.quotaType === "open" ? `👥 Open · ${accepted}/${c.quota}` : `👥 Closed · ${c.quota}`}</span>
+          <span>{c.quotaType === "open" ? `👥 Open · ${accepted} join · ${c.quota}/sesi` : `👥 Closed · ${c.quota}/sesi`}</span>
           <a href={`https://wa.me/${c.eventPicPhone}`} target="_blank" rel="noreferrer" className="font-semibold text-primary hover:underline">PIC: {displayPhone(c.eventPicPhone)} ↗</a>
         </div>
+        {c.sessions.length > 0 && (
+          <p className="mt-1 text-xs text-gray-400">🕒 {c.sessions.map((t, i) => `S${i + 1} ${t}`).join(" · ")}</p>
+        )}
         {c.status === "pending" && (
           <div className="mt-3 flex gap-2">
             <form action={decideClaim.bind(null, c.id, "accepted")}>

@@ -15,7 +15,7 @@ async function getEvent(id: string) {
         include: {
           campaign: true,
           community: { select: { name: true, logo: true, instagram: true } },
-          participants: { select: { status: true } },
+          participants: { select: { status: true, sessionIndex: true } },
         },
       }),
     null,
@@ -35,12 +35,17 @@ export default async function EventDetail({ params }: { params: { id: string } }
   const phase = phaseOf(e);
   const meta = PHASE_META[phase];
   const open = e.quotaType === "open";
-  const accepted = e.participants.filter((p) => p.status === "accepted").length;
-  const sisa = Math.max(0, e.quota - accepted);
   const hari = e.demoDate.toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
   const bulan = e.demoDate.toLocaleDateString("id-ID", { month: "short" }).toUpperCase();
   const tanggal = e.demoDate.getDate();
-  const canJoin = open && (phase === "coming_soon" || phase === "ongoing") && sisa > 0;
+
+  // Slot per sesi (kuota berlaku per sesi).
+  const slots = e.sessions.map((time, index) => {
+    const acc = e.participants.filter((p) => p.sessionIndex === index && p.status === "accepted").length;
+    const sisa = Math.max(0, e.quota - acc);
+    return { index, time, sisa, full: sisa <= 0 };
+  });
+  const canJoin = open && (phase === "coming_soon" || phase === "ongoing") && slots.some((s) => !s.full);
 
   // Google Maps dari teks lapangan (tanpa API key).
   const mapsQuery = encodeURIComponent(e.court);
@@ -141,7 +146,22 @@ export default async function EventDetail({ params }: { params: { id: string } }
                 </div>
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold text-gray-900">{hari}</p>
-                  <p className="text-xs text-gray-400">Sepanjang hari</p>
+                  <p className="text-xs text-gray-400">{slots.length} sesi dalam sehari</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-gray-200 bg-gray-50 text-primary">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="mb-1.5 text-sm font-semibold text-gray-900">Sesi waktu</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {slots.map((s) => (
+                      <span key={s.index} className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${s.full ? "bg-gray-100 text-gray-400 line-through" : "bg-primary/10 text-primary"}`}>
+                        {s.time}{open && !s.full ? ` · sisa ${s.sisa}` : ""}{open && s.full ? " · penuh" : ""}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
               <a href={mapsLink} target="_blank" rel="noreferrer" className="group flex items-center gap-3">
@@ -155,8 +175,8 @@ export default async function EventDetail({ params }: { params: { id: string } }
               </a>
               <Tile
                 icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg>}
-                title={open ? `Open · ${accepted}/${e.quota} terisi` : `Closed · ${e.quota} orang`}
-                sub={open ? `Sisa ${sisa} slot untuk umum` : "Khusus anggota komunitas"}
+                title={open ? `Open · ${e.quota} orang / sesi` : `Closed · ${e.quota} orang / sesi`}
+                sub={open ? "Bisa join dari web, pilih sesi" : "Khusus anggota komunitas"}
               />
             </div>
 
@@ -168,8 +188,8 @@ export default async function EventDetail({ params }: { params: { id: string } }
               <div className="p-4">
                 {canJoin ? (
                   <>
-                    <p className="mb-3 text-sm text-gray-500">Daftar di bawah untuk ikut demo ini. Panitia komunitas akan konfirmasi via WhatsApp.</p>
-                    <JoinEventForm claimId={e.id} />
+                    <p className="mb-3 text-sm text-gray-500">Pilih sesi &amp; daftar di bawah. Panitia komunitas akan konfirmasi via WhatsApp.</p>
+                    <JoinEventForm claimId={e.id} sessions={slots} />
                   </>
                 ) : (
                   <p className="text-sm text-gray-500">
