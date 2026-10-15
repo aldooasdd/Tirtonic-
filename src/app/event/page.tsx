@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma, safeQuery } from "@/lib/prisma";
-import StringingBottomNav from "@/components/StringingBottomNav";
 import EventCard, { EventCardData } from "@/components/EventCard";
 import { phaseOf } from "@/lib/event-phase";
 
@@ -41,33 +40,40 @@ export default async function EventLanding() {
   const comingSoon = events.filter((e) => phaseOf(e) === "coming_soon");
 
   return (
-    <div className="mx-auto min-h-screen max-w-3xl bg-gray-50 pb-24">
-      <header className="rounded-b-[1.25rem] bg-gradient-to-br from-primaryDark to-primary px-5 pb-8 pt-10 text-white">
-        <div className="flex items-center gap-3">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="Tirtonic" className="h-11 w-11 object-contain" />
-          <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">Event Demo Produk</span>
+    <div className="min-h-screen bg-gray-50 pb-16">
+      <header className="rounded-b-[1.5rem] bg-gradient-to-br from-primaryDark to-primary text-white sm:rounded-b-[2rem]">
+        <div className="mx-auto max-w-6xl px-5 pb-10 pt-10 sm:px-8 lg:pb-16 lg:pt-16">
+          <div className="flex items-center justify-between gap-3">
+            <Link href="/" className="flex items-center gap-3 transition hover:opacity-90">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logo.png" alt="Tirtonic" className="h-11 w-11 object-contain" />
+              <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">Event Demo Produk</span>
+            </Link>
+            <Link href="/komunitas" className="hidden rounded-full bg-white/15 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/25 sm:inline-block">
+              Dashboard komunitas
+            </Link>
+          </div>
+          <div className="mt-6 max-w-2xl lg:mt-8">
+            <h1 className="text-2xl font-extrabold leading-tight sm:text-3xl lg:text-4xl">Demo produk bareng komunitas</h1>
+            <p className="mt-2 text-sm text-white/80 sm:text-base">Coba langsung raket &amp; produk brand terbaru di lapangan komunitasmu.</p>
+          </div>
+          <Link href="/komunitas" className="mt-6 inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-bold text-primary shadow-sm transition hover:bg-white/90 lg:px-6 lg:py-3 lg:text-base">
+            Join as komunitas
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+          </Link>
         </div>
-        <div className="mt-6">
-          <h1 className="text-2xl font-extrabold leading-tight">Demo produk bareng komunitas</h1>
-          <p className="mt-1.5 text-sm text-white/80">Coba langsung raket &amp; produk brand terbaru di lapangan komunitasmu.</p>
-        </div>
-        <Link href="/komunitas" className="mt-5 inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-bold text-primary shadow-sm transition hover:bg-white/90">
-          Join as komunitas
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
-        </Link>
       </header>
 
       {/* Demo tersedia (kampanye brand) */}
       {campaigns.length > 0 && (
-        <section className="mt-5 px-4">
-          <h2 className="mb-2 text-sm font-bold text-gray-900">Demo tersedia untuk diklaim</h2>
-          <div className="flex gap-3 overflow-x-auto pb-2">
+        <section className="mx-auto mt-6 max-w-6xl px-4 sm:px-8">
+          <h2 className="mb-2.5 text-base font-bold text-gray-900">Demo tersedia untuk diklaim</h2>
+          <div className="flex gap-3 overflow-x-auto pb-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:overflow-visible lg:grid-cols-4">
             {campaigns.map((c) => (
               <Link
                 key={c.id}
                 href="/komunitas"
-                className="w-56 shrink-0 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition hover:border-primary/40"
+                className="w-56 shrink-0 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition hover:border-primary/40 sm:w-auto"
               >
                 <div className="relative h-24 bg-gradient-to-br from-primaryDark to-primary">
                   {c.banner && (
@@ -89,32 +95,30 @@ export default async function EventLanding() {
 
       {/* On going */}
       {ongoing.length > 0 && (
-        <section className="mt-5 px-4">
-          <div className="mb-2 flex items-center gap-2">
+        <section className="mx-auto mt-6 max-w-6xl px-4 sm:px-8">
+          <div className="mb-2.5 flex items-center gap-2">
             <span className="flex h-2 w-2 rounded-full bg-green-500" />
-            <h2 className="text-sm font-bold text-gray-900">Sedang berlangsung</h2>
+            <h2 className="text-base font-bold text-gray-900">Sedang berlangsung</h2>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {ongoing.map((e) => <EventCard key={e.id} e={e} />)}
           </div>
         </section>
       )}
 
       {/* Coming soon */}
-      <section className="mt-5 px-4">
-        <h2 className="mb-2 text-sm font-bold text-gray-900">Coming soon</h2>
+      <section className="mx-auto mt-6 max-w-6xl px-4 sm:px-8">
+        <h2 className="mb-2.5 text-base font-bold text-gray-900">Coming soon</h2>
         {comingSoon.length === 0 ? (
-          <p className="rounded-2xl border border-gray-100 bg-white p-8 text-center text-sm text-gray-400 shadow-sm">
+          <p className="mx-auto max-w-md rounded-2xl border border-gray-100 bg-white p-8 text-center text-sm text-gray-400 shadow-sm">
             Belum ada acara demo terjadwal. Pantau terus ya!
           </p>
         ) : (
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {comingSoon.map((e) => <EventCard key={e.id} e={e} />)}
           </div>
         )}
       </section>
-
-      <StringingBottomNav active="event" />
     </div>
   );
 }
