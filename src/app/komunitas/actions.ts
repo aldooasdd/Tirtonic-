@@ -123,6 +123,19 @@ export async function claimDemo(_prev: FormState, formData: FormData): Promise<F
 // ──────────────── Peserta (acara open) ────────────────
 
 /** Komunitas ACC / tolak peserta yang join acara open-nya. */
+/** Hapus peserta (mis. dia batal hadir). Hanya boleh oleh komunitas pemilik acara. */
+export async function removeParticipant(participantId: string) {
+  const communityId = currentCommunityId();
+  if (!communityId) return;
+  const p = await prisma.demoParticipant.findUnique({
+    where: { id: participantId },
+    include: { claim: { select: { communityId: true } } },
+  });
+  if (!p || p.claim.communityId !== communityId) return;
+  await prisma.demoParticipant.delete({ where: { id: participantId } });
+  revalidatePath("/komunitas");
+}
+
 export async function decideParticipant(participantId: string, decision: "accepted" | "rejected") {
   const communityId = currentCommunityId();
   if (!communityId) return;

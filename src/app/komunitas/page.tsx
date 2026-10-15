@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma, safeQuery } from "@/lib/prisma";
 import { currentCommunity } from "@/lib/community-auth";
-import { logoutCommunity, decideParticipant } from "./actions";
+import { logoutCommunity, decideParticipant, removeParticipant } from "./actions";
 import { phaseOf, PHASE_META } from "@/lib/event-phase";
 import EventTopBar from "@/components/EventTopBar";
 import ClaimForm from "@/components/ClaimForm";
@@ -250,8 +250,11 @@ export default async function KomunitasHome() {
                       <div className="space-y-1.5">
                         {acceptedParts.map((p) => (
                           <div key={p.id} className="flex items-center justify-between gap-2 text-sm">
-                            <span className="truncate font-semibold text-gray-800">{p.name}</span>
+                            <span className="min-w-0 flex-1 truncate font-semibold text-gray-800">{p.name}</span>
                             <a href={`https://wa.me/${p.phone}`} target="_blank" rel="noreferrer" className="shrink-0 text-xs font-semibold text-primary hover:underline">{p.phone} ↗</a>
+                            <form action={removeParticipant.bind(null, p.id)} className="shrink-0">
+                              <button title="Hapus peserta (batal)" className="rounded-full border border-gray-200 px-2.5 py-0.5 text-xs font-semibold text-gray-400 hover:border-red-400 hover:text-red-600">Hapus</button>
+                            </form>
                           </div>
                         ))}
                       </div>
