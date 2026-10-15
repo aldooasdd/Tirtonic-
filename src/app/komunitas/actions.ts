@@ -48,11 +48,13 @@ export async function registerCommunity(_prev: FormState, formData: FormData): P
 }
 
 export async function loginCommunity(_prev: FormState, formData: FormData): Promise<FormState> {
-  const instagram = cleanIg((formData.get("instagram") as string) || "");
   const password = (formData.get("password") as string) || "";
-  if (!instagram || !password) return { error: "Username & password wajib diisi." };
-  const c = await prisma.community.findUnique({ where: { instagram } });
-  if (!c || !verifyHash(password, c.passwordHash)) return { error: "Username atau password salah." };
+  if (!password) return { error: "Password wajib diisi." };
+  // Password = instagram+3digit (unik per komunitas). Cocokkan ke semua komunitas.
+  // ponytail: O(n) scan — aman selama komunitas sedikit; pakai index kalau sudah ribuan.
+  const communities = await prisma.community.findMany();
+  const c = communities.find((x) => verifyHash(password, x.passwordHash));
+  if (!c) return { error: "Password salah." };
   createCommunitySession(c.id);
   redirect("/komunitas");
 }

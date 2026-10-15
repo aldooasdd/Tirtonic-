@@ -17,12 +17,9 @@ export default function CommunityLoginForm() {
   return (
     <form action={action} className="space-y-3">
       <div>
-        <label className="label">Username Instagram</label>
-        <input name="instagram" required className="field" placeholder="tenis.sleman" />
-      </div>
-      <div>
         <label className="label">Password</label>
         <input name="password" type="password" required className="field" placeholder="••••••••" />
+        <p className="mt-1 text-xs text-gray-400">Password dikirim ke WhatsApp PIC saat daftar.</p>
       </div>
       {state.error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{state.error}</p>}
       <Btn />
