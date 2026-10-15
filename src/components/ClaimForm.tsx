@@ -33,22 +33,30 @@ async function loadGooglePlaces(): Promise<any> {
   return w.google.maps.importLibrary("places");
 }
 
-function Btn() {
+function Btn({ disabled }: { disabled?: boolean }) {
   const { pending } = useFormStatus();
   return (
-    <button type="submit" disabled={pending} className="btn-green w-full py-3 disabled:opacity-60">
+    <button type="submit" disabled={pending || disabled} className="btn-green w-full py-3 disabled:opacity-60">
       {pending ? "Mengirim…" : "Ajukan demo ke Tirtonic"}
     </button>
   );
 }
 
-// Booking existing (per tanggal) untuk padamkan jam yang bentrok + jeda 1 jam.
+// Booking existing (per tanggal) untuk tandai slot Booked + jeda 1 jam.
 export type Booking = { date: string; start: string; end: string };
 const toMin = (t: string) => { const [h, m] = t.split(":").map(Number); return h * 60 + m; };
 const toHHMM = (min: number) => `${String(Math.floor(min / 60)).padStart(2, "0")}:${String(min % 60).padStart(2, "0")}`;
-// Slot 06:00–22:00 tiap 30 menit.
-const SLOTS = Array.from({ length: (22 - 6) * 2 + 1 }, (_, i) => toHHMM(6 * 60 + i * 30));
-const GAP = 60; // menit jeda minimal antar booking
+const GAP = 60; // menit jeda minimal antar booking komunitas
+// Slot per 1 jam, 06:00–22:00.
+const HOURS = Array.from({ length: 22 - 6 }, (_, i) => ({ start: toHHMM((6 + i) * 60), end: toHHMM((7 + i) * 60), s: (6 + i) * 60, e: (7 + i) * 60 }));
+// Daftar tanggal dalam periode kampanye (maks 90 hari).
+function dateRange(min: string, max: string): string[] {
+  const out: string[] = [];
+  let d = new Date(min + "T00:00:00Z");
+  const end = new Date(max + "T00:00:00Z");
+  for (let i = 0; i < 90 && d <= end; i++) { out.push(d.toISOString().slice(0, 10)); d = new Date(d.getTime() + 86400000); }
+  return out;
+}
 
 export default function ClaimForm({ campaignId, minDate, maxDate, bookings }: { campaignId: string; minDate: string; maxDate: string; bookings: Booking[] }) {
   const [state, action] = useFormState<FormState, FormData>(claimDemo, {});
@@ -57,14 +65,22 @@ export default function ClaimForm({ campaignId, minDate, maxDate, bookings }: { 
   const [suggests, setSuggests] = useState<string[]>([]);
   const [showSug, setShowSug] = useState(false);
   const pickedRef = useRef(false);
-  const [date, setDate] = useState("");
-  const [startT, setStartT] = useState("08:00");
-  const [endT, setEndT] = useState("10:00");
+  const [date, setDate] = useState(minDate);
+  const [sel, setSel] = useState<number[]>([]); // index HOURS yang dipilih
 
-  // Booking pada tanggal terpilih → zona terblokir [mulai-60, selesai+60].
-  const dayBlocks = bookings.filter((b) => b.date === date && b.start && b.end).map((b) => ({ s: toMin(b.start), e: toMin(b.end), raw: `${b.start}–${b.end}` }));
-  const startBlocked = (t: string) => { const m = toMin(t); return dayBlocks.some((b) => b.s - GAP < m && m < b.e + GAP); };
-  const endBlocked = (t: string) => { const m = toMin(t), sm = toMin(startT); return m <= sm || dayBlocks.some((b) => sm < b.e + GAP && m > b.s - GAP); };
+  const dates = dateRange(minDate, maxDate);
+  const dayBlocks = bookings.filter((b) => b.date === date && b.start && b.end).map((b) => ({ s: toMin(b.start), e: toMin(b.end) }));
+  // Status slot: "booked" (bentrok langsung), "buffer" (dalam jeda 1 jam), "free".
+  const slotStatus = (sl: { s: number; e: number }): "booked" | "buffer" | "free" => {
+    if (dayBlocks.some((b) => sl.s < b.e && sl.e > b.s)) return "booked";
+    if (dayBlocks.some((b) => sl.s < b.e + GAP && sl.e > b.s - GAP)) return "buffer";
+    return "free";
+  };
+  const selSorted = [...sel].sort((a, b) => a - b);
+  const contiguous = sel.length > 0 && selSorted[selSorted.length - 1] - selSorted[0] + 1 === sel.length;
+  const timeStart = sel.length ? HOURS[selSorted[0]].start : "";
+  const timeEnd = sel.length ? HOURS[selSorted[selSorted.length - 1]].end : "";
+  const toggleSlot = (i: number) => setSel((p) => (p.includes(i) ? p.filter((x) => x !== i) : [...p, i]));
 
   // Autocomplete lokasi (debounce). Google Places kalau ada key, else Photon/OSM. Dibias ke Indonesia.
   useEffect(() => {
@@ -162,59 +178,73 @@ export default function ClaimForm({ campaignId, minDate, maxDate, bookings }: { 
         <p className="mt-1 text-xs text-gray-400">Minimal 10 orang (untuk sesi ini).</p>
       </div>
 
+      {/* nilai dikirim lewat hidden input (dari pilihan slot) */}
+      <input type="hidden" name="demoDate" value={date} />
+      <input type="hidden" name="time" value={timeStart} />
+      <input type="hidden" name="timeEnd" value={timeEnd} />
+
       <div>
         <label className="label">Tanggal sesi *</label>
-        <input
-          name="demoDate"
-          required
-          type="date"
-          min={minDate}
-          max={maxDate}
-          value={date}
-          onChange={(e) => {
-            const d = e.target.value;
-            setDate(d);
-            // kalau jam mulai yang dipilih jadi terblokir di tanggal baru, lompat ke slot kosong pertama.
-            const blocks = bookings.filter((b) => b.date === d && b.start && b.end).map((b) => ({ s: toMin(b.start), e: toMin(b.end) }));
-            const blk = (m: number) => blocks.some((b) => b.s - GAP < m && m < b.e + GAP);
-            if (blk(toMin(startT))) {
-              const free = SLOTS.find((t) => !blk(toMin(t)));
-              if (free) { setStartT(free); setEndT(toHHMM(Math.min(toMin(free) + 60, toMin("22:00")))); }
-            }
-          }}
-          className="field"
-        />
-        <p className="mt-1 text-xs text-gray-400">Hanya dalam periode demo brand.</p>
-      </div>
-
-      {date && dayBlocks.length > 0 && (
-        <p className="-mt-1 flex flex-wrap items-center gap-1.5 text-xs text-gray-500">
-          Sudah dibooking:
-          {dayBlocks.map((b) => (
-            <span key={b.raw} className="rounded-full bg-gray-100 px-2 py-0.5 font-semibold text-gray-500 line-through">{b.raw}</span>
-          ))}
-        </p>
-      )}
-
-      <div className="grid grid-cols-2 gap-2">
-        <div>
-          <label className="label">Jam mulai *</label>
-          <select name="time" required value={startT} onChange={(e) => { const v = e.target.value; setStartT(v); if (toMin(endT) <= toMin(v)) setEndT(toHHMM(Math.min(toMin(v) + 60, toMin("22:00")))); }} className="field">
-            {SLOTS.map((t) => (
-              <option key={t} value={t} disabled={startBlocked(t)}>{t}{startBlocked(t) ? " — penuh" : ""}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="label">Jam selesai *</label>
-          <select name="timeEnd" required value={endT} onChange={(e) => setEndT(e.target.value)} className="field">
-            {SLOTS.map((t) => (
-              <option key={t} value={t} disabled={endBlocked(t)}>{t}{endBlocked(t) && toMin(t) > toMin(startT) ? " — penuh" : ""}</option>
-            ))}
-          </select>
+        {/* Date tabs ala booking lapangan */}
+        <div className="mt-1 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {dates.map((d) => {
+            const dt = new Date(d + "T00:00:00Z");
+            const active = d === date;
+            return (
+              <button
+                key={d}
+                type="button"
+                onClick={() => { setDate(d); setSel([]); }}
+                className={`flex shrink-0 flex-col items-center rounded-xl border px-3 py-2 transition ${active ? "border-primary bg-primary text-white" : "border-gray-200 text-gray-600 hover:border-primary/40"}`}
+              >
+                <span className={`text-[10px] font-semibold uppercase ${active ? "text-white/80" : "text-gray-400"}`}>{dt.toLocaleDateString("id-ID", { weekday: "short", timeZone: "UTC" })}</span>
+                <span className="text-sm font-bold leading-tight">{dt.toLocaleDateString("id-ID", { day: "numeric", month: "short", timeZone: "UTC" })}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
-      <p className="-mt-2 text-xs text-gray-400">1 pengajuan = 1 sesi. Jam yang bentrok (termasuk jeda 1 jam) otomatis non-aktif. Mau sesi lain? Ajukan lagi.</p>
+
+      <div>
+        <label className="label">Pilih jam sesi *</label>
+        <div className="mt-1 grid grid-cols-2 gap-2 sm:grid-cols-3">
+          {HOURS.map((sl, i) => {
+            const st = slotStatus(sl);
+            const picked = sel.includes(i);
+            const locked = st !== "free";
+            return (
+              <button
+                key={sl.start}
+                type="button"
+                disabled={locked}
+                onClick={() => toggleSlot(i)}
+                className={`rounded-xl border px-2 py-2 text-center transition ${
+                  locked
+                    ? "cursor-not-allowed border-gray-100 bg-gray-50 text-gray-300"
+                    : picked
+                      ? "border-primary bg-primary text-white"
+                      : "border-gray-200 text-gray-700 hover:border-primary/50"
+                }`}
+              >
+                <span className={`block text-[10px] ${picked ? "text-white/80" : "text-gray-400"}`}>60 Menit</span>
+                <span className="block text-sm font-bold leading-tight">{sl.start} – {sl.end}</span>
+                <span className={`block text-[10px] font-semibold ${picked ? "text-white/90" : locked ? "text-gray-400" : "text-primary"}`}>
+                  {st === "booked" ? "Booked" : st === "buffer" ? "Jeda 1 jam" : picked ? "Dipilih" : "Tersedia"}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+        {sel.length > 0 ? (
+          contiguous ? (
+            <p className="mt-2 text-xs font-semibold text-primary">Sesi dipilih: {timeStart} – {timeEnd} ({sel.length} jam)</p>
+          ) : (
+            <p className="mt-2 text-xs font-semibold text-red-600">Pilih slot yang bersambung (tanpa loncat), ya.</p>
+          )
+        ) : (
+          <p className="mt-2 text-xs text-gray-400">Klik satu atau beberapa jam yang bersambung. Slot Booked/Jeda terkunci.</p>
+        )}
+      </div>
 
       <div>
         <label className="label">Nomor WhatsApp penanggung jawab acara *</label>
@@ -222,7 +252,7 @@ export default function ClaimForm({ campaignId, minDate, maxDate, bookings }: { 
       </div>
 
       {state.error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{state.error}</p>}
-      <Btn />
+      <Btn disabled={!contiguous} />
     </form>
   );
 }
