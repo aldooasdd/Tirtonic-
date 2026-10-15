@@ -36,89 +36,118 @@ export default async function EventLanding() {
     campaign: c.campaign,
     community: c.community,
   }));
-  const ongoing = events.filter((e) => phaseOf(e) === "ongoing");
-  const comingSoon = events.filter((e) => phaseOf(e) === "coming_soon");
+  // Feed: on going + coming soon, diurut tanggal, dikelompokkan per hari (timeline ala Luma).
+  const feed = events.filter((e) => ["ongoing", "coming_soon"].includes(phaseOf(e)));
+  const todayKey = new Date().toLocaleDateString("en-CA");
+  const groups: { key: string; label: string; sub: string; items: EventCardData[] }[] = [];
+  for (const e of feed) {
+    const key = e.demoDate.toLocaleDateString("en-CA");
+    let g = groups.find((x) => x.key === key);
+    if (!g) {
+      g = {
+        key,
+        label: key === todayKey ? "Hari ini" : e.demoDate.toLocaleDateString("id-ID", { day: "numeric", month: "long" }),
+        sub: e.demoDate.toLocaleDateString("id-ID", { weekday: "long" }),
+        items: [],
+      };
+      groups.push(g);
+    }
+    g.items.push(e);
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-16">
-      <header className="rounded-b-[1.5rem] bg-gradient-to-br from-primaryDark to-primary text-white sm:rounded-b-[2rem]">
-        <div className="mx-auto max-w-6xl px-5 pb-10 pt-10 sm:px-8 lg:pb-16 lg:pt-16">
-          <div className="flex items-center justify-between gap-3">
-            <Link href="/" className="flex items-center gap-3 transition hover:opacity-90">
+    <div className="min-h-screen bg-gray-50 text-gray-900">
+      {/* Hero */}
+      <header className="relative overflow-hidden border-b border-gray-100 bg-white">
+        <div className="pointer-events-none absolute -top-40 left-1/2 h-80 w-[36rem] -translate-x-1/2 rounded-full bg-primary/10 blur-[120px]" />
+        <div className="relative mx-auto max-w-5xl px-5 pb-12 pt-8 sm:px-8 lg:pb-16 lg:pt-10">
+          <div className="flex items-center justify-between">
+            <Link href="/" className="flex items-center gap-2.5 transition hover:opacity-90">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo.png" alt="Tirtonic" className="h-11 w-11 object-contain" />
-              <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">Event Demo Produk</span>
+              <img src="/logo.png" alt="Tirtonic" className="h-9 w-9 object-contain" />
+              <span className="text-sm font-semibold tracking-tight text-gray-900">Tirtonic Event</span>
             </Link>
-            <Link href="/komunitas" className="hidden rounded-full bg-white/15 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/25 sm:inline-block">
+            <Link href="/komunitas" className="rounded-full border border-gray-200 px-4 py-1.5 text-sm font-medium text-gray-600 transition hover:border-primary/40 hover:text-primary">
               Dashboard komunitas
             </Link>
           </div>
-          <div className="mt-6 max-w-2xl lg:mt-8">
-            <h1 className="text-2xl font-extrabold leading-tight sm:text-3xl lg:text-4xl">Demo produk bareng komunitas</h1>
-            <p className="mt-2 text-sm text-white/80 sm:text-base">Coba langsung raket &amp; produk brand terbaru di lapangan komunitasmu.</p>
+
+          <div className="mt-10 max-w-2xl lg:mt-14">
+            <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Demo produk × komunitas tenis
+            </span>
+            <h1 className="mt-4 text-3xl font-extrabold leading-[1.1] tracking-tight text-gray-900 sm:text-4xl lg:text-5xl">
+              Coba produk brand terbaru, langsung di lapangan.
+            </h1>
+            <p className="mt-3 text-base text-gray-500 sm:text-lg">
+              Demo raket &amp; perlengkapan tenis dari brand ternama bareng komunitasmu se-wilayah.
+            </p>
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              <Link href="/komunitas" className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-primaryDark">
+                Join as komunitas
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+              </Link>
+            </div>
           </div>
-          <Link href="/komunitas" className="mt-6 inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-bold text-primary shadow-sm transition hover:bg-white/90 lg:px-6 lg:py-3 lg:text-base">
-            Join as komunitas
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
-          </Link>
         </div>
       </header>
 
-      {/* Demo tersedia (kampanye brand) */}
-      {campaigns.length > 0 && (
-        <section className="mx-auto mt-6 max-w-6xl px-4 sm:px-8">
-          <h2 className="mb-2.5 text-base font-bold text-gray-900">Demo tersedia untuk diklaim</h2>
-          <div className="flex gap-3 overflow-x-auto pb-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:overflow-visible lg:grid-cols-4">
-            {campaigns.map((c) => (
-              <Link
-                key={c.id}
-                href="/komunitas"
-                className="w-56 shrink-0 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition hover:border-primary/40 sm:w-auto"
-              >
-                <div className="relative h-24 bg-gradient-to-br from-primaryDark to-primary">
-                  {c.banner && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={c.banner} alt="" className="h-full w-full object-cover" />
-                  )}
-                  <span className="absolute left-2 top-2 rounded-full bg-black/35 px-2 py-0.5 text-[10px] font-bold uppercase text-white backdrop-blur-sm">{c.brand}</span>
+      <main className="mx-auto max-w-5xl px-5 py-10 sm:px-8">
+        {/* Demo tersedia untuk diklaim */}
+        {campaigns.length > 0 && (
+          <section className="mb-10">
+            <h2 className="mb-3 text-lg font-bold text-gray-900">Demo tersedia untuk diklaim</h2>
+            <div className="flex gap-3 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {campaigns.map((c) => (
+                <Link
+                  key={c.id}
+                  href="/komunitas"
+                  className="w-64 shrink-0 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:border-primary/40 hover:shadow-md"
+                >
+                  <div className="relative h-28 bg-gradient-to-br from-primaryDark to-primary">
+                    {c.banner && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={c.banner} alt="" className="h-full w-full object-cover" />
+                    )}
+                    <span className="absolute left-2.5 top-2.5 rounded-full bg-black/40 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white backdrop-blur-sm">{c.brand}</span>
+                  </div>
+                  <div className="p-3.5">
+                    <h3 className="line-clamp-2 text-sm font-bold leading-snug text-gray-900">{c.title}</h3>
+                    <p className="mt-0.5 text-xs text-gray-400">{c.productType}</p>
+                    <span className="mt-2 inline-block text-xs font-semibold text-primary">Klaim buat komunitasmu →</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Timeline acara */}
+        <h2 className="mb-5 text-lg font-bold text-gray-900">Acara</h2>
+        {groups.length === 0 ? (
+          <div className="rounded-2xl border border-gray-200 bg-white p-10 text-center shadow-sm">
+            <p className="text-sm text-gray-500">Belum ada acara demo terjadwal.</p>
+            <p className="mt-1 text-sm text-gray-400">Pantau terus, atau daftarkan komunitasmu untuk mulai.</p>
+          </div>
+        ) : (
+          <div>
+            {groups.map((g) => (
+              <div key={g.key} className="flex gap-4 sm:gap-6">
+                <div className="w-20 shrink-0 pt-0.5 sm:w-32">
+                  <p className="text-sm font-bold text-gray-900">{g.label}</p>
+                  <p className="text-xs capitalize text-gray-400">{g.sub}</p>
                 </div>
-                <div className="p-3">
-                  <h3 className="line-clamp-2 text-sm font-bold leading-snug text-gray-900">{c.title}</h3>
-                  <p className="mt-0.5 text-[11px] text-gray-400">{c.productType}</p>
-                  <span className="mt-2 inline-block text-[11px] font-bold text-primary">Klaim buat komunitasmu →</span>
+                <div className="relative flex-1 border-l border-gray-200 pb-8 pl-5 last:border-l-transparent sm:pl-6">
+                  <span className="absolute -left-[5px] top-1.5 h-2.5 w-2.5 rounded-full bg-primary ring-4 ring-gray-50" />
+                  <div className="space-y-3">
+                    {g.items.map((e) => <EventCard key={e.id} e={e} />)}
+                  </div>
                 </div>
-              </Link>
+              </div>
             ))}
           </div>
-        </section>
-      )}
-
-      {/* On going */}
-      {ongoing.length > 0 && (
-        <section className="mx-auto mt-6 max-w-6xl px-4 sm:px-8">
-          <div className="mb-2.5 flex items-center gap-2">
-            <span className="flex h-2 w-2 rounded-full bg-green-500" />
-            <h2 className="text-base font-bold text-gray-900">Sedang berlangsung</h2>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {ongoing.map((e) => <EventCard key={e.id} e={e} />)}
-          </div>
-        </section>
-      )}
-
-      {/* Coming soon */}
-      <section className="mx-auto mt-6 max-w-6xl px-4 sm:px-8">
-        <h2 className="mb-2.5 text-base font-bold text-gray-900">Coming soon</h2>
-        {comingSoon.length === 0 ? (
-          <p className="mx-auto max-w-md rounded-2xl border border-gray-100 bg-white p-8 text-center text-sm text-gray-400 shadow-sm">
-            Belum ada acara demo terjadwal. Pantau terus ya!
-          </p>
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {comingSoon.map((e) => <EventCard key={e.id} e={e} />)}
-          </div>
         )}
-      </section>
+      </main>
     </div>
   );
 }
