@@ -7,6 +7,7 @@ import { startStringing, finishStringing } from "./actions";
 import { logout } from "../actions";
 import RacketQrPrint from "@/components/RacketQrPrint";
 import DeleteStringingButton from "@/components/DeleteStringingButton";
+import DoneStringingCard, { type DoneOrder } from "@/components/DoneStringingCard";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Antrian Stringing — Tirtonic" };
@@ -109,6 +110,23 @@ export default async function StringingQueuePage() {
 
   const active = orders.filter((o) => o.status === "antri" || o.status === "dikerjakan");
   const done = orders.filter((o) => o.status === "selesai");
+  // Siapkan data siap-render buat card "Selesai" (komponen client: collapse + filter cabang).
+  const doneDTO: DoneOrder[] = done.map((o) => ({
+    id: o.id,
+    resultCode: o.resultCode,
+    branchName: o.branch?.name ?? null,
+    source: o.result ? (o.result.condition === "manual" ? "manual" : "finder") : null,
+    dateText: fmt(o.createdAt),
+    chosenString: o.chosenString,
+    tensionText: o.tensionLbs ? `Main ${o.tensionLbs}${o.tensionCrossLbs ? ` / Cross ${o.tensionCrossLbs}` : ""} lbs` : "tarikan –",
+    racket: o.racket,
+    stringerName: o.stringerName,
+    customerName: o.customerName,
+    phone: o.phone,
+    waDisplay: displayPhone(o.phone),
+    waNote: o.notifiedDone ? " • WA selesai terkirim" : o.notifiedInAt ? " • WA masuk terkirim" : "",
+    slipHref: `/api/slip/${o.resultCode}${o.chosenRank ? `?rank=${o.chosenRank}` : o.chosenString ? `?name=${encodeURIComponent(o.chosenString)}` : ""}`,
+  }));
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
@@ -150,18 +168,8 @@ export default async function StringingQueuePage() {
           );
         })}
 
-        {/* Selesai — gabungan semua cabang (sebelah Solo; HP: ke bawah) */}
-        <section className="rounded-2xl border border-gray-200 bg-gray-50/70 p-4">
-          <div className="flex items-center justify-between gap-2">
-            <h2 className="text-base font-extrabold text-gray-900">Selesai <span className="font-normal text-gray-400">— semua cabang</span></h2>
-            <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-700">{done.length} selesai</span>
-          </div>
-          <div className="mt-3 space-y-3">
-            {done.length ? done.map((o) => <OrderCard key={o.id} o={o} />) : (
-              <p className="py-6 text-center text-sm text-gray-400">Belum ada yang selesai.</p>
-            )}
-          </div>
-        </section>
+        {/* Selesai — gabungan semua cabang (collapse + filter cabang; sebelah Solo) */}
+        <DoneStringingCard orders={doneDTO} branches={branches.map((b) => b.name)} />
       </div>
     </div>
   );
