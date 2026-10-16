@@ -52,8 +52,9 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
   const [racketHead, setRacketHead] = useState("");
   const [racketName, setRacketName] = useState(""); // merk/tipe raket, diketik manual
   const [racketTypes, setRacketTypes] = useState<RacketType[]>([]);
-  const [tension, setTension] = useState(""); // Main
-  const [tensionCross, setTensionCross] = useState(""); // Cross
+  const [tension, setTension] = useState(""); // Main (dalam satuan `unit`)
+  const [tensionCross, setTensionCross] = useState(""); // Cross (dalam satuan `unit`)
+  const [unit, setUnit] = useState<"lbs" | "kg">("lbs"); // satuan tampilan tarikan; disimpan selalu lbs
   const [submitting, setSubmitting] = useState(false);
   const [history, setHistory] = useState<HistItem[] | null>(null);
   // "Pilih senar sendiri": katalog semua senar + senar yang dipilih manual (di luar 3 rekomendasi).
@@ -84,7 +85,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
     setChosen(null); setNama(""); setWa(""); setRacketHead("");
     setTension(""); setHistory(null); setManualPick(null); setCatalogSearch("");
     setRacketTypes([]); setAskTeam(false); setTeamPw(""); setRacketName("");
-    setManualKind(null); setOwnName(""); setHybridMain(""); setHybridCross("");
+    setManualKind(null); setOwnName(""); setHybridMain(""); setHybridCross(""); setUnit("lbs");
   }
 
   // Auto-reset 10 dtk setelah selesai, biar siap untuk customer berikutnya.
@@ -222,6 +223,20 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
       : null;
 
   // Isi otomatis tarikan sesuai material (poly dimainkan −2 lbs), dari saran server.
+  // Tarikan selalu diisi/disimpan dalam lbs; `unit` cuma tampilan. Konversi saat ganti satuan.
+  const LB_PER_KG = 2.20462;
+  const tensionToLbs = (v: string) => { const n = parseFloat(v); if (!Number.isFinite(n)) return undefined; return unit === "kg" ? Math.round(n * LB_PER_KG) : Math.round(n); };
+  function changeUnit(next: "lbs" | "kg") {
+    if (next === unit) return;
+    const conv = (v: string) => { const n = parseFloat(v); if (!Number.isFinite(n)) return v; return next === "kg" ? String(Math.round((n / LB_PER_KG) * 2) / 2) : String(Math.round(n * LB_PER_KG)); };
+    setTension((v) => conv(v)); setTensionCross((v) => conv(v)); setUnit(next);
+  }
+  // Ketik tarikan: kg boleh desimal, lbs angka saja.
+  const onTension = (set: (v: string) => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value;
+    set(unit === "kg" ? raw.replace(/[^\d.]/g, "").replace(/(\..*)\./g, "$1") : raw.replace(/\D/g, ""));
+  };
+
   function applyTension(material: string) {
     if (!rec) return;
     const sug = Math.max(40, rec.tension_suggestion - (/poly/i.test(material) ? 2 : 0));
@@ -264,7 +279,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
       const res = await fetch("/api/sf/order", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ code: rec.code, chosenRank: manualPick ? undefined : (chosen! + 1), chosenString: selected.name, price: selected.price ?? undefined, phone: wa, customerName: nama, racket: racketStr ?? undefined, tensionLbs: tension ? parseInt(tension, 10) : undefined, tensionCrossLbs: tensionCross ? parseInt(tensionCross, 10) : undefined }),
+        body: JSON.stringify({ code: rec.code, chosenRank: manualPick ? undefined : (chosen! + 1), chosenString: selected.name, price: selected.price ?? undefined, phone: wa, customerName: nama, racket: racketStr ?? undefined, tensionLbs: tensionToLbs(tension), tensionCrossLbs: tensionToLbs(tensionCross) }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Gagal mengirim pesanan.");
@@ -736,19 +751,28 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
 
             <div className="mt-5 space-y-3">
               <div>
-                <label className="label">Tarikan senar (lbs)</label>
-                <div className="flex gap-3">
+                <div className="flex items-center justify-between">
+                  <label className="label">Tarikan senar ({unit})</label>
+                  <div className="inline-flex rounded-lg border border-gray-300 p-0.5 text-xs font-semibold">
+                    {(["lbs", "kg"] as const).map((u) => (
+                      <button key={u} type="button" onClick={() => changeUnit(u)} className={`rounded-md px-3 py-1 transition ${unit === u ? "bg-primary text-white" : "text-gray-600 hover:text-gray-900"}`}>
+                        {u === "lbs" ? "LBS" : "Kg"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="mt-1 flex gap-3">
                   <div>
-                    <input value={tension} onChange={(e) => setTension(e.target.value.replace(/\D/g, ""))} inputMode="numeric" className="field w-28" placeholder="Main" />
-                    <p className="mt-1 text-center text-xs font-medium text-gray-500">Main</p>
+                    <input value={tension} onChange={onTension(setTension)} inputMode="decimal" className="field w-28" placeholder="Main" />
+                    <p className="mt-1 text-center text-xs font-medium text-gray-500">Main ({unit})</p>
                   </div>
                   <div>
-                    <input value={tensionCross} onChange={(e) => setTensionCross(e.target.value.replace(/\D/g, ""))} inputMode="numeric" className="field w-28" placeholder="Cross" />
-                    <p className="mt-1 text-center text-xs font-medium text-gray-500">Cross</p>
+                    <input value={tensionCross} onChange={onTension(setTensionCross)} inputMode="decimal" className="field w-28" placeholder="Cross" />
+                    <p className="mt-1 text-center text-xs font-medium text-gray-500">Cross ({unit})</p>
                   </div>
                 </div>
                 <p className="mt-2 text-xs text-gray-400">
-                  Sudah kami isi otomatis (Cross biasanya 2 lbs lebih rendah dari Main) — {rec.tension_note}. Kamu bisa ubah sesuai selera.
+                  Sudah kami isi otomatis (Cross biasanya sedikit lebih rendah dari Main) — {rec.tension_note}. Kamu bisa ubah sesuai selera.
                 </p>
                 {rec.racket_label && rec.tension_racket_note ? (
                   <p className="mt-1 text-xs text-gray-500">
@@ -905,7 +929,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
         <div className="mx-auto max-w-md text-center">
           <h1 className="text-2xl font-extrabold text-gray-900">Pesanan diterima!</h1>
           <p className="mt-2 text-gray-600">
-            Senar <strong>{p.name}</strong>{tension ? <> · tarikan <strong>Main {tension}{tensionCross ? ` / Cross ${tensionCross}` : ""} lbs</strong></> : null}{racketStr ? <> · raket <strong>{racketStr}</strong></> : null}.
+            Senar <strong>{p.name}</strong>{tension ? <> · tarikan <strong>Main {tension}{tensionCross ? ` / Cross ${tensionCross}` : ""} {unit}</strong></> : null}{racketStr ? <> · raket <strong>{racketStr}</strong></> : null}.
           </p>
 
           {/* Kode pesanan — buat referensi & ambil raket */}
