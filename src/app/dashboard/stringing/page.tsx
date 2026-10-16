@@ -111,7 +111,7 @@ export default async function StringingQueuePage() {
   const done = orders.filter((o) => o.status === "selesai");
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8">
+    <div className="mx-auto max-w-6xl px-4 py-8">
       <div className="mb-6 flex items-center justify-between">
         <div>
           <Link href="/dashboard" className="text-sm text-gray-500 hover:text-primary">← Kembali ke dashboard</Link>
@@ -126,8 +126,8 @@ export default async function StringingQueuePage() {
         </div>
       </div>
 
-      {/* Card per cabang: antrian aktif + badge dikerjakan/antri */}
-      <div className="space-y-5">
+      {/* Card per cabang: antrian aktif + badge dikerjakan/antri — 2 kolom */}
+      <div className="grid gap-5 lg:grid-cols-2">
         {branches.map((b) => {
           const list = active.filter((o) => o.branchId === b.id);
           const prog = list.filter((o) => o.status === "dikerjakan").length;
@@ -149,8 +149,10 @@ export default async function StringingQueuePage() {
             </section>
           );
         })}
+      </div>
 
-        {/* Selesai — gabungan semua cabang */}
+      {/* Selesai — gabungan semua cabang (full width) */}
+      <div className="mt-5">
         <section className="rounded-2xl border border-gray-200 bg-gray-50/70 p-4">
           <div className="flex items-center justify-between gap-2">
             <h2 className="text-base font-extrabold text-gray-900">Selesai <span className="font-normal text-gray-400">— semua cabang</span></h2>
