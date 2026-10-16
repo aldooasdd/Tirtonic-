@@ -118,6 +118,9 @@ function StringingRoom({ rooms }: { rooms: Room[] }) {
           );
         })}
       </div>
+      <p className="mt-2 text-xs text-gray-400">
+        Data antrean ditampilkan secara live dan diperbarui otomatis sesuai progres pengerjaan di Tirtonic Stringing Room.
+      </p>
     </section>
   );
 }
