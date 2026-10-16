@@ -88,7 +88,13 @@ function StringingRoom({ rooms }: { rooms: Room[] }) {
           const group = (items: RoomItem[], dot: string, pulse: boolean) =>
             items.map((it) => (
               <div key={it.code} className="flex items-center gap-3 rounded-xl bg-gray-50 px-3 py-2">
-                <span className={`h-2 w-2 shrink-0 rounded-full ${dot} ${pulse ? "animate-pulse" : ""}`} />
+                {pulse ? (
+                  <span className={`flex h-2 w-2 shrink-0 rounded-full ${dot}`}>
+                    <span className={`h-full w-full animate-ping rounded-full ${dot}`} />
+                  </span>
+                ) : (
+                  <span className={`h-2 w-2 shrink-0 rounded-full ${dot}`} />
+                )}
                 <span className="font-mono text-sm font-bold text-primary">{it.code}</span>
                 {it.stringer && <span className="ml-auto truncate text-xs text-gray-500">stringer: {it.stringer}</span>}
               </div>
