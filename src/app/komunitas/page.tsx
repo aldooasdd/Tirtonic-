@@ -246,7 +246,7 @@ export default async function KomunitasHome() {
                   )}
 
                   {/* Undangan IG Story — acara sudah di-ACC */}
-                  {phase !== "pending" && <ShareInvite inviteUrl={`/api/invite/${c.id}`} title={c.campaign.title} />}
+                  {phase !== "pending" && <ShareInvite inviteUrl={`/api/invite/${c.id}`} eventPath={`/event/${c.id}`} title={c.campaign.title} />}
 
                   {/* Peserta menunggu konfirmasi (acara open) */}
                   {open && phase !== "done" && phase !== "pending" && pendingParts.length > 0 && (

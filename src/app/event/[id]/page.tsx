@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma, safeQuery } from "@/lib/prisma";
 import JoinEventForm from "@/components/JoinEventForm";
+import ShareInvite from "@/components/ShareInvite";
 import { phaseOf, PHASE_META } from "@/lib/event-phase";
 
 export const revalidate = 60;
@@ -166,6 +167,18 @@ export default async function EventDetail({ params }: { params: { id: string } }
                 title={open ? `Open · ${accepted}/${e.quota} terisi` : `Closed · ${e.quota} orang`}
                 sub={open ? `Sisa ${sisa} slot untuk umum` : "Khusus anggota komunitas"}
               />
+              {/* Progress join (acara open) */}
+              {open && (
+                <div>
+                  <div className="mb-1.5 flex items-center justify-between text-xs">
+                    <span className="font-bold text-gray-900">{accepted} / {e.quota} orang join</span>
+                    <span className={sisa === 0 ? "font-semibold text-red-500" : "text-gray-400"}>{sisa === 0 ? "Penuh" : `${sisa} slot lagi`}</span>
+                  </div>
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-gray-100">
+                    <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${e.quota > 0 ? Math.min(100, Math.round((accepted / e.quota) * 100)) : 0}%` }} />
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Registrasi */}
@@ -190,6 +203,15 @@ export default async function EventDetail({ params }: { params: { id: string } }
                 )}
               </div>
             </div>
+
+            {/* Bagikan undangan ke IG Story */}
+            {phase !== "done" && (
+              <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+                <p className="text-sm font-bold text-gray-900">Ajak teman</p>
+                <p className="mt-0.5 text-xs text-gray-500">Bagikan undangan acara ini ke Instagram Story kamu.</p>
+                <ShareInvite inviteUrl={`/api/invite/${e.id}`} eventPath={`/event/${e.id}`} title={e.campaign.title} />
+              </div>
+            )}
           </aside>
         </div>
       </div>
