@@ -369,7 +369,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
               onClick={() => { setErr(""); setOwnName(""); setPhase("own"); }}
               className="rounded-2xl border-2 border-gray-300 bg-white px-5 py-5 text-left text-gray-900 transition hover:border-gray-400 hover:bg-gray-50"
             >
-              <p className="text-lg font-extrabold text-gray-900">Senar sendiri</p>
+              <p className="text-lg font-extrabold text-gray-900">Own String</p>
               <p className="mt-1 text-sm text-gray-600">Customer bawa senar sendiri dari rumah, tinggal dipasang. Tulis nama senarnya manual.</p>
             </button>
 
@@ -718,9 +718,12 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
       <Shell>
         <div className="mx-auto max-w-md">
           <button onClick={() => { setPhase("choice"); setErr(""); }} className="mb-4 text-sm font-semibold text-gray-500 hover:text-gray-900">← Kembali</button>
-          <h1 className="text-2xl font-extrabold text-gray-900">Bawa senar sendiri</h1>
+          <h1 className="text-2xl font-extrabold text-gray-900">Own String</h1>
           <p className="mt-2 text-sm text-gray-600">Customer bawa senar dari rumah, dipasang di toko. Tulis nama senarnya, lalu atur tarikan di langkah berikutnya.</p>
-          <div className="mt-5 space-y-3 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+          <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+            Untuk senar yang dibawa sendiri, pastikan senar dalam kondisi baru dan panjangnya cukup untuk satu raket (sekitar 12 meter). Tirtonic tidak bertanggung jawab atas senar yang putus saat dipasang karena kondisi senar yang sudah lama atau rusak.
+          </div>
+          <div className="mt-4 space-y-3 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
             <div>
               <label className="label">Nama senar yang dibawa <span className="text-red-500">*</span></label>
               <input value={ownName} onChange={(e) => setOwnName(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") startOwn(); }} autoFocus className="field" placeholder="mis. Luxilon ALU Power 125" />
