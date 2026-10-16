@@ -60,7 +60,7 @@ function OurStore({ stores }: { stores: StoreItem[] }) {
 }
 
 // Papan antrian stringing publik: hanya kode + status (TANPA nama/HP/raket/senar).
-type RoomItem = { code: string; status: string };
+type RoomItem = { code: string; status: string; stringer: string | null };
 type Room = { name: string; items: RoomItem[] };
 
 function StringingRoom({ rooms }: { rooms: Room[] }) {
@@ -78,11 +78,12 @@ function StringingRoom({ rooms }: { rooms: Room[] }) {
         {rooms.map((r) => {
           const prog = r.items.filter((i) => i.status === "dikerjakan");
           const wait = r.items.filter((i) => i.status === "antri");
-          const group = (items: RoomItem[], dot: string) =>
+          const group = (items: RoomItem[], dot: string, pulse: boolean) =>
             items.map((it) => (
               <div key={it.code} className="flex items-center gap-3 rounded-xl bg-gray-50 px-3 py-2">
-                <span className={`h-2 w-2 shrink-0 rounded-full ${dot}`} />
+                <span className={`h-2 w-2 shrink-0 rounded-full ${dot} ${pulse ? "animate-pulse" : ""}`} />
                 <span className="font-mono text-sm font-bold text-primary">{it.code}</span>
+                {it.stringer && <span className="ml-auto truncate text-xs text-gray-500">by: {it.stringer}</span>}
               </div>
             ));
           return (
@@ -102,13 +103,13 @@ function StringingRoom({ rooms }: { rooms: Room[] }) {
                     {prog.length > 0 && (
                       <div>
                         <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-blue-600">On Progress</p>
-                        <div className="space-y-2">{group(prog, "bg-blue-500")}</div>
+                        <div className="space-y-2">{group(prog, "bg-blue-500", true)}</div>
                       </div>
                     )}
                     {wait.length > 0 && (
                       <div>
                         <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-amber-600">Waiting</p>
-                        <div className="space-y-2">{group(wait, "bg-amber-500")}</div>
+                        <div className="space-y-2">{group(wait, "bg-amber-500", false)}</div>
                       </div>
                     )}
                   </>
@@ -286,7 +287,7 @@ export default async function HomePage() {
     safeQuery(() => prisma.product.findMany({ where: { status: "READY", views: { gt: 0 } }, orderBy: { views: "desc" }, take: 12, include: { _count: { select: { variants: true } } } }), []),
     safeQuery(() => prisma.popularBrand.findMany({ orderBy: [{ urutan: "asc" }, { nama: "asc" }] }), []),
     safeQuery(() => prisma.sfBranch.findMany({ where: { isActive: true, slug: { not: "tirtonic" } }, orderBy: { name: "asc" }, select: { id: true, name: true } }), []),
-    safeQuery(() => prisma.sfOrder.findMany({ where: { status: { in: ["antri", "dikerjakan"] } }, orderBy: { createdAt: "asc" }, select: { resultCode: true, status: true, branchId: true } }), []),
+    safeQuery(() => prisma.sfOrder.findMany({ where: { status: { in: ["antri", "dikerjakan"] } }, orderBy: { createdAt: "asc" }, select: { resultCode: true, status: true, branchId: true, stringerName: true } }), []),
   ]);
   const toCard = (p: (typeof latest)[number]) => ({ id: p.id, nama: p.nama, harga: p.harga, hargaDiskon: p.hargaDiskon, gambar: p.gambar, status: p.status, fromPrice: p._count.variants > 0 });
   const arrivals = latest.map(toCard);
@@ -306,7 +307,7 @@ export default async function HomePage() {
     const list = sfActive
       .filter((o) => o.branchId === b.id)
       .sort((a, z) => (a.status === z.status ? 0 : a.status === "dikerjakan" ? -1 : 1));
-    return { name: b.name, items: list.map((o) => ({ code: o.resultCode, status: o.status })) };
+    return { name: b.name, items: list.map((o) => ({ code: o.resultCode, status: o.status, stringer: o.stringerName })) };
   });
 
   return (
