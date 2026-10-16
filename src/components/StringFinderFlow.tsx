@@ -440,7 +440,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
             {/* Tirtonic Team — full width bawah */}
             {askTeam ? (
               <div className="rounded-3xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 p-5 shadow-sm lg:col-span-3">
-                <p className="text-base font-extrabold text-gray-900">Tirtonic Team</p>
+                <p className="text-base font-extrabold text-gray-900">Full Bed Stringing</p>
                 <p className="mt-1 text-sm text-gray-600">Masukkan password untuk lanjut.</p>
                 <div className="mt-3 flex flex-col gap-2 sm:flex-row">
                   <input
@@ -464,8 +464,8 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg>
                 </span>
                 <div>
-                  <p className="text-base font-extrabold text-gray-900">Tirtonic Team</p>
-                  <p className="mt-0.5 text-sm text-gray-600">Langsung pilih senar sendiri dari katalog, tanpa mesin rekomendasi. Untuk kasir.</p>
+                  <p className="text-base font-extrabold text-gray-900">Full Bed Stringing</p>
+                  <p className="mt-0.5 text-sm text-gray-600">Satu jenis senar untuk semua. Pilihan paling umum.</p>
                 </div>
               </button>
             )}
