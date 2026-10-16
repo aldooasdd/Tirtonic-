@@ -1,9 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireSection } from "@/lib/auth";
 import { notify } from "@/lib/string-finder/notify";
+import { normalizePhone } from "@/lib/string-finder/phone";
 
 const requireAuth = () => requireSection("stringing");
 
@@ -57,10 +59,29 @@ export async function finishStringing(id: string) {
   revalidatePath("/dashboard/stringing");
 }
 
-export async function cancelStringing(id: string) {
+// Edit detail pesanan (senar, tarikan, raket, nama, WA). Tarikan selalu disimpan lbs.
+export async function updateStringing(id: string, formData: FormData) {
   requireAuth();
-  await prisma.sfOrder.update({ where: { id }, data: { status: "batal" } });
+  const str = (k: string) => String(formData.get(k) ?? "").trim();
+  const tens = (k: string) => {
+    const n = Number(str(k));
+    return Number.isFinite(n) && n >= 30 && n <= 75 ? Math.round(n) : null;
+  };
+  const phone = normalizePhone(str("phone"));
+  if (!phone) return; // nomor wajib valid (input juga `required`)
+  await prisma.sfOrder.update({
+    where: { id },
+    data: {
+      chosenString: str("chosenString") || null,
+      tensionLbs: tens("tensionLbs"),
+      tensionCrossLbs: tens("tensionCrossLbs"),
+      racket: str("racket") || null,
+      customerName: str("customerName") || null,
+      phone,
+    },
+  });
   revalidatePath("/dashboard/stringing");
+  redirect("/dashboard/stringing");
 }
 
 export async function deleteStringingOrder(id: string) {
