@@ -89,7 +89,7 @@ function OrderCard({ o }: { o: OrderRow }) {
               <button className="rounded-full bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90">Tandai selesai → WA</button>
             </form>
           )}
-          <Link href={`/dashboard/stringing/${o.id}/edit`}
+          <Link href={`/dashboard/stringing/${o.resultCode}/edit`}
             className="rounded-full border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:border-primary hover:text-primary">Edit</Link>
           {(o.status === "selesai" || o.status === "batal") && <DeleteStringingButton id={o.id} />}
         </div>

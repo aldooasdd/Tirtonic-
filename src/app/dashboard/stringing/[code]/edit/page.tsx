@@ -7,12 +7,12 @@ import { updateStringing } from "../../actions";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Edit Pesanan Stringing — Tirtonic" };
 
-export default async function EditStringingPage({ params }: { params: { id: string } }) {
+export default async function EditStringingPage({ params }: { params: { code: string } }) {
   if (!isAuthed()) redirect("/dashboard/login");
   if (!can("stringing")) redirect("/dashboard");
 
   const o = await safeQuery(
-    () => prisma.sfOrder.findUnique({ where: { id: params.id }, include: { branch: { select: { name: true } } } }),
+    () => prisma.sfOrder.findFirst({ where: { resultCode: params.code }, orderBy: { createdAt: "desc" }, include: { branch: { select: { name: true } } } }),
     null,
   );
   if (!o) notFound();
