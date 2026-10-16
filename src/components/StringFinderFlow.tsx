@@ -38,7 +38,7 @@ type SenarVariant = { label: string; price: number | null };
 type SenarCard = { name: string; material: string; gauge: number | null; price: number | null; photo: string | null; st: number | null; sp: number | null; er: number | null; variants: SenarVariant[] };
 
 export default function StringFinderFlow({ questions }: { questions: Question[] }) {
-  const [phase, setPhase] = useState<"intro" | "identify" | "choice" | "dashboard" | "quiz" | "loading" | "results" | "order" | "catalog" | "own" | "done">("intro");
+  const [phase, setPhase] = useState<"intro" | "identify" | "choice" | "dashboard" | "quiz" | "loading" | "results" | "order" | "catalog" | "own" | "hybrid" | "done">("intro");
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
   const [rec, setRec] = useState<RecResponse | null>(null);
@@ -58,9 +58,11 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
   const [history, setHistory] = useState<HistItem[] | null>(null);
   // "Pilih senar sendiri": katalog semua senar + senar yang dipilih manual (di luar 3 rekomendasi).
   const [manualPick, setManualPick] = useState<SenarCard | null>(null);
-  // "Senar sendiri": customer bawa senar dari rumah, dipasang di toko. Ketik nama manual.
+  // Jalur manual non-rekomendasi: "own" (bawa senar sendiri) / "hybrid" (main+cross beda senar).
+  const [manualKind, setManualKind] = useState<"own" | "hybrid" | null>(null);
   const [ownName, setOwnName] = useState("");
-  const [isOwn, setIsOwn] = useState(false);
+  const [hybridMain, setHybridMain] = useState("");
+  const [hybridCross, setHybridCross] = useState("");
   const [catalog, setCatalog] = useState<SenarCard[] | null>(null);
   const [catalogLoading, setCatalogLoading] = useState(false);
   const [catalogSearch, setCatalogSearch] = useState("");
@@ -82,7 +84,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
     setChosen(null); setNama(""); setWa(""); setRacketHead("");
     setTension(""); setHistory(null); setManualPick(null); setCatalogSearch("");
     setRacketTypes([]); setAskTeam(false); setTeamPw(""); setRacketName("");
-    setOwnName(""); setIsOwn(false);
+    setManualKind(null); setOwnName(""); setHybridMain(""); setHybridCross("");
   }
 
   // Auto-reset 10 dtk setelah selesai, biar siap untuk customer berikutnya.
@@ -123,7 +125,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Gagal memulai.");
       setRec({ code: data.code, condition: "manual", profile_summary: "", picks: [], tension_suggestion: data.tension_suggestion ?? 50, tension_note: "", racket_label: null, tension_racket_note: null, racket_string_note: null });
-      setIsOwn(false);
+      setManualKind(null);
       await openCatalog();
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Terjadi kesalahan.");
@@ -144,12 +146,34 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
       const sug = data.tension_suggestion ?? 50;
       setRec({ code: data.code, condition: "manual", profile_summary: "", picks: [], tension_suggestion: sug, tension_note: "", racket_label: null, tension_racket_note: null, racket_string_note: null });
       setManualPick({ name: ownName.trim(), material: "Senar bawaan customer", gauge: null, price: null, photo: null, st: null, sp: null, er: null, variants: [] });
-      setIsOwn(true);
+      setManualKind("own");
       setTension(String(sug)); setTensionCross(String(Math.max(40, sug - 2)));
       setPhase("order");
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Terjadi kesalahan.");
       setPhase("own");
+    }
+  }
+
+  // "Hybrid": main & cross beda senar. Gabung jadi satu chosenString "X (main) / Y (cross)".
+  // Tarikan main/cross sudah ada di layar order. Konsep datanya sama (pakai /api/sf/manual).
+  async function startHybrid() {
+    if (!wa.trim()) { setErr("Isi nomor WhatsApp dulu ya."); return; }
+    if (!hybridMain.trim() || !hybridCross.trim()) { setErr("Isi senar main & cross dulu ya."); return; }
+    setErr(""); setPhase("loading");
+    try {
+      const res = await fetch("/api/sf/manual", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Gagal memulai.");
+      const sug = data.tension_suggestion ?? 50;
+      setRec({ code: data.code, condition: "manual", profile_summary: "", picks: [], tension_suggestion: sug, tension_note: "", racket_label: null, tension_racket_note: null, racket_string_note: null });
+      setManualPick({ name: `${hybridMain.trim()} (main) / ${hybridCross.trim()} (cross)`, material: "Hybrid", gauge: null, price: null, photo: null, st: null, sp: null, er: null, variants: [] });
+      setManualKind("hybrid");
+      setTension(String(sug)); setTensionCross(String(Math.max(40, sug - 2)));
+      setPhase("order");
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Terjadi kesalahan.");
+      setPhase("hybrid");
     }
   }
 
@@ -227,7 +251,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
       ? { ...card, name: `${card.name} — ${variant.label}`, price: variant.price ?? card.price, variants: [] }
       : card;
     setManualPick(pick);
-    setIsOwn(false);
+    setManualKind(null);
     applyTension(pick.material);
     setPhase("order");
   }
@@ -356,7 +380,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
           <p className="mt-2 text-gray-600">Pilih cara menentukan senar.</p>
           {err && <p className="mt-3 text-sm text-red-600">{err}</p>}
 
-          <div className="mt-6 grid grid-cols-1 items-stretch gap-3 sm:grid-cols-3">
+          <div className="mt-6 grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <button
               onClick={startQuiz}
               className="rounded-2xl border-2 border-primary bg-primary px-5 py-5 text-left text-white transition hover:opacity-90"
@@ -371,6 +395,14 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
             >
               <p className="text-lg font-extrabold text-gray-900">Own String</p>
               <p className="mt-1 text-sm text-gray-600">Customer bawa senar sendiri dari rumah, tinggal dipasang. Tulis nama senarnya manual.</p>
+            </button>
+
+            <button
+              onClick={() => { setErr(""); setHybridMain(""); setHybridCross(""); setPhase("hybrid"); }}
+              className="rounded-2xl border-2 border-gray-300 bg-white px-5 py-5 text-left text-gray-900 transition hover:border-gray-400 hover:bg-gray-50"
+            >
+              <p className="text-lg font-extrabold text-gray-900">Hybrid String</p>
+              <p className="mt-1 text-sm text-gray-600">Main & cross beda senar (merek/jenis). Atur senar + tarikan main & cross sendiri.</p>
             </button>
 
             {askTeam ? (
@@ -631,7 +663,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
                   <button
                     onClick={() => {
                       setChosen(i);
-                      setManualPick(null); setIsOwn(false); // kembali ke rekomendasi, batalkan pilih-sendiri
+                      setManualPick(null); setManualKind(null); // kembali ke rekomendasi, batalkan pilih-sendiri
                       // saran tarikan dari server; senar polyester dimainkan lebih enak −2 lbs
                       const poly = /poly/i.test(p.material);
                       const sug = Math.max(40, rec.tension_suggestion - (poly ? 2 : 0));
@@ -663,9 +695,9 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
     return (
       <Shell>
         <div className="mx-auto max-w-md">
-          <button onClick={() => setPhase(isOwn ? "own" : rec.picks.length ? "results" : "catalog")} className="mb-4 text-sm font-semibold text-gray-500 hover:text-gray-900">← Ganti pilihan</button>
+          <button onClick={() => setPhase(manualKind === "own" ? "own" : manualKind === "hybrid" ? "hybrid" : rec.picks.length ? "results" : "catalog")} className="mb-4 text-sm font-semibold text-gray-500 hover:text-gray-900">← Ganti pilihan</button>
           <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-            <p className="text-sm text-gray-500">Senar pilihanmu{manualPick ? (isOwn ? " (bawa sendiri)" : " (pilih sendiri)") : ""}</p>
+            <p className="text-sm text-gray-500">Senar pilihanmu{manualPick ? (manualKind === "own" ? " (bawa sendiri)" : manualKind === "hybrid" ? " (hybrid)" : " (pilih sendiri)") : ""}</p>
             <h2 className="mt-1 text-lg font-bold text-gray-900">{p.name}</h2>
             <p className="text-sm text-gray-500">{p.material}{p.gauge ? ` • ${p.gauge} mm` : ""}</p>
             {racketStr ? <p className="mt-1 text-sm text-gray-500">Raket: <span className="font-medium text-gray-700">{racketStr}</span></p> : null}
@@ -730,6 +762,31 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
             </div>
             {err && <p className="text-sm text-red-600">{err}</p>}
             <button onClick={startOwn} disabled={!ownName.trim()} className="btn-green w-full py-3 disabled:opacity-40">Lanjut → atur tarikan</button>
+          </div>
+        </div>
+      </Shell>
+    );
+  }
+
+  // ---------- HYBRID (main & cross beda senar) ----------
+  if (phase === "hybrid") {
+    return (
+      <Shell>
+        <div className="mx-auto max-w-md">
+          <button onClick={() => { setPhase("choice"); setErr(""); }} className="mb-4 text-sm font-semibold text-gray-500 hover:text-gray-900">← Kembali</button>
+          <h1 className="text-2xl font-extrabold text-gray-900">Hybrid String</h1>
+          <p className="mt-2 text-sm text-gray-600">Pasang senar berbeda untuk main & cross. Tulis senar tiap sisi, lalu atur tarikan main & cross di langkah berikutnya.</p>
+          <div className="mt-4 space-y-3 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+            <div>
+              <label className="label">Senar Main <span className="text-red-500">*</span></label>
+              <input value={hybridMain} onChange={(e) => setHybridMain(e.target.value)} autoFocus className="field" placeholder="mis. Luxilon ALU Power 125" />
+            </div>
+            <div>
+              <label className="label">Senar Cross <span className="text-red-500">*</span></label>
+              <input value={hybridCross} onChange={(e) => setHybridCross(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") startHybrid(); }} className="field" placeholder="mis. Babolat VS Touch 130" />
+            </div>
+            {err && <p className="text-sm text-red-600">{err}</p>}
+            <button onClick={startHybrid} disabled={!hybridMain.trim() || !hybridCross.trim()} className="btn-green w-full py-3 disabled:opacity-40">Lanjut → atur tarikan</button>
           </div>
         </div>
       </Shell>
