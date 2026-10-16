@@ -119,7 +119,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
     if (!wa.trim()) { setErr("Isi nomor WhatsApp dulu ya."); return; }
     setErr(""); setPhase("loading");
     try {
-      const res = await fetch("/api/sf/manual", { method: "POST" });
+      const res = await fetch("/api/sf/manual", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ method: "fullbed" }) });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Gagal memulai.");
       setRec({ code: data.code, condition: "manual", profile_summary: "", picks: [], tension_suggestion: data.tension_suggestion ?? 50, tension_note: "", racket_label: null, tension_racket_note: null, racket_string_note: null });
@@ -146,7 +146,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
     if (!hybridMain.trim() || !hybridCross.trim()) { setErr("Isi senar main & cross dulu ya."); return; }
     setErr(""); setPhase("loading");
     try {
-      const res = await fetch("/api/sf/manual", { method: "POST" });
+      const res = await fetch("/api/sf/manual", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ method: "hybrid" }) });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Gagal memulai.");
       const sug = data.tension_suggestion ?? 50;

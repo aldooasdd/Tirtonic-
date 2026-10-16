@@ -26,12 +26,15 @@ const ATTR_LABEL: Record<string, string> = {
 const fmt = (x: number, d = 2) => (Math.round(x * 10 ** d) / 10 ** d).toFixed(d).replace(".", ",");
 
 // Kode resep pendek & mudah dibaca. Produksi: pastikan unik (cek DB, ulangi bila bentrok).
-export function makeCode(rules: Rules, rand: () => number = Math.random): string {
+// `prefix` override: SF (String Finder, default), HB (Hybrid), FB (Full Bed). Angka kode tetap.
+export function makeCode(rules: Rules, rand: () => number = Math.random, prefix?: string): string {
   const s = rules.slip;
   const a = s.code_alphabet;
   let c = "";
   for (let i = 0; i < s.code_length; i++) c += a[Math.floor(rand() * a.length)];
-  return s.code_prefix + c;
+  // Ganti huruf depan prefix default (mis. "SF-") dgn override, pertahankan pemisah.
+  const base = prefix ? s.code_prefix.replace(/^[A-Za-z]+/, prefix) : s.code_prefix;
+  return base + c;
 }
 
 function pickFlags(rules: Rules, answers: Answers, pick: Ranked): string[] {
