@@ -55,7 +55,7 @@ export default async function EventLanding() {
     if (!g) {
       g = {
         key,
-        label: key === todayKey ? "Hari ini" : e.demoDate.toLocaleDateString("id-ID", { day: "numeric", month: "long" }),
+        label: key === todayKey ? "Hari ini" : e.demoDate.toLocaleDateString("id-ID", { day: "numeric", month: "short" }),
         sub: e.demoDate.toLocaleDateString("id-ID", { weekday: "long" }),
         items: [],
       };
@@ -141,17 +141,16 @@ export default async function EventLanding() {
           {groups.length > 0 && (
             <div>
               {nowCampaigns.length > 0 && <p className="mb-3 text-sm font-semibold text-gray-500">Acara terjadwal</p>}
+              {/* Timeline ala Luma: rail tipis + dot per hari, header tanggal, kartu di bawahnya */}
               {groups.map((g) => (
-                <div key={g.key} className="flex flex-col gap-2 pb-6 last:pb-0 sm:flex-row sm:gap-6 sm:pb-0">
-                  <div className="flex items-baseline gap-1.5 sm:block sm:w-32 sm:shrink-0 sm:pt-0.5">
-                    <p className="text-sm font-bold text-gray-900">{g.label}</p>
-                    <p className="text-xs capitalize text-gray-400">{g.sub}</p>
+                <div key={g.key} className="relative border-l-2 border-gray-200 pb-7 pl-5 last:border-l-transparent last:pb-0 sm:pl-6">
+                  <span className="absolute -left-[7px] top-0.5 h-3 w-3 rounded-full border-2 border-white bg-primary ring-1 ring-gray-200" />
+                  <div className="mb-2.5 flex items-baseline gap-2">
+                    <span className="text-[15px] font-bold text-gray-900">{g.label}</span>
+                    <span className="text-sm capitalize text-gray-400">{g.sub}</span>
                   </div>
-                  <div className="relative min-w-0 flex-1 sm:border-l sm:border-gray-200 sm:pb-8 sm:pl-6 sm:last:border-l-transparent">
-                    <span className="absolute -left-[5px] top-1.5 hidden h-2.5 w-2.5 rounded-full bg-primary ring-4 ring-gray-50 sm:block" />
-                    <div className="space-y-3">
-                      {g.items.map((e) => <EventCard key={e.id} e={e} />)}
-                    </div>
+                  <div className="space-y-3">
+                    {g.items.map((e) => <EventCard key={e.id} e={e} />)}
                   </div>
                 </div>
               ))}

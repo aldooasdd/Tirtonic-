@@ -23,6 +23,9 @@ export default function EventCard({ e }: { e: EventCardData }) {
   const open = e.quotaType === "open";
   const sisa = Math.max(0, e.quota - e.acceptedCount);
   const canJoin = open && (phase === "coming_soon" || phase === "ongoing") && sisa > 0;
+  // Alamat lapangan: tampilkan 3 kata depan aja (detailnya di halaman event).
+  const words = e.court.split(/\s+/).filter(Boolean);
+  const shortCourt = words.slice(0, 3).join(" ") + (words.length > 3 ? "…" : "");
 
   return (
     <div className="group relative flex gap-4 rounded-2xl border border-gray-200 bg-white p-3.5 shadow-sm transition hover:border-primary/40 hover:shadow-md">
@@ -30,11 +33,8 @@ export default function EventCard({ e }: { e: EventCardData }) {
       <Link href={`/event/${e.id}`} aria-label={e.campaign.title} className="absolute inset-0 z-[1] rounded-2xl" />
 
       <div className="min-w-0 flex-1">
-        <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-bold ${meta.chip}`}>
-          <span className={`h-1.5 w-1.5 rounded-full ${meta.dot}`} />
-          {meta.label}
-        </span>
-        <h3 className="mt-2 line-clamp-2 text-[15px] font-bold leading-snug text-gray-900 group-hover:text-primary">{e.campaign.title}</h3>
+        {e.time && <p className="text-[13px] font-semibold text-gray-500">{e.time}{e.timeEnd ? ` – ${e.timeEnd}` : ""}</p>}
+        <h3 className="mt-0.5 line-clamp-2 text-[15px] font-bold leading-snug text-gray-900 group-hover:text-primary">{e.campaign.title}</h3>
 
         <div className="mt-2 flex items-center gap-1.5 text-sm text-gray-500">
           <span className="flex h-4 w-4 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/5">
@@ -49,17 +49,20 @@ export default function EventCard({ e }: { e: EventCardData }) {
           <span className="truncate">{e.community.name}</span>
         </div>
 
-        <p className="mt-1 flex items-start gap-1.5 text-sm text-gray-500">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 shrink-0 text-gray-400"><path d="M12 21s-7-4.35-7-10a7 7 0 0 1 14 0c0 5.65-7 10-7 10Z" /><circle cx="12" cy="11" r="2.5" /></svg>
-          <span>{e.court}</span>
+        <p className="mt-1 flex items-center gap-1.5 text-sm text-gray-500">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-gray-400"><path d="M12 21s-7-4.35-7-10a7 7 0 0 1 14 0c0 5.65-7 10-7 10Z" /><circle cx="12" cy="11" r="2.5" /></svg>
+          <span>{shortCourt}</span>
         </p>
 
         <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+          <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold ${meta.chip}`}>
+            <span className={`h-1.5 w-1.5 rounded-full ${meta.dot}`} />
+            {meta.label}
+          </span>
           <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${open ? "bg-primary/10 text-primary" : "bg-gray-100 text-gray-600"}`}>
             {open ? "Open · bisa join" : "Closed"}
           </span>
           <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] text-gray-500">{e.campaign.brand}</span>
-          {e.time && <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] text-gray-500">🕒 {e.time}{e.timeEnd ? `–${e.timeEnd}` : ""}</span>}
           {open && phase !== "done" && <span className="text-[11px] text-gray-400">Sisa {sisa}/{e.quota}</span>}
         </div>
 
