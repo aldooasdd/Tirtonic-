@@ -42,8 +42,6 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
   const [rec, setRec] = useState<RecResponse | null>(null);
-  const [askTeam, setAskTeam] = useState(false); // gate password "Tirtonic Team"
-  const [teamPw, setTeamPw] = useState("");
   const [err, setErr] = useState("");
   const [chosen, setChosen] = useState<number | null>(null);
   const [nama, setNama] = useState("");
@@ -59,11 +57,11 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
   const [history, setHistory] = useState<HistItem[] | null>(null);
   // "Pilih senar sendiri": katalog semua senar + senar yang dipilih manual (di luar 3 rekomendasi).
   const [manualPick, setManualPick] = useState<SenarCard | null>(null);
-  // Jalur manual non-rekomendasi: "own" (bawa senar sendiri) / "hybrid" (main+cross beda senar).
-  const [manualKind, setManualKind] = useState<"own" | "hybrid" | null>(null);
-  const [ownName, setOwnName] = useState("");
+  // Jalur manual non-rekomendasi: "hybrid" (main+cross beda senar). null = full bed / pilih katalog.
+  const [manualKind, setManualKind] = useState<"hybrid" | null>(null);
   const [hybridMain, setHybridMain] = useState("");
   const [hybridCross, setHybridCross] = useState("");
+  const [catalogManual, setCatalogManual] = useState(""); // nama senar yg gak ada di katalog (ketik manual)
   const [catalog, setCatalog] = useState<SenarCard[] | null>(null);
   const [catalogLoading, setCatalogLoading] = useState(false);
   const [catalogSearch, setCatalogSearch] = useState("");
@@ -84,8 +82,8 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
     setPhase("intro"); setStep(0); setAnswers({}); setRec(null); setErr("");
     setChosen(null); setNama(""); setWa(""); setRacketHead("");
     setTension(""); setHistory(null); setManualPick(null); setCatalogSearch("");
-    setRacketTypes([]); setAskTeam(false); setTeamPw(""); setRacketName("");
-    setManualKind(null); setOwnName(""); setHybridMain(""); setHybridCross(""); setUnit("lbs");
+    setRacketTypes([]); setRacketName("");
+    setManualKind(null); setHybridMain(""); setHybridCross(""); setCatalogManual(""); setUnit("lbs");
   }
 
   // Auto-reset 10 dtk setelah selesai, biar siap untuk customer berikutnya.
@@ -115,10 +113,9 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
     setStep(0);
   }
 
-  // "Tirtonic Team": kasir pilih senar manual (tanpa mesin rekomendasi).
+  // "Full Bed Stringing": pilih satu senar dari katalog (tanpa mesin rekomendasi, tanpa password).
   // Bikin kode order minimal dulu, lalu langsung ke katalog senar.
   async function startManual() {
-    if (teamPw.trim() !== "123") { setErr("Password Tirtonic Team salah."); return; }
     if (!wa.trim()) { setErr("Isi nomor WhatsApp dulu ya."); return; }
     setErr(""); setPhase("loading");
     try {
@@ -134,26 +131,12 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
     }
   }
 
-  // "Senar sendiri": customer bawa senar sendiri, ketik namanya, lalu langsung ke order.
-  // Pakai /api/sf/manual buat dapat kode valid (sama konsep datanya kaya jalur manual).
-  async function startOwn() {
-    if (!wa.trim()) { setErr("Isi nomor WhatsApp dulu ya."); return; }
-    if (!ownName.trim()) { setErr("Tulis nama senar yang dibawa dulu ya."); return; }
-    setErr(""); setPhase("loading");
-    try {
-      const res = await fetch("/api/sf/manual", { method: "POST" });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Gagal memulai.");
-      const sug = data.tension_suggestion ?? 50;
-      setRec({ code: data.code, condition: "manual", profile_summary: "", picks: [], tension_suggestion: sug, tension_note: "", racket_label: null, tension_racket_note: null, racket_string_note: null });
-      setManualPick({ name: ownName.trim(), material: "Senar bawaan customer", gauge: null, price: null, photo: null, st: null, sp: null, er: null, variants: [] });
-      setManualKind("own");
-      setTension(String(sug)); setTensionCross(String(Math.max(40, sug - 2)));
-      setPhase("order");
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : "Terjadi kesalahan.");
-      setPhase("own");
-    }
+  // Senar yang tidak ada di katalog: customer/kasir ketik namanya manual, lalu ke order.
+  function pickManualName() {
+    const name = catalogManual.trim();
+    if (!name) { setErr("Tulis nama senarnya dulu ya."); return; }
+    setErr("");
+    pickManual({ name, material: "Di luar katalog", gauge: null, price: null, photo: null, st: null, sp: null, er: null, variants: [] });
   }
 
   // "Hybrid": main & cross beda senar. Gabung jadi satu chosenString "X (main) / Y (cross)".
@@ -399,7 +382,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
             {/* BESAR: String Finder */}
             <button
               onClick={startQuiz}
-              className="group relative flex flex-col justify-between overflow-hidden rounded-3xl bg-gradient-to-br from-primary to-primaryDark p-7 text-left text-white shadow-lg transition hover:shadow-xl lg:col-span-2 lg:row-span-3 lg:p-9"
+              className="group relative flex flex-col justify-between overflow-hidden rounded-3xl bg-gradient-to-br from-primary to-primaryDark p-7 text-left text-white shadow-lg transition hover:shadow-xl lg:col-span-2 lg:row-span-2 lg:p-9"
             >
               <span className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-white/10 blur-2xl" />
               <span className="pointer-events-none absolute -bottom-20 -left-10 h-56 w-56 rounded-full bg-white/10 blur-3xl" />
@@ -424,18 +407,6 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
               </span>
             </button>
 
-            {/* Own String */}
-            <button
-              onClick={() => { setErr(""); setOwnName(""); setPhase("own"); }}
-              className="group flex flex-col rounded-3xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 p-5 text-left shadow-sm transition hover:border-primary/40 hover:shadow-md"
-            >
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 10.5 12 3l9 7.5" /><path d="M5 9.5V21h14V9.5" /></svg>
-              </span>
-              <p className="mt-3 text-base font-extrabold text-gray-900">Own String</p>
-              <p className="mt-1 text-sm text-gray-600">Customer bawa senar sendiri dari rumah, tinggal dipasang. Tulis nama senarnya manual.</p>
-            </button>
-
             {/* Hybrid String */}
             <button
               onClick={() => { setErr(""); setHybridMain(""); setHybridCross(""); setPhase("hybrid"); }}
@@ -448,34 +419,17 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
               <p className="mt-1 text-sm text-gray-600">Dua jenis senar berbeda untuk main dan cross. Misalnya poliester untuk spin, dipadu multifilamen untuk kenyamanan.</p>
             </button>
 
-            {/* Full Bed Stringing — kartu kecil di samping */}
-            {askTeam ? (
-              <div className="rounded-3xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 p-5 shadow-sm">
-                <p className="text-base font-extrabold text-gray-900">Full Bed Stringing</p>
-                <p className="mt-1 text-sm text-gray-600">Masukkan password untuk lanjut.</p>
-                <input
-                  type="password"
-                  value={teamPw}
-                  onChange={(e) => setTeamPw(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === "Enter") startManual(); }}
-                  autoFocus
-                  placeholder="Password"
-                  className="mt-3 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-primary focus:outline-none"
-                />
-                <button onClick={startManual} className="btn-green mt-2 w-full py-2.5">Lanjut →</button>
-              </div>
-            ) : (
-              <button
-                onClick={() => { setErr(""); setAskTeam(true); }}
-                className="group flex flex-col rounded-3xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 p-5 text-left shadow-sm transition hover:border-primary/40 hover:shadow-md"
-              >
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="4" width="16" height="16" rx="2" /><path d="M4 9.5h16M4 14.5h16M9.5 4v16M14.5 4v16" /></svg>
-                </span>
-                <p className="mt-3 text-base font-extrabold text-gray-900">Full Bed Stringing</p>
-                <p className="mt-1 text-sm text-gray-600">Satu jenis senar untuk semua. Pilihan paling umum.</p>
-              </button>
-            )}
+            {/* Full Bed Stringing */}
+            <button
+              onClick={startManual}
+              className="group flex flex-col rounded-3xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 p-5 text-left shadow-sm transition hover:border-primary/40 hover:shadow-md"
+            >
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="4" width="16" height="16" rx="2" /><path d="M4 9.5h16M4 14.5h16M9.5 4v16M14.5 4v16" /></svg>
+              </span>
+              <p className="mt-3 text-base font-extrabold text-gray-900">Full Bed Stringing</p>
+              <p className="mt-1 text-sm text-gray-600">Satu jenis senar untuk semua. Pilihan paling umum.</p>
+            </button>
           </div>
         </div>
       </Shell>
@@ -742,9 +696,9 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
     return (
       <Shell>
         <div className="mx-auto max-w-md">
-          <button onClick={() => setPhase(manualKind === "own" ? "own" : manualKind === "hybrid" ? "hybrid" : rec.picks.length ? "results" : "catalog")} className="mb-4 text-sm font-semibold text-gray-500 hover:text-gray-900">← Ganti pilihan</button>
+          <button onClick={() => setPhase(manualKind === "hybrid" ? "hybrid" : rec.picks.length ? "results" : "catalog")} className="mb-4 text-sm font-semibold text-gray-500 hover:text-gray-900">← Ganti pilihan</button>
           <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-            <p className="text-sm text-gray-500">Senar pilihanmu{manualPick ? (manualKind === "own" ? " (bawa sendiri)" : manualKind === "hybrid" ? " (hybrid)" : " (pilih sendiri)") : ""}</p>
+            <p className="text-sm text-gray-500">Senar pilihanmu{manualPick ? (manualKind === "hybrid" ? " (hybrid)" : " (pilih sendiri)") : ""}</p>
             <h2 className="mt-1 text-lg font-bold text-gray-900">{p.name}</h2>
             <p className="text-sm text-gray-500">{p.material}{p.gauge ? ` • ${p.gauge} mm` : ""}</p>
             {racketStr ? <p className="mt-1 text-sm text-gray-500">Raket: <span className="font-medium text-gray-700">{racketStr}</span></p> : null}
@@ -800,30 +754,6 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
     );
   }
 
-  // ---------- OWN (bawa senar sendiri) ----------
-  if (phase === "own") {
-    return (
-      <Shell>
-        <div className="mx-auto max-w-md">
-          <button onClick={() => { setPhase("choice"); setErr(""); }} className="mb-4 text-sm font-semibold text-gray-500 hover:text-gray-900">← Kembali</button>
-          <h1 className="text-2xl font-extrabold text-gray-900">Own String</h1>
-          <p className="mt-2 text-sm text-gray-600">Customer bawa senar dari rumah, dipasang di toko. Tulis nama senarnya, lalu atur tarikan di langkah berikutnya.</p>
-          <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-            Untuk senar yang dibawa sendiri, pastikan senar dalam kondisi baru dan panjangnya cukup untuk satu raket (sekitar 12 meter). Tirtonic tidak bertanggung jawab atas senar yang putus saat dipasang karena kondisi senar yang sudah lama atau rusak.
-          </div>
-          <div className="mt-4 space-y-3 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-            <div>
-              <label className="label">Nama senar yang dibawa <span className="text-red-500">*</span></label>
-              <input value={ownName} onChange={(e) => setOwnName(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") startOwn(); }} autoFocus className="field" placeholder="mis. Luxilon ALU Power 125" />
-            </div>
-            {err && <p className="text-sm text-red-600">{err}</p>}
-            <button onClick={startOwn} disabled={!ownName.trim()} className="btn-green w-full py-3 disabled:opacity-40">Lanjut → atur tarikan</button>
-          </div>
-        </div>
-      </Shell>
-    );
-  }
-
   // ---------- HYBRID (main & cross beda senar) ----------
   if (phase === "hybrid") {
     return (
@@ -865,6 +795,17 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
             placeholder="Cari nama atau bahan senar…"
             className="field mt-4 w-full max-w-md"
           />
+          {/* Senar di luar katalog: ketik manual (capsule) */}
+          <div className="mt-3 flex w-full max-w-md items-center gap-2 rounded-full border border-gray-300 bg-white py-1 pl-4 pr-1 focus-within:border-primary">
+            <input
+              value={catalogManual}
+              onChange={(e) => setCatalogManual(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") pickManualName(); }}
+              placeholder="Senar tidak ada di katalog? Ketik di sini…"
+              className="min-w-0 flex-1 bg-transparent text-sm focus:outline-none"
+            />
+            <button onClick={pickManualName} disabled={!catalogManual.trim()} className="shrink-0 rounded-full bg-primary px-4 py-1.5 text-xs font-bold text-white transition hover:opacity-90 disabled:opacity-40">Pakai</button>
+          </div>
           {err && <p className="mt-3 text-sm text-red-600">{err}</p>}
           {catalogLoading ? (
             <p className="mt-10 text-center text-gray-400">Memuat katalog senar…</p>
