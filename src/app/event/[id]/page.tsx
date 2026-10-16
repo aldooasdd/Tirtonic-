@@ -42,10 +42,18 @@ export default async function EventDetail({ params }: { params: { id: string } }
   const tanggal = e.demoDate.getDate();
   const canJoin = open && (phase === "coming_soon" || phase === "ongoing") && sisa > 0;
 
-  // Google Maps dari teks lapangan (tanpa API key).
+  // Peta (tanpa API key). Punya koordinat (dari saran OSM) → embed OpenStreetMap + marker.
+  // Kalau tidak ada koordinat (klaim lama/manual) → fallback embed Google keyless by teks.
+  const hasGeo = e.lat != null && e.lng != null;
   const mapsQuery = encodeURIComponent(e.court);
-  const mapsLink = `https://www.google.com/maps/search/?api=1&query=${mapsQuery}`;
-  const mapsEmbed = `https://maps.google.com/maps?q=${mapsQuery}&z=15&output=embed`;
+  const d = 0.004; // ~400 m
+  const mapLink = hasGeo
+    ? `https://www.openstreetmap.org/?mlat=${e.lat}&mlon=${e.lng}#map=16/${e.lat}/${e.lng}`
+    : `https://www.google.com/maps/search/?api=1&query=${mapsQuery}`;
+  const mapEmbed = hasGeo
+    ? `https://www.openstreetmap.org/export/embed.html?bbox=${e.lng! - d},${e.lat! - d},${e.lng! + d},${e.lat! + d}&layer=mapnik&marker=${e.lat},${e.lng}`
+    : `https://maps.google.com/maps?q=${mapsQuery}&z=15&output=embed`;
+  const mapLabel = hasGeo ? "Buka di OpenStreetMap ↗" : "Buka di Google Maps ↗";
 
   const Tile = ({ icon, title, sub }: { icon: React.ReactNode; title: string; sub?: string }) => (
     <div className="flex items-center gap-3">
@@ -88,13 +96,13 @@ export default async function EventDetail({ params }: { params: { id: string } }
             <div className="mt-6">
               <div className="mb-2 flex items-center justify-between border-b border-gray-200 pb-2">
                 <h2 className="text-sm font-bold text-gray-700">Lokasi</h2>
-                <a href={mapsLink} target="_blank" rel="noreferrer" className="text-xs font-bold text-primary hover:underline">Buka di Google Maps ↗</a>
+                <a href={mapLink} target="_blank" rel="noreferrer" className="text-xs font-bold text-primary hover:underline">{mapLabel}</a>
               </div>
               <p className="mb-3 text-sm text-gray-600">{e.court}</p>
               <div className="overflow-hidden rounded-2xl border border-gray-200">
                 <iframe
                   title={`Peta ${e.court}`}
-                  src={mapsEmbed}
+                  src={mapEmbed}
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
                   className="h-56 w-full"
@@ -144,7 +152,7 @@ export default async function EventDetail({ params }: { params: { id: string } }
                   <p className="text-xs text-gray-400">Jam {e.time}{e.timeEnd ? `–${e.timeEnd}` : ""}</p>
                 </div>
               </div>
-              <a href={mapsLink} target="_blank" rel="noreferrer" className="group flex items-center gap-3">
+              <a href={mapLink} target="_blank" rel="noreferrer" className="group flex items-center gap-3">
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-gray-200 bg-gray-50 text-primary">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 21s-7-4.35-7-10a7 7 0 0 1 14 0c0 5.65-7 10-7 10Z" /><circle cx="12" cy="11" r="2.5" /></svg>
                 </div>

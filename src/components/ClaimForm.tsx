@@ -4,33 +4,27 @@ import { useEffect, useRef, useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import { claimDemo, FormState } from "@/app/komunitas/actions";
 
-// Autocomplete lokasi: Google Places (New) kalau ada API key, selain itu fallback Photon/OSM (gratis).
-const GKEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-
-// Label tempat dari hasil Photon (OpenStreetMap).
-type Place = { properties: Record<string, string> };
-function placeLabel(p: Record<string, string>): string {
-  const head = p.name || [p.street, p.housenumber].filter(Boolean).join(" ");
-  const rest = [p.city || p.county || p.district, p.state, p.country].filter(Boolean);
-  return [head, ...rest].filter(Boolean).join(", ");
-}
-
-// Muat Google Maps JS (Places lib) sekali, lalu ambil library 'places'.
-// ponytail: pakai importLibrary (API baru) — classic Autocomplete sudah dibatasi untuk key baru.
-async function loadGooglePlaces(): Promise<any> {
-  const w = window as any;
-  if (!w.__gmapsPromise) {
-    w.__gmapsPromise = new Promise<void>((res, rej) => {
-      const s = document.createElement("script");
-      s.src = `https://maps.googleapis.com/maps/api/js?key=${GKEY}&v=weekly&libraries=places&loading=async`;
-      s.async = true;
-      s.onload = () => res();
-      s.onerror = () => rej(new Error("gmaps load failed"));
-      document.head.appendChild(s);
-    });
-  }
-  await w.__gmapsPromise;
-  return w.google.maps.importLibrary("places");
+// Lokasi lapangan: peta OpenStreetMap interaktif (Leaflet) — user klik buat naruh pin.
+// Dipilih karena search-by-nama (Nominatim/Photon) sering gagal untuk lapangan kecil
+// yang nggak dinamai di OSM, padahal titiknya kelihatan di peta. Gratis, tanpa API key.
+// ponytail: Leaflet dimuat dari CDN (cdnjs) biar tak nambah dependency; kalau mau
+// di-bundle tinggal `npm i leaflet` + import.
+function loadLeaflet(): Promise<void> {
+  const w = window as unknown as { __leafletPromise?: Promise<void> };
+  if (w.__leafletPromise) return w.__leafletPromise;
+  w.__leafletPromise = new Promise<void>((res, rej) => {
+    const css = document.createElement("link");
+    css.rel = "stylesheet";
+    css.href = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css";
+    document.head.appendChild(css);
+    const s = document.createElement("script");
+    s.src = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js";
+    s.async = true;
+    s.onload = () => res();
+    s.onerror = () => rej(new Error("leaflet load failed"));
+    document.head.appendChild(s);
+  });
+  return w.__leafletPromise;
 }
 
 function Btn({ disabled }: { disabled?: boolean }) {
@@ -62,11 +56,17 @@ export default function ClaimForm({ campaignId, minDate, maxDate, bookings }: { 
   const [state, action] = useFormState<FormState, FormData>(claimDemo, {});
   const [quotaType, setQuotaType] = useState<"closed" | "open">("open");
   const [court, setCourt] = useState("");
-  const [suggests, setSuggests] = useState<string[]>([]);
-  const [showSug, setShowSug] = useState(false);
-  const pickedRef = useRef(false);
+  const [coord, setCoord] = useState<{ lat: number; lng: number } | null>(null);
+  const [area, setArea] = useState("");
+  const [areaMsg, setAreaMsg] = useState("");
   const [date, setDate] = useState(minDate);
   const [sel, setSel] = useState<number[]>([]); // index HOURS yang dipilih
+
+  const mapEl = useRef<HTMLDivElement>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const mapRef = useRef<any>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const markerRef = useRef<any>(null);
 
   const dates = dateRange(minDate, maxDate);
   const dayBlocks = bookings.filter((b) => b.date === date && b.start && b.end).map((b) => ({ s: toMin(b.start), e: toMin(b.end) }));
@@ -82,72 +82,84 @@ export default function ClaimForm({ campaignId, minDate, maxDate, bookings }: { 
   const timeEnd = sel.length ? HOURS[selSorted[selSorted.length - 1]].end : "";
   const toggleSlot = (i: number) => setSel((p) => (p.includes(i) ? p.filter((x) => x !== i) : [...p, i]));
 
-  // Autocomplete lokasi (debounce). Google Places kalau ada key, else Photon/OSM. Dibias ke Indonesia.
+  // Init peta Leaflet sekali. Klik peta → taruh/geser pin → simpan koordinat.
   useEffect(() => {
-    if (pickedRef.current) { pickedRef.current = false; return; }
-    const q = court.trim();
-    if (q.length < 3) { setSuggests([]); return; }
-    let active = true;
-    const t = setTimeout(async () => {
-      try {
-        let labels: string[] = [];
-        if (GKEY) {
-          const places = await loadGooglePlaces();
-          const { suggestions } = await places.AutocompleteSuggestion.fetchAutocompleteSuggestions({
-            input: q,
-            includedRegionCodes: ["id"],
-            language: "id",
-            region: "id",
-          });
-          labels = (suggestions || []).map((s: any) => s.placePrediction?.text?.text).filter(Boolean);
-        } else {
-          const r = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=5&lang=en`);
-          const data: { features?: Place[] } = await r.json();
-          labels = (data.features || []).map((f) => placeLabel(f.properties)).filter(Boolean);
-        }
-        if (!active) return;
-        setSuggests(Array.from(new Set(labels)).slice(0, 6));
-        setShowSug(true);
-      } catch { /* ponytail: abaikan error jaringan/quota — input manual tetap jalan */ }
-    }, 300);
-    return () => { active = false; clearTimeout(t); };
-  }, [court]);
+    let cancelled = false;
+    loadLeaflet().then(() => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const L = (window as any).L;
+      if (cancelled || !L || !mapEl.current || mapRef.current) return;
+      const map = L.map(mapEl.current).setView([-7.7956, 110.3695], 12); // default: Yogyakarta
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      }).addTo(map);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      map.on("click", (e: any) => {
+        const { lat, lng } = e.latlng;
+        if (markerRef.current) markerRef.current.setLatLng([lat, lng]);
+        else markerRef.current = L.marker([lat, lng]).addTo(map);
+        setCoord({ lat, lng });
+      });
+      mapRef.current = map;
+    }).catch(() => { /* ponytail: kalau Leaflet gagal load, input nama tetap jalan */ });
+    return () => { cancelled = true; if (mapRef.current) { mapRef.current.remove(); mapRef.current = null; } };
+  }, []);
+
+  // Cari area/jalan untuk GESER peta cepat (Nominatim). Bukan buat nemu lapangannya —
+  // user tetap klik titik lapangan sendiri setelah peta pindah ke area itu.
+  async function searchArea() {
+    const q = area.trim();
+    if (!q || !mapRef.current) return;
+    setAreaMsg("Mencari…");
+    try {
+      const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=id&q=${encodeURIComponent(q)}`);
+      const d: { lat: string; lon: string }[] = await r.json();
+      if (d[0]) { mapRef.current.setView([+d[0].lat, +d[0].lon], 17); setAreaMsg(""); }
+      else setAreaMsg("Area tak ketemu — geser peta manual aja.");
+    } catch { setAreaMsg("Gagal mencari — geser peta manual aja."); }
+  }
 
   return (
     <form action={action} className="space-y-4">
       <input type="hidden" name="campaignId" value={campaignId} />
       <input type="hidden" name="quotaType" value={quotaType} />
+      <input type="hidden" name="lat" value={coord?.lat ?? ""} />
+      <input type="hidden" name="lng" value={coord?.lng ?? ""} />
 
-      <div className="relative">
+      <div>
         <label className="label">Lapangan tenis *</label>
         <input
           name="court"
           required
-          autoComplete="off"
           value={court}
           onChange={(e) => setCourt(e.target.value)}
-          onFocus={() => suggests.length > 0 && setShowSug(true)}
-          onBlur={() => setTimeout(() => setShowSug(false), 150)}
           className="field"
-          placeholder="Ketik nama lapangan / GOR / kota…"
+          placeholder="Nama lapangan (mis. Lapangan Tenis Sinduadi)"
         />
-        {showSug && suggests.length > 0 && (
-          <ul className="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-xl border border-gray-200 bg-white py-1 shadow-lg">
-            {suggests.map((s) => (
-              <li key={s}>
-                <button
-                  type="button"
-                  onMouseDown={(e) => { e.preventDefault(); pickedRef.current = true; setCourt(s); setShowSug(false); }}
-                  className="flex w-full items-start gap-2 px-3 py-2 text-left text-sm text-gray-700 hover:bg-primary/5"
-                >
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 shrink-0 text-primary"><path d="M12 21s-7-4.35-7-10a7 7 0 0 1 14 0c0 5.65-7 10-7 10Z" /><circle cx="12" cy="11" r="2.5" /></svg>
-                  <span>{s}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
+
+        {/* Cari area buat geser peta, lalu klik titik lapangan */}
+        <div className="mt-2 flex gap-2">
+          <input
+            value={area}
+            onChange={(e) => setArea(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); searchArea(); } }}
+            className="field"
+            placeholder="Cari area/jalan buat geser peta…"
+          />
+          <button type="button" onClick={searchArea} className="shrink-0 rounded-xl border border-gray-200 px-4 text-sm font-semibold text-gray-600 hover:border-primary/50 hover:text-primary">Cari</button>
+        </div>
+        {areaMsg && <p className="mt-1 text-xs text-gray-400">{areaMsg}</p>}
+
+        <div ref={mapEl} className="mt-2 h-60 w-full overflow-hidden rounded-xl border border-gray-200 bg-gray-100" />
+        {coord ? (
+          <p className="mt-1 flex items-center gap-1.5 text-xs font-semibold text-primary">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 21s-7-4.35-7-10a7 7 0 0 1 14 0c0 5.65-7 10-7 10Z" /><circle cx="12" cy="11" r="2.5" /></svg>
+            Titik lokasi tersimpan. Klik lagi di peta kalau mau pindah.
+          </p>
+        ) : (
+          <p className="mt-1 text-xs text-gray-400">Klik lokasi lapangan di peta buat naruh pin (biar akurat, nggak harus ada namanya di peta).</p>
         )}
-        <p className="mt-1 text-xs text-gray-400">Pilih dari saran lokasi biar akurat di peta.</p>
       </div>
 
       <div>

@@ -76,6 +76,11 @@ export async function claimDemo(_prev: FormState, formData: FormData): Promise<F
   const eventPicPhone = normalizePhone((formData.get("eventPicPhone") as string) || "");
   const time = ((formData.get("time") as string) || "").trim();
   const timeEnd = ((formData.get("timeEnd") as string) || "").trim();
+  // Koordinat dari saran OpenStreetMap (opsional) — validasi rentang wajar.
+  const latN = parseFloat((formData.get("lat") as string) || "");
+  const lngN = parseFloat((formData.get("lng") as string) || "");
+  const lat = Number.isFinite(latN) && latN >= -90 && latN <= 90 ? latN : null;
+  const lng = Number.isFinite(lngN) && lngN >= -180 && lngN <= 180 ? lngN : null;
 
   const campaign = await prisma.demoCampaign.findUnique({ where: { id: campaignId }, select: { id: true, isActive: true, startDate: true, endDate: true } });
   if (!campaign || !campaign.isActive) return { error: "Kampanye demo tidak tersedia." };
@@ -113,7 +118,7 @@ export async function claimDemo(_prev: FormState, formData: FormData): Promise<F
   if (bentrok) return { error: `Jam ${bentrok.time}–${bentrok.timeEnd} sudah dibooking komunitas lain (butuh jeda 1 jam). Pilih jam/tanggal lain.` };
 
   await prisma.demoClaim.create({
-    data: { campaignId, communityId, court, quotaType, quota, demoDate, time, timeEnd, eventPicPhone, status: "pending" },
+    data: { campaignId, communityId, court, quotaType, quota, demoDate, time, timeEnd, eventPicPhone, status: "pending", lat, lng },
   });
   revalidatePath("/komunitas");
   revalidatePath("/dashboard/event");
