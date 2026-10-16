@@ -75,29 +75,48 @@ function StringingRoom({ rooms }: { rooms: Room[] }) {
       </div>
       {/* Grid full-width: semua card tinggi sama (ngikut antrian paling banyak) */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {rooms.map((r) => (
-          <div key={r.name} className="flex flex-col rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
-            <div className="flex items-center justify-between gap-2">
-              <h3 className="text-sm font-extrabold text-gray-900">{r.name}</h3>
-              <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-bold text-amber-700">{r.items.length} antrian</span>
+        {rooms.map((r) => {
+          const prog = r.items.filter((i) => i.status === "dikerjakan");
+          const wait = r.items.filter((i) => i.status === "antri");
+          const group = (items: RoomItem[], dot: string) =>
+            items.map((it) => (
+              <div key={it.code} className="flex items-center gap-3 rounded-xl bg-gray-50 px-3 py-2">
+                <span className={`h-2 w-2 shrink-0 rounded-full ${dot}`} />
+                <span className="font-mono text-sm font-bold text-primary">{it.code}</span>
+              </div>
+            ));
+          return (
+            <div key={r.name} className="flex flex-col rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3 className="text-sm font-extrabold text-gray-900">{r.name}</h3>
+                <div className="flex gap-1.5">
+                  <span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-bold text-blue-700">{prog.length} on progress</span>
+                  <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-bold text-amber-700">{wait.length} waiting</span>
+                </div>
+              </div>
+              <div className="mt-3 flex-1 space-y-3">
+                {r.items.length === 0 ? (
+                  <p className="py-8 text-center text-sm text-gray-400">Belum ada antrian</p>
+                ) : (
+                  <>
+                    {prog.length > 0 && (
+                      <div>
+                        <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-blue-600">On Progress</p>
+                        <div className="space-y-2">{group(prog, "bg-blue-500")}</div>
+                      </div>
+                    )}
+                    {wait.length > 0 && (
+                      <div>
+                        <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-amber-600">Waiting</p>
+                        <div className="space-y-2">{group(wait, "bg-amber-500")}</div>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
             </div>
-            <div className="mt-3 flex-1 space-y-2">
-              {r.items.length === 0 ? (
-                <p className="py-8 text-center text-sm text-gray-400">Belum ada antrian</p>
-              ) : (
-                r.items.map((it, i) => (
-                  <div key={it.code} className="flex items-center gap-3 rounded-xl bg-gray-50 px-3 py-2">
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white text-xs font-bold text-gray-500 ring-1 ring-gray-200">{i + 1}</span>
-                    <span className="font-mono text-sm font-bold text-primary">{it.code}</span>
-                    <span className={`ml-auto rounded-full px-2 py-0.5 text-[11px] font-semibold ${it.status === "dikerjakan" ? "bg-blue-100 text-blue-700" : "bg-amber-100 text-amber-700"}`}>
-                      {it.status === "dikerjakan" ? "Dikerjakan" : "Antri"}
-                    </span>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </section>
   );
