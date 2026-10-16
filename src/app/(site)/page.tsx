@@ -73,10 +73,10 @@ function StringingRoom({ rooms }: { rooms: Room[] }) {
           <img src="/logo.png" alt="" className="h-7 w-7" />
         </h2>
       </div>
-      {/* Carousel: semua card tinggi sama (ngikut antrian paling banyak) */}
-      <div className="snap-x-carousel flex items-stretch gap-4 overflow-x-auto pb-2">
+      {/* Grid full-width: semua card tinggi sama (ngikut antrian paling banyak) */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {rooms.map((r) => (
-          <div key={r.name} className="snap-item flex w-[280px] shrink-0 flex-col rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:w-[320px]">
+          <div key={r.name} className="flex flex-col rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
             <div className="flex items-center justify-between gap-2">
               <h3 className="text-sm font-extrabold text-gray-900">{r.name}</h3>
               <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-bold text-amber-700">{r.items.length} antrian</span>
