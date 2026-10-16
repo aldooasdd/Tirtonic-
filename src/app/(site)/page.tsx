@@ -73,13 +73,6 @@ function StringingRoom({ rooms }: { rooms: Room[] }) {
           <img src="/logo.png" alt="" className="h-7 w-7" />
         </h2>
       </div>
-      <div className="mb-2 flex items-center gap-1.5">
-        <span className="relative flex h-2.5 w-2.5">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
-          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500" />
-        </span>
-        <span className="text-xs font-bold uppercase tracking-wide text-red-600">Live</span>
-      </div>
       {/* Grid full-width: semua card tinggi sama (ngikut antrian paling banyak) */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {rooms.map((r) => {
@@ -103,10 +96,13 @@ function StringingRoom({ rooms }: { rooms: Room[] }) {
             <div key={r.name} className="flex flex-col rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <h3 className="text-sm font-extrabold text-gray-900">{r.name}</h3>
-                <div className="flex gap-1.5">
-                  <span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-bold text-blue-700">{prog.length} on progress</span>
-                  <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-bold text-amber-700">{wait.length} waiting</span>
-                </div>
+                <span className="flex items-center gap-1.5">
+                  <span className="relative flex h-2.5 w-2.5">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
+                    <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500" />
+                  </span>
+                  <span className="text-xs font-bold uppercase tracking-wide text-red-600">Live</span>
+                </span>
               </div>
               <div className="mt-3 flex-1 space-y-3">
                 {r.items.length === 0 ? (
