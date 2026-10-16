@@ -374,59 +374,99 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
   if (phase === "choice") {
     return (
       <Shell>
-        <div className="mx-auto max-w-xl">
+        <div className="mx-auto max-w-5xl">
           <button onClick={() => { setPhase("identify"); setErr(""); }} className="mb-4 text-sm font-semibold text-gray-500 hover:text-gray-900">← Kembali</button>
-          <h1 className="text-2xl font-extrabold text-gray-900">Mau pakai yang mana?</h1>
+          <h1 className="text-2xl font-extrabold text-gray-900 sm:text-3xl">Mau pakai yang mana?</h1>
           <p className="mt-2 text-gray-600">Pilih cara menentukan senar.</p>
           {err && <p className="mt-3 text-sm text-red-600">{err}</p>}
 
-          <div className="mt-6 grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
+            {/* BESAR: String Finder */}
             <button
               onClick={startQuiz}
-              className="rounded-2xl border-2 border-primary bg-primary px-5 py-5 text-left text-white transition hover:opacity-90"
+              className="group relative flex flex-col justify-between overflow-hidden rounded-3xl bg-gradient-to-br from-primary to-primaryDark p-7 text-left text-white shadow-lg transition hover:shadow-xl lg:col-span-2 lg:row-span-2 lg:p-9"
             >
-              <p className="text-lg font-extrabold">String Finder</p>
-              <p className="mt-1 text-sm text-white/80">Jawab beberapa pertanyaan, dapat 3 rekomendasi senar yang pas. Untuk customer.</p>
+              <span className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-white/10 blur-2xl" />
+              <span className="pointer-events-none absolute -bottom-20 -left-10 h-56 w-56 rounded-full bg-white/10 blur-3xl" />
+              <div className="relative">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-bold backdrop-blur">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 16.8 5.8 21.3l2.4-7.4L2 9.4h7.6z" /></svg>
+                  Paling populer
+                </span>
+                <h2 className="mt-5 text-3xl font-extrabold leading-tight lg:text-4xl">String Finder</h2>
+                <p className="mt-2 max-w-sm text-sm text-white/80 lg:text-base">Jawab beberapa pertanyaan, dapat 3 rekomendasi senar paling pas — disesuaikan cara mainmu. Untuk customer.</p>
+              </div>
+              <div className="relative mt-7 w-full max-w-xs space-y-2">
+                {[{ l: "Paling cocok", w: 92 }, { l: "Alternatif", w: 78 }, { l: "Alternatif", w: 64 }].map((r, i) => (
+                  <div key={i} className="flex items-center gap-3 rounded-xl bg-white/15 px-3 py-2 backdrop-blur">
+                    <span className="h-2 w-2 shrink-0 rounded-full bg-white/80" />
+                    <span className="text-xs font-semibold">{r.l}</span>
+                    <span className="ml-auto h-1.5 w-20 overflow-hidden rounded-full bg-white/20">
+                      <span className="block h-full rounded-full bg-white/80" style={{ width: `${r.w}%` }} />
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <span className="relative mt-7 inline-flex items-center gap-2 text-sm font-bold">
+                Mulai kuesioner
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="transition group-hover:translate-x-1"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+              </span>
             </button>
 
+            {/* Own String */}
             <button
               onClick={() => { setErr(""); setOwnName(""); setPhase("own"); }}
-              className="rounded-2xl border-2 border-gray-300 bg-white px-5 py-5 text-left text-gray-900 transition hover:border-gray-400 hover:bg-gray-50"
+              className="group flex flex-col rounded-3xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 p-5 text-left shadow-sm transition hover:border-primary/40 hover:shadow-md"
             >
-              <p className="text-lg font-extrabold text-gray-900">Own String</p>
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 10.5 12 3l9 7.5" /><path d="M5 9.5V21h14V9.5" /></svg>
+              </span>
+              <p className="mt-3 text-base font-extrabold text-gray-900">Own String</p>
               <p className="mt-1 text-sm text-gray-600">Customer bawa senar sendiri dari rumah, tinggal dipasang. Tulis nama senarnya manual.</p>
             </button>
 
+            {/* Hybrid String */}
             <button
               onClick={() => { setErr(""); setHybridMain(""); setHybridCross(""); setPhase("hybrid"); }}
-              className="rounded-2xl border-2 border-gray-300 bg-white px-5 py-5 text-left text-gray-900 transition hover:border-gray-400 hover:bg-gray-50"
+              className="group flex flex-col rounded-3xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 p-5 text-left shadow-sm transition hover:border-primary/40 hover:shadow-md"
             >
-              <p className="text-lg font-extrabold text-gray-900">Hybrid String</p>
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 3h5v5" /><path d="M21 3 13 11" /><path d="M21 16v5h-5" /><path d="m15 15 6 6" /><path d="M4 4l6 6" /></svg>
+              </span>
+              <p className="mt-3 text-base font-extrabold text-gray-900">Hybrid String</p>
               <p className="mt-1 text-sm text-gray-600">Main & cross beda senar (merek/jenis). Atur senar + tarikan main & cross sendiri.</p>
             </button>
 
+            {/* Tirtonic Team — full width bawah */}
             {askTeam ? (
-              <div className="rounded-2xl border-2 border-gray-300 bg-white px-5 py-5">
-                <p className="text-lg font-extrabold text-gray-900">Tirtonic Team</p>
+              <div className="rounded-3xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 p-5 shadow-sm lg:col-span-3">
+                <p className="text-base font-extrabold text-gray-900">Tirtonic Team</p>
                 <p className="mt-1 text-sm text-gray-600">Masukkan password untuk lanjut.</p>
-                <input
-                  type="password"
-                  value={teamPw}
-                  onChange={(e) => setTeamPw(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === "Enter") startManual(); }}
-                  autoFocus
-                  placeholder="Password"
-                  className="mt-3 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-primary focus:outline-none"
-                />
-                <button onClick={startManual} className="btn-green mt-3 w-full py-2.5">Lanjut →</button>
+                <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+                  <input
+                    type="password"
+                    value={teamPw}
+                    onChange={(e) => setTeamPw(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") startManual(); }}
+                    autoFocus
+                    placeholder="Password"
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-primary focus:outline-none sm:max-w-xs"
+                  />
+                  <button onClick={startManual} className="btn-green shrink-0 px-6 py-2.5">Lanjut →</button>
+                </div>
               </div>
             ) : (
               <button
                 onClick={() => { setErr(""); setAskTeam(true); }}
-                className="rounded-2xl border-2 border-gray-300 bg-white px-5 py-5 text-left text-gray-900 transition hover:border-gray-400 hover:bg-gray-50"
+                className="group flex items-center gap-4 rounded-3xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 p-5 text-left shadow-sm transition hover:border-primary/40 hover:shadow-md lg:col-span-3"
               >
-                <p className="text-lg font-extrabold text-gray-900">Tirtonic Team</p>
-                <p className="mt-1 text-sm text-gray-600">Langsung pilih senar sendiri dari katalog, tanpa mesin rekomendasi. Untuk kasir.</p>
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg>
+                </span>
+                <div>
+                  <p className="text-base font-extrabold text-gray-900">Tirtonic Team</p>
+                  <p className="mt-0.5 text-sm text-gray-600">Langsung pilih senar sendiri dari katalog, tanpa mesin rekomendasi. Untuk kasir.</p>
+                </div>
               </button>
             )}
           </div>
