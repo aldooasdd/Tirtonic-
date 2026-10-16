@@ -142,12 +142,12 @@ export default async function EventLanding() {
             <div>
               {nowCampaigns.length > 0 && <p className="mb-3 text-sm font-semibold text-gray-500">Acara terjadwal</p>}
               {groups.map((g) => (
-                <div key={g.key} className="flex gap-4 sm:gap-6">
-                  <div className="w-20 shrink-0 pt-0.5 sm:w-32">
+                <div key={g.key} className="flex gap-3 sm:gap-6">
+                  <div className="w-16 shrink-0 pt-0.5 sm:w-32">
                     <p className="text-sm font-bold text-gray-900">{g.label}</p>
                     <p className="text-xs capitalize text-gray-400">{g.sub}</p>
                   </div>
-                  <div className="relative flex-1 border-l border-gray-200 pb-8 pl-5 last:border-l-transparent sm:pl-6">
+                  <div className="relative min-w-0 flex-1 border-l border-gray-200 pb-8 pl-5 last:border-l-transparent sm:pl-6">
                     <span className="absolute -left-[5px] top-1.5 h-2.5 w-2.5 rounded-full bg-primary ring-4 ring-gray-50" />
                     <div className="space-y-3">
                       {g.items.map((e) => <EventCard key={e.id} e={e} />)}

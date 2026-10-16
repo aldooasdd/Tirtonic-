@@ -75,7 +75,7 @@ export default function EventCard({ e }: { e: EventCardData }) {
         )}
       </div>
 
-      <div className="h-24 w-24 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br from-primaryDark to-primary sm:h-28 sm:w-28">
+      <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br from-primaryDark to-primary sm:h-28 sm:w-28">
         {e.campaign.banner ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={e.campaign.banner} alt="" className="h-full w-full object-cover" />
