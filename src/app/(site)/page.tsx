@@ -96,7 +96,7 @@ function StringingRoom({ rooms }: { rooms: Room[] }) {
                   <span className={`h-2 w-2 shrink-0 rounded-full ${dot}`} />
                 )}
                 <span className="font-mono text-sm font-bold text-primary">{it.code}</span>
-                {it.stringer && <span className="ml-auto truncate text-xs text-gray-500">stringer: {it.stringer}</span>}
+                {it.stringer && <span className="ml-auto truncate text-xs text-gray-500">Stringer : {it.stringer}</span>}
               </div>
             ));
           return (
