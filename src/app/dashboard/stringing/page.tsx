@@ -149,10 +149,8 @@ export default async function StringingQueuePage() {
             </section>
           );
         })}
-      </div>
 
-      {/* Selesai — gabungan semua cabang (full width) */}
-      <div className="mt-5">
+        {/* Selesai — gabungan semua cabang (sebelah Solo; HP: ke bawah) */}
         <section className="rounded-2xl border border-gray-200 bg-gray-50/70 p-4">
           <div className="flex items-center justify-between gap-2">
             <h2 className="text-base font-extrabold text-gray-900">Selesai <span className="font-normal text-gray-400">— semua cabang</span></h2>
@@ -168,3 +166,4 @@ export default async function StringingQueuePage() {
     </div>
   );
 }
+// (grid 2 kolom: Jogja, Semarang, Solo, Selesai)
