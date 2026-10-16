@@ -49,9 +49,9 @@ export default function EventCard({ e }: { e: EventCardData }) {
           <span className="truncate">{e.community.name}</span>
         </div>
 
-        <p className="mt-1 flex items-center gap-1.5 text-sm text-gray-500">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-gray-400"><path d="M12 21s-7-4.35-7-10a7 7 0 0 1 14 0c0 5.65-7 10-7 10Z" /><circle cx="12" cy="11" r="2.5" /></svg>
-          <span className="truncate">{e.court}</span>
+        <p className="mt-1 flex items-start gap-1.5 text-sm text-gray-500">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 shrink-0 text-gray-400"><path d="M12 21s-7-4.35-7-10a7 7 0 0 1 14 0c0 5.65-7 10-7 10Z" /><circle cx="12" cy="11" r="2.5" /></svg>
+          <span>{e.court}</span>
         </p>
 
         <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
