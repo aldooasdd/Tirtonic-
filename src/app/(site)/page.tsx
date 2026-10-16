@@ -73,6 +73,13 @@ function StringingRoom({ rooms }: { rooms: Room[] }) {
           <img src="/logo.png" alt="" className="h-7 w-7" />
         </h2>
       </div>
+      <div className="mb-2 flex items-center gap-1.5">
+        <span className="relative flex h-2.5 w-2.5">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
+          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500" />
+        </span>
+        <span className="text-xs font-bold uppercase tracking-wide text-red-600">Live</span>
+      </div>
       {/* Grid full-width: semua card tinggi sama (ngikut antrian paling banyak) */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {rooms.map((r) => {
