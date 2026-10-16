@@ -6,13 +6,14 @@ import { articleHref } from "@/lib/article-slug";
 import ProductCard, { ProductCardData } from "@/components/ProductCard";
 import SeoBlock from "@/components/SeoBlock";
 import HeroCarousel from "@/components/HeroCarousel";
+import AutoRefresh from "@/components/AutoRefresh";
 
 function fmtTanggal(d: Date) {
   return d.toLocaleDateString("id-ID", { weekday: "short", day: "numeric", month: "short", year: "numeric" });
 }
 
-// ISR: beranda di-cache 2 menit → hemat egress DB (gak query tiap kunjungan/crawler).
-export const revalidate = 120;
+// ISR: beranda di-cache 1 menit → papan antrian stringing tetap live (client auto-refresh 60s).
+export const revalidate = 60;
 
 type StoreItem = { id: string; nama: string; alamat: string; jam: string | null; foto: string | null; maps: string | null };
 
@@ -67,6 +68,7 @@ function StringingRoom({ rooms }: { rooms: Room[] }) {
   if (rooms.length === 0) return null;
   return (
     <section className="mx-auto max-w-site px-4 py-2">
+      <AutoRefresh seconds={60} />
       <div className="mb-1.5 flex items-center gap-3">
         <h2 className="flex items-center gap-2 text-xl font-extrabold text-gray-900">
           Tirtonic Stringing Room {/* eslint-disable-next-line @next/next/no-img-element */}
