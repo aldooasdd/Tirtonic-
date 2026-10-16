@@ -108,7 +108,7 @@ export default async function StringingQueuePage() {
   ]);
 
   const active = orders.filter((o) => o.status === "antri" || o.status === "dikerjakan");
-  const done = orders.filter((o) => o.status === "selesai" || o.status === "batal");
+  const done = orders.filter((o) => o.status === "selesai");
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
@@ -118,7 +118,7 @@ export default async function StringingQueuePage() {
           <h1 className="mt-2 text-2xl font-extrabold text-primary">Antrian Stringing</h1>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-sm text-gray-400">{active.length} aktif • {orders.length} total</span>
+          <span className="text-sm text-gray-400">{active.length} aktif • {active.length + done.length} total</span>
           <Link href="/dashboard/password" className="text-sm font-medium text-gray-500 hover:text-primary">Ganti sandi</Link>
           <form action={logout}>
             <button className="rounded-full border px-4 py-1.5 text-sm font-semibold text-gray-600 transition hover:border-red-400 hover:text-red-600">Logout</button>
