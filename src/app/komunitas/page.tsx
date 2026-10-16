@@ -7,6 +7,7 @@ import { phaseOf, PHASE_META } from "@/lib/event-phase";
 import EventTopBar from "@/components/EventTopBar";
 import ClaimForm from "@/components/ClaimForm";
 import PickupButton from "@/components/PickupButton";
+import ShareInvite from "@/components/ShareInvite";
 import { pickupToken, returnToken } from "@/lib/pickup-token";
 
 export const dynamic = "force-dynamic";
@@ -243,6 +244,9 @@ export default async function KomunitasHome() {
                       <PickupButton token={returnToken(c.id)} qrPath="return-qr" label="Kembalikan produk" hint="Tunjukkan QR ini ke admin Tirtonic saat mengembalikan produk demo ke toko." />
                     )
                   )}
+
+                  {/* Undangan IG Story — acara sudah di-ACC */}
+                  {phase !== "pending" && <ShareInvite inviteUrl={`/api/invite/${c.id}`} title={c.campaign.title} />}
 
                   {/* Peserta menunggu konfirmasi (acara open) */}
                   {open && phase !== "done" && phase !== "pending" && pendingParts.length > 0 && (
