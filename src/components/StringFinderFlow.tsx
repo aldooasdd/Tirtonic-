@@ -384,7 +384,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
             {/* BESAR: String Finder */}
             <button
               onClick={startQuiz}
-              className="group relative flex flex-col justify-between overflow-hidden rounded-3xl bg-gradient-to-br from-primary to-primaryDark p-7 text-left text-white shadow-lg transition hover:shadow-xl lg:col-span-2 lg:row-span-2 lg:p-9"
+              className="group relative flex flex-col justify-between overflow-hidden rounded-3xl bg-gradient-to-br from-primary to-primaryDark p-7 text-left text-white shadow-lg transition hover:shadow-xl lg:col-span-2 lg:row-span-3 lg:p-9"
             >
               <span className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-white/10 blur-2xl" />
               <span className="pointer-events-none absolute -bottom-20 -left-10 h-56 w-56 rounded-full bg-white/10 blur-3xl" />
@@ -437,36 +437,32 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
               <p className="mt-1 text-sm text-gray-600">Main & cross beda senar (merek/jenis). Atur senar + tarikan main & cross sendiri.</p>
             </button>
 
-            {/* Tirtonic Team — full width bawah */}
+            {/* Full Bed Stringing — kartu kecil di samping */}
             {askTeam ? (
-              <div className="rounded-3xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 p-5 shadow-sm lg:col-span-3">
+              <div className="rounded-3xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 p-5 shadow-sm">
                 <p className="text-base font-extrabold text-gray-900">Full Bed Stringing</p>
                 <p className="mt-1 text-sm text-gray-600">Masukkan password untuk lanjut.</p>
-                <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-                  <input
-                    type="password"
-                    value={teamPw}
-                    onChange={(e) => setTeamPw(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === "Enter") startManual(); }}
-                    autoFocus
-                    placeholder="Password"
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-primary focus:outline-none sm:max-w-xs"
-                  />
-                  <button onClick={startManual} className="btn-green shrink-0 px-6 py-2.5">Lanjut →</button>
-                </div>
+                <input
+                  type="password"
+                  value={teamPw}
+                  onChange={(e) => setTeamPw(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") startManual(); }}
+                  autoFocus
+                  placeholder="Password"
+                  className="mt-3 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-primary focus:outline-none"
+                />
+                <button onClick={startManual} className="btn-green mt-2 w-full py-2.5">Lanjut →</button>
               </div>
             ) : (
               <button
                 onClick={() => { setErr(""); setAskTeam(true); }}
-                className="group flex items-center gap-4 rounded-3xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 p-5 text-left shadow-sm transition hover:border-primary/40 hover:shadow-md lg:col-span-3"
+                className="group flex flex-col rounded-3xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 p-5 text-left shadow-sm transition hover:border-primary/40 hover:shadow-md"
               >
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg>
                 </span>
-                <div>
-                  <p className="text-base font-extrabold text-gray-900">Full Bed Stringing</p>
-                  <p className="mt-0.5 text-sm text-gray-600">Satu jenis senar untuk semua. Pilihan paling umum.</p>
-                </div>
+                <p className="mt-3 text-base font-extrabold text-gray-900">Full Bed Stringing</p>
+                <p className="mt-1 text-sm text-gray-600">Satu jenis senar untuk semua. Pilihan paling umum.</p>
               </button>
             )}
           </div>
