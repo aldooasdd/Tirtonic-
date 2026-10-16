@@ -59,6 +59,50 @@ function OurStore({ stores }: { stores: StoreItem[] }) {
   );
 }
 
+// Papan antrian stringing publik: hanya kode + status (TANPA nama/HP/raket/senar).
+type RoomItem = { code: string; status: string };
+type Room = { name: string; items: RoomItem[] };
+
+function StringingRoom({ rooms }: { rooms: Room[] }) {
+  if (rooms.length === 0) return null;
+  return (
+    <section className="mx-auto max-w-site px-4 py-2">
+      <div className="mb-1.5 flex items-center gap-3">
+        <h2 className="flex items-center gap-2 text-xl font-extrabold text-gray-900">
+          Tirtonic Stringing Room {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.png" alt="" className="h-7 w-7" />
+        </h2>
+      </div>
+      {/* Carousel: semua card tinggi sama (ngikut antrian paling banyak) */}
+      <div className="snap-x-carousel flex items-stretch gap-4 overflow-x-auto pb-2">
+        {rooms.map((r) => (
+          <div key={r.name} className="snap-item flex w-[280px] shrink-0 flex-col rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:w-[320px]">
+            <div className="flex items-center justify-between gap-2">
+              <h3 className="text-sm font-extrabold text-gray-900">{r.name}</h3>
+              <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-bold text-amber-700">{r.items.length} antrian</span>
+            </div>
+            <div className="mt-3 flex-1 space-y-2">
+              {r.items.length === 0 ? (
+                <p className="py-8 text-center text-sm text-gray-400">Belum ada antrian</p>
+              ) : (
+                r.items.map((it, i) => (
+                  <div key={it.code} className="flex items-center gap-3 rounded-xl bg-gray-50 px-3 py-2">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white text-xs font-bold text-gray-500 ring-1 ring-gray-200">{i + 1}</span>
+                    <span className="font-mono text-sm font-bold text-primary">{it.code}</span>
+                    <span className={`ml-auto rounded-full px-2 py-0.5 text-[11px] font-semibold ${it.status === "dikerjakan" ? "bg-blue-100 text-blue-700" : "bg-amber-100 text-amber-700"}`}>
+                      {it.status === "dikerjakan" ? "Dikerjakan" : "Antri"}
+                    </span>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 type BrandItem = { id: string; nama: string; foto: string };
 
 function BrandPopular({ brands }: { brands: BrandItem[] }) {
@@ -208,7 +252,7 @@ function NewArticles({ articles }: { articles: ArticleCardData[] }) {
 }
 
 export default async function HomePage() {
-  const [stores, articles, slides, latest, deals, popular, brands] = await Promise.all([
+  const [stores, articles, slides, latest, deals, popular, brands, sfBranches, sfActive] = await Promise.all([
     safeQuery(() => prisma.store.findMany({ orderBy: [{ urutan: "asc" }, { nama: "asc" }] }), []),
     safeQuery(() => prisma.article.findMany({ orderBy: { tanggal: "desc" }, take: 8 }), []),
     safeQuery(
@@ -219,6 +263,8 @@ export default async function HomePage() {
     safeQuery(() => prisma.product.findMany({ where: { hargaDiskon: { not: null } }, orderBy: { updatedAt: "desc" }, take: 16, include: { _count: { select: { variants: true } } } }), []),
     safeQuery(() => prisma.product.findMany({ where: { status: "READY", views: { gt: 0 } }, orderBy: { views: "desc" }, take: 12, include: { _count: { select: { variants: true } } } }), []),
     safeQuery(() => prisma.popularBrand.findMany({ orderBy: [{ urutan: "asc" }, { nama: "asc" }] }), []),
+    safeQuery(() => prisma.sfBranch.findMany({ where: { isActive: true, slug: { not: "tirtonic" } }, orderBy: { name: "asc" }, select: { id: true, name: true } }), []),
+    safeQuery(() => prisma.sfOrder.findMany({ where: { status: { in: ["antri", "dikerjakan"] } }, orderBy: { createdAt: "asc" }, select: { resultCode: true, status: true, branchId: true } }), []),
   ]);
   const toCard = (p: (typeof latest)[number]) => ({ id: p.id, nama: p.nama, harga: p.harga, hargaDiskon: p.hargaDiskon, gambar: p.gambar, status: p.status, fromPrice: p._count.variants > 0 });
   const arrivals = latest.map(toCard);
@@ -233,6 +279,13 @@ export default async function HomePage() {
     foto: s.foto,
     maps: s.maps,
   }));
+  // Papan antrian per cabang: dikerjakan dulu, lalu antri (FIFO). Hanya kode + status.
+  const stringingRooms: Room[] = sfBranches.map((b) => {
+    const list = sfActive
+      .filter((o) => o.branchId === b.id)
+      .sort((a, z) => (a.status === z.status ? 0 : a.status === "dikerjakan" ? -1 : 1));
+    return { name: b.name, items: list.map((o) => ({ code: o.resultCode, status: o.status })) };
+  });
 
   return (
     <>
@@ -251,6 +304,7 @@ export default async function HomePage() {
       <NewArrival products={arrivals} />
       <Benefits />
       <OurStore stores={storeItems} />
+      <StringingRoom rooms={stringingRooms} />
       <NewArticles articles={articles} />
       <SeoBlock />
       <Footer />
