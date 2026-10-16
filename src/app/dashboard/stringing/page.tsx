@@ -7,6 +7,7 @@ import { startStringing, finishStringing } from "./actions";
 import { logout } from "../actions";
 import RacketQrPrint from "@/components/RacketQrPrint";
 import DeleteStringingButton from "@/components/DeleteStringingButton";
+import CancelStringingButton from "@/components/CancelStringingButton";
 import DoneStringingCard, { type DoneOrder } from "@/components/DoneStringingCard";
 
 export const dynamic = "force-dynamic";
@@ -78,8 +79,6 @@ function OrderCard({ o }: { o: OrderRow }) {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <a href={`/api/slip/${o.resultCode}${o.chosenRank ? `?rank=${o.chosenRank}` : o.chosenString ? `?name=${encodeURIComponent(o.chosenString)}` : ""}`} target="_blank" rel="noreferrer"
-            className="rounded-full border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:border-primary hover:text-primary">Resep</a>
           <RacketQrPrint phone={o.phone} label="Stiker QR" className="rounded-full border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:border-primary hover:text-primary disabled:opacity-50" />
 
           {o.status === "antri" && (
@@ -98,6 +97,7 @@ function OrderCard({ o }: { o: OrderRow }) {
           )}
           <Link href={`/dashboard/stringing/${o.resultCode}/edit`}
             className="rounded-full border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:border-primary hover:text-primary">Edit</Link>
+          {(o.status === "antri" || o.status === "dikerjakan") && <CancelStringingButton id={o.id} />}
           {(o.status === "selesai" || o.status === "batal") && <DeleteStringingButton id={o.id} />}
         </div>
       </div>

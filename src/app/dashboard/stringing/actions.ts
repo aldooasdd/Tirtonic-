@@ -84,6 +84,12 @@ export async function updateStringing(id: string, formData: FormData) {
   redirect("/dashboard/stringing");
 }
 
+export async function cancelStringing(id: string) {
+  requireAuth();
+  await prisma.sfOrder.update({ where: { id }, data: { status: "batal" } });
+  revalidatePath("/dashboard/stringing");
+}
+
 export async function deleteStringingOrder(id: string) {
   requireAuth();
   await prisma.sfOrder.delete({ where: { id } });
