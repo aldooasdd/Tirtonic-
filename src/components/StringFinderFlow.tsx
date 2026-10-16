@@ -376,8 +376,8 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
       <Shell>
         <div className="mx-auto max-w-5xl">
           <button onClick={() => { setPhase("identify"); setErr(""); }} className="mb-4 text-sm font-semibold text-gray-500 hover:text-gray-900">← Kembali</button>
-          <h1 className="text-2xl font-extrabold text-gray-900 sm:text-3xl">Mau pakai yang mana?</h1>
-          <p className="mt-2 text-gray-600">Pilih cara menentukan senar.</p>
+          <h1 className="text-2xl font-extrabold text-gray-900 sm:text-3xl">Pilih Metode Pemilihan Senar</h1>
+          <p className="mt-2 text-gray-600">Gunakan rekomendasi otomatis atau pilih langsung dari katalog.</p>
           {err && <p className="mt-3 text-sm text-red-600">{err}</p>}
 
           <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
