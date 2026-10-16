@@ -389,11 +389,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
               <span className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-white/10 blur-2xl" />
               <span className="pointer-events-none absolute -bottom-20 -left-10 h-56 w-56 rounded-full bg-white/10 blur-3xl" />
               <div className="relative">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-bold backdrop-blur">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 16.8 5.8 21.3l2.4-7.4L2 9.4h7.6z" /></svg>
-                  Paling populer
-                </span>
-                <h2 className="mt-5 text-3xl font-extrabold leading-tight lg:text-4xl">String Finder</h2>
+                <h2 className="text-3xl font-extrabold leading-tight lg:text-4xl">String Finder</h2>
                 <p className="mt-2 max-w-sm text-sm text-white/80 lg:text-base">Jawab beberapa pertanyaan, dapat 3 rekomendasi senar paling pas — disesuaikan cara mainmu. Untuk customer.</p>
               </div>
               <div className="relative mt-7 w-full max-w-xs space-y-2">
@@ -459,7 +455,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
                 className="group flex flex-col rounded-3xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 p-5 text-left shadow-sm transition hover:border-primary/40 hover:shadow-md"
               >
                 <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="4" width="16" height="16" rx="2" /><path d="M4 9.5h16M4 14.5h16M9.5 4v16M14.5 4v16" /></svg>
                 </span>
                 <p className="mt-3 text-base font-extrabold text-gray-900">Full Bed Stringing</p>
                 <p className="mt-1 text-sm text-gray-600">Satu jenis senar untuk semua. Pilihan paling umum.</p>
