@@ -90,7 +90,7 @@ function StringingRoom({ rooms }: { rooms: Room[] }) {
               <div key={it.code} className="flex items-center gap-3 rounded-xl bg-gray-50 px-3 py-2">
                 <span className={`h-2 w-2 shrink-0 rounded-full ${dot} ${pulse ? "animate-pulse" : ""}`} />
                 <span className="font-mono text-sm font-bold text-primary">{it.code}</span>
-                {it.stringer && <span className="ml-auto truncate text-xs text-gray-500">by: {it.stringer}</span>}
+                {it.stringer && <span className="ml-auto truncate text-xs text-gray-500">stringer: {it.stringer}</span>}
               </div>
             ));
           return (
