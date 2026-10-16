@@ -29,6 +29,14 @@ const STRINGERS = [
   "Irvan", "Rahma", "N Taufiq", "Taufiq", "Jose",
 ];
 
+// Metode pemilihan senar (3 sumber): String Finder (kuesioner) / Hybrid / Full Bed.
+// condition "manual" = jalur non-rekomendasi; hybrid dikenali dari chosenString "(main)/(cross)".
+function methodOf(condition: string | null | undefined, chosenString: string | null) {
+  if (condition !== "manual") return { label: "String Finder", cls: "bg-indigo-100 text-indigo-700" };
+  if (chosenString && /\(main\)/i.test(chosenString) && /\(cross\)/i.test(chosenString)) return { label: "Hybrid Stringing", cls: "bg-purple-100 text-purple-700" };
+  return { label: "Full Bed Stringing", cls: "bg-gray-100 text-gray-600" };
+}
+
 // Tanggal & jam WIB (server Vercel jalan di UTC — tanpa timeZone jamnya meleset).
 function fmt(d: Date) {
   return new Date(d).toLocaleString("id-ID", { timeZone: "Asia/Jakarta", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
@@ -53,9 +61,7 @@ function OrderCard({ o }: { o: OrderRow }) {
           <div className="flex flex-wrap items-center gap-2">
             <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${BADGE[o.status]}`}>{LABEL[o.status]}</span>
             {o.branch?.name && <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-bold text-primary">{o.branch.name}</span>}
-            {o.result && (o.result.condition === "manual"
-              ? <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-semibold text-gray-600">Tirtonic Team</span>
-              : <span className="rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-semibold text-indigo-700">String Finder</span>)}
+            {o.result && (() => { const m = methodOf(o.result.condition, o.chosenString); return <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${m.cls}`}>{m.label}</span>; })()}
             <span className="font-mono text-sm font-bold text-primary">{o.resultCode}</span>
             <span className="text-xs text-gray-400">{fmt(o.createdAt)}</span>
           </div>
@@ -115,7 +121,7 @@ export default async function StringingQueuePage() {
     id: o.id,
     resultCode: o.resultCode,
     branchName: o.branch?.name ?? null,
-    source: o.result ? (o.result.condition === "manual" ? "manual" : "finder") : null,
+    method: o.result ? methodOf(o.result.condition, o.chosenString) : null,
     dateText: fmt(o.createdAt),
     chosenString: o.chosenString,
     tensionText: o.tensionLbs ? `Main ${o.tensionLbs}${o.tensionCrossLbs ? ` / Cross ${o.tensionCrossLbs}` : ""} lbs` : "tarikan –",

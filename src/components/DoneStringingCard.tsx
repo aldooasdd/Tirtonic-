@@ -9,7 +9,7 @@ export type DoneOrder = {
   id: string;
   resultCode: string;
   branchName: string | null;
-  source: "manual" | "finder" | null;
+  method: { label: string; cls: string } | null;
   dateText: string;
   chosenString: string | null;
   tensionText: string;
@@ -68,8 +68,7 @@ export default function DoneStringingCard({ orders, branches }: { orders: DoneOr
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">Selesai</span>
                         {o.branchName && <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-bold text-primary">{o.branchName}</span>}
-                        {o.source === "manual" ? <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-semibold text-gray-600">Tirtonic Team</span>
-                          : o.source === "finder" ? <span className="rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-semibold text-indigo-700">String Finder</span> : null}
+                        {o.method && <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${o.method.cls}`}>{o.method.label}</span>}
                         <span className="font-mono text-sm font-bold text-primary">{o.resultCode}</span>
                         <span className="text-xs text-gray-400">{o.dateText}</span>
                       </div>
