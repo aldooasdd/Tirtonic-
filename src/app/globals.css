@@ -36,7 +36,7 @@ body {
   backdrop-filter: blur(18px) saturate(170%);
   -webkit-backdrop-filter: blur(18px) saturate(170%);
   border: 1px solid rgba(255, 255, 255, 0.6);
-  box-shadow: 0 10px 30px rgba(17, 24, 39, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.65);
+  box-shadow: 0 28px 60px -24px rgba(17, 24, 39, 0.22), 0 8px 24px -14px rgba(17, 24, 39, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 .glass-btn {
   background: rgba(255, 255, 255, 0.4);
@@ -50,7 +50,7 @@ body {
   backdrop-filter: blur(12px) saturate(170%);
   -webkit-backdrop-filter: blur(12px) saturate(170%);
   border: 1px solid rgba(255, 255, 255, 0.28);
-  box-shadow: 0 8px 22px rgba(20, 107, 82, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  box-shadow: 0 18px 40px -16px rgba(20, 107, 82, 0.5), 0 6px 16px -10px rgba(20, 107, 82, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.35);
   color: #fff;
 }
 .glass-primary:hover { filter: brightness(1.06); }
