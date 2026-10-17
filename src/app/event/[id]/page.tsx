@@ -58,7 +58,7 @@ export default async function EventDetail({ params }: { params: { id: string } }
 
   const Tile = ({ icon, title, sub }: { icon: React.ReactNode; title: string; sub?: string }) => (
     <div className="flex items-center gap-3">
-      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-gray-200 bg-gray-50 text-primary">{icon}</div>
+      <div className="glass-btn flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-primary">{icon}</div>
       <div className="min-w-0">
         <p className="truncate text-sm font-semibold text-gray-900">{title}</p>
         {sub && <p className="truncate text-xs text-gray-400">{sub}</p>}
@@ -67,8 +67,12 @@ export default async function EventDetail({ params }: { params: { id: string } }
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900">
-      <div className="mx-auto max-w-5xl px-5 py-6 sm:px-8 sm:py-8">
+    <div className="relative min-h-screen bg-gradient-to-b from-emerald-50/50 via-gray-50 to-white text-gray-900">
+      <div aria-hidden className="pointer-events-none fixed inset-0 overflow-hidden">
+        <div className="absolute -left-20 top-32 h-96 w-96 rounded-full bg-primary/20 blur-[130px]" />
+        <div className="absolute right-0 top-1/2 h-96 w-96 rounded-full bg-emerald-300/30 blur-[130px]" />
+      </div>
+      <div className="relative mx-auto max-w-5xl px-5 py-6 sm:px-8 sm:py-8">
         <Link href="/event" className="inline-flex items-center gap-1.5 text-sm text-gray-500 transition hover:text-primary">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6" /></svg>
           Semua acara
@@ -100,7 +104,7 @@ export default async function EventDetail({ params }: { params: { id: string } }
                 <a href={mapLink} target="_blank" rel="noreferrer" className="text-xs font-bold text-primary hover:underline">{mapLabel}</a>
               </div>
               <p className="mb-3 text-sm text-gray-600">{e.court}</p>
-              <div className="overflow-hidden rounded-2xl border border-gray-200">
+              <div className="glass-card overflow-hidden rounded-2xl">
                 <iframe
                   title={`Peta ${e.court}`}
                   src={mapEmbed}
@@ -144,7 +148,7 @@ export default async function EventDetail({ params }: { params: { id: string } }
 
             <div className="space-y-3.5">
               <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-xl border border-gray-200 bg-gray-50">
+                <div className="glass-btn flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-xl">
                   <span className="text-[9px] font-bold uppercase leading-none text-primary">{bulan}</span>
                   <span className="text-base font-extrabold leading-none text-gray-900">{tanggal}</span>
                 </div>
@@ -154,7 +158,7 @@ export default async function EventDetail({ params }: { params: { id: string } }
                 </div>
               </div>
               <a href={mapLink} target="_blank" rel="noreferrer" className="group flex items-center gap-3">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-gray-200 bg-gray-50 text-primary">
+                <div className="glass-btn flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-primary">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 21s-7-4.35-7-10a7 7 0 0 1 14 0c0 5.65-7 10-7 10Z" /><circle cx="12" cy="11" r="2.5" /></svg>
                 </div>
                 <div className="min-w-0">
@@ -182,7 +186,7 @@ export default async function EventDetail({ params }: { params: { id: string } }
             </div>
 
             {/* Registrasi */}
-            <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+            <div className="glass-card overflow-hidden rounded-2xl">
               <div className="border-b border-gray-100 bg-gray-50 px-4 py-2.5">
                 <p className="text-sm font-bold text-gray-900">Registrasi</p>
               </div>
@@ -206,7 +210,7 @@ export default async function EventDetail({ params }: { params: { id: string } }
 
             {/* Bagikan undangan ke IG Story */}
             {phase !== "done" && (
-              <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+              <div className="glass-card rounded-2xl p-4">
                 <p className="text-sm font-bold text-gray-900">Ajak teman</p>
                 <p className="mt-0.5 text-xs text-gray-500">Bagikan undangan acara ini ke Instagram Story kamu.</p>
                 <ShareInvite inviteUrl={`/api/invite/${e.id}`} eventPath={`/event/${e.id}`} title={e.campaign.title} />

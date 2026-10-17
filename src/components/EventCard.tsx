@@ -28,7 +28,7 @@ export default function EventCard({ e }: { e: EventCardData }) {
   const shortCourt = words.slice(0, 3).join(" ") + (words.length > 3 ? "…" : "");
 
   return (
-    <div className="group relative flex gap-4 rounded-2xl border border-gray-200 bg-white p-3.5 shadow-sm transition hover:border-primary/40 hover:shadow-md">
+    <div className="group glass-card relative flex gap-4 rounded-2xl p-3.5 transition hover:shadow-md">
       {/* Stretched link: klik area kartu mana pun → detail */}
       <Link href={`/event/${e.id}`} aria-label={e.campaign.title} className="absolute inset-0 z-[1] rounded-2xl" />
 
@@ -70,7 +70,7 @@ export default function EventCard({ e }: { e: EventCardData }) {
         {canJoin && (
           <Link
             href={`/event/${e.id}`}
-            className="relative z-[2] mt-3 inline-flex items-center gap-1.5 rounded-full border border-primary/30 px-3.5 py-1 text-[11px] font-bold text-primary transition hover:bg-primary hover:text-white"
+            className="glass-btn relative z-[2] mt-3 inline-flex items-center gap-1.5 rounded-full px-3.5 py-1 text-[11px] font-bold text-primary transition hover:text-primaryDark"
           >
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M19 8v6M22 11h-6" /></svg>
             Join

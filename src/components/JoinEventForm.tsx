@@ -6,7 +6,7 @@ import { joinEvent, JoinState } from "@/app/event/actions";
 function Btn() {
   const { pending } = useFormStatus();
   return (
-    <button type="submit" disabled={pending} className="btn-green w-full py-3 disabled:opacity-60">
+    <button type="submit" disabled={pending} className="glass-primary inline-flex w-full items-center justify-center rounded-full py-3 text-sm font-semibold transition disabled:opacity-60">
       {pending ? "Mengirim…" : "Join sesi ini"}
     </button>
   );
