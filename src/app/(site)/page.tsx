@@ -67,8 +67,14 @@ type Room = { name: string; items: RoomItem[] };
 function StringingRoom({ rooms }: { rooms: Room[] }) {
   if (rooms.length === 0) return null;
   return (
-    <section className="mx-auto max-w-site px-4 py-2">
+    <section className="relative mx-auto max-w-site overflow-hidden px-4 py-2">
       <AutoRefresh seconds={60} />
+      {/* Blob warna di belakang — supaya efek liquid glass kebaca */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+        <div className="absolute -left-10 top-10 h-72 w-72 rounded-full bg-primary/20 blur-[110px]" />
+        <div className="absolute right-0 top-1/2 h-72 w-72 rounded-full bg-emerald-300/30 blur-[110px]" />
+        <div className="absolute bottom-0 left-1/2 h-64 w-64 rounded-full bg-teal-200/25 blur-[100px]" />
+      </div>
       <div className="mb-1.5 flex items-center gap-3">
         <h2 className="flex items-center gap-2 text-xl font-extrabold text-gray-900">
           Tirtonic Stringing Room {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -95,7 +101,7 @@ function StringingRoom({ rooms }: { rooms: Room[] }) {
               </div>
             ));
           return (
-            <div key={r.name} className="flex flex-col rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+            <div key={r.name} className="glass-card flex flex-col rounded-2xl p-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <h3 className="text-sm font-extrabold text-gray-900">{r.name}</h3>
                 <span className="flex items-center gap-1.5">
