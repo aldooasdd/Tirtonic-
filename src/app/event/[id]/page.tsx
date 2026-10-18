@@ -26,7 +26,10 @@ async function getEvent(id: string) {
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
   const e = await getEvent(params.id);
   if (!e) return {};
-  return { title: `Demo ${e.campaign.brand} — ${e.community.name} | Tirtonic`, description: e.campaign.description.slice(0, 155) };
+  const title = `Demo ${e.campaign.brand} — ${e.community.name} | Tirtonic`;
+  const description = e.campaign.description.slice(0, 155);
+  // Preview link (WA/IG) pakai gambar undangan acara.
+  return { title, description, openGraph: { title, description, images: [`/api/invite/${params.id}`] } };
 }
 
 export default async function EventDetail({ params }: { params: { id: string } }) {
