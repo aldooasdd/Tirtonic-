@@ -45,23 +45,21 @@ export default async function ArticlesPage({ searchParams }: { searchParams: { p
                   <Link
                     key={a.id}
                     href={articleHref(a)}
-                    className="group block break-inside-avoid"
+                    className="glass-card group block break-inside-avoid overflow-hidden rounded-2xl"
                   >
-                    <div className="overflow-hidden rounded-lg bg-gray-100">
+                    <div className="overflow-hidden bg-gray-100">
                       {a.gambar ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={a.gambar} alt={a.judul} className="w-full object-cover" />
+                        <img src={a.gambar} alt={a.judul} className="w-full object-cover transition duration-300 group-hover:scale-105" />
                       ) : (
                         <div className="flex aspect-[4/3] w-full items-center justify-center text-gray-300">No image</div>
                       )}
                     </div>
-                    <div className="mt-3 flex items-center gap-2 text-xs text-gray-500">
-                      {a.tag && (
-                        <span className="rounded bg-primary px-2 py-0.5 font-semibold text-white">{a.tag.split(",")[0]}</span>
-                      )}
-                      <span>{fmtTanggal(a.tanggal)}</span>
+                    <div className="p-4">
+                      {a.tag && <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">{a.tag.split(",").map((t) => t.trim()).join("  ")}</p>}
+                      <h3 className="mt-2 font-bold leading-snug text-gray-900 group-hover:text-primary">{a.judul}</h3>
+                      <p className="mt-3 text-xs text-gray-500">{fmtTanggal(a.tanggal)}</p>
                     </div>
-                    <h3 className="mt-2 font-bold text-gray-900 group-hover:text-primary">{a.judul}</h3>
                   </Link>
                 ))}
               </div>

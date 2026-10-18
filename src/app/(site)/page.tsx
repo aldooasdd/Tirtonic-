@@ -259,22 +259,20 @@ function NewArticles({ articles }: { articles: ArticleCardData[] }) {
       ) : (
         <div className="snap-x-carousel flex gap-4 overflow-x-auto pb-2">
           {articles.map((a) => (
-            <Link key={a.id} href={articleHref(a)} className="snap-item group block w-[240px] shrink-0 sm:w-[260px]">
-              <div className="aspect-[4/3] overflow-hidden rounded-lg bg-gray-100">
+            <Link key={a.id} href={articleHref(a)} className="snap-item glass-card group flex w-[240px] shrink-0 flex-col overflow-hidden rounded-2xl sm:w-[260px]">
+              <div className="aspect-[16/10] overflow-hidden bg-gray-100">
                 {a.gambar ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={a.gambar} alt={a.judul} className="h-full w-full object-cover" />
+                  <img src={a.gambar} alt={a.judul} className="h-full w-full object-cover transition duration-300 group-hover:scale-105" />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center text-gray-300">No image</div>
                 )}
               </div>
-              <div className="mt-3 flex items-center gap-2 text-xs text-gray-500">
-                {a.tag && (
-                  <span className="rounded bg-primary px-2 py-0.5 font-semibold text-white">{a.tag.split(",")[0]}</span>
-                )}
-                <span>{fmtTanggal(a.tanggal)}</span>
+              <div className="flex flex-1 flex-col p-4">
+                {a.tag && <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">{a.tag.split(",").map((t) => t.trim()).join("  ")}</p>}
+                <h3 className="mt-2 line-clamp-2 font-bold leading-snug text-gray-900 group-hover:text-primary">{a.judul}</h3>
+                <p className="mt-auto pt-3 text-xs text-gray-500">{fmtTanggal(a.tanggal)}</p>
               </div>
-              <h3 className="mt-2 line-clamp-3 font-bold text-gray-900 group-hover:text-primary">{a.judul}</h3>
             </Link>
           ))}
         </div>
