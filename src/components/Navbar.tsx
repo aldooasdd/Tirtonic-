@@ -104,7 +104,7 @@ export default function Navbar() {
 
         {/* floating green pill — big (max-w-md), centered on phone / flush right on desktop */}
         <div className="relative w-full max-w-md">
-          <div className="flex w-full items-center gap-3 rounded-xl bg-primary px-5 py-3.5 text-base font-bold text-white shadow-lg">
+          <div className="glass-primary flex w-full items-center gap-3 rounded-xl px-5 py-3.5 text-base font-bold text-white">
             <button onClick={() => setOpen((v) => !v)} className="flex items-center gap-2">
               Quick Access
               <span className={`transition ${open ? "rotate-180" : ""}`}>▾</span>
