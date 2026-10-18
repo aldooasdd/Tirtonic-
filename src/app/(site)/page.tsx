@@ -80,7 +80,7 @@ function StringingRoom({ rooms }: { rooms: Room[] }) {
           const wait = r.items.filter((i) => i.status === "antri");
           const group = (items: RoomItem[], dot: string, pulse: boolean) =>
             items.map((it) => (
-              <div key={it.code} className="flex items-center gap-3 rounded-xl bg-gray-50 px-3 py-2">
+              <div key={it.code} className="flex items-center gap-3 rounded-xl bg-white/70 px-3 py-2">
                 {pulse ? (
                   <span className={`flex h-2 w-2 shrink-0 rounded-full ${dot}`}>
                     <span className={`h-full w-full animate-ping rounded-full ${dot}`} />
@@ -93,7 +93,7 @@ function StringingRoom({ rooms }: { rooms: Room[] }) {
               </div>
             ));
           return (
-            <div key={r.name} className="flex flex-col rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+            <div key={r.name} className="glass-green flex flex-col rounded-2xl p-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <h3 className="text-sm font-extrabold text-gray-900">{r.name}</h3>
                 <span className="flex items-center gap-1.5">
