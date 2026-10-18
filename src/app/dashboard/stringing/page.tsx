@@ -115,10 +115,11 @@ export default async function StringingQueuePage() {
   ]);
 
   const active = orders.filter((o) => o.status === "antri" || o.status === "dikerjakan");
-  const done = orders.filter((o) => o.status === "selesai");
+  const done = orders.filter((o) => o.status === "selesai" || o.status === "batal"); // batal ikut card Selesai
   // Siapkan data siap-render buat card "Selesai" (komponen client: collapse + filter cabang).
   const doneDTO: DoneOrder[] = done.map((o) => ({
     id: o.id,
+    batal: o.status === "batal",
     resultCode: o.resultCode,
     branchName: o.branch?.name ?? null,
     method: o.result ? methodOf(o.result.condition, o.chosenString) : null,

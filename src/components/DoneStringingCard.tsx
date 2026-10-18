@@ -7,6 +7,7 @@ import DeleteStringingButton from "@/components/DeleteStringingButton";
 
 export type DoneOrder = {
   id: string;
+  batal: boolean;
   resultCode: string;
   branchName: string | null;
   method: { label: string; cls: string } | null;
@@ -27,6 +28,7 @@ export default function DoneStringingCard({ orders, branches }: { orders: DoneOr
   const [open, setOpen] = useState(false);
   const [branch, setBranch] = useState<string | null>(null);
   const list = branch ? orders.filter((o) => o.branchName === branch) : orders;
+  const nBatal = orders.filter((o) => o.batal).length;
 
   return (
     <section className="rounded-2xl border border-gray-200 bg-gray-50/70 p-4">
@@ -35,7 +37,8 @@ export default function DoneStringingCard({ orders, branches }: { orders: DoneOr
           Selesai <span className="font-normal text-gray-400">— semua cabang</span>
         </h2>
         <span className="flex items-center gap-2">
-          <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-700">{orders.length} selesai</span>
+          <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-700">{orders.length - nBatal} selesai</span>
+          {nBatal > 0 && <span className="rounded-full bg-red-100 px-2.5 py-1 text-xs font-bold text-red-600">{nBatal} batal</span>}
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={`text-gray-400 transition ${open ? "rotate-180" : ""}`}><path d="m6 9 6 6 6-6" /></svg>
         </span>
       </button>
@@ -66,7 +69,11 @@ export default function DoneStringingCard({ orders, branches }: { orders: DoneOr
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">Selesai</span>
+                        {o.batal ? (
+                          <span className="rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-semibold text-red-600">Batal</span>
+                        ) : (
+                          <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">Selesai</span>
+                        )}
                         {o.branchName && <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-bold text-primary">{o.branchName}</span>}
                         {o.method && <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${o.method.cls}`}>{o.method.label}</span>}
                         <span className="font-mono text-sm font-bold text-primary">{o.resultCode}</span>
