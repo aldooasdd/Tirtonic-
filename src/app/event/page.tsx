@@ -176,8 +176,8 @@ export default async function EventLanding() {
         {soonCampaigns.length > 0 && (
           <section className="mb-12">
             <div className="mb-4 flex items-center gap-2.5">
-              <h2 className="text-lg font-bold text-gray-900">Coming soon</h2>
-              <span className="text-sm text-gray-400">Lagi kami siapkan bareng brand</span>
+              <h2 className="text-lg font-bold text-gray-900">Coming Soon</h2>
+              <span className="text-sm text-gray-400">Program demo berikutnya yang sedang kami persiapkan</span>
             </div>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {soonCampaigns.map((c) => (
