@@ -94,10 +94,10 @@ export default async function EventLanding() {
               <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Demo produk × komunitas tenis
             </span>
             <h1 className="mt-4 text-3xl font-extrabold leading-[1.1] tracking-tight text-gray-900 sm:text-4xl lg:text-5xl">
-              Coba produk brand terbaru, langsung di lapangan.
+              Rasakan Performa Terbaru, Langsung di Lapangan.
             </h1>
             <p className="mt-3 text-base text-gray-500 sm:text-lg">
-              Demo raket &amp; perlengkapan tenis dari brand ternama bareng komunitasmu se-wilayah.
+              Program demo eksklusif perlengkapan tenis dari brand-brand ternama dunia, dihadirkan Tirtonic khusus untuk komunitas tenis di kota Anda.
             </p>
           </div>
         </div>
