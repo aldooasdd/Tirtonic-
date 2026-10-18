@@ -5,6 +5,7 @@ import { prisma, safeQuery } from "@/lib/prisma";
 import { createCampaign, updateCampaign, toggleCampaign, approveCampaign, unapproveCampaign, deleteCampaign, decideClaim, deleteClaim, decideCommunity, deleteCommunity } from "../actions";
 import { phaseOf, PHASE_META } from "@/lib/event-phase";
 import { displayPhone } from "@/lib/string-finder/phone";
+import SubmitButton from "@/components/SubmitButton";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Event Demo — Tirtonic Admin" };
@@ -76,10 +77,10 @@ export default async function AdminEvent() {
           {c.status === "pending" && (
             <>
               <form action={decideClaim.bind(null, c.id, "accepted")}>
-                <button className="rounded-full bg-primary px-4 py-1.5 text-xs font-bold text-white hover:bg-primaryDark">Terima</button>
+                <SubmitButton className="rounded-full bg-primary px-4 py-1.5 text-xs font-bold text-white hover:bg-primaryDark">Terima</SubmitButton>
               </form>
               <form action={decideClaim.bind(null, c.id, "rejected")}>
-                <button className="rounded-full border px-4 py-1.5 text-xs font-semibold text-gray-600 hover:border-red-400 hover:text-red-600">Tolak</button>
+                <SubmitButton className="rounded-full border px-4 py-1.5 text-xs font-semibold text-gray-600 hover:border-red-400 hover:text-red-600">Tolak</SubmitButton>
               </form>
             </>
           )}
@@ -131,10 +132,10 @@ export default async function AdminEvent() {
                     </p>
                   </div>
                   <form action={decideCommunity.bind(null, k.id, "accepted")}>
-                    <button className="rounded-full bg-primary px-4 py-1.5 text-xs font-bold text-white hover:bg-primaryDark">Setujui</button>
+                    <SubmitButton className="rounded-full bg-primary px-4 py-1.5 text-xs font-bold text-white hover:bg-primaryDark">Setujui</SubmitButton>
                   </form>
                   <form action={decideCommunity.bind(null, k.id, "rejected")}>
-                    <button className="rounded-full border px-4 py-1.5 text-xs font-semibold text-gray-600 hover:border-red-400 hover:text-red-600">Tolak</button>
+                    <SubmitButton className="rounded-full border px-4 py-1.5 text-xs font-semibold text-gray-600 hover:border-red-400 hover:text-red-600">Tolak</SubmitButton>
                   </form>
                 </li>
               ))}

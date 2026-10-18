@@ -14,11 +14,13 @@ export async function startStringing(id: string, formData: FormData) {
   requireAuth();
   const stringerName = String(formData.get("stringer") ?? "").trim();
   if (!stringerName) return; // nama stringer wajib (input juga sudah `required` di UI)
-  const order = await prisma.sfOrder.update({
-    where: { id },
+  // Hanya dari "antri" — klik dobel / request kedua tidak kirim WA lagi.
+  const { count } = await prisma.sfOrder.updateMany({
+    where: { id, status: "antri" },
     data: { status: "dikerjakan", startedAt: new Date(), stringerName },
-    include: { branch: true },
   });
+  if (!count) return;
+  const order = await prisma.sfOrder.findUniqueOrThrow({ where: { id }, include: { branch: true } });
   // WA "senar mulai dikerjakan" + nama stringer.
   await sendWa(
     order.phone,
@@ -36,11 +38,13 @@ ${order.branch.name} 🎾`,
 
 export async function finishStringing(id: string) {
   requireAuth();
-  const order = await prisma.sfOrder.update({
-    where: { id },
+  // Hanya dari "dikerjakan" — klik dobel tidak kirim WA lagi.
+  const { count } = await prisma.sfOrder.updateMany({
+    where: { id, status: "dikerjakan" },
     data: { status: "selesai", finishedAt: new Date() },
-    include: { branch: true },
   });
+  if (!count) return;
+  const order = await prisma.sfOrder.findUniqueOrThrow({ where: { id }, include: { branch: true } });
   // WA "senar siap diambil" ke customer. Kegagalan WA tak membatalkan penyelesaian.
   const ok = await notify({
     event: "selesai",

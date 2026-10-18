@@ -9,6 +9,7 @@ import ClaimForm from "@/components/ClaimForm";
 import PickupButton from "@/components/PickupButton";
 import ShareInvite from "@/components/ShareInvite";
 import { pickupToken, returnToken } from "@/lib/pickup-token";
+import SubmitButton from "@/components/SubmitButton";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Komunitas — Tirtonic", robots: { index: false } };
@@ -261,10 +262,10 @@ export default async function KomunitasHome() {
                             </div>
                             <div className="flex shrink-0 gap-1.5">
                               <form action={decideParticipant.bind(null, p.id, "accepted")}>
-                                <button className="rounded-full bg-primary px-3 py-1 text-xs font-bold text-white hover:bg-primaryDark">Terima</button>
+                                <SubmitButton className="rounded-full bg-primary px-3 py-1 text-xs font-bold text-white hover:bg-primaryDark">Terima</SubmitButton>
                               </form>
                               <form action={decideParticipant.bind(null, p.id, "rejected")}>
-                                <button className="rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-500 hover:border-red-400 hover:text-red-600">Tolak</button>
+                                <SubmitButton className="rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-500 hover:border-red-400 hover:text-red-600">Tolak</SubmitButton>
                               </form>
                             </div>
                           </div>

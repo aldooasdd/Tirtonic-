@@ -9,6 +9,7 @@ import RacketQrPrint from "@/components/RacketQrPrint";
 import DeleteStringingButton from "@/components/DeleteStringingButton";
 import CancelStringingButton from "@/components/CancelStringingButton";
 import DoneStringingCard, { type DoneOrder } from "@/components/DoneStringingCard";
+import SubmitButton from "@/components/SubmitButton";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Antrian Stringing — Tirtonic" };
@@ -87,12 +88,12 @@ function OrderCard({ o }: { o: OrderRow }) {
                 <option value="" disabled>Pilih stringer</option>
                 {STRINGERS.map((s) => <option key={s} value={s}>{s}</option>)}
               </select>
-              <button className="rounded-full bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90">Mulai kerjakan</button>
+              <SubmitButton className="rounded-full bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90">Mulai kerjakan</SubmitButton>
             </form>
           )}
           {o.status === "dikerjakan" && (
             <form action={finishStringing.bind(null, o.id)}>
-              <button className="rounded-full bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90">Tandai selesai → WA</button>
+              <SubmitButton className="rounded-full bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90">Tandai selesai → WA</SubmitButton>
             </form>
           )}
           <Link href={`/dashboard/stringing/${o.resultCode}/edit`}

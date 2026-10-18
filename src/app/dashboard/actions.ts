@@ -598,13 +598,15 @@ export async function decideCommunity(id: string, decision: "accepted" | "reject
 
   if (decision === "accepted") {
     const password = `${c.instagram}${Math.floor(100 + Math.random() * 900)}`;
-    await prisma.community.update({ where: { id }, data: { status: "accepted", passwordHash: hashPassword(password) } });
+    const { count } = await prisma.community.updateMany({ where: { id, status: "pending" }, data: { status: "accepted", passwordHash: hashPassword(password) } });
+    if (!count) return; // sudah diputuskan request lain (klik dobel)
     await sendWa(
       c.waPhone,
       `✅ *Akun komunitas ${c.name} disetujui!*\n\n*Akses login:*\nPassword: ${password}\n\nLogin di tirtonic.com/komunitas untuk klaim demo produk brand. Cukup pakai password ini. 🎾`,
     );
   } else {
-    await prisma.community.update({ where: { id }, data: { status: "rejected" } });
+    const { count } = await prisma.community.updateMany({ where: { id, status: "pending" }, data: { status: "rejected" } });
+    if (!count) return;
     await sendWa(c.waPhone, `Mohon maaf, pendaftaran komunitas *${c.name}* belum bisa kami setujui saat ini. 🙏`);
   }
   revalidatePath("/dashboard/event");
@@ -652,9 +654,11 @@ export async function deleteCommunity(id: string) {
 /** ACC / tolak klaim demo komunitas → kirim WA ke penanggung jawab acara. */
 export async function decideClaim(id: string, decision: "accepted" | "rejected") {
   requireSection("event");
-  const claim = await prisma.demoClaim.update({
+  // Status sudah sama → klik dobel, jangan kirim WA lagi.
+  const { count } = await prisma.demoClaim.updateMany({ where: { id, status: { not: decision } }, data: { status: decision } });
+  if (!count) return;
+  const claim = await prisma.demoClaim.findUniqueOrThrow({
     where: { id },
-    data: { status: decision },
     include: { campaign: { select: { brand: true, title: true } }, community: { select: { name: true } } },
   });
   const tgl = claim.demoDate.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });

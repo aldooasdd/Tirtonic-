@@ -27,6 +27,10 @@ export async function POST(req: NextRequest) {
   const result = await prisma.sfResult.findUnique({ where: { code }, include: { branch: true } });
   if (!result) return NextResponse.json({ error: "Resep tidak ditemukan." }, { status: 404 });
 
+  // Kode resep sudah jadi pesanan → request dobel, jangan buat pesanan/WA lagi.
+  const existing = await prisma.sfOrder.findFirst({ where: { resultCode: code, status: { not: "batal" } }, select: { id: true } });
+  if (existing) return NextResponse.json({ ok: true, orderId: existing.id, notified: false });
+
   const branch = result.branch ?? (await prisma.sfBranch.findFirst({ where: { slug: "tirtonic", isActive: true } }));
   if (!branch) return NextResponse.json({ error: "Cabang tidak tersedia." }, { status: 500 });
 

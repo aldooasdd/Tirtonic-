@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { RACKET_TYPES, racketLabel, type RacketType } from "@/lib/string-finder/racket";
 
 export type Question = {
@@ -54,6 +54,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
   const [tensionCross, setTensionCross] = useState(""); // Cross (dalam satuan `unit`)
   const [unit, setUnit] = useState<"lbs" | "kg">("lbs"); // satuan tampilan tarikan; disimpan selalu lbs
   const [submitting, setSubmitting] = useState(false);
+  const submitLock = useRef(false);
   const [history, setHistory] = useState<HistItem[] | null>(null);
   // "Pilih senar sendiri": katalog semua senar + senar yang dipilih manual (di luar 3 rekomendasi).
   const [manualPick, setManualPick] = useState<SenarCard | null>(null);
@@ -255,7 +256,8 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
   }
 
   async function submitOrder() {
-    if (!rec || !selected) return;
+    if (!rec || !selected || submitLock.current) return;
+    submitLock.current = true; // ref: kunci langsung, state baru kebaca setelah render
     setSubmitting(true);
     setErr("");
     try {
@@ -270,6 +272,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Terjadi kesalahan.");
     } finally {
+      submitLock.current = false;
       setSubmitting(false);
     }
   }
