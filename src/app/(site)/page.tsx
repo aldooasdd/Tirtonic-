@@ -257,9 +257,9 @@ function NewArticles({ articles }: { articles: ArticleCardData[] }) {
       {articles.length === 0 ? (
         <p className="text-gray-500">Belum ada artikel.</p>
       ) : (
-        <div className="snap-x-carousel flex gap-4 overflow-x-auto pb-2">
+        <div className="snap-x-carousel -mx-2 -mb-4 flex gap-4 overflow-x-auto px-2 pb-6 pt-1">
           {articles.map((a) => (
-            <Link key={a.id} href={articleHref(a)} className="snap-item glass-card group flex w-[240px] shrink-0 flex-col overflow-hidden rounded-2xl sm:w-[260px]">
+            <Link key={a.id} href={articleHref(a)} className="snap-item glass-card group flex !shadow-[0_8px_20px_-12px_rgba(17,24,39,0.25)] w-[240px] shrink-0 flex-col overflow-hidden rounded-2xl sm:w-[260px]">
               <div className="aspect-[16/10] overflow-hidden bg-gray-100">
                 {a.gambar ? (
                   // eslint-disable-next-line @next/next/no-img-element
