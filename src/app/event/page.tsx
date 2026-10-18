@@ -32,6 +32,8 @@ export default async function EventLanding() {
   const events: EventCardData[] = claims.map((c) => ({
     id: c.id,
     court: c.court,
+    lat: c.lat,
+    lng: c.lng,
     quotaType: c.quotaType,
     quota: c.quota,
     demoDate: c.demoDate,

@@ -5,6 +5,8 @@ import ShareLinkButton from "@/components/ShareLinkButton";
 export type EventCardData = {
   id: string;
   court: string;
+  lat: number | null;
+  lng: number | null;
   quotaType: string;
   quota: number;
   demoDate: Date;
@@ -27,6 +29,8 @@ export default function EventCard({ e }: { e: EventCardData }) {
   // Alamat lapangan: tampilkan 3 kata depan aja (detailnya di halaman event).
   const words = e.court.split(/\s+/).filter(Boolean);
   const shortCourt = words.slice(0, 3).join(" ") + (words.length > 3 ? "…" : "");
+  // Google Maps: koordinat kalau ada (dari saran OSM), selain itu cari nama lapangan.
+  const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(e.lat != null && e.lng != null ? `${e.lat},${e.lng}` : e.court)}`;
 
   return (
     <div className="group glass-primary relative flex gap-4 rounded-2xl p-3.5 transition">
@@ -52,7 +56,10 @@ export default function EventCard({ e }: { e: EventCardData }) {
 
         <p className="mt-1 flex items-center gap-1.5 text-sm text-white/75">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-white/50"><path d="M12 21s-7-4.35-7-10a7 7 0 0 1 14 0c0 5.65-7 10-7 10Z" /><circle cx="12" cy="11" r="2.5" /></svg>
-          <span>{shortCourt}</span>
+          <span className="truncate">{shortCourt}</span>
+          <a href={mapUrl} target="_blank" rel="noreferrer" className="relative z-[2] shrink-0 font-semibold text-white underline-offset-2 hover:underline">
+            (Lihat Peta)
+          </a>
         </p>
 
         <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
