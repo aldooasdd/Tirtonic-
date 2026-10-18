@@ -99,7 +99,7 @@ function StringingRoom({ rooms }: { rooms: Room[] }) {
               </div>
             ));
           return (
-            <div key={r.name} className="glass-card flex flex-col rounded-2xl p-4">
+            <div key={r.name} className="glass-card flex flex-col rounded-2xl p-4 !shadow-none">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <h3 className="text-sm font-extrabold text-gray-900">{r.name}</h3>
                 <span className="flex items-center gap-1.5">
