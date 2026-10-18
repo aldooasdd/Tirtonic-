@@ -111,7 +111,7 @@ export default async function EventLanding() {
               <span className="h-full w-full animate-ping rounded-full bg-primary" />
             </span>
             <h2 className="text-lg font-bold text-gray-900">Now</h2>
-            <span className="text-sm text-gray-400">Siap diklaim &amp; sedang berjalan</span>
+            <span className="text-sm text-gray-400">Tersedia dan sedang berlangsung</span>
           </div>
 
           {nowCampaigns.length > 0 && (
