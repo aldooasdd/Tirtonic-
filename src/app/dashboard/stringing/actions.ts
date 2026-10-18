@@ -5,17 +5,10 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireSection } from "@/lib/auth";
 import { notify } from "@/lib/string-finder/notify";
+import { sendWa, salam, stringingRoomLink } from "@/lib/wa";
 import { normalizePhone } from "@/lib/string-finder/phone";
 
 const requireAuth = () => requireSection("stringing");
-
-// Ambil hanya merek + headsize dari field racket (buang jenis Power/Spin/Control).
-function racketMerkHead(racket: string | null): string | null {
-  if (!racket) return null;
-  const isJenis = (s: string) => /^(Power|Spin|Control)( \+ (Power|Spin|Control))*$/.test(s);
-  const kept = racket.split(" · ").map((s) => s.trim()).filter((s) => s && !isJenis(s));
-  return kept.join(" · ") || null;
-}
 
 export async function startStringing(id: string, formData: FormData) {
   requireAuth();
@@ -26,16 +19,18 @@ export async function startStringing(id: string, formData: FormData) {
     data: { status: "dikerjakan", startedAt: new Date(), stringerName },
     include: { branch: true },
   });
-  // WA "senar mulai dikerjakan" + nama stringer. Tanpa estimasi & resep — cuma merek + headsize.
-  await notify({
-    event: "dikerjakan",
-    phone: order.phone,
-    code: order.resultCode,
-    branch: order.branch.name,
-    customerName: order.customerName,
-    racket: racketMerkHead(order.racket),
-    stringerName,
-  });
+  // WA "senar mulai dikerjakan" + nama stringer.
+  await sendWa(
+    order.phone,
+    `Selamat ${salam()}, kak ${order.customerName ?? ""}`.trimEnd() + `
+
+Raket Anda dengan kode pesanan *${order.resultCode}* saat ini sedang dikerjakan oleh stringer kami, ${stringerName}.
+
+Progres dapat dipantau di ${stringingRoomLink()}. Kami akan segera mengabari Anda setelah raket siap diambil.
+
+Salam hangat,
+${order.branch.name} 🎾`,
+  );
   revalidatePath("/dashboard/stringing");
 }
 
