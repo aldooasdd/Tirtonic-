@@ -66,7 +66,7 @@ type Room = { name: string; items: RoomItem[] };
 function StringingRoom({ rooms }: { rooms: Room[] }) {
   if (rooms.length === 0) return null;
   return (
-    <section className="mx-auto max-w-site px-4 lg:px-28 py-2">
+    <section id="stringing-room" className="scroll-mt-24 mx-auto max-w-site px-4 lg:px-28 py-2">
       <div className="mb-1.5 flex items-center gap-3">
         <h2 className="flex items-center gap-2 text-xl font-extrabold text-gray-900">
           Tirtonic Stringing Room {/* eslint-disable-next-line @next/next/no-img-element */}

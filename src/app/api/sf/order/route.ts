@@ -1,10 +1,20 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { normalizePhone } from "@/lib/string-finder/phone";
-import { notify } from "@/lib/string-finder/notify";
+import { sendWa } from "@/lib/wa";
 import type { PickDTO } from "@/lib/string-finder/dto";
 
 export const dynamic = "force-dynamic";
+
+// Sapaan sesuai jam terima order (WIB): pagi ≤12:00, siang ≤15:00, sore ≤18:00, selebihnya malam.
+function salam(now = new Date()): string {
+  const [h, m] = now.toLocaleTimeString("en-GB", { timeZone: "Asia/Jakarta", hour12: false }).split(":").map(Number);
+  const t = h * 60 + m;
+  if (t >= 5 * 60 && t <= 12 * 60) return "pagi";
+  if (t > 12 * 60 && t <= 15 * 60) return "siang";
+  if (t > 15 * 60 && t <= 18 * 60) return "sore";
+  return "malam";
+}
 
 /** Customer pilih rekomendasi + isi WhatsApp → buat antrian stringing + WA "pesanan masuk". */
 export async function POST(req: NextRequest) {
@@ -64,19 +74,28 @@ export async function POST(req: NextRequest) {
   });
   await prisma.sfResult.update({ where: { code }, data: { chosenRank: chosenRank ?? 0 } });
 
-  const ok = await notify({
-    event: "pesanan_masuk",
+  const base = (process.env.NEXT_PUBLIC_SITE_URL || "https://tirtonic.com").replace(/^https?:\/\//, "");
+  const tarikan = tensionLbs
+    ? `Main ${tensionLbs} lbs / Cross ${tensionCrossLbs ?? tensionLbs} lbs`
+    : "-";
+  const ok = await sendWa(
     phone,
-    code,
-    branch: branch.name,
-    chosenString,
-    etaMinutes: branch.etaMinutes,
-    customerName,
-    tensionLbs,
-    tensionCrossLbs,
-    racket,
-    price,
-  });
+    `Selamat ${salam()}, kak ${customerName ?? ""}`.trimEnd() + `
+
+Terima kasih telah mempercayakan raket Anda kepada Tirtonic. Pesanan stringing Anda telah kami terima dengan detail berikut:
+
+•    Senar: ${chosenString ?? "-"}
+•    Tarikan: ${tarikan}
+•    Kode Pesanan: *${code}*
+
+Status pengerjaan dapat Anda pantau secara langsung melalui Tirtonic Stringing Room:
+${base}/#stringing-room
+
+Mohon simpan kode pesanan untuk pengambilan raket. Kami akan mengabari Anda di setiap tahap pengerjaan.
+
+Salam hangat,
+${branch.name} 🎾`,
+  );
   if (ok) await prisma.sfOrder.update({ where: { id: order.id }, data: { notifiedInAt: new Date() } });
 
   return NextResponse.json({ ok: true, orderId: order.id, notified: ok });
