@@ -3,6 +3,7 @@ import { notFound, permanentRedirect } from "next/navigation";
 import { prisma, safeQuery } from "@/lib/prisma";
 import Link from "next/link";
 import Footer from "@/components/Footer";
+import { MiniMarkdown } from "@/lib/mini-markdown";
 import { articleHref, articleIdFromParam } from "@/lib/article-slug";
 
 // ISR: artikel di-cache 5 menit → hemat egress DB.
@@ -63,7 +64,7 @@ export default async function ArticleDetail({ params }: { params: { id: string }
             // eslint-disable-next-line @next/next/no-img-element
             <img src={a.gambar} alt={a.judul} className="mt-6 w-full rounded-lg object-cover" />
           )}
-          <div className="prose mt-6 max-w-none whitespace-pre-line text-gray-800">{a.konten}</div>
+          <div className="mt-2 text-gray-800"><MiniMarkdown text={a.konten} /></div>
         </article>
 
         {/* Artikel populer — desktop saja */}
