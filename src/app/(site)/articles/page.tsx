@@ -56,7 +56,7 @@ export default async function ArticlesPage({ searchParams }: { searchParams: { p
                       )}
                     </div>
                     <div className="p-4">
-                      {a.tag && <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">{a.tag.split(",").map((t) => t.trim()).join("  ")}</p>}
+                      {a.tag && <span className="w-fit rounded bg-primary px-2 py-0.5 text-xs font-semibold text-white">{a.tag.split(",")[0]}</span>}
                       <h3 className="mt-2 font-bold leading-snug text-gray-900 group-hover:text-primary">{a.judul}</h3>
                       <p className="mt-3 text-xs text-gray-500">{fmtTanggal(a.tanggal)}</p>
                     </div>
