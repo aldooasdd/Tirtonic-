@@ -40,7 +40,7 @@ export default function ContactPage() {
         <div className="space-y-4">
           {ROWS.map((r) => {
             const inner = (
-              <div className="flex items-center justify-between rounded-full bg-primary px-6 py-4 text-white transition hover:bg-primaryDark">
+              <div className="glass-primary flex items-center justify-between rounded-full px-6 py-4 text-white transition">
                 <span className="flex items-center gap-3 font-semibold">
                   <span className="shrink-0">{ICONS[r.icon]}</span>
                   {r.label}
