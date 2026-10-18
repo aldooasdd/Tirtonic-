@@ -29,7 +29,7 @@ const ROWS: Row[] = [
   { icon: "building", label: "Tirtonic Headquarter", value: "Yogyakarta" },
   { icon: "building", label: "Tirtonic Heritage", value: "Solo" },
   { icon: "building", label: "Tirtonic Capital", value: "Semarang", href: "https://www.google.com/maps/place/Tirtonic+Tennis+Store+Semarang/@-6.9864049,110.418176,17z/data=!3m1!4b1!4m6!3m5!1s0x2e708b002fa744fd:0xf6db2840c9057370!8m2!3d-6.9864102!4d110.4207509!16s%2Fg%2F11ythgnzk6" },
-  { icon: "headphones", label: "Customer Care", value: "085163215511", href: "https://wa.me/6285163215511" },
+  { icon: "headphones", label: "Customer Care", value: "085111455113", href: "https://wa.me/6285111455113" },
 ];
 
 export default function ContactPage() {
