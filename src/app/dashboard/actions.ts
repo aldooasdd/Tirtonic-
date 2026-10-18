@@ -11,6 +11,7 @@ import { fetchTokopedia } from "@/lib/tokopedia";
 import { markOrderPaid, markOrderShipped, cancelOrder } from "@/lib/orders";
 import { slugify } from "@/lib/article-slug";
 import { sendWa } from "@/lib/wa";
+import { createCommunitySession } from "@/lib/community-auth";
 
 /** Slug unik untuk artikel: dari judul, tambah -2/-3 kalau bentrok. */
 async function uniqueArticleSlug(judul: string, excludeId?: string): Promise<string> {
@@ -641,6 +642,15 @@ export async function deleteClaim(id: string) {
   revalidatePath("/dashboard/event");
   revalidatePath("/event");
   revalidatePath("/komunitas");
+}
+
+/** Admin toko masuk sebagai komunitas (bantu klaim demo dll). Cuma akun yang sudah di-ACC. */
+export async function loginAsCommunity(id: string) {
+  requireSection("event");
+  const c = await prisma.community.findUnique({ where: { id }, select: { status: true } });
+  if (c?.status !== "accepted") return;
+  createCommunitySession(id);
+  redirect("/komunitas");
 }
 
 /** Hapus akun komunitas (cascade: klaim demo & peserta ikut terhapus). */

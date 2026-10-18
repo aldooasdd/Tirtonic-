@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { isAuthed, can } from "@/lib/auth";
 import { prisma, safeQuery } from "@/lib/prisma";
-import { createCampaign, updateCampaign, toggleCampaign, approveCampaign, unapproveCampaign, deleteCampaign, decideClaim, deleteClaim, decideCommunity, deleteCommunity } from "../actions";
+import { createCampaign, updateCampaign, toggleCampaign, approveCampaign, unapproveCampaign, deleteCampaign, decideClaim, deleteClaim, decideCommunity, deleteCommunity, loginAsCommunity } from "../actions";
 import { phaseOf, PHASE_META } from "@/lib/event-phase";
 import { displayPhone } from "@/lib/string-finder/phone";
 import SubmitButton from "@/components/SubmitButton";
@@ -168,6 +168,11 @@ export default async function AdminEvent() {
                     </p>
                   </div>
                   {k.status === "rejected" && <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-bold text-gray-400">Ditolak</span>}
+                  {k.status === "accepted" && (
+                    <form action={loginAsCommunity.bind(null, k.id)}>
+                      <SubmitButton className="rounded-full border border-primary/40 px-4 py-1.5 text-xs font-semibold text-primary hover:bg-primary/5">Login</SubmitButton>
+                    </form>
+                  )}
                   <form action={deleteCommunity.bind(null, k.id)}>
                     <button className="rounded-full border px-4 py-1.5 text-xs font-semibold text-gray-500 hover:border-red-400 hover:text-red-600">Hapus akun</button>
                   </form>
