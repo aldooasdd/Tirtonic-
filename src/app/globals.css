@@ -54,14 +54,6 @@ body {
   color: #fff;
 }
 .glass-primary:hover { filter: brightness(1.06); }
-/* Kaca hijau muda (card Stringing Room di landing) — teks gelap tetap kebaca */
-.glass-green {
-  background: linear-gradient(135deg, rgba(20, 107, 82, 0.14), rgba(167, 243, 208, 0.22));
-  backdrop-filter: blur(14px) saturate(160%);
-  -webkit-backdrop-filter: blur(14px) saturate(160%);
-  border: 1px solid rgba(20, 107, 82, 0.18);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 10px 28px -18px rgba(20, 107, 82, 0.4);
-}
 
 /* softer weights — "tebal, tapi jangan terlalu bold" */
 .font-semibold {

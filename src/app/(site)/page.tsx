@@ -80,7 +80,7 @@ function StringingRoom({ rooms }: { rooms: Room[] }) {
           const wait = r.items.filter((i) => i.status === "antri");
           const group = (items: RoomItem[], dot: string, pulse: boolean) =>
             items.map((it) => (
-              <div key={it.code} className="flex items-center gap-3 rounded-xl bg-white/70 px-3 py-2">
+              <div key={it.code} className="flex items-center gap-3 rounded-xl bg-white/10 px-3 py-2">
                 {pulse ? (
                   <span className={`flex h-2 w-2 shrink-0 rounded-full ${dot}`}>
                     <span className={`h-full w-full animate-ping rounded-full ${dot}`} />
@@ -88,37 +88,37 @@ function StringingRoom({ rooms }: { rooms: Room[] }) {
                 ) : (
                   <span className={`h-2 w-2 shrink-0 rounded-full ${dot}`} />
                 )}
-                <span className="font-mono text-sm font-bold text-primary">{it.code}</span>
-                {it.stringer && <span className="ml-auto truncate text-xs text-gray-500">Stringer : {it.stringer}</span>}
+                <span className="font-mono text-sm font-bold text-white">{it.code}</span>
+                {it.stringer && <span className="ml-auto truncate text-xs text-white/70">Stringer : {it.stringer}</span>}
               </div>
             ));
           return (
-            <div key={r.name} className="glass-green flex flex-col rounded-2xl p-4">
+            <div key={r.name} className="glass-primary flex flex-col rounded-2xl p-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <h3 className="text-sm font-extrabold text-gray-900">{r.name}</h3>
+                <h3 className="text-sm font-extrabold text-white">{r.name}</h3>
                 <span className="flex items-center gap-1.5">
                   <span className="relative flex h-2.5 w-2.5">
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
                     <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500" />
                   </span>
-                  <span className="text-xs font-bold uppercase tracking-wide text-red-600">Live</span>
+                  <span className="text-xs font-bold uppercase tracking-wide text-red-300">Live</span>
                 </span>
               </div>
               <div className="mt-3 flex-1 space-y-3">
                 {r.items.length === 0 ? (
-                  <p className="py-8 text-center text-sm text-gray-400">Belum ada antrian</p>
+                  <p className="py-8 text-center text-sm text-white/60">Belum ada antrian</p>
                 ) : (
                   <>
                     {prog.length > 0 && (
                       <div>
-                        <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-blue-600">On Progress</p>
-                        <div className="space-y-2">{group(prog, "bg-blue-500", true)}</div>
+                        <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-sky-300">On Progress</p>
+                        <div className="space-y-2">{group(prog, "bg-sky-400", true)}</div>
                       </div>
                     )}
                     {wait.length > 0 && (
                       <div>
-                        <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-amber-600">Waiting</p>
-                        <div className="space-y-2">{group(wait, "bg-amber-500", false)}</div>
+                        <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-amber-300">Waiting</p>
+                        <div className="space-y-2">{group(wait, "bg-amber-400", false)}</div>
                       </div>
                     )}
                   </>
