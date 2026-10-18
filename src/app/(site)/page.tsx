@@ -18,7 +18,7 @@ type StoreItem = { id: string; nama: string; alamat: string; jam: string | null;
 
 function OurStore({ stores }: { stores: StoreItem[] }) {
   return (
-    <section className="mx-auto max-w-site px-4 lg:px-16 py-2">
+    <section className="mx-auto max-w-site px-4 lg:px-28 py-2">
       <div className="mb-1.5 flex items-center justify-between gap-3">
         <h2 className="flex items-center gap-2 text-xl font-extrabold text-gray-900">
           Our Store {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -66,7 +66,7 @@ type Room = { name: string; items: RoomItem[] };
 function StringingRoom({ rooms }: { rooms: Room[] }) {
   if (rooms.length === 0) return null;
   return (
-    <section className="mx-auto max-w-site px-4 lg:px-16 py-2">
+    <section className="mx-auto max-w-site px-4 lg:px-28 py-2">
       <div className="mb-1.5 flex items-center gap-3">
         <h2 className="flex items-center gap-2 text-xl font-extrabold text-gray-900">
           Tirtonic Stringing Room {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -140,7 +140,7 @@ type BrandItem = { id: string; nama: string; foto: string };
 function BrandPopular({ brands }: { brands: BrandItem[] }) {
   if (brands.length === 0) return null;
   return (
-    <section className="mx-auto max-w-site px-4 lg:px-16 py-2">
+    <section className="mx-auto max-w-site px-4 lg:px-28 py-2">
       <div className="mb-1.5 flex items-center justify-between gap-3">
         <h2 className="flex items-center gap-2 text-xl font-extrabold text-gray-900">
           Brand Popular {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -172,7 +172,7 @@ function BrandPopular({ brands }: { brands: BrandItem[] }) {
 function ForYou({ products }: { products: ProductCardData[] }) {
   if (products.length === 0) return null;
   return (
-    <section className="mx-auto max-w-site px-4 lg:px-16 py-2">
+    <section className="mx-auto max-w-site px-4 lg:px-28 py-2">
       <div className="mb-1.5 flex items-center justify-between gap-3">
         <h2 className="flex items-center gap-2 text-xl font-extrabold text-gray-900">
           Recommended For You {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -196,7 +196,7 @@ function ForYou({ products }: { products: ProductCardData[] }) {
 function NewArrival({ products }: { products: ProductCardData[] }) {
   if (products.length === 0) return null;
   return (
-    <section className="mx-auto max-w-site px-4 lg:px-16 py-2">
+    <section className="mx-auto max-w-site px-4 lg:px-28 py-2">
       <div className="mb-1.5 flex items-center justify-between gap-3">
         <h2 className="flex items-center gap-2 text-xl font-extrabold text-gray-900">
           New Arrival {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -220,7 +220,7 @@ function NewArrival({ products }: { products: ProductCardData[] }) {
 function BestDeal({ products }: { products: ProductCardData[] }) {
   if (products.length === 0) return null;
   return (
-    <section className="mx-auto max-w-site px-4 lg:px-16 py-2">
+    <section className="mx-auto max-w-site px-4 lg:px-28 py-2">
       <div className="mb-1.5 flex items-center justify-between gap-3">
         <h2 className="flex items-center gap-2 text-xl font-extrabold text-gray-900">
           Best Deal {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -243,7 +243,7 @@ function BestDeal({ products }: { products: ProductCardData[] }) {
 
 function NewArticles({ articles }: { articles: ArticleCardData[] }) {
   return (
-    <section className="mx-auto max-w-site px-4 lg:px-16 pb-10 pt-2">
+    <section className="mx-auto max-w-site px-4 lg:px-28 pb-10 pt-2">
       <div className="mb-1.5 flex items-center justify-between gap-3">
         <h2 className="flex items-center gap-2 text-xl font-extrabold text-gray-900">
           New Article {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -322,7 +322,7 @@ export default async function HomePage() {
   return (
     <>
       <HeroCarousel slides={slides.map((s) => ({ id: s.id, gambar: s.gambar, gambarMobile: s.gambarMobile, link: s.link }))} />
-      <div className="mx-auto max-w-site px-4 lg:px-16 pb-2 pt-8 text-center">
+      <div className="mx-auto max-w-site px-4 lg:px-28 pb-2 pt-8 text-center">
         <h2 className="text-xl font-extrabold text-gray-900">
           Toko Tennis Yogyakarta, Solo &amp; Semarang
         </h2>
