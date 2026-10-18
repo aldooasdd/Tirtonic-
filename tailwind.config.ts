@@ -11,7 +11,7 @@ const config: Config = {
         ball: "#a4d037", // tennis-ball lime
         ink: "#111111", // dark pill buttons
       },
-      maxWidth: { site: "1200px" },
+      maxWidth: { site: "1440px" },
     },
   },
   plugins: [],
