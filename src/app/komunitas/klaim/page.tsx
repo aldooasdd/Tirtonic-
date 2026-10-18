@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { prisma, safeQuery } from "@/lib/prisma";
-import { currentCommunityId } from "@/lib/community-auth";
+import { currentCommunity } from "@/lib/community-auth";
 import ClaimForm from "@/components/ClaimForm";
 import EventTopBar from "@/components/EventTopBar";
 
@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Ajukan Demo — Tirtonic", robots: { index: false } };
 
 export default async function KlaimPage() {
-  if (!currentCommunityId()) redirect("/komunitas/login");
+  if (!(await currentCommunity())) redirect("/komunitas/login");
   const campaigns = await safeQuery(
     () => prisma.demoCampaign.findMany({
       where: { isActive: true, brandApproved: true },

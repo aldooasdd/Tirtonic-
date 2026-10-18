@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { currentCommunityId } from "@/lib/community-auth";
+import { currentCommunity } from "@/lib/community-auth";
 import CommunityLoginForm from "@/components/CommunityLoginForm";
 import EventTopBar from "@/components/EventTopBar";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Login Komunitas — Tirtonic", robots: { index: false } };
 
-export default function LoginKomunitas() {
-  if (currentCommunityId()) redirect("/komunitas");
+export default async function LoginKomunitas() {
+  if (await currentCommunity()) redirect("/komunitas");
   return (
     <div className="min-h-screen bg-gray-50 pb-16">
       <EventTopBar right={<Link href="/komunitas" className="text-sm font-medium text-gray-500 transition hover:text-primary">Kembali</Link>} />
