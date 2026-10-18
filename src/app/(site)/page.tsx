@@ -6,14 +6,13 @@ import { articleHref } from "@/lib/article-slug";
 import ProductCard, { ProductCardData } from "@/components/ProductCard";
 import SeoBlock from "@/components/SeoBlock";
 import HeroCarousel from "@/components/HeroCarousel";
-import AutoRefresh from "@/components/AutoRefresh";
 
 function fmtTanggal(d: Date) {
   return d.toLocaleDateString("id-ID", { weekday: "short", day: "numeric", month: "short", year: "numeric" });
 }
 
-// ISR: beranda di-cache 1 menit → papan antrian stringing tetap live (client auto-refresh 60s).
-export const revalidate = 60;
+// ISR: beranda di-cache 2 menit → hemat egress DB (gak query tiap kunjungan/crawler).
+export const revalidate = 120;
 
 type StoreItem = { id: string; nama: string; alamat: string; jam: string | null; foto: string | null; maps: string | null };
 
@@ -68,7 +67,6 @@ function StringingRoom({ rooms }: { rooms: Room[] }) {
   if (rooms.length === 0) return null;
   return (
     <section className="relative mx-auto max-w-site overflow-hidden px-4 py-2">
-      <AutoRefresh seconds={60} />
       {/* Blob warna di belakang — supaya efek liquid glass kebaca */}
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
         <div className="absolute -left-10 top-10 h-72 w-72 rounded-full bg-primary/20 blur-[110px]" />
