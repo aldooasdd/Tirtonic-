@@ -4,7 +4,6 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireSection } from "@/lib/auth";
-import { notify } from "@/lib/string-finder/notify";
 import { sendWa, salam, stringingRoomLink } from "@/lib/wa";
 import { normalizePhone } from "@/lib/string-finder/phone";
 
@@ -46,14 +45,19 @@ export async function finishStringing(id: string) {
   if (!count) return;
   const order = await prisma.sfOrder.findUniqueOrThrow({ where: { id }, include: { branch: true } });
   // WA "senar siap diambil" ke customer. Kegagalan WA tak membatalkan penyelesaian.
-  const ok = await notify({
-    event: "selesai",
-    phone: order.phone,
-    code: order.resultCode,
-    branch: order.branch.name,
-    chosenString: order.chosenString,
-    customerName: order.customerName,
-  });
+  const ok = await sendWa(
+    order.phone,
+    `Selamat ${salam()}, kak ${order.customerName ?? ""}`.trimEnd() + `
+
+Raket Anda dengan kode pesanan *${order.resultCode}* telah selesai dipasang dan siap diambil di ${order.branch.name}.
+
+Silakan tunjukkan kode pesanan saat pengambilan. Kami buka setiap hari pukul 09.00 – 21.00.
+
+Terima kasih telah mempercayakan raket Anda kepada Tirtonic. Selamat bermain!
+
+Salam hangat,
+${order.branch.name} 🎾`,
+  );
   if (ok) await prisma.sfOrder.update({ where: { id }, data: { notifiedDone: new Date() } });
   revalidatePath("/dashboard/stringing");
 }
