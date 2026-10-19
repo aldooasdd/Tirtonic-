@@ -5,19 +5,21 @@ import { useState } from "react";
 // Cetak stiker QR raket ke printer label NIIMBOT lewat Web Bluetooth
 // (niimbluelib). HANYA jalan di Chrome Android. QR membuka /riwayat/<nomor>.
 //
-// ponytail: ukuran label dikunci 25×15mm (roll NIIMBOT 25*15; label lebih panjang
-// dari 15mm bikin printer nerus ke stiker kedua), dimensi dot dihitung dari dpi printer
+// ponytail: ukuran label per cabang — Jogja pakai roll 25×15mm (label lebih panjang
+// dari 15mm bikin printer nerus ke stiker kedua), cabang lain 50×20mm. Dimensi dot dihitung dari dpi printer
 // yang benar-benar kesambung (203 vs 300dpi beda jauh) + dibatasi lebar printhead.
 // Dulu di-hardcode 591px/300dpi → di printer 203dpi konten jadi ~74mm (kebesaran,
 // kepotong). TASK & ARAH tetap hardcode ke nilai yang TERBUKTI nyetak — auto-detect
 // (getPrintTaskType/printDirection) pernah bikin cetakan blank (arah ke-rotate "left").
-const LABEL_MM = { w: 25, h: 15 };
+const LABEL_MM = { w: 50, h: 20 };
+const LABEL_MM_JOGJA = { w: 25, h: 15 }; // dikenali dari nama cabang mengandung "jogja"
+const labelFor = (branch?: string | null) => (/jogja/i.test(branch ?? "") ? LABEL_MM_JOGJA : LABEL_MM);
 const DENSITY = 3; // 1–5; naikkan kalau hasil tipis
 const FALLBACK_DPI = 203; // kalau dpi model tak terdeteksi (B-series umumnya 203dpi)
 const PRINT_DIRECTION: "top" | "left" = "top"; // putar kalau orientasi kebalik
 const PRINT_TASK = "D110M_V4" as const; // task yang kepakai pas print pertama berhasil
 
-export default function RacketQrPrint({ phone, className, label = "Cetak stiker QR raket" }: { phone: string; className?: string; label?: string }) {
+export default function RacketQrPrint({ phone, branch, className, label = "Cetak stiker QR raket" }: { phone: string; branch?: string | null; className?: string; label?: string }) {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
   const [err, setErr] = useState(false);
@@ -35,7 +37,7 @@ export default function RacketQrPrint({ phone, className, label = "Cetak stiker 
       const dpi = meta?.dpi ?? FALLBACK_DPI;
 
       setMsg("Mencetak…");
-      const canvas = await buildLabel(phone, dpi, meta?.printheadPixels);
+      const canvas = await buildLabel(phone, labelFor(branch), dpi, meta?.printheadPixels);
       const encoded = nb.ImageEncoder.encodeCanvas(canvas, nb.PageColorType.SingleColor, PRINT_DIRECTION);
       const printTask = client.protocol.newPrintTask(PRINT_TASK, {
         totalPages: 1,
@@ -82,11 +84,11 @@ async function connect() {
 
 const mm2dots = (mm: number, dpi: number) => Math.round((mm / 25.4) * dpi);
 
-// Gambar label 25×15mm: QR di kiri, kolom kanan (logo + teks 3 baris) rata kiri.
+// Gambar label (ukuran per cabang): QR di kiri, kolom kanan (logo + teks 3 baris) rata kiri.
 // Dimensi & layout diskalakan dari dpi printer; referensi layout = 236 dot tinggi.
-async function buildLabel(phone: string, dpi: number, headPx?: number): Promise<HTMLCanvasElement> {
-  let w = mm2dots(LABEL_MM.w, dpi);
-  const h = mm2dots(LABEL_MM.h, dpi);
+async function buildLabel(phone: string, mm: { w: number; h: number }, dpi: number, headPx?: number): Promise<HTMLCanvasElement> {
+  let w = mm2dots(mm.w, dpi);
+  const h = mm2dots(mm.h, dpi);
   if (headPx && w > headPx) w = headPx; // jangan lebihi lebar printhead
 
   const canvas = document.createElement("canvas");

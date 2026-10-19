@@ -92,7 +92,7 @@ export default function DoneStringingCard({ orders, branches }: { orders: DoneOr
                       </p>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      <RacketQrPrint phone={o.phone} label="Stiker QR" className="rounded-full border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:border-primary hover:text-primary disabled:opacity-50" />
+                      <RacketQrPrint phone={o.phone} branch={o.branchName} label="Stiker QR" className="rounded-full border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:border-primary hover:text-primary disabled:opacity-50" />
                       <Link href={`/dashboard/stringing/${o.resultCode}/edit`} className="rounded-full border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:border-primary hover:text-primary">Edit</Link>
                       <DeleteStringingButton id={o.id} />
                     </div>
