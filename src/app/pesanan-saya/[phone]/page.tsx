@@ -78,7 +78,7 @@ export default async function PesananSayaPage({ params }: { params: { phone: str
 
             <div className="mt-8 lg:mt-10">
               <h1 className="text-2xl font-extrabold leading-tight tracking-tight text-gray-900 sm:text-3xl">
-                Halo, {name ?? "Pelanggan Tirtonic"} 👋
+                Halo, {name ?? "Pelanggan Tirtonic"}
               </h1>
               <p className="mt-1 text-sm text-gray-500">{phone ? displayPhone(phone) : "Nomor tidak valid"}</p>
 
