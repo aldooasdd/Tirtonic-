@@ -20,6 +20,8 @@ type OrderLike = {
   kurir: string;
   ongkir: number;
   subtotal: number;
+  diskon: number;
+  kupon: string | null;
   total: number;
   status: string;
   resi: string | null;
@@ -53,6 +55,8 @@ export async function notifyN8N(kind: NotifyKind, order: OrderLike): Promise<voi
     catatan: order.catatan,
     ongkir: order.ongkir,
     subtotal: order.subtotal,
+    diskon: order.diskon,
+    kupon: order.kupon, // kode kupon (null kalau tak pakai) — dipakai HANYA di pesan gudang
     total: order.total,
     status: order.status,
     items: order.items.map((i) => ({ nama: i.nama, varian: i.varian, harga: i.harga, qty: i.qty })),
