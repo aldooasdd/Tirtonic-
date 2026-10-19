@@ -382,6 +382,10 @@ export default async function AdminDashboard() {
               <input name="estimasi" placeholder="Estimasi tiba (mis. Tiba akhir November)" className="field" />
               <textarea name="deskripsi" rows={3} placeholder="Deskripsi (opsional)" className="field" />
               <div>
+                <label className="label">What&apos;s in the Box (satu item per baris)</label>
+                <textarea name="isiBox" rows={3} placeholder={"Contoh:\nRaket Tenis\nCover Raket\nKartu Garansi"} className="field" />
+              </div>
+              <div>
                 <label className="label">Foto produk (bisa pilih beberapa)</label>
                 <input name="gambar" type="file" accept="image/*" multiple className="text-sm" />
                 <p className="mt-1 text-xs text-gray-400">

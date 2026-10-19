@@ -29,6 +29,7 @@ model PreorderProduct {
   harga     Int // harga penuh
   gambar    String[]        @default([])
   deskripsi String?
+  isiBox    String[]        @default([]) // "What's in the Box" — daftar isi kotak
   estimasi  String? // mis. "Tiba akhir November"
   isActive  Boolean         @default(true)
   createdAt DateTime        @default(now())

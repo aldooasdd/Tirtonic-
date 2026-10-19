@@ -487,8 +487,9 @@ export async function createPreorderProduct(formData: FormData) {
   if (!nama || harga <= 0) throw new Error("Nama dan harga wajib diisi.");
   const deskripsi = ((formData.get("deskripsi") as string) || "").trim() || null;
   const estimasi = ((formData.get("estimasi") as string) || "").trim() || null;
+  const isiBox = ((formData.get("isiBox") as string) || "").split("\n").map((s) => s.trim()).filter(Boolean);
   const gambar = await uploadImages(formData);
-  await prisma.preorderProduct.create({ data: { nama, harga, deskripsi, estimasi, gambar } });
+  await prisma.preorderProduct.create({ data: { nama, harga, deskripsi, estimasi, isiBox, gambar } });
   revalidatePreorder();
   redirect("/dashboard");
 }

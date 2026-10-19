@@ -45,6 +45,17 @@ export default async function PreorderDetail({ params }: { params: { id: string 
           </div>
         </div>
       </div>
+
+      {p.isiBox.length > 0 && (
+        <div className="mt-10 border-t pt-8">
+          <div className="grid gap-4 sm:grid-cols-[200px_1fr]">
+            <h2 className="text-xl font-extrabold text-gray-900">What&apos;s in the Box</h2>
+            <ul className="space-y-2 text-gray-700">
+              {p.isiBox.map((x, i) => <li key={i}>{x}</li>)}
+            </ul>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
