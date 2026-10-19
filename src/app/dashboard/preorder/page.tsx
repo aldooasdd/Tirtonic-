@@ -59,6 +59,10 @@ export default async function DashboardPreorder() {
           <div>
             <label className="label">Foto produk (bisa pilih beberapa)</label>
             <input name="gambar" type="file" accept="image/*" multiple className="text-sm" />
+            <p className="mt-1 text-xs text-gray-400">
+              Foto <b>pertama</b> dipakai jadi banner di landing. Pakai foto <b>landscape (persegi panjang)</b>, subjek di tengah.
+              Ideal: <b>desktop 1920×820 px</b> (dipotong jadi 21:9), <b>HP tetap foto sama</b> (dipotong jadi 16:11) — jadi jangan taruh objek penting di pinggir. Min 1600 px lebar, rasio 16:9–21:9.
+            </p>
           </div>
           <button className="btn-green">Tambah Produk PO</button>
         </form>
