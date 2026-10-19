@@ -282,7 +282,7 @@ function NewArticles({ articles }: { articles: ArticleCardData[] }) {
   );
 }
 
-type PreorderBanner = { id: string; nama: string; tagline: string | null; harga: number; gambar: string[]; estimasi: string | null };
+type PreorderBanner = { id: string; nama: string; tagline: string | null; harga: number; gambar: string[]; bannerDesktop: string | null; bannerMobile: string | null; estimasi: string | null };
 
 // Hero pre-order di landing (ala Apple): judul + subjudul + estimasi di tengah,
 // tombol Learn more + Pre-order (glass-primary hijau tua), lalu foto landscape.
@@ -292,9 +292,14 @@ function PreorderBanners({ products }: { products: PreorderBanner[] }) {
     <section className="mx-auto max-w-site space-y-4 px-4 py-2 lg:px-6">
       {products.map((p) => (
         <div key={p.id} className="relative h-[42vh] min-h-[240px] w-full overflow-hidden rounded-2xl sm:h-[50vh]">
-          {p.gambar[0] && (
+          {/* HP: bannerMobile, Desktop: bannerDesktop; fallback foto produk */}
+          {(p.bannerMobile || p.bannerDesktop || p.gambar[0]) && (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={p.gambar[0]} alt={p.nama} className="absolute inset-0 h-full w-full object-cover" />
+            <img src={p.bannerMobile || p.bannerDesktop || p.gambar[0]} alt={p.nama} className="absolute inset-0 h-full w-full object-cover sm:hidden" />
+          )}
+          {(p.bannerDesktop || p.gambar[0]) && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={p.bannerDesktop || p.gambar[0]} alt={p.nama} className="absolute inset-0 hidden h-full w-full object-cover sm:block" />
           )}
           {/* gradient atas biar teks kebaca di foto apa pun */}
           <div aria-hidden className="absolute inset-x-0 top-0 h-2/5 bg-gradient-to-b from-black/45 to-transparent" />
@@ -329,7 +334,7 @@ export default async function HomePage() {
     safeQuery(() => prisma.popularBrand.findMany({ orderBy: [{ urutan: "asc" }, { nama: "asc" }] }), []),
     safeQuery(() => prisma.sfBranch.findMany({ where: { isActive: true, slug: { not: "tirtonic" } }, orderBy: { name: "asc" }, select: { id: true, name: true } }), []),
     safeQuery(() => prisma.sfOrder.findMany({ where: { status: { in: ["antri", "dikerjakan"] } }, orderBy: { createdAt: "asc" }, select: { resultCode: true, status: true, branchId: true, stringerName: true } }), []),
-    safeQuery(() => prisma.preorderProduct.findMany({ where: { isActive: true }, orderBy: { createdAt: "desc" }, take: 4, select: { id: true, nama: true, tagline: true, harga: true, gambar: true, estimasi: true } }), []),
+    safeQuery(() => prisma.preorderProduct.findMany({ where: { isActive: true }, orderBy: { createdAt: "desc" }, take: 4, select: { id: true, nama: true, tagline: true, harga: true, gambar: true, bannerDesktop: true, bannerMobile: true, estimasi: true } }), []),
   ]);
   const toCard = (p: (typeof latest)[number]) => ({ id: p.id, nama: p.nama, harga: p.harga, hargaDiskon: p.hargaDiskon, gambar: p.gambar, status: p.status, fromPrice: p._count.variants > 0 });
   const arrivals = latest.map(toCard);

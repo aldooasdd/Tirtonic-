@@ -2,14 +2,12 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma, safeQuery } from "@/lib/prisma";
 import { rupiah } from "@/lib/format";
-import PreorderCheckout from "@/components/PreorderCheckout";
 
 export const dynamic = "force-dynamic";
 
 export default async function PreorderDetail({ params }: { params: { id: string } }) {
-  const p = await safeQuery(() => prisma.preorderProduct.findUnique({ where: { id: params.id }, include: { variants: { orderBy: { urutan: "asc" } } } }), null);
+  const p = await safeQuery(() => prisma.preorderProduct.findUnique({ where: { id: params.id }, select: { id: true, nama: true, harga: true, gambar: true, deskripsi: true, estimasi: true, isiBox: true, isActive: true } }), null);
   if (!p || !p.isActive) notFound();
-  const variantData = p.variants.map((v) => ({ id: v.id, nama: v.ukuran ? `${v.warna} / ${v.ukuran}` : v.warna, harga: v.harga, stok: v.stok }));
 
   return (
     <div className="mx-auto max-w-site px-4 py-8 lg:px-6">
@@ -41,14 +39,10 @@ export default async function PreorderDetail({ params }: { params: { id: string 
           {p.estimasi && <p className="mt-1 text-sm text-gray-500">Estimasi: {p.estimasi}</p>}
           {p.deskripsi && <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-gray-600">{p.deskripsi}</p>}
 
-          <div className="mt-6">
-            <PreorderCheckout
-              productId={p.id}
-              harga={p.harga}
-              nama={p.nama}
-              variants={variantData}
-            />
-          </div>
+          <Link href={`/preorder/${p.id}/checkout`} className="glass-primary mt-6 inline-flex w-full items-center justify-center rounded-full px-6 py-3 text-sm font-bold transition">
+            Pre-order Sekarang
+          </Link>
+          <p className="mt-2 text-xs text-gray-400">Bayar DP (min {rupiah(100000)}) via DOKU. Langsung checkout, tanpa keranjang.</p>
         </div>
       </div>
 

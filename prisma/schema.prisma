@@ -28,7 +28,9 @@ model PreorderProduct {
   nama      String
   tagline   String? // subjudul hero landing, mis. "Hello, hello."
   harga     Int // harga penuh
-  gambar    String[]        @default([])
+  gambar    String[]        @default([]) // foto produk (galeri di halaman detail)
+  bannerDesktop String? // foto hero landing untuk desktop (landscape)
+  bannerMobile  String? // foto hero landing untuk HP
   deskripsi String?
   isiBox    String[]        @default([]) // "What's in the Box" — daftar isi kotak
   estimasi  String? // mis. "Tiba akhir November"

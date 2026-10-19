@@ -473,6 +473,14 @@ export async function adminDeleteOrder(id: string) {
 }
 
 // ── Pre-order ────────────────────────────────────────────────────────────────
+// Upload satu file bernama <field> ke Storage → URL, atau null kalau kosong.
+async function uploadNamedImage(formData: FormData, field: string): Promise<string | null> {
+  const f = formData.get(field);
+  if (!(f instanceof File) || f.size === 0) return null;
+  if (!storageConfigured) throw new Error("Supabase Storage belum dikonfigurasi (cek .env).");
+  return uploadFile(f, "preorder");
+}
+
 // Parse varian PO dari field array v_* (warna/ukuran/harga/stok/foto). Tanpa diskon.
 async function parsePreorderVariants(formData: FormData) {
   const warna = formData.getAll("v_warna").map(String);
@@ -521,8 +529,10 @@ export async function createPreorderProduct(formData: FormData) {
   const isiBox = ((formData.get("isiBox") as string) || "").split("\n").map((s) => s.trim()).filter(Boolean);
   const variants = formData.get("hasVariants") ? await parsePreorderVariants(formData) : [];
   const gambar = await uploadImages(formData);
+  const bannerDesktop = await uploadNamedImage(formData, "bannerDesktop");
+  const bannerMobile = await uploadNamedImage(formData, "bannerMobile");
   await prisma.preorderProduct.create({
-    data: { nama, tagline, harga, deskripsi, estimasi, isiBox, gambar, ...(variants.length ? { variants: { create: variants } } : {}) },
+    data: { nama, tagline, harga, deskripsi, estimasi, isiBox, gambar, bannerDesktop, bannerMobile, ...(variants.length ? { variants: { create: variants } } : {}) },
   });
   revalidatePreorder();
   redirect("/dashboard");
