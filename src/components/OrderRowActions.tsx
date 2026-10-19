@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { adminMarkPaid, adminMarkShipped, adminMarkDelivered, adminCancelOrder } from "@/app/dashboard/actions";
+import { adminMarkPaid, adminMarkShipped, adminMarkDelivered, adminCancelOrder, adminDeleteOrder } from "@/app/dashboard/actions";
 
 export default function OrderRowActions({ id, status, kurir }: { id: string; status: string; kurir: string }) {
   const router = useRouter();
@@ -67,6 +67,19 @@ export default function OrderRowActions({ id, status, kurir }: { id: string; sta
         className="rounded-md border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100 disabled:opacity-50"
       >
         Tandai Diterima
+      </button>
+    );
+  }
+
+  // Pesanan selesai (Batal / Diterima) → boleh dihapus permanen dari histori.
+  if (status === "CANCELLED" || status === "DELIVERED") {
+    return (
+      <button
+        onClick={() => { if (confirm("Hapus pesanan ini permanen? Tidak bisa dibatalkan.")) run(() => adminDeleteOrder(id)); }}
+        disabled={pending}
+        className="rounded-md border px-3 py-1.5 text-xs font-medium text-gray-500 transition hover:border-red-400 hover:text-red-600 disabled:opacity-50"
+      >
+        Hapus
       </button>
     );
   }

@@ -461,6 +461,16 @@ export async function adminCancelOrder(id: string) {
   revalidateOrder(id);
 }
 
+/** Hapus permanen pesanan yang sudah selesai (Batal / Diterima). Item & review
+ *  ikut terhapus (cascade). Tidak boleh menghapus pesanan yang masih berjalan. */
+export async function adminDeleteOrder(id: string) {
+  requireSection("pesanan");
+  const o = await prisma.order.findUnique({ where: { id }, select: { status: true } });
+  if (!o || (o.status !== "CANCELLED" && o.status !== "DELIVERED")) return;
+  await prisma.order.delete({ where: { id } });
+  revalidatePath("/dashboard/orders");
+}
+
 // ── Kupon ──────────────────────────────────────────────────────────────────
 export type CouponState = { error?: string; ok?: boolean };
 
