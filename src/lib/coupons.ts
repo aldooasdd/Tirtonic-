@@ -20,14 +20,32 @@ export async function computeCoupon(codeRaw: string, lines: CouponLine[]): Promi
   const c = await prisma.coupon.findUnique({ where: { code } });
   if (!c || !c.active) return { ok: false, error: "Kupon tidak valid atau sudah tidak aktif." };
 
-  const scoped = c.productIds.length > 0;
-  const eligible = lines.filter((l) => !scoped || c.productIds.includes(l.productId));
+  const byProduct = c.productIds.length > 0;
+  const byCat = c.categories.length > 0;
+  const scoped = byProduct || byCat;
+
+  // Kalau kupon dibatasi kategori, ambil kategori tiap produk di keranjang dari DB
+  // (produk baru di kategori itu otomatis ikut kena).
+  let catOf = new Map<string, string>();
+  if (byCat) {
+    const prods = await prisma.product.findMany({
+      where: { id: { in: lines.map((l) => l.productId) } },
+      select: { id: true, kategori: true },
+    });
+    catOf = new Map(prods.map((p) => [p.id, p.kategori]));
+  }
+
+  const eligible = lines.filter((l) =>
+    !scoped ||
+    (byProduct && c.productIds.includes(l.productId)) ||
+    (byCat && c.categories.includes(catOf.get(l.productId) ?? ""))
+  );
   const base = eligible.reduce((s, l) => s + l.harga * l.qty, 0);
   if (base <= 0) {
     return {
       ok: false,
       error: scoped
-        ? "Kupon ini hanya untuk produk tertentu yang tidak ada di keranjang."
+        ? "Kupon ini hanya untuk produk/kategori tertentu yang tidak ada di keranjang."
         : "Kupon tidak berlaku untuk keranjang ini.",
     };
   }

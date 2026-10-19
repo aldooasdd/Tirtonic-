@@ -386,7 +386,11 @@ export default async function AdminDashboard() {
                       <span className={`rounded-md px-2 py-0.5 font-mono text-xs font-bold ${c.active ? "bg-primary/10 text-primary" : "bg-gray-100 text-gray-400 line-through"}`}>{c.code}</span>
                       <span className="font-semibold text-gray-900">{c.type === "amount" ? rupiah(c.value) : `${c.value}%`}</span>
                       <span className="min-w-0 flex-1 truncate text-xs text-gray-500">
-                        {c.productIds.length === 0 ? "Semua produk" : `${c.productIds.length} produk: ${nama.join(", ") || "—"}`}
+                        {c.categories.length > 0
+                          ? `Kategori: ${c.categories.join(", ")}`
+                          : c.productIds.length === 0
+                            ? "Semua produk"
+                            : `${c.productIds.length} produk: ${nama.join(", ") || "—"}`}
                       </span>
                       <form action={toggleCoupon.bind(null, c.id)}>
                         <button className="rounded-full border px-3 py-1 text-xs font-semibold text-gray-600 transition hover:border-primary hover:text-primary">

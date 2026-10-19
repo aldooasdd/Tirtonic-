@@ -351,7 +351,8 @@ model Coupon {
   code       String   @unique // selalu disimpan UPPERCASE
   type       String   @default("percent") // "percent" (value = 1-100) | "amount" (value = rupiah)
   value      Int // persen potongan (1-100) ATAU nominal rupiah, tergantung type
-  productIds String[] @default([])
+  productIds String[] @default([]) // batasi ke produk tertentu
+  categories String[] @default([]) // batasi ke kategori tertentu (semua produk kategori ini, termasuk produk baru)
   active     Boolean  @default(true)
   createdAt  DateTime @default(now())
 }

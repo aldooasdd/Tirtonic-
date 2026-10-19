@@ -19,13 +19,15 @@ function SubmitBtn() {
 export default function CouponManager({ action, products }: { action: Action; products: Prod[] }) {
   const [state, formAction] = useFormState<CouponState, FormData>(action, {});
   const [discType, setDiscType] = useState<"percent" | "amount">("percent");
-  const [scope, setScope] = useState<"all" | "products">("all");
+  const [scope, setScope] = useState<"all" | "products" | "category">("all");
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [selectedCats, setSelectedCats] = useState<Set<string>>(new Set());
   const [q, setQ] = useState("");
-  const [cat, setCat] = useState("");
   const formRef = useRef<HTMLFormElement>(null);
 
   const categories = [...new Set(products.map((p) => p.kategori).filter(Boolean))].sort();
+  const toggleCat = (k: string) =>
+    setSelectedCats((s) => { const n = new Set(s); n.has(k) ? n.delete(k) : n.add(k); return n; });
 
   // Reset form setelah berhasil simpan.
   useEffect(() => {
@@ -34,17 +36,15 @@ export default function CouponManager({ action, products }: { action: Action; pr
       setDiscType("percent");
       setScope("all");
       setSelected(new Set());
+      setSelectedCats(new Set());
       setQ("");
-      setCat("");
     }
   }, [state]);
 
   const query = q.trim().toLowerCase();
-  const shown = products.filter(
-    (p) =>
-      (!cat || p.kategori === cat) &&
-      (!query || p.nama.toLowerCase().includes(query) || p.kategori.toLowerCase().includes(query))
-  );
+  const shown = query
+    ? products.filter((p) => p.nama.toLowerCase().includes(query) || p.kategori.toLowerCase().includes(query))
+    : products;
   const toggle = (id: string) =>
     setSelected((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
 
@@ -89,30 +89,39 @@ export default function CouponManager({ action, products }: { action: Action; pr
             <input type="radio" name="scope" value="products" checked={scope === "products"} onChange={() => setScope("products")} />
             Produk tertentu
           </label>
+          <label className="flex items-center gap-2">
+            <input type="radio" name="scope" value="category" checked={scope === "category"} onChange={() => setScope("category")} />
+            Kategori tertentu
+          </label>
         </div>
       </fieldset>
+
+      {scope === "category" && (
+        <div className="rounded-xl border p-3">
+          <p className="mb-2 text-xs text-gray-500">Pilih kategori yang kena kupon. Semua produk di kategori itu ikut (termasuk produk baru).</p>
+          <div className="flex flex-wrap gap-2">
+            {categories.map((k) => {
+              const on = selectedCats.has(k);
+              return (
+                <label key={k} className={`cursor-pointer rounded-full border px-3 py-1.5 text-sm ${on ? "border-primary bg-primary/10 font-semibold text-primary" : "border-gray-300 text-gray-600"}`}>
+                  <input type="checkbox" className="sr-only" checked={on} onChange={() => toggleCat(k)} />
+                  {on && <input type="hidden" name="categories" value={k} />}
+                  {k}
+                </label>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {scope === "products" && (
         <div className="rounded-xl border p-3">
           {/* hidden inputs = yang benar-benar dikirim (tetap terkirim walau tersaring dari pencarian) */}
           {[...selected].map((id) => <input key={id} type="hidden" name="productIds" value={id} />)}
-          <div className="mb-2 flex flex-wrap items-center gap-2">
-            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Cari produk…" className="field min-w-[8rem] flex-1 py-1.5 text-sm" />
-            <select value={cat} onChange={(e) => setCat(e.target.value)} className="field w-auto py-1.5 text-sm">
-              <option value="">Semua kategori</option>
-              {categories.map((k) => <option key={k} value={k}>{k}</option>)}
-            </select>
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Cari produk…" className="field flex-1 py-1.5 text-sm" />
             <span className="whitespace-nowrap text-xs text-gray-400">{selected.size} dipilih</span>
           </div>
-          {cat && shown.length > 0 && (
-            <button
-              type="button"
-              onClick={() => setSelected((s) => { const n = new Set(s); shown.forEach((p) => n.add(p.id)); return n; })}
-              className="mb-2 text-xs font-semibold text-primary hover:underline"
-            >
-              Pilih semua di kategori &quot;{cat}&quot;
-            </button>
-          )}
           <div className="max-h-56 space-y-1 overflow-y-auto">
             {shown.length === 0 ? (
               <p className="py-4 text-center text-sm text-gray-400">Tidak ada produk cocok.</p>

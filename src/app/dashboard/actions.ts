@@ -491,14 +491,16 @@ export async function createCoupon(_prev: CouponState, formData: FormData): Prom
     if (raw < 1 || raw > 100) return { error: "Persen potongan harus 1-100." };
   }
 
-  const scoped = (formData.get("scope") as string) === "products";
-  const productIds = scoped ? formData.getAll("productIds").map(String).filter(Boolean) : [];
-  if (scoped && productIds.length === 0) return { error: "Pilih minimal satu produk untuk kupon produk tertentu." };
+  const scope = (formData.get("scope") as string) || "all";
+  const productIds = scope === "products" ? formData.getAll("productIds").map(String).filter(Boolean) : [];
+  const categories = scope === "category" ? formData.getAll("categories").map(String).filter(Boolean) : [];
+  if (scope === "products" && productIds.length === 0) return { error: "Pilih minimal satu produk untuk kupon produk tertentu." };
+  if (scope === "category" && categories.length === 0) return { error: "Pilih minimal satu kategori." };
 
   const exists = await prisma.coupon.findUnique({ where: { code } });
   if (exists) return { error: `Kupon "${code}" sudah ada.` };
 
-  await prisma.coupon.create({ data: { code, type, value, productIds } });
+  await prisma.coupon.create({ data: { code, type, value, productIds, categories } });
   revalidatePath("/dashboard");
   return { ok: true };
 }
