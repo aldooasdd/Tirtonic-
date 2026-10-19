@@ -18,6 +18,7 @@ function SubmitBtn() {
 
 export default function CouponManager({ action, products }: { action: Action; products: Prod[] }) {
   const [state, formAction] = useFormState<CouponState, FormData>(action, {});
+  const [discType, setDiscType] = useState<"percent" | "amount">("percent");
   const [scope, setScope] = useState<"all" | "products">("all");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [q, setQ] = useState("");
@@ -27,6 +28,7 @@ export default function CouponManager({ action, products }: { action: Action; pr
   useEffect(() => {
     if (state.ok) {
       formRef.current?.reset();
+      setDiscType("percent");
       setScope("all");
       setSelected(new Set());
       setQ("");
@@ -46,8 +48,25 @@ export default function CouponManager({ action, products }: { action: Action; pr
           <input id="code" name="code" required placeholder="HEMAT10" className="field uppercase" style={{ textTransform: "uppercase" }} />
         </div>
         <div>
-          <label className="label" htmlFor="value">Besar potongan (%) *</label>
-          <input id="value" name="value" type="number" min={1} max={100} required placeholder="10" className="field" />
+          <div className="flex items-center justify-between">
+            <label className="label" htmlFor="value">Besar potongan {discType === "percent" ? "(%)" : "(Rp)"} *</label>
+            {/* Switch tipe potongan: persen atau rupiah */}
+            <div className="mb-1 inline-flex overflow-hidden rounded-full border border-gray-300 text-xs">
+              <button type="button" onClick={() => setDiscType("percent")} className={discType === "percent" ? "bg-primary px-3 py-1 font-semibold text-white" : "px-3 py-1 text-gray-500"}>%</button>
+              <button type="button" onClick={() => setDiscType("amount")} className={discType === "amount" ? "bg-primary px-3 py-1 font-semibold text-white" : "px-3 py-1 text-gray-500"}>Rp</button>
+            </div>
+          </div>
+          <input type="hidden" name="type" value={discType} />
+          <input
+            id="value"
+            name="value"
+            type="number"
+            min={1}
+            max={discType === "percent" ? 100 : undefined}
+            required
+            placeholder={discType === "percent" ? "10" : "25000"}
+            className="field"
+          />
         </div>
       </div>
 
@@ -63,7 +82,6 @@ export default function CouponManager({ action, products }: { action: Action; pr
             Produk tertentu
           </label>
         </div>
-        <p className="mt-1 text-xs text-gray-400">Produk yang sedang diskon tidak pernah kena potongan kupon.</p>
       </fieldset>
 
       {scope === "products" && (

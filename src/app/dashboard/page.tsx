@@ -384,7 +384,7 @@ export default async function AdminDashboard() {
                   return (
                     <div key={c.id} className="flex items-center gap-3 px-4 py-3 text-sm">
                       <span className={`rounded-md px-2 py-0.5 font-mono text-xs font-bold ${c.active ? "bg-primary/10 text-primary" : "bg-gray-100 text-gray-400 line-through"}`}>{c.code}</span>
-                      <span className="font-semibold text-gray-900">{c.value}%</span>
+                      <span className="font-semibold text-gray-900">{c.type === "amount" ? rupiah(c.value) : `${c.value}%`}</span>
                       <span className="min-w-0 flex-1 truncate text-xs text-gray-500">
                         {c.productIds.length === 0 ? "Semua produk" : `${c.productIds.length} produk: ${nama.join(", ") || "—"}`}
                       </span>

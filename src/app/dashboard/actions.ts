@@ -480,8 +480,16 @@ export async function createCoupon(_prev: CouponState, formData: FormData): Prom
   const code = ((formData.get("code") as string) || "").trim().toUpperCase().replace(/\s+/g, "");
   if (!/^[A-Z0-9]{3,20}$/.test(code)) return { error: "Kode kupon 3-20 karakter, huruf/angka saja." };
 
-  const value = Math.min(100, Math.max(1, toInt(formData.get("value"))));
-  if (value <= 0) return { error: "Persen potongan harus 1-100." };
+  const type = (formData.get("type") as string) === "amount" ? "amount" : "percent";
+  const raw = toInt(formData.get("value"));
+  let value: number;
+  if (type === "amount") {
+    value = Math.max(1, raw);
+    if (value <= 0) return { error: "Nominal potongan harus lebih dari 0." };
+  } else {
+    value = Math.min(100, Math.max(1, raw));
+    if (raw < 1 || raw > 100) return { error: "Persen potongan harus 1-100." };
+  }
 
   const scoped = (formData.get("scope") as string) === "products";
   const productIds = scoped ? formData.getAll("productIds").map(String).filter(Boolean) : [];
@@ -490,7 +498,7 @@ export async function createCoupon(_prev: CouponState, formData: FormData): Prom
   const exists = await prisma.coupon.findUnique({ where: { code } });
   if (exists) return { error: `Kupon "${code}" sudah ada.` };
 
-  await prisma.coupon.create({ data: { code, value, productIds } });
+  await prisma.coupon.create({ data: { code, type, value, productIds } });
   revalidatePath("/dashboard");
   return { ok: true };
 }

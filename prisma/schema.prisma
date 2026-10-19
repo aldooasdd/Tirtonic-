@@ -349,7 +349,8 @@ model SfLoginAttempt {
 model Coupon {
   id         String   @id @default(cuid())
   code       String   @unique // selalu disimpan UPPERCASE
-  value      Int // persen potongan, 1-100
+  type       String   @default("percent") // "percent" (value = 1-100) | "amount" (value = rupiah)
+  value      Int // persen potongan (1-100) ATAU nominal rupiah, tergantung type
   productIds String[] @default([])
   active     Boolean  @default(true)
   createdAt  DateTime @default(now())
