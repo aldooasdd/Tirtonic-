@@ -474,6 +474,7 @@ export async function adminDeleteOrder(id: string) {
 
 // ── Pre-order ────────────────────────────────────────────────────────────────
 function revalidatePreorder() {
+  revalidatePath("/dashboard");
   revalidatePath("/dashboard/preorder");
   revalidatePath("/preorder");
 }
@@ -489,7 +490,7 @@ export async function createPreorderProduct(formData: FormData) {
   const gambar = await uploadImages(formData);
   await prisma.preorderProduct.create({ data: { nama, harga, deskripsi, estimasi, gambar } });
   revalidatePreorder();
-  redirect("/dashboard/preorder");
+  redirect("/dashboard");
 }
 
 export async function deletePreorderProduct(id: string) {

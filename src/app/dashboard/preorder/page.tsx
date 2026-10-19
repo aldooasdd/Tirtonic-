@@ -3,7 +3,6 @@ import Link from "next/link";
 import { isAuthed, can } from "@/lib/auth";
 import { prisma, safeQuery } from "@/lib/prisma";
 import { rupiah } from "@/lib/format";
-import { createPreorderProduct, deletePreorderProduct, togglePreorderProduct } from "../actions";
 import { logout } from "../actions";
 import PreorderOrderActions from "@/components/PreorderOrderActions";
 
@@ -29,10 +28,7 @@ export default async function DashboardPreorder() {
   if (!isAuthed()) redirect("/dashboard/login");
   if (!can("pesanan")) redirect("/dashboard");
 
-  const [products, orders] = await Promise.all([
-    safeQuery(() => prisma.preorderProduct.findMany({ orderBy: { createdAt: "desc" } }), []),
-    safeQuery(() => prisma.preorderOrder.findMany({ orderBy: { createdAt: "desc" }, take: 300 }), []),
-  ]);
+  const orders = await safeQuery(() => prisma.preorderOrder.findMany({ orderBy: { createdAt: "desc" }, take: 300 }), []);
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
@@ -45,53 +41,6 @@ export default async function DashboardPreorder() {
           <button className="rounded-full border px-4 py-1.5 text-sm font-semibold text-gray-600 transition hover:border-red-400 hover:text-red-600">Logout</button>
         </form>
       </div>
-
-      {/* Tambah produk PO */}
-      <section className="mb-8 rounded-2xl border bg-white p-5">
-        <h2 className="mb-3 font-bold text-gray-900">Tambah Produk Pre-Order</h2>
-        <form action={createPreorderProduct} className="space-y-3">
-          <div className="grid gap-3 sm:grid-cols-2">
-            <input name="nama" required placeholder="Nama produk *" className="field" />
-            <input name="harga" type="number" min={1} required placeholder="Harga (Rp) *" className="field" />
-          </div>
-          <input name="estimasi" placeholder="Estimasi tiba (mis. Tiba akhir November)" className="field" />
-          <textarea name="deskripsi" rows={3} placeholder="Deskripsi (opsional)" className="field" />
-          <div>
-            <label className="label">Foto produk (bisa pilih beberapa)</label>
-            <input name="gambar" type="file" accept="image/*" multiple className="text-sm" />
-            <p className="mt-1 text-xs text-gray-400">
-              Foto <b>pertama</b> dipakai jadi banner di landing. Pakai foto <b>landscape (persegi panjang)</b>, subjek di tengah.
-              Ideal: <b>desktop 1920×820 px</b> (dipotong jadi 21:9), <b>HP tetap foto sama</b> (dipotong jadi 16:11) — jadi jangan taruh objek penting di pinggir. Min 1600 px lebar, rasio 16:9–21:9.
-            </p>
-          </div>
-          <button className="btn-green">Tambah Produk PO</button>
-        </form>
-
-        {products.length > 0 && (
-          <div className="mt-5 divide-y rounded-xl border">
-            {products.map((p) => (
-              <div key={p.id} className="flex items-center gap-3 px-4 py-3 text-sm">
-                <div className="h-10 w-10 shrink-0 overflow-hidden rounded border bg-gray-100">
-                  {p.gambar[0] && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={p.gambar[0]} alt="" className="h-full w-full object-cover" />
-                  )}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className={`truncate font-medium ${p.isActive ? "text-gray-900" : "text-gray-400 line-through"}`}>{p.nama}</p>
-                  <p className="text-xs text-gray-400">{rupiah(p.harga)}{p.estimasi ? ` · ${p.estimasi}` : ""}</p>
-                </div>
-                <form action={togglePreorderProduct.bind(null, p.id)}>
-                  <button className="rounded-full border px-3 py-1 text-xs font-semibold text-gray-600 transition hover:border-primary hover:text-primary">{p.isActive ? "Nonaktifkan" : "Aktifkan"}</button>
-                </form>
-                <form action={deletePreorderProduct.bind(null, p.id)}>
-                  <button className="rounded-full border px-3 py-1 text-xs font-semibold text-gray-500 transition hover:border-red-400 hover:text-red-600">Hapus</button>
-                </form>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
 
       {/* Pesanan PO masuk */}
       <section>

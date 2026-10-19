@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { isAuthed, currentRole, can } from "@/lib/auth";
 import { prisma, safeQuery } from "@/lib/prisma";
 import { rupiah } from "@/lib/format";
-import { createProduct, logout, createHeroSlide, deleteHeroSlide, createStore, deleteStore, createPopularBrand, deletePopularBrand, createArticle, createCoupon, deleteCoupon, toggleCoupon } from "./actions";
+import { createProduct, logout, createHeroSlide, deleteHeroSlide, createStore, deleteStore, createPopularBrand, deletePopularBrand, createArticle, createCoupon, deleteCoupon, toggleCoupon, createPreorderProduct, deletePreorderProduct, togglePreorderProduct } from "./actions";
 import ProductForm from "@/components/ProductForm";
 import ProductList from "@/components/ProductList";
 import CouponManager from "@/components/CouponManager";
@@ -51,6 +51,7 @@ export default async function AdminDashboard() {
     safeQuery(() => prisma.sponsorshipSubmission.findMany({ orderBy: { createdAt: "desc" } }), []),
     safeQuery(() => prisma.coupon.findMany({ orderBy: { createdAt: "desc" } }), []),
   ]);
+  const poProducts = await safeQuery(() => prisma.preorderProduct.findMany({ orderBy: { createdAt: "desc" } }), []);
 
   const ready = products.filter((p) => p.status === "READY").length;
   const fmtDate = (d: Date) => new Date(d).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
@@ -362,6 +363,64 @@ export default async function AdminDashboard() {
             )}
           </div>
         </details>
+        )}
+
+        {/* produk pre-order */}
+        {can("pesanan") && (
+
+        <details className="group overflow-hidden rounded-2xl border bg-white shadow-sm">
+          <summary className="flex cursor-pointer items-center justify-between px-5 py-4 font-bold text-gray-900">
+            <span className="flex items-center gap-2">Produk Pre-Order</span>
+            <span className="text-xs font-normal text-gray-400">{poProducts.length} produk</span>
+          </summary>
+          <div className="space-y-5 border-t p-5">
+            <form action={createPreorderProduct} className="space-y-3">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <input name="nama" required placeholder="Nama produk *" className="field" />
+                <input name="harga" type="number" min={1} required placeholder="Harga (Rp) *" className="field" />
+              </div>
+              <input name="estimasi" placeholder="Estimasi tiba (mis. Tiba akhir November)" className="field" />
+              <textarea name="deskripsi" rows={3} placeholder="Deskripsi (opsional)" className="field" />
+              <div>
+                <label className="label">Foto produk (bisa pilih beberapa)</label>
+                <input name="gambar" type="file" accept="image/*" multiple className="text-sm" />
+                <p className="mt-1 text-xs text-gray-400">
+                  Foto <b>pertama</b> dipakai jadi banner di landing. Pakai foto <b>landscape (persegi panjang)</b>, subjek di tengah.
+                  Ideal: <b>desktop 1920×820 px</b> (dipotong jadi 21:9), <b>HP tetap foto sama</b> (dipotong jadi 16:11) — jadi jangan taruh objek penting di pinggir. Min 1600 px lebar, rasio 16:9–21:9.
+                </p>
+              </div>
+              <button className="btn-green">Tambah Produk PO</button>
+            </form>
+
+            {poProducts.length === 0 ? (
+              <p className="text-sm text-gray-400">Belum ada produk pre-order.</p>
+            ) : (
+              <div className="divide-y rounded-xl border">
+                {poProducts.map((p) => (
+                  <div key={p.id} className="flex items-center gap-3 px-4 py-3 text-sm">
+                    <div className="h-10 w-10 shrink-0 overflow-hidden rounded border bg-gray-100">
+                      {p.gambar[0] && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={p.gambar[0]} alt="" className="h-full w-full object-cover" />
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className={`truncate font-medium ${p.isActive ? "text-gray-900" : "text-gray-400 line-through"}`}>{p.nama}</p>
+                      <p className="text-xs text-gray-400">{rupiah(p.harga)}{p.estimasi ? ` · ${p.estimasi}` : ""}</p>
+                    </div>
+                    <form action={togglePreorderProduct.bind(null, p.id)}>
+                      <button className="rounded-full border px-3 py-1 text-xs font-semibold text-gray-600 transition hover:border-primary hover:text-primary">{p.isActive ? "Nonaktifkan" : "Aktifkan"}</button>
+                    </form>
+                    <form action={deletePreorderProduct.bind(null, p.id)}>
+                      <button className="rounded-full border px-3 py-1 text-xs font-semibold text-gray-500 transition hover:border-red-400 hover:text-red-600">Hapus</button>
+                    </form>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </details>
+
         )}
 
         {/* kupon diskon */}
