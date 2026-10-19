@@ -8,7 +8,7 @@ import { findRoleByPassword, roleMatches, setRolePassword, hashPassword } from "
 import { verifyPickupToken, verifyReturnToken } from "@/lib/pickup-token";
 import { uploadFile, uploadFromUrl, storageConfigured } from "@/lib/storage";
 import { fetchTokopedia } from "@/lib/tokopedia";
-import { markOrderPaid, markOrderShipped, cancelOrder } from "@/lib/orders";
+import { markOrderPaid, markOrderShipped, markOrderDelivered, cancelOrder } from "@/lib/orders";
 import { slugify } from "@/lib/article-slug";
 import { sendWa } from "@/lib/wa";
 import { createCommunitySession } from "@/lib/community-auth";
@@ -445,6 +445,13 @@ export async function adminMarkPaid(id: string) {
 export async function adminMarkShipped(id: string, resi: string, kurir?: string) {
   requireSection("pesanan");
   await markOrderShipped(id, resi, kurir);
+  revalidateOrder(id);
+}
+
+/** Tandai pesanan sudah diterima customer → status DELIVERED (customer bisa menilai). */
+export async function adminMarkDelivered(id: string) {
+  requireSection("pesanan");
+  await markOrderDelivered(id);
   revalidateOrder(id);
 }
 

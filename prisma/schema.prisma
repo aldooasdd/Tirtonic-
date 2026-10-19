@@ -17,6 +17,7 @@ enum OrderStatus {
   PENDING // dibuat, menunggu pembayaran
   PAID // sudah dibayar (via DOKU / konfirmasi manual)
   SHIPPED // sudah dikirim (resi diisi)
+  DELIVERED // sudah diterima customer (admin tandai) → boleh dinilai
   CANCELLED // dibatalkan
 }
 
@@ -46,9 +47,27 @@ model Order {
   paymentRef  String? // referensi transaksi DOKU
   paidAt      DateTime?
   shippedAt   DateTime?
+  deliveredAt DateTime? // diisi saat admin tandai pesanan diterima
   items       OrderItem[]
+  reviews     Review[]
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
+}
+
+// Penilaian produk oleh customer, hanya setelah pesanan DELIVERED.
+// Satu baris per produk per pesanan (cegah dobel lewat @@unique).
+model Review {
+  id          String   @id @default(cuid())
+  orderId     String
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId   String? // referensi; snapshot nama disimpan terpisah karena produk bisa terhapus
+  productNama String
+  rating      Int // 1–5
+  komentar    String?
+  createdAt   DateTime @default(now())
+
+  @@unique([orderId, productNama])
+  @@index([productId])
 }
 
 model OrderItem {

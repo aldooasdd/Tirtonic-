@@ -196,6 +196,14 @@ export async function markOrderShipped(orderId: string, resi: string, kurir?: st
   return true;
 }
 
+/** Tandai pesanan sudah diterima customer → status DELIVERED (boleh dinilai). */
+export async function markOrderDelivered(orderId: string): Promise<boolean> {
+  const order = await prisma.order.findUnique({ where: { id: orderId }, select: { status: true } });
+  if (!order || order.status !== "SHIPPED") return false; // hanya dari SHIPPED
+  await prisma.order.update({ where: { id: orderId }, data: { status: "DELIVERED", deliveredAt: new Date() } });
+  return true;
+}
+
 export async function cancelOrder(orderId: string): Promise<boolean> {
   const order = await prisma.order.findUnique({ where: { id: orderId } });
   if (!order || order.status === "SHIPPED") return false;
