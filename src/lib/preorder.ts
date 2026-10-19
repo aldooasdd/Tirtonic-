@@ -54,8 +54,9 @@ export async function createPreorder(input: PreorderInput): Promise<CreatePreord
   if (p.variants.length > 0) {
     const v = p.variants.find((x) => x.id === input.variantId);
     if (!v) return { ok: false, error: "Pilih varian dulu." };
-    if (v.stok < qty) return { ok: false, error: `Stok varian ${v.nama} tinggal ${v.stok}.` };
-    hargaSatuan = v.harga; variantId = v.id; varian = v.nama;
+    const label = v.ukuran ? `${v.warna} / ${v.ukuran}` : v.warna;
+    if (v.stok < qty) return { ok: false, error: `Stok varian ${label} tinggal ${v.stok}.` };
+    hargaSatuan = v.harga; variantId = v.id; varian = label;
   }
 
   const total = hargaSatuan * qty;

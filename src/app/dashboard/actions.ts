@@ -473,6 +473,30 @@ export async function adminDeleteOrder(id: string) {
 }
 
 // ── Pre-order ────────────────────────────────────────────────────────────────
+// Parse varian PO dari field array v_* (warna/ukuran/harga/stok/foto). Tanpa diskon.
+async function parsePreorderVariants(formData: FormData) {
+  const warna = formData.getAll("v_warna").map(String);
+  const ukuran = formData.getAll("v_ukuran").map(String);
+  const harga = formData.getAll("v_harga").map(String);
+  const stok = formData.getAll("v_stok").map(String);
+  const files = formData.getAll("v_gambar");
+  const out: { warna: string; ukuran: string | null; harga: number; stok: number; gambar: string | null; urutan: number }[] = [];
+  for (let i = 0; i < warna.length; i++) {
+    const w = (warna[i] || "").trim();
+    const h = parseInt((harga[i] || "0").replace(/\D/g, ""), 10) || 0;
+    if (!w || h <= 0) continue; // lewati baris belum lengkap
+    const f = files[i];
+    let gambar: string | null = null;
+    if (f instanceof File && f.size > 0) {
+      if (!storageConfigured) throw new Error("Supabase Storage belum dikonfigurasi (cek .env).");
+      gambar = await uploadFile(f, "products");
+    }
+    out.push({ warna: w, ukuran: (ukuran[i] || "").trim() || null, harga: h, stok: parseInt((stok[i] || "0").replace(/\D/g, ""), 10) || 0, gambar, urutan: i });
+  }
+  return out;
+}
+
+
 function revalidatePreorder() {
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/preorder");
@@ -488,14 +512,7 @@ export async function createPreorderProduct(formData: FormData) {
   const deskripsi = ((formData.get("deskripsi") as string) || "").trim() || null;
   const estimasi = ((formData.get("estimasi") as string) || "").trim() || null;
   const isiBox = ((formData.get("isiBox") as string) || "").split("\n").map((s) => s.trim()).filter(Boolean);
-  // Varian (opsional): satu per baris "Nama | harga | stok". Harga kosong → pakai harga produk.
-  const variants = ((formData.get("variants") as string) || "")
-    .split("\n").map((s) => s.trim()).filter(Boolean)
-    .map((line) => {
-      const [vn, vh, vs] = line.split("|").map((x) => x.trim());
-      return { nama: vn, harga: vh ? Math.max(0, parseInt(vh.replace(/\D/g, ""), 10) || 0) || harga : harga, stok: Math.max(0, parseInt((vs || "0").replace(/\D/g, ""), 10) || 0) };
-    })
-    .filter((v) => v.nama);
+  const variants = formData.get("hasVariants") ? await parsePreorderVariants(formData) : [];
   const gambar = await uploadImages(formData);
   await prisma.preorderProduct.create({
     data: { nama, harga, deskripsi, estimasi, isiBox, gambar, ...(variants.length ? { variants: { create: variants } } : {}) },

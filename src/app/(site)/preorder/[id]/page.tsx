@@ -7,8 +7,9 @@ import PreorderCheckout from "@/components/PreorderCheckout";
 export const dynamic = "force-dynamic";
 
 export default async function PreorderDetail({ params }: { params: { id: string } }) {
-  const p = await safeQuery(() => prisma.preorderProduct.findUnique({ where: { id: params.id }, include: { variants: { orderBy: { nama: "asc" } } } }), null);
+  const p = await safeQuery(() => prisma.preorderProduct.findUnique({ where: { id: params.id }, include: { variants: { orderBy: { urutan: "asc" } } } }), null);
   if (!p || !p.isActive) notFound();
+  const variantData = p.variants.map((v) => ({ id: v.id, nama: v.ukuran ? `${v.warna} / ${v.ukuran}` : v.warna, harga: v.harga, stok: v.stok }));
 
   return (
     <div className="mx-auto max-w-site px-4 py-8 lg:px-6">
@@ -45,7 +46,7 @@ export default async function PreorderDetail({ params }: { params: { id: string 
               productId={p.id}
               harga={p.harga}
               nama={p.nama}
-              variants={p.variants.map((v) => ({ id: v.id, nama: v.nama, harga: v.harga, stok: v.stok }))}
+              variants={variantData}
             />
           </div>
         </div>

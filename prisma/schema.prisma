@@ -42,9 +42,12 @@ model PreorderVariant {
   id        String          @id @default(cuid())
   productId String
   product   PreorderProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
-  nama      String // label, mis. "Hijau / 42"
+  warna     String
+  ukuran    String? // opsional
   harga     Int
   stok      Int             @default(0)
+  gambar    String? // foto warna
+  urutan    Int             @default(0)
 
   @@index([productId])
 }
