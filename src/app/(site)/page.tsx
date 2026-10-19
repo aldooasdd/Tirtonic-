@@ -289,13 +289,19 @@ type PreorderBanner = { id: string; nama: string; tagline: string | null; harga:
 function PreorderBanners({ products }: { products: PreorderBanner[] }) {
   if (products.length === 0) return null;
   return (
-    <section className="space-y-14 py-6">
+    <section className="space-y-3 py-2">
       {products.map((p) => (
-        <div key={p.id} className="text-center">
-          <div className="mx-auto max-w-site px-4 lg:px-6">
-            <h2 className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-5xl">{p.nama}</h2>
-            {p.tagline && <p className="mt-2 text-lg font-semibold text-gray-700 sm:text-2xl">{p.tagline}</p>}
-            {p.estimasi && <p className="mt-1.5 text-sm text-gray-500 sm:text-base">{p.estimasi}</p>}
+        <div key={p.id} className="relative aspect-[4/5] w-full overflow-hidden sm:aspect-[16/9] lg:aspect-[21/9]">
+          {p.gambar[0] && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={p.gambar[0]} alt={p.nama} className="absolute inset-0 h-full w-full object-cover" />
+          )}
+          {/* gradient atas biar teks kebaca di foto apa pun */}
+          <div aria-hidden className="absolute inset-x-0 top-0 h-2/5 bg-gradient-to-b from-black/45 to-transparent" />
+          <div className="absolute inset-x-0 top-0 px-4 pt-8 text-center sm:pt-10">
+            <h2 className="text-3xl font-extrabold tracking-tight text-white drop-shadow sm:text-5xl">{p.nama}</h2>
+            {p.tagline && <p className="mt-2 text-lg font-semibold text-white/90 drop-shadow sm:text-2xl">{p.tagline}</p>}
+            {p.estimasi && <p className="mt-1.5 text-sm text-white/80 drop-shadow sm:text-base">{p.estimasi}</p>}
             <div className="mt-5 flex justify-center">
               <Link href={`/preorder/${p.id}`} className="glass-primary inline-flex items-center gap-1 rounded-full py-1.5 pl-5 pr-1.5 text-sm font-semibold transition">
                 <span className="px-1">{rupiah(p.harga)}</span>
@@ -303,12 +309,6 @@ function PreorderBanners({ products }: { products: PreorderBanner[] }) {
               </Link>
             </div>
           </div>
-          {p.gambar[0] && (
-            <div className="mx-auto mt-8 max-w-5xl px-4">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={p.gambar[0]} alt={p.nama} className="mx-auto w-full rounded-2xl object-cover" />
-            </div>
-          )}
         </div>
       ))}
     </section>
