@@ -2,6 +2,8 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma, safeQuery } from "@/lib/prisma";
 import { rupiah, waLink } from "@/lib/format";
+import { expirePendingOrders, PAY_WINDOW_MIN } from "@/lib/orders";
+import PaymentCountdown from "@/components/PaymentCountdown";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +16,7 @@ const STATUS: Record<string, { label: string; cls: string; desc: string }> = {
 };
 
 export default async function OrderPage({ params }: { params: { id: string } }) {
+  await expirePendingOrders(); // bersihkan PENDING kadaluarsa dulu
   const order = await safeQuery(
     () => prisma.order.findUnique({ where: { id: params.id }, include: { items: true } }),
     null
@@ -43,9 +46,14 @@ export default async function OrderPage({ params }: { params: { id: string } }) 
         )}
 
         {order.status === "PENDING" && (
-          <a href={waLink(`Halo Admin Tirtonic, saya mau konfirmasi pembayaran pesanan ${order.invoice}.`)} target="_blank" rel="noreferrer" className="btn-pill mt-4 w-full bg-primary hover:bg-primaryDark">
-            Konfirmasi Pembayaran via WhatsApp
-          </a>
+          <>
+            <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-center">
+              <PaymentCountdown deadline={new Date(order.createdAt.getTime() + PAY_WINDOW_MIN * 60_000).toISOString()} />
+            </div>
+            <a href={waLink(`Halo Admin Tirtonic, saya mau konfirmasi pembayaran pesanan ${order.invoice}.`)} target="_blank" rel="noreferrer" className="btn-pill mt-3 w-full bg-primary hover:bg-primaryDark">
+              Konfirmasi Pembayaran via WhatsApp
+            </a>
+          </>
         )}
 
         {/* items */}

@@ -4,6 +4,8 @@ import { normalizePhone, displayPhone } from "@/lib/string-finder/phone";
 import { rupiah } from "@/lib/format";
 import CustomerTracking from "@/components/CustomerTracking";
 import ReviewForm from "@/components/ReviewForm";
+import PaymentCountdown from "@/components/PaymentCountdown";
+import { expirePendingOrders, PAY_WINDOW_MIN } from "@/lib/orders";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Pesanan Saya — Tirtonic" };
@@ -25,6 +27,7 @@ function fmt(d: Date) {
 
 export default async function PesananSayaPage({ params }: { params: { phone: string } }) {
   const phone = normalizePhone(decodeURIComponent(params.phone));
+  await expirePendingOrders(); // bersihkan PENDING kadaluarsa dulu
   // telepon disimpan apa adanya saat checkout (0xxx / +62xxx / 62xxx) → cari semua varian.
   const rest = phone ? phone.slice(2) : ""; // tanpa "62"
   const phoneVariants = phone ? [phone, "0" + rest, "+62" + rest] : [];
@@ -147,9 +150,12 @@ export default async function PesananSayaPage({ params }: { params: { phone: str
                         <CustomerTracking orderId={o.id} kurir={o.kurir} resi={o.resi} />
                       )}
                       {o.status === "PENDING" && (
-                        <Link href={`/order/${o.id}`} className="glass-primary mt-3 block rounded-full px-3 py-2 text-center text-xs font-bold transition">
-                          Selesaikan pembayaran →
-                        </Link>
+                        <div className="mt-3">
+                          <PaymentCountdown deadline={new Date(o.createdAt.getTime() + PAY_WINDOW_MIN * 60_000).toISOString()} className="mb-2 text-center" />
+                          <Link href={`/order/${o.id}`} className="glass-primary block rounded-full px-3 py-2 text-center text-xs font-bold transition">
+                            Selesaikan pembayaran →
+                          </Link>
+                        </div>
                       )}
                     </div>
                   </div>

@@ -196,6 +196,23 @@ export async function markOrderShipped(orderId: string, resi: string, kurir?: st
   return true;
 }
 
+// Jendela bayar pesanan PENDING. Countdown ke customer = PAY_WINDOW_MIN.
+// Hapus baru dilakukan setelah +GRACE_MIN, memberi waktu webhook DOKU yang telat
+// (bayar di menit terakhir) supaya pembayaran tak hilang karena order keburu terhapus.
+export const PAY_WINDOW_MIN = 60;
+const GRACE_MIN = 10;
+
+/** Hapus PENDING yang lewat jendela bayar + grace. Dipanggil lazy saat halaman
+ *  pesanan dibaca (tanpa cron). PENDING tak pernah potong stok, jadi aman dihapus. */
+export async function expirePendingOrders(): Promise<void> {
+  const cutoff = new Date(Date.now() - (PAY_WINDOW_MIN + GRACE_MIN) * 60_000);
+  try {
+    await prisma.order.deleteMany({ where: { status: "PENDING", createdAt: { lt: cutoff } } });
+  } catch {
+    /* jangan gagalkan render halaman kalau cleanup error */
+  }
+}
+
 /** Tandai pesanan sudah diterima customer → status DELIVERED (boleh dinilai). */
 export async function markOrderDelivered(orderId: string): Promise<boolean> {
   const order = await prisma.order.findUnique({ where: { id: orderId }, select: { status: true } });

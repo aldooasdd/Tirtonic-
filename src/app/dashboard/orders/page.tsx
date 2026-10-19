@@ -4,6 +4,7 @@ import { isAuthed, can } from "@/lib/auth";
 import { prisma, safeQuery } from "@/lib/prisma";
 import { rupiah } from "@/lib/format";
 import OrderRowActions from "@/components/OrderRowActions";
+import { expirePendingOrders } from "@/lib/orders";
 import { logout } from "../actions";
 
 export const dynamic = "force-dynamic";
@@ -32,6 +33,7 @@ export default async function OrdersPage() {
   if (!isAuthed()) redirect("/dashboard/login");
   if (!can("pesanan")) redirect("/dashboard");
 
+  await expirePendingOrders(); // hapus PENDING kadaluarsa (60 menit + grace)
   const orders = await safeQuery(
     () => prisma.order.findMany({ orderBy: { createdAt: "desc" }, include: { items: true } }),
     []
