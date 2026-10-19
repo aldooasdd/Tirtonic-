@@ -45,6 +45,8 @@ type DokuOrder = {
   email: string;
   telepon: string;
   id: string;
+  callbackPath?: string; // halaman tujuan setelah bayar (default /order/{id}); PO pakai /preorder/order/{id}
+  dueMinutes?: number; // batas bayar (menit); default 60
 };
 
 /** Buat pembayaran di DOKU → kembalikan URL halaman bayar untuk redirect.
@@ -54,14 +56,15 @@ export async function createDokuPayment(order: DokuOrder): Promise<string | null
 
   const requestId = crypto.randomUUID();
   const timestamp = new Date().toISOString().split(".")[0] + "Z";
+  const callback = order.callbackPath ?? `/order/${order.id}`;
   const body = JSON.stringify({
     order: {
       amount: order.total,
       invoice_number: order.invoice,
       currency: "IDR",
-      callback_url: `${SITE_URL}/order/${order.id}`,
+      callback_url: `${SITE_URL}${callback}`,
     },
-    payment: { payment_due_date: 60 },
+    payment: { payment_due_date: order.dueMinutes ?? 60 },
     customer: { name: order.nama, email: order.email, phone: order.telepon.replace(/\D/g, "") },
   });
 

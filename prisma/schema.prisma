@@ -21,6 +21,60 @@ enum OrderStatus {
   CANCELLED // dibatalkan
 }
 
+// ── Pre-order ───────────────────────────────────────────────────────────────
+// Produk PO: customer bayar DP dulu (min 100rb, via DOKU), barang menyusul.
+model PreorderProduct {
+  id        String          @id @default(cuid())
+  nama      String
+  harga     Int // harga penuh
+  gambar    String[]        @default([])
+  deskripsi String?
+  estimasi  String? // mis. "Tiba akhir November"
+  isActive  Boolean         @default(true)
+  createdAt DateTime        @default(now())
+  orders    PreorderOrder[]
+}
+
+enum PreorderStatus {
+  PENDING_DP // dibuat, DP belum dibayar
+  DP_PAID // DP lunas, menunggu barang
+  WAITING_LUNAS // barang ready, kekurangan dikirim, menunggu pelunasan
+  LUNAS // pelunasan diterima
+  CANCELLED
+}
+
+model PreorderOrder {
+  id              String           @id @default(cuid())
+  invoice         String           @unique // PO-YYMMDD-XXXX (referensi DOKU untuk DP)
+  invoiceLunas    String?          @unique // referensi DOKU untuk pelunasan (dibuat saat barang ready)
+  nama            String
+  email           String
+  telepon         String
+  alamat          String
+  kota            String
+  provinsi        String
+  kodePos         String?
+  catatan         String?
+  productId       String?
+  productNama     String // snapshot
+  gambar          String?
+  harga           Int // satuan snapshot
+  qty             Int
+  total           Int // harga * qty
+  dp              Int // uang muka dibayar
+  kekurangan      Int? // diisi admin saat barang ready (default total - dp)
+  status          PreorderStatus   @default(PENDING_DP)
+  paymentRefDp    String?
+  paymentRefLunas String?
+  dpPaidAt        DateTime?
+  readyAt         DateTime?
+  lunasAt         DateTime?
+  product         PreorderProduct? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  createdAt       DateTime         @default(now())
+
+  @@index([telepon])
+}
+
 // Pesanan checkout (guest, tanpa login). Pembayaran via DOKU (dipasang via env),
 // atau dikonfirmasi manual oleh admin. Nomor resi hanya disimpan & dikirim ke
 // customer (lewat webhook n8n); pelacakannya tetap di situs kurir.

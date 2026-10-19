@@ -9,6 +9,7 @@ import { verifyPickupToken, verifyReturnToken } from "@/lib/pickup-token";
 import { uploadFile, uploadFromUrl, storageConfigured } from "@/lib/storage";
 import { fetchTokopedia } from "@/lib/tokopedia";
 import { markOrderPaid, markOrderShipped, markOrderDelivered, cancelOrder } from "@/lib/orders";
+import { confirmPreorderReady, cancelPreorder } from "@/lib/preorder";
 import { slugify } from "@/lib/article-slug";
 import { sendWa } from "@/lib/wa";
 import { createCommunitySession } from "@/lib/community-auth";
@@ -469,6 +470,60 @@ export async function adminDeleteOrder(id: string) {
   if (!o || (o.status !== "CANCELLED" && o.status !== "DELIVERED")) return;
   await prisma.order.delete({ where: { id } });
   revalidatePath("/dashboard/orders");
+}
+
+// ── Pre-order ────────────────────────────────────────────────────────────────
+function revalidatePreorder() {
+  revalidatePath("/dashboard/preorder");
+  revalidatePath("/preorder");
+}
+
+/** Tambah produk pre-order (foto via Supabase Storage, sama seperti produk biasa). */
+export async function createPreorderProduct(formData: FormData) {
+  requireSection("pesanan");
+  const nama = ((formData.get("nama") as string) || "").trim();
+  const harga = toInt(formData.get("harga"));
+  if (!nama || harga <= 0) throw new Error("Nama dan harga wajib diisi.");
+  const deskripsi = ((formData.get("deskripsi") as string) || "").trim() || null;
+  const estimasi = ((formData.get("estimasi") as string) || "").trim() || null;
+  const gambar = await uploadImages(formData);
+  await prisma.preorderProduct.create({ data: { nama, harga, deskripsi, estimasi, gambar } });
+  revalidatePreorder();
+  redirect("/dashboard/preorder");
+}
+
+export async function deletePreorderProduct(id: string) {
+  requireSection("pesanan");
+  await prisma.preorderProduct.delete({ where: { id } });
+  revalidatePreorder();
+}
+
+export async function togglePreorderProduct(id: string) {
+  requireSection("pesanan");
+  const p = await prisma.preorderProduct.findUnique({ where: { id }, select: { isActive: true } });
+  if (p) await prisma.preorderProduct.update({ where: { id }, data: { isActive: !p.isActive } });
+  revalidatePreorder();
+}
+
+/** Barang ready → kirim link pelunasan (nominal kekurangan) via WA ke customer. */
+export async function adminPreorderReady(id: string, kekurangan: number) {
+  requireSection("pesanan");
+  await confirmPreorderReady(id, kekurangan);
+  revalidatePreorder();
+}
+
+export async function adminCancelPreorder(id: string) {
+  requireSection("pesanan");
+  await cancelPreorder(id);
+  revalidatePreorder();
+}
+
+export async function adminDeletePreorder(id: string) {
+  requireSection("pesanan");
+  const o = await prisma.preorderOrder.findUnique({ where: { id }, select: { status: true } });
+  if (!o || (o.status !== "CANCELLED" && o.status !== "LUNAS")) return;
+  await prisma.preorderOrder.delete({ where: { id } });
+  revalidatePreorder();
 }
 
 // ── Kupon ──────────────────────────────────────────────────────────────────

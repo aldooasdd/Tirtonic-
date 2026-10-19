@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { verifyDokuNotification, dokuConfigured } from "@/lib/doku";
 import { markOrderPaid } from "@/lib/orders";
+import { markPreorderDpPaid, markPreorderLunas } from "@/lib/preorder";
 
 export const dynamic = "force-dynamic";
 
@@ -38,13 +39,22 @@ export async function POST(req: Request) {
     return Response.json({ ok: true, ignored: status });
   }
 
+  const ref = String(transaction.original_request_id ?? transaction.id ?? "") || undefined;
+
   const found = await prisma.order.findUnique({ where: { invoice } });
   if (found) {
     await markOrderPaid(found.id, {
       metodeBayar: String(service.id ?? service.payment_method_type ?? "") || undefined,
-      paymentRef: String(transaction.original_request_id ?? transaction.id ?? "") || undefined,
+      paymentRef: ref,
     });
+    return Response.json({ ok: true });
   }
+
+  // Pre-order: invoice bisa untuk DP (invoice) atau pelunasan (invoiceLunas).
+  const poDp = await prisma.preorderOrder.findUnique({ where: { invoice }, select: { id: true } });
+  if (poDp) { await markPreorderDpPaid(poDp.id, ref); return Response.json({ ok: true }); }
+  const poLunas = await prisma.preorderOrder.findUnique({ where: { invoiceLunas: invoice }, select: { id: true } });
+  if (poLunas) { await markPreorderLunas(invoice, ref); return Response.json({ ok: true }); }
 
   return Response.json({ ok: true });
 }

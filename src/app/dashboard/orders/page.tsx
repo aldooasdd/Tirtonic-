@@ -48,6 +48,7 @@ export default async function OrdersPage() {
         </div>
         <div className="flex items-center gap-3">
           <span className="text-sm text-gray-400">{orders.length} pesanan</span>
+          <Link href="/dashboard/preorder" className="rounded-full bg-primary px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-primaryDark">Pre-Order</Link>
           <Link href="/dashboard/password" className="text-sm font-medium text-gray-500 hover:text-primary">Ganti sandi</Link>
           <form action={logout}>
             <button className="rounded-full border px-4 py-1.5 text-sm font-semibold text-gray-600 transition hover:border-red-400 hover:text-red-600">Logout</button>
