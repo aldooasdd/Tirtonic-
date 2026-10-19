@@ -4,6 +4,7 @@ import Footer, { Benefits } from "@/components/Footer";
 import { ArticleCardData } from "@/components/ArticleCard";
 import { articleHref } from "@/lib/article-slug";
 import ProductCard, { ProductCardData } from "@/components/ProductCard";
+import { rupiah } from "@/lib/format";
 import SeoBlock from "@/components/SeoBlock";
 import HeroCarousel from "@/components/HeroCarousel";
 
@@ -281,8 +282,50 @@ function NewArticles({ articles }: { articles: ArticleCardData[] }) {
   );
 }
 
+type PreorderBanner = { id: string; nama: string; harga: number; gambar: string[]; estimasi: string | null };
+
+// Banner pre-order di landing (ala Apple): foto produk + nama/estimasi kiri bawah,
+// kapsul harga + tombol "Pre-order" (glass-primary, hijau tua) kanan bawah.
+function PreorderBanners({ products }: { products: PreorderBanner[] }) {
+  if (products.length === 0) return null;
+  return (
+    <section className="mx-auto max-w-site px-4 lg:px-6 py-2">
+      <div className="mb-3 flex items-center gap-2.5">
+        <span className="rounded-full bg-primary px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">Pre-Order</span>
+        <h2 className="text-lg font-bold text-gray-900">Pesan Duluan</h2>
+      </div>
+      <div className="space-y-4">
+        {products.map((p) => (
+          <Link
+            key={p.id}
+            href={`/preorder/${p.id}`}
+            className="group relative block aspect-[16/11] overflow-hidden rounded-2xl bg-gray-100 sm:aspect-[21/9]"
+          >
+            {p.gambar[0] && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={p.gambar[0]} alt={p.nama} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+            )}
+            <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/15 to-transparent" />
+            <div className="absolute inset-x-0 bottom-0 flex flex-wrap items-end justify-between gap-3 p-5 sm:p-7">
+              <div className="text-white">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-white/80">Pre-Order</p>
+                <h3 className="mt-0.5 text-xl font-extrabold leading-tight sm:text-3xl">{p.nama}</h3>
+                {p.estimasi && <p className="mt-1 text-xs text-white/80 sm:text-sm">{p.estimasi}</p>}
+              </div>
+              <span className="glass-primary inline-flex items-center gap-1 rounded-full py-1 pl-4 pr-1 text-sm font-semibold">
+                <span className="px-1">{rupiah(p.harga)}</span>
+                <span className="rounded-full bg-white/20 px-4 py-1.5 font-bold">Pre-order</span>
+              </span>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export default async function HomePage() {
-  const [stores, articles, slides, latest, deals, popular, brands, sfBranches, sfActive] = await Promise.all([
+  const [stores, articles, slides, latest, deals, popular, brands, sfBranches, sfActive, preorders] = await Promise.all([
     safeQuery(() => prisma.store.findMany({ orderBy: [{ urutan: "asc" }, { nama: "asc" }] }), []),
     safeQuery(() => prisma.article.findMany({ orderBy: { tanggal: "desc" }, take: 8 }), []),
     safeQuery(
@@ -295,6 +338,7 @@ export default async function HomePage() {
     safeQuery(() => prisma.popularBrand.findMany({ orderBy: [{ urutan: "asc" }, { nama: "asc" }] }), []),
     safeQuery(() => prisma.sfBranch.findMany({ where: { isActive: true, slug: { not: "tirtonic" } }, orderBy: { name: "asc" }, select: { id: true, name: true } }), []),
     safeQuery(() => prisma.sfOrder.findMany({ where: { status: { in: ["antri", "dikerjakan"] } }, orderBy: { createdAt: "asc" }, select: { resultCode: true, status: true, branchId: true, stringerName: true } }), []),
+    safeQuery(() => prisma.preorderProduct.findMany({ where: { isActive: true }, orderBy: { createdAt: "desc" }, take: 4, select: { id: true, nama: true, harga: true, gambar: true, estimasi: true } }), []),
   ]);
   const toCard = (p: (typeof latest)[number]) => ({ id: p.id, nama: p.nama, harga: p.harga, hargaDiskon: p.hargaDiskon, gambar: p.gambar, status: p.status, fromPrice: p._count.variants > 0 });
   const arrivals = latest.map(toCard);
@@ -328,6 +372,7 @@ export default async function HomePage() {
           Berdiri sejak 2022 • 3 Lokasi Cabang • Ribuan Customer • Bisa kirim seluruh Indonesia gratis ongkir
         </p>
       </div>
+      <PreorderBanners products={preorders} />
       <ForYou products={forYou} />
       <BrandPopular brands={brands.map((b) => ({ id: b.id, nama: b.nama, foto: b.foto }))} />
       <BestDeal products={bestDeals} />
