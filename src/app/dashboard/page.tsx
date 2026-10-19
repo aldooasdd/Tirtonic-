@@ -390,6 +390,16 @@ export default async function AdminDashboard() {
                 <label className="label">What&apos;s in the Box (satu item per baris)</label>
                 <textarea name="isiBox" rows={3} placeholder={"Contoh:\nRaket Tenis\nCover Raket\nKartu Garansi"} className="field" />
               </div>
+              <div className="rounded-lg border border-amber-200 bg-amber-50/50 p-4">
+                <p className="mb-2 text-sm font-semibold text-gray-900">Bonus jika bayar penuh (lunas) di awal</p>
+                <div className="space-y-2">
+                  <input name="bonusNama" placeholder="Nama bonus (mis. Grip Tenis)" className="field" />
+                  <textarea name="bonusDeskripsi" rows={2} placeholder="Deskripsi bonus (opsional)" className="field" />
+                  <label className="block text-xs text-gray-500">Foto bonus: <input name="bonusFoto" type="file" accept="image/*" className="text-xs" /></label>
+                </div>
+                <p className="mt-1.5 text-xs text-gray-400">Kosongkan kalau tidak ada bonus. Tampil saat customer pilih bayar penuh.</p>
+              </div>
+
               <PreorderVariantInput />
               <div>
                 <label className="label">Foto produk (galeri halaman detail, bisa beberapa)</label>

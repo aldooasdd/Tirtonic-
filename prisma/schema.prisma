@@ -32,6 +32,9 @@ model PreorderProduct {
   bannerDesktop String? // foto hero landing untuk desktop (landscape)
   bannerMobile  String? // foto hero landing untuk HP
   deskripsi String?
+  bonusNama      String? // bonus jika bayar penuh (lunas) di awal: nama
+  bonusDeskripsi String? // bonus: deskripsi
+  bonusFoto      String? // bonus: foto
   isiBox    String[]        @default([]) // "What's in the Box" — daftar isi kotak
   estimasi  String? // mis. "Tiba akhir November"
   isActive  Boolean         @default(true)

@@ -10,8 +10,9 @@ const PROVINSI = Object.keys(wilayah as Record<string, string[]>).sort((a, b) =>
 const MIN_DP = 100_000;
 
 type Variant = { id: string; nama: string; harga: number; stok: number };
+type Bonus = { nama: string; deskripsi: string | null; foto: string | null } | null;
 
-export default function PreorderCheckout({ productId, harga, variants = [] }: { productId: string; harga: number; nama: string; variants?: Variant[] }) {
+export default function PreorderCheckout({ productId, harga, variants = [], bonus = null }: { productId: string; harga: number; nama: string; variants?: Variant[]; bonus?: Bonus }) {
   const router = useRouter();
   const hasVariants = variants.length > 0;
   const [variantId, setVariantId] = useState<string>("");
@@ -120,12 +121,31 @@ export default function PreorderCheckout({ productId, harga, variants = [] }: { 
           onChange={(e) => setDp(Math.floor(Number(e.target.value) || 0))}
           className={`${field} mt-1`}
         />
+        <button type="button" onClick={() => setDp(total)} className="mt-2 text-xs font-semibold text-primary hover:underline">
+          Bayar penuh (lunas){bonus ? " — dapat bonus 🎁" : ""}
+        </button>
         <div className="mt-2 space-y-0.5 text-sm">
           <div className="flex justify-between text-gray-500"><span>Total harga</span><span>{rupiah(total)}</span></div>
           <div className="flex justify-between font-semibold text-primary"><span>DP dibayar sekarang</span><span>{rupiah(Math.min(dp, total))}</span></div>
           <div className="flex justify-between text-gray-500"><span>Sisa (saat barang ready)</span><span>{rupiah(sisa)}</span></div>
         </div>
       </div>
+
+      {bonus && (
+        <div className={`rounded-xl border p-3 ${sisa === 0 ? "border-amber-300 bg-amber-50" : "border-gray-200 bg-gray-50"}`}>
+          <p className="text-xs font-semibold text-gray-700">🎁 Bonus jika bayar penuh (lunas){sisa === 0 ? " — kamu dapat ini!" : ""}</p>
+          <div className="mt-2 flex gap-3">
+            {bonus.foto && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={bonus.foto} alt="" className="h-14 w-14 shrink-0 rounded-lg border object-cover" />
+            )}
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-gray-900">{bonus.nama}</p>
+              {bonus.deskripsi && <p className="text-xs text-gray-500">{bonus.deskripsi}</p>}
+            </div>
+          </div>
+        </div>
+      )}
 
       {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>}
       <button type="submit" disabled={busy} className="btn-pill w-full bg-primary hover:bg-primaryDark disabled:opacity-60">

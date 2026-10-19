@@ -36,7 +36,13 @@ export default async function PreorderCheckoutPage({ params }: { params: { id: s
       </div>
 
       <div className="mt-5">
-        <PreorderCheckout productId={p.id} harga={p.harga} nama={p.nama} variants={variantData} />
+        <PreorderCheckout
+          productId={p.id}
+          harga={p.harga}
+          nama={p.nama}
+          variants={variantData}
+          bonus={p.bonusNama ? { nama: p.bonusNama, deskripsi: p.bonusDeskripsi, foto: p.bonusFoto } : null}
+        />
       </div>
     </div>
   );

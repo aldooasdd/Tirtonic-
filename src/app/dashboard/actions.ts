@@ -527,12 +527,15 @@ export async function createPreorderProduct(formData: FormData) {
     estimasi = "Tiba " + new Date(y, m - 1, d).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
   }
   const isiBox = ((formData.get("isiBox") as string) || "").split("\n").map((s) => s.trim()).filter(Boolean);
+  const bonusNama = ((formData.get("bonusNama") as string) || "").trim() || null;
+  const bonusDeskripsi = ((formData.get("bonusDeskripsi") as string) || "").trim() || null;
   const variants = formData.get("hasVariants") ? await parsePreorderVariants(formData) : [];
   const gambar = await uploadImages(formData);
   const bannerDesktop = await uploadNamedImage(formData, "bannerDesktop");
   const bannerMobile = await uploadNamedImage(formData, "bannerMobile");
+  const bonusFoto = await uploadNamedImage(formData, "bonusFoto");
   await prisma.preorderProduct.create({
-    data: { nama, tagline, harga, deskripsi, estimasi, isiBox, gambar, bannerDesktop, bannerMobile, ...(variants.length ? { variants: { create: variants } } : {}) },
+    data: { nama, tagline, harga, deskripsi, estimasi, isiBox, gambar, bannerDesktop, bannerMobile, bonusNama, bonusDeskripsi, bonusFoto, ...(variants.length ? { variants: { create: variants } } : {}) },
   });
   revalidatePreorder();
   redirect("/dashboard");
