@@ -25,10 +25,13 @@ function fmt(d: Date) {
 
 export default async function PesananSayaPage({ params }: { params: { phone: string } }) {
   const phone = normalizePhone(decodeURIComponent(params.phone));
+  // telepon disimpan apa adanya saat checkout (0xxx / +62xxx / 62xxx) → cari semua varian.
+  const rest = phone ? phone.slice(2) : ""; // tanpa "62"
+  const phoneVariants = phone ? [phone, "0" + rest, "+62" + rest] : [];
   const orders = phone
     ? await safeQuery(
         () => prisma.order.findMany({
-          where: { telepon: phone },
+          where: { telepon: { in: phoneVariants } },
           orderBy: { createdAt: "desc" },
           take: 100,
           include: { items: true, reviews: { select: { productNama: true, rating: true } } },
