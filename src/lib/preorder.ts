@@ -99,11 +99,11 @@ export async function markPreorderDpPaid(id: string, ref?: string): Promise<bool
   }
   const sisa = o.total - o.dp;
   await waTo(o.telepon,
-    `Selamat ${salam()} kak ${o.nama} 🎾${NL}${NL}` +
+    `Selamat ${salam()} kak ${o.nama}${NL}${NL}` +
     `Terima kasih! DP pesanan *pre-order* sudah kami terima.${NL}${NL}` +
     `Invoice : ${o.invoice}${NL}Produk : ${o.productNama} (x${o.qty})${NL}` +
     `Total : ${rupiah(o.total)}${NL}DP dibayar : ${rupiah(o.dp)}${NL}Sisa : ${rupiah(sisa)}${NL}${NL}` +
-    `Barangnya sedang kami siapkan. Begitu barang ready, kami kirim info pelunasan sisa pembayaran lewat WhatsApp ini. 🙌`);
+    `Barangnya sedang kami siapkan. Begitu barang ready, kami kirim info pelunasan sisa pembayaran lewat WhatsApp ini.`);
   return true;
 }
 
@@ -128,12 +128,12 @@ export async function confirmPreorderReady(id: string, kekurangan: number): Prom
   });
 
   await waTo(o.telepon,
-    `Selamat ${salam()} kak ${o.nama} 🎾${NL}${NL}` +
+    `Selamat ${salam()} kak ${o.nama}${NL}${NL}` +
     `Kabar baik! Barang pre-order kamu sudah *ready*.${NL}${NL}` +
     `Invoice : ${o.invoice}${NL}Produk : ${o.productNama} (x${o.qty})${NL}` +
     `Total : ${rupiah(o.total)}${NL}DP : ${rupiah(o.dp)}${NL}*Sisa pembayaran : ${rupiah(sisa)}*${NL}${NL}` +
     (payUrl ? `Silakan lunasi di sini:${NL}${payUrl}${NL}${NL}` : `Silakan lakukan pelunasan. Hubungi admin untuk cara bayar.${NL}${NL}`) +
-    `Setelah lunas, pesanan langsung kami proses & kirim. 🙌`);
+    `Setelah lunas, pesanan langsung kami proses & kirim.`);
   return { ok: true };
 }
 
@@ -147,9 +147,9 @@ export async function markPreorderLunas(invoiceLunas: string, ref?: string): Pro
     data: { status: "LUNAS", lunasAt: new Date(), paymentRefLunas: ref ?? o.paymentRefLunas },
   });
   await waTo(o.telepon,
-    `Selamat ${salam()} kak ${o.nama} 🎾${NL}${NL}` +
-    `Pelunasan pesanan *pre-order* ${o.invoice} sudah kami terima. Lunas ✅${NL}${NL}` +
-    `${o.productNama} (x${o.qty}) akan segera kami proses & kirim. Terima kasih sudah menunggu! 🙌`);
+    `Selamat ${salam()} kak ${o.nama}${NL}${NL}` +
+    `Pelunasan pesanan *pre-order* ${o.invoice} sudah kami terima. Lunas${NL}${NL}` +
+    `${o.productNama} (x${o.qty}) akan segera kami proses & kirim. Terima kasih sudah menunggu!`);
   return true;
 }
 
