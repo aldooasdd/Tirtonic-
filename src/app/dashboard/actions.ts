@@ -488,8 +488,18 @@ export async function createPreorderProduct(formData: FormData) {
   const deskripsi = ((formData.get("deskripsi") as string) || "").trim() || null;
   const estimasi = ((formData.get("estimasi") as string) || "").trim() || null;
   const isiBox = ((formData.get("isiBox") as string) || "").split("\n").map((s) => s.trim()).filter(Boolean);
+  // Varian (opsional): satu per baris "Nama | harga | stok". Harga kosong → pakai harga produk.
+  const variants = ((formData.get("variants") as string) || "")
+    .split("\n").map((s) => s.trim()).filter(Boolean)
+    .map((line) => {
+      const [vn, vh, vs] = line.split("|").map((x) => x.trim());
+      return { nama: vn, harga: vh ? Math.max(0, parseInt(vh.replace(/\D/g, ""), 10) || 0) || harga : harga, stok: Math.max(0, parseInt((vs || "0").replace(/\D/g, ""), 10) || 0) };
+    })
+    .filter((v) => v.nama);
   const gambar = await uploadImages(formData);
-  await prisma.preorderProduct.create({ data: { nama, harga, deskripsi, estimasi, isiBox, gambar } });
+  await prisma.preorderProduct.create({
+    data: { nama, harga, deskripsi, estimasi, isiBox, gambar, ...(variants.length ? { variants: { create: variants } } : {}) },
+  });
   revalidatePreorder();
   redirect("/dashboard");
 }

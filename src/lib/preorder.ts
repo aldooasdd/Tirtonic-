@@ -13,6 +13,7 @@ const NL = "\n";
 
 export type PreorderInput = {
   productId: string;
+  variantId?: string;
   qty: number;
   dp: number;
   nama: string; email: string; telepon: string;
@@ -41,11 +42,23 @@ export async function createPreorder(input: PreorderInput): Promise<CreatePreord
   if (!nama || !email || !telepon || !alamat || !kota || !provinsi) return { ok: false, error: "Lengkapi data pengiriman dulu." };
   if (!/^\S+@\S+\.\S+$/.test(email)) return { ok: false, error: "Email tidak valid." };
 
-  const p = await prisma.preorderProduct.findUnique({ where: { id: input.productId } });
+  const p = await prisma.preorderProduct.findUnique({ where: { id: input.productId }, include: { variants: true } });
   if (!p || !p.isActive) return { ok: false, error: "Produk pre-order tidak tersedia." };
 
   const qty = Math.max(1, Math.floor(input.qty || 1));
-  const total = p.harga * qty;
+
+  // Varian: kalau produk punya varian, wajib pilih + cek stok. Harga ikut varian.
+  let hargaSatuan = p.harga;
+  let variantId: string | null = null;
+  let varian: string | null = null;
+  if (p.variants.length > 0) {
+    const v = p.variants.find((x) => x.id === input.variantId);
+    if (!v) return { ok: false, error: "Pilih varian dulu." };
+    if (v.stok < qty) return { ok: false, error: `Stok varian ${v.nama} tinggal ${v.stok}.` };
+    hargaSatuan = v.harga; variantId = v.id; varian = v.nama;
+  }
+
+  const total = hargaSatuan * qty;
   const dp = Math.floor(input.dp || 0);
   if (dp < MIN_DP) return { ok: false, error: `DP minimal ${rupiah(MIN_DP)}.` };
   if (dp > total) return { ok: false, error: "DP tidak boleh melebihi total harga." };
@@ -56,8 +69,8 @@ export async function createPreorder(input: PreorderInput): Promise<CreatePreord
       nama, email, telepon, alamat, kota, provinsi,
       kodePos: input.kodePos?.trim() || null,
       catatan: input.catatan?.trim() || null,
-      productId: p.id, productNama: p.nama, gambar: p.gambar[0] ?? null,
-      harga: p.harga, qty, total, dp,
+      productId: p.id, productNama: p.nama, variantId, varian, gambar: p.gambar[0] ?? null,
+      harga: hargaSatuan, qty, total, dp,
     },
   });
 
@@ -79,6 +92,10 @@ export async function markPreorderDpPaid(id: string, ref?: string): Promise<bool
     where: { id },
     data: { status: "DP_PAID", dpPaidAt: new Date(), paymentRefDp: ref ?? o.paymentRefDp },
   });
+  // ponytail: stok dipotong saat DP lunas (reserve on DP). Race create→DP minim, abaikan.
+  if (o.variantId) {
+    try { await prisma.preorderVariant.update({ where: { id: o.variantId }, data: { stok: { decrement: o.qty } } }); } catch { /* varian terhapus */ }
+  }
   const sisa = o.total - o.dp;
   await waTo(o.telepon,
     `Selamat ${salam()} kak ${o.nama} 🎾${NL}${NL}` +
@@ -136,9 +153,13 @@ export async function markPreorderLunas(invoiceLunas: string, ref?: string): Pro
 }
 
 export async function cancelPreorder(id: string): Promise<boolean> {
-  const o = await prisma.preorderOrder.findUnique({ where: { id }, select: { status: true } });
-  if (!o || o.status === "LUNAS") return false;
+  const o = await prisma.preorderOrder.findUnique({ where: { id }, select: { status: true, variantId: true, qty: true } });
+  if (!o || o.status === "LUNAS" || o.status === "CANCELLED") return false;
   await prisma.preorderOrder.update({ where: { id }, data: { status: "CANCELLED" } });
+  // Stok sudah dipotong saat DP lunas → kembalikan kalau dibatalkan setelah itu.
+  if (o.variantId && (o.status === "DP_PAID" || o.status === "WAITING_LUNAS")) {
+    try { await prisma.preorderVariant.update({ where: { id: o.variantId }, data: { stok: { increment: o.qty } } }); } catch { /* varian terhapus */ }
+  }
   return true;
 }
 

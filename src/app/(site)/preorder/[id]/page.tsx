@@ -7,7 +7,7 @@ import PreorderCheckout from "@/components/PreorderCheckout";
 export const dynamic = "force-dynamic";
 
 export default async function PreorderDetail({ params }: { params: { id: string } }) {
-  const p = await safeQuery(() => prisma.preorderProduct.findUnique({ where: { id: params.id } }), null);
+  const p = await safeQuery(() => prisma.preorderProduct.findUnique({ where: { id: params.id }, include: { variants: { orderBy: { nama: "asc" } } } }), null);
   if (!p || !p.isActive) notFound();
 
   return (
@@ -41,7 +41,12 @@ export default async function PreorderDetail({ params }: { params: { id: string 
           {p.deskripsi && <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-gray-600">{p.deskripsi}</p>}
 
           <div className="mt-6">
-            <PreorderCheckout productId={p.id} harga={p.harga} nama={p.nama} />
+            <PreorderCheckout
+              productId={p.id}
+              harga={p.harga}
+              nama={p.nama}
+              variants={p.variants.map((v) => ({ id: v.id, nama: v.nama, harga: v.harga, stok: v.stok }))}
+            />
           </div>
         </div>
       </div>

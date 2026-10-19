@@ -79,7 +79,7 @@ export default async function DashboardPreorder() {
                       {o.catatan && <p className="mt-1 text-gray-500">Catatan: {o.catatan}</p>}
                     </div>
                     <div className="text-sm text-gray-600">
-                      <p>{o.qty}× {o.productNama}</p>
+                      <p>{o.qty}× {o.productNama}{o.varian ? ` (${o.varian})` : ""}</p>
                       <p className="mt-1 text-xs">DP: <span className="font-semibold text-emerald-600">{rupiah(o.dp)}</span> · Sisa: <span className="font-semibold">{o.status === "LUNAS" ? "Lunas" : rupiah(sisa)}</span></p>
                     </div>
                   </div>

@@ -39,7 +39,7 @@ export default async function PreorderOrderPage({ params }: { params: { id: stri
             )}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="font-semibold text-gray-900">{o.productNama}</p>
+            <p className="font-semibold text-gray-900">{o.productNama}{o.varian ? ` (${o.varian})` : ""}</p>
             <p className="text-sm text-gray-500">{o.qty}× {rupiah(o.harga)}</p>
           </div>
         </div>

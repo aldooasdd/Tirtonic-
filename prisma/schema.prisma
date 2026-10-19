@@ -34,6 +34,19 @@ model PreorderProduct {
   isActive  Boolean         @default(true)
   createdAt DateTime        @default(now())
   orders    PreorderOrder[]
+  variants  PreorderVariant[]
+}
+
+// Varian produk PO (opsional). Kalau ada, customer wajib pilih; harga & stok per varian.
+model PreorderVariant {
+  id        String          @id @default(cuid())
+  productId String
+  product   PreorderProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+  nama      String // label, mis. "Hijau / 42"
+  harga     Int
+  stok      Int             @default(0)
+
+  @@index([productId])
 }
 
 enum PreorderStatus {
@@ -58,6 +71,8 @@ model PreorderOrder {
   catatan         String?
   productId       String?
   productNama     String // snapshot
+  variantId       String?
+  varian          String? // snapshot label varian
   gambar          String?
   harga           Int // satuan snapshot
   qty             Int

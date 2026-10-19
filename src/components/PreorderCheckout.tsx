@@ -9,8 +9,12 @@ import wilayah from "@/lib/wilayah.json";
 const PROVINSI = Object.keys(wilayah as Record<string, string[]>).sort((a, b) => a.localeCompare(b));
 const MIN_DP = 100_000;
 
-export default function PreorderCheckout({ productId, harga, nama: namaProduk }: { productId: string; harga: number; nama: string }) {
+type Variant = { id: string; nama: string; harga: number; stok: number };
+
+export default function PreorderCheckout({ productId, harga, variants = [] }: { productId: string; harga: number; nama: string; variants?: Variant[] }) {
   const router = useRouter();
+  const hasVariants = variants.length > 0;
+  const [variantId, setVariantId] = useState<string>("");
   const [qty, setQty] = useState(1);
   const [dp, setDp] = useState(MIN_DP);
   const [provinsi, setProvinsi] = useState("");
@@ -18,20 +22,25 @@ export default function PreorderCheckout({ productId, harga, nama: namaProduk }:
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const total = harga * qty;
+  const selVar = variants.find((v) => v.id === variantId);
+  const hargaSatuan = hasVariants ? (selVar?.harga ?? harga) : harga;
+  const maxQty = hasVariants ? (selVar?.stok ?? 0) : 99;
+  const total = hargaSatuan * qty;
   const kotaOptions = (wilayah as Record<string, string[]>)[provinsi] ?? [];
   const sisa = Math.max(0, total - dp);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
+    if (hasVariants && !variantId) return setError("Pilih varian dulu.");
+    if (hasVariants && selVar && qty > selVar.stok) return setError(`Stok varian ${selVar.nama} tinggal ${selVar.stok}.`);
     if (dp < MIN_DP) return setError(`DP minimal ${rupiah(MIN_DP)}.`);
     if (dp > total) return setError("DP tidak boleh melebihi total harga.");
     const fd = new FormData(e.currentTarget);
     setBusy(true);
     try {
       const res = await submitPreorder({
-        productId, qty, dp,
+        productId, variantId: variantId || undefined, qty, dp,
         nama: String(fd.get("nama") || ""), email: String(fd.get("email") || ""), telepon: String(fd.get("telepon") || ""),
         alamat: String(fd.get("alamat") || ""), kota, provinsi,
         kodePos: String(fd.get("kodePos") || ""), catatan: String(fd.get("catatan") || ""),
@@ -49,12 +58,36 @@ export default function PreorderCheckout({ productId, harga, nama: namaProduk }:
 
   return (
     <form onSubmit={onSubmit} className="space-y-3">
+      {hasVariants && (
+        <div>
+          <p className="text-sm font-semibold text-gray-700">Pilih varian</p>
+          <div className="mt-1.5 flex flex-wrap gap-2">
+            {variants.map((v) => {
+              const habis = v.stok <= 0;
+              const on = v.id === variantId;
+              return (
+                <button
+                  type="button"
+                  key={v.id}
+                  disabled={habis}
+                  onClick={() => { setVariantId(v.id); setQty(1); }}
+                  className={`rounded-full border px-3 py-1.5 text-sm ${on ? "border-primary bg-primary/10 font-semibold text-primary" : "border-gray-300 text-gray-700"} ${habis ? "cursor-not-allowed opacity-40 line-through" : ""}`}
+                >
+                  {v.nama}{habis ? " (habis)" : ""}
+                </button>
+              );
+            })}
+          </div>
+          {selVar && <p className="mt-1.5 text-xs text-gray-400">{rupiah(selVar.harga)} · stok {selVar.stok}</p>}
+        </div>
+      )}
+
       <div className="flex items-center gap-3">
         <span className="text-sm font-semibold text-gray-700">Jumlah</span>
         <div className="flex items-center rounded-full border border-gray-300">
           <button type="button" onClick={() => setQty((q) => Math.max(1, q - 1))} className="px-3 py-1.5 text-lg leading-none text-gray-600">−</button>
           <span className="w-8 text-center text-sm font-bold">{qty}</span>
-          <button type="button" onClick={() => setQty((q) => q + 1)} className="px-3 py-1.5 text-lg leading-none text-gray-600">+</button>
+          <button type="button" onClick={() => setQty((q) => Math.min(hasVariants ? maxQty : q + 1, q + 1))} disabled={hasVariants && qty >= maxQty} className="px-3 py-1.5 text-lg leading-none text-gray-600 disabled:opacity-40">+</button>
         </div>
       </div>
 

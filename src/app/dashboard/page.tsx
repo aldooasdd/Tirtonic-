@@ -386,6 +386,11 @@ export default async function AdminDashboard() {
                 <textarea name="isiBox" rows={3} placeholder={"Contoh:\nRaket Tenis\nCover Raket\nKartu Garansi"} className="field" />
               </div>
               <div>
+                <label className="label">Varian + stok (opsional, satu per baris)</label>
+                <textarea name="variants" rows={3} placeholder={"Format: Nama | harga | stok\nContoh:\nHijau 42 | 1500000 | 5\nBiru 43 | 1500000 | 3"} className="field" />
+                <p className="mt-1 text-xs text-gray-400">Kalau diisi, customer wajib pilih varian. Harga kosong = pakai harga produk di atas. Stok 0 = habis.</p>
+              </div>
+              <div>
                 <label className="label">Foto produk (bisa pilih beberapa)</label>
                 <input name="gambar" type="file" accept="image/*" multiple className="text-sm" />
                 <p className="mt-1 text-xs text-gray-400">
