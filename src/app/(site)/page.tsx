@@ -289,9 +289,9 @@ type PreorderBanner = { id: string; nama: string; tagline: string | null; harga:
 function PreorderBanners({ products }: { products: PreorderBanner[] }) {
   if (products.length === 0) return null;
   return (
-    <section className="space-y-3 py-2">
+    <section className="mx-auto max-w-site space-y-4 px-4 py-2 lg:px-6">
       {products.map((p) => (
-        <div key={p.id} className="relative aspect-[4/5] w-full overflow-hidden sm:aspect-[16/9] lg:aspect-[21/9]">
+        <div key={p.id} className="relative h-[42vh] min-h-[240px] w-full overflow-hidden rounded-2xl sm:h-[50vh]">
           {p.gambar[0] && (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={p.gambar[0]} alt={p.nama} className="absolute inset-0 h-full w-full object-cover" />
