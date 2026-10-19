@@ -22,7 +22,10 @@ export default function CouponManager({ action, products }: { action: Action; pr
   const [scope, setScope] = useState<"all" | "products">("all");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [q, setQ] = useState("");
+  const [cat, setCat] = useState("");
   const formRef = useRef<HTMLFormElement>(null);
+
+  const categories = [...new Set(products.map((p) => p.kategori).filter(Boolean))].sort();
 
   // Reset form setelah berhasil simpan.
   useEffect(() => {
@@ -32,11 +35,16 @@ export default function CouponManager({ action, products }: { action: Action; pr
       setScope("all");
       setSelected(new Set());
       setQ("");
+      setCat("");
     }
   }, [state]);
 
   const query = q.trim().toLowerCase();
-  const shown = query ? products.filter((p) => p.nama.toLowerCase().includes(query) || p.kategori.toLowerCase().includes(query)) : products;
+  const shown = products.filter(
+    (p) =>
+      (!cat || p.kategori === cat) &&
+      (!query || p.nama.toLowerCase().includes(query) || p.kategori.toLowerCase().includes(query))
+  );
   const toggle = (id: string) =>
     setSelected((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
 
@@ -88,10 +96,23 @@ export default function CouponManager({ action, products }: { action: Action; pr
         <div className="rounded-xl border p-3">
           {/* hidden inputs = yang benar-benar dikirim (tetap terkirim walau tersaring dari pencarian) */}
           {[...selected].map((id) => <input key={id} type="hidden" name="productIds" value={id} />)}
-          <div className="mb-2 flex items-center justify-between gap-2">
-            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Cari produk…" className="field flex-1 py-1.5 text-sm" />
+          <div className="mb-2 flex flex-wrap items-center gap-2">
+            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Cari produk…" className="field min-w-[8rem] flex-1 py-1.5 text-sm" />
+            <select value={cat} onChange={(e) => setCat(e.target.value)} className="field w-auto py-1.5 text-sm">
+              <option value="">Semua kategori</option>
+              {categories.map((k) => <option key={k} value={k}>{k}</option>)}
+            </select>
             <span className="whitespace-nowrap text-xs text-gray-400">{selected.size} dipilih</span>
           </div>
+          {cat && shown.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setSelected((s) => { const n = new Set(s); shown.forEach((p) => n.add(p.id)); return n; })}
+              className="mb-2 text-xs font-semibold text-primary hover:underline"
+            >
+              Pilih semua di kategori &quot;{cat}&quot;
+            </button>
+          )}
           <div className="max-h-56 space-y-1 overflow-y-auto">
             {shown.length === 0 ? (
               <p className="py-4 text-center text-sm text-gray-400">Tidak ada produk cocok.</p>
