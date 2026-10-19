@@ -86,9 +86,9 @@ export default async function PesananSayaPage({ params }: { params: { phone: str
               <p className="mt-1 text-sm text-gray-500">{phone ? displayPhone(phone) : "Nomor tidak valid"}</p>
 
               {/* Stat tiles — responsif */}
-              <div className="mt-5 grid grid-cols-3 gap-3 sm:max-w-xl">
-                {stats.map((s) => (
-                  <div key={s.l} className="glass-card rounded-2xl px-4 py-3.5">
+              <div className="mt-5 grid grid-cols-2 gap-3 sm:max-w-xl sm:grid-cols-3">
+                {stats.map((s, i) => (
+                  <div key={s.l} className={`glass-card rounded-2xl px-4 py-3.5 ${i === 0 ? "col-span-2 sm:col-span-1" : ""}`}>
                     <p className="text-base font-extrabold leading-none text-gray-900 sm:text-lg">{s.v}</p>
                     <p className="mt-1.5 text-[11px] text-gray-500 sm:text-xs">{s.l}</p>
                   </div>
