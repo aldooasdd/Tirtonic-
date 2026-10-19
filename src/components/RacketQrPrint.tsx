@@ -5,13 +5,12 @@ import { useState } from "react";
 // Cetak stiker QR raket ke printer label NIIMBOT lewat Web Bluetooth
 // (niimbluelib). HANYA jalan di Chrome Android. QR membuka /riwayat/<nomor>.
 //
-// ponytail: ukuran label dikunci 25×15mm (roll NIIMBOT 25*15; label lebih panjang
-// dari 15mm bikin printer nerus ke stiker kedua), dimensi dot dihitung dari dpi printer
+// ponytail: ukuran label dikunci 50×20mm, dimensi dot dihitung dari dpi printer
 // yang benar-benar kesambung (203 vs 300dpi beda jauh) + dibatasi lebar printhead.
 // Dulu di-hardcode 591px/300dpi → di printer 203dpi konten jadi ~74mm (kebesaran,
 // kepotong). TASK & ARAH tetap hardcode ke nilai yang TERBUKTI nyetak — auto-detect
 // (getPrintTaskType/printDirection) pernah bikin cetakan blank (arah ke-rotate "left").
-const LABEL_MM = { w: 25, h: 15 };
+const LABEL_MM = { w: 50, h: 20 };
 const DENSITY = 3; // 1–5; naikkan kalau hasil tipis
 const FALLBACK_DPI = 203; // kalau dpi model tak terdeteksi (B-series umumnya 203dpi)
 const PRINT_DIRECTION: "top" | "left" = "top"; // putar kalau orientasi kebalik
@@ -82,7 +81,7 @@ async function connect() {
 
 const mm2dots = (mm: number, dpi: number) => Math.round((mm / 25.4) * dpi);
 
-// Gambar label 25×15mm: QR di kiri, kolom kanan (logo + teks 3 baris) rata kiri.
+// Gambar label 50×20mm: QR di kiri, kolom kanan (logo + teks 3 baris) rata kiri.
 // Dimensi & layout diskalakan dari dpi printer; referensi layout = 236 dot tinggi.
 async function buildLabel(phone: string, dpi: number, headPx?: number): Promise<HTMLCanvasElement> {
   let w = mm2dots(LABEL_MM.w, dpi);
