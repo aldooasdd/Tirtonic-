@@ -36,12 +36,16 @@ export default function OrderRowActions({ id, status, kurir }: { id: string; sta
   if (status === "PAID") {
     return (
       <div className="flex flex-wrap items-center gap-2">
-        <input
+        <select
           value={kurirInput}
           onChange={(e) => setKurirInput(e.target.value)}
-          placeholder="Kurir (mis. JNE)"
           className="w-32 rounded-md border border-gray-300 px-2.5 py-1.5 text-xs outline-none focus:border-primary"
-        />
+        >
+          <option value="">Pilih kurir</option>
+          <option value="Lion Parcel">Lion Parcel</option>
+          <option value="JNE">JNE</option>
+          <option value="J&T">J&T</option>
+        </select>
         <input
           value={resi}
           onChange={(e) => setResi(e.target.value)}
