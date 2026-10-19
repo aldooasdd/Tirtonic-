@@ -380,7 +380,10 @@ export default async function AdminDashboard() {
                 <input name="nama" required placeholder="Nama produk *" className="field" />
                 <input name="harga" type="number" min={1} required placeholder="Harga (Rp) *" className="field" />
               </div>
-              <input name="estimasi" placeholder="Estimasi tiba (mis. Tiba akhir November)" className="field" />
+              <div>
+                <label className="label">Estimasi tiba</label>
+                <input name="estimasi" type="date" className="field" />
+              </div>
               <textarea name="deskripsi" rows={3} placeholder="Deskripsi (opsional)" className="field" />
               <div>
                 <label className="label">What&apos;s in the Box (satu item per baris)</label>
