@@ -26,6 +26,7 @@ enum OrderStatus {
 model PreorderProduct {
   id        String          @id @default(cuid())
   nama      String
+  tagline   String? // subjudul hero landing, mis. "Hello, hello."
   harga     Int // harga penuh
   gambar    String[]        @default([])
   deskripsi String?

@@ -282,44 +282,35 @@ function NewArticles({ articles }: { articles: ArticleCardData[] }) {
   );
 }
 
-type PreorderBanner = { id: string; nama: string; harga: number; gambar: string[]; estimasi: string | null };
+type PreorderBanner = { id: string; nama: string; tagline: string | null; harga: number; gambar: string[]; estimasi: string | null };
 
-// Banner pre-order di landing (ala Apple): foto produk + nama/estimasi kiri bawah,
-// kapsul harga + tombol "Pre-order" (glass-primary, hijau tua) kanan bawah.
+// Hero pre-order di landing (ala Apple): judul + subjudul + estimasi di tengah,
+// tombol Learn more + Pre-order (glass-primary hijau tua), lalu foto landscape.
 function PreorderBanners({ products }: { products: PreorderBanner[] }) {
   if (products.length === 0) return null;
   return (
-    <section className="mx-auto max-w-site px-4 lg:px-6 py-2">
-      <div className="mb-3 flex items-center gap-2.5">
-        <span className="rounded-full bg-primary px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">Pre-Order</span>
-        <h2 className="text-lg font-bold text-gray-900">Pesan Duluan</h2>
-      </div>
-      <div className="space-y-4">
-        {products.map((p) => (
-          <Link
-            key={p.id}
-            href={`/preorder/${p.id}`}
-            className="group relative block aspect-[16/11] overflow-hidden rounded-2xl bg-gray-100 sm:aspect-[21/9]"
-          >
-            {p.gambar[0] && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={p.gambar[0]} alt={p.nama} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
-            )}
-            <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/15 to-transparent" />
-            <div className="absolute inset-x-0 bottom-0 flex flex-wrap items-end justify-between gap-3 p-5 sm:p-7">
-              <div className="text-white">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-white/80">Pre-Order</p>
-                <h3 className="mt-0.5 text-xl font-extrabold leading-tight sm:text-3xl">{p.nama}</h3>
-                {p.estimasi && <p className="mt-1 text-xs text-white/80 sm:text-sm">{p.estimasi}</p>}
-              </div>
-              <span className="glass-primary inline-flex items-center gap-1 rounded-full py-1 pl-4 pr-1 text-sm font-semibold">
+    <section className="space-y-14 py-6">
+      {products.map((p) => (
+        <div key={p.id} className="text-center">
+          <div className="mx-auto max-w-site px-4 lg:px-6">
+            <h2 className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-5xl">{p.nama}</h2>
+            {p.tagline && <p className="mt-2 text-lg font-semibold text-gray-700 sm:text-2xl">{p.tagline}</p>}
+            {p.estimasi && <p className="mt-1.5 text-sm text-gray-500 sm:text-base">{p.estimasi}</p>}
+            <div className="mt-5 flex justify-center">
+              <Link href={`/preorder/${p.id}`} className="glass-primary inline-flex items-center gap-1 rounded-full py-1.5 pl-5 pr-1.5 text-sm font-semibold transition">
                 <span className="px-1">{rupiah(p.harga)}</span>
-                <span className="rounded-full bg-white/20 px-4 py-1.5 font-bold">Pre-order</span>
-              </span>
+                <span className="rounded-full bg-white/20 px-5 py-1.5 font-bold">Pre-order</span>
+              </Link>
             </div>
-          </Link>
-        ))}
-      </div>
+          </div>
+          {p.gambar[0] && (
+            <div className="mx-auto mt-8 max-w-5xl px-4">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={p.gambar[0]} alt={p.nama} className="mx-auto w-full rounded-2xl object-cover" />
+            </div>
+          )}
+        </div>
+      ))}
     </section>
   );
 }
@@ -338,7 +329,7 @@ export default async function HomePage() {
     safeQuery(() => prisma.popularBrand.findMany({ orderBy: [{ urutan: "asc" }, { nama: "asc" }] }), []),
     safeQuery(() => prisma.sfBranch.findMany({ where: { isActive: true, slug: { not: "tirtonic" } }, orderBy: { name: "asc" }, select: { id: true, name: true } }), []),
     safeQuery(() => prisma.sfOrder.findMany({ where: { status: { in: ["antri", "dikerjakan"] } }, orderBy: { createdAt: "asc" }, select: { resultCode: true, status: true, branchId: true, stringerName: true } }), []),
-    safeQuery(() => prisma.preorderProduct.findMany({ where: { isActive: true }, orderBy: { createdAt: "desc" }, take: 4, select: { id: true, nama: true, harga: true, gambar: true, estimasi: true } }), []),
+    safeQuery(() => prisma.preorderProduct.findMany({ where: { isActive: true }, orderBy: { createdAt: "desc" }, take: 4, select: { id: true, nama: true, tagline: true, harga: true, gambar: true, estimasi: true } }), []),
   ]);
   const toCard = (p: (typeof latest)[number]) => ({ id: p.id, nama: p.nama, harga: p.harga, hargaDiskon: p.hargaDiskon, gambar: p.gambar, status: p.status, fromPrice: p._count.variants > 0 });
   const arrivals = latest.map(toCard);
