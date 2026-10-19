@@ -8,3 +8,9 @@ next-env.d.ts
 
 # unrelated project living in this folder
 discord-yt-bot
+
+# Strix pentest (lokal, bukan bagian web)
+.agents/
+.claude/skills/
+skills-lock.json
+strix_runs/
