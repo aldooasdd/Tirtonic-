@@ -87,15 +87,6 @@ export default function PreorderCheckout({ productId, harga, variants = [], bonu
         </div>
       )}
 
-      <div className="flex items-center gap-3">
-        <span className="text-sm font-semibold text-gray-700">Jumlah</span>
-        <div className="flex items-center rounded-full border border-gray-300">
-          <button type="button" onClick={() => setQty((q) => Math.max(1, q - 1))} className="px-3 py-1.5 text-lg leading-none text-gray-600">−</button>
-          <span className="w-8 text-center text-sm font-bold">{qty}</span>
-          <button type="button" onClick={() => setQty((q) => Math.min(hasVariants ? maxQty : q + 1, q + 1))} disabled={hasVariants && qty >= maxQty} className="px-3 py-1.5 text-lg leading-none text-gray-600 disabled:opacity-40">+</button>
-        </div>
-      </div>
-
       <input name="nama" required placeholder="Nama lengkap" className={field} />
       <input name="telepon" type="tel" inputMode="numeric" required placeholder="No. WhatsApp (08xxx)" className={field} />
       <textarea name="alamat" required rows={2} placeholder="Alamat lengkap" className={field} />
