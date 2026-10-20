@@ -22,7 +22,7 @@ export default async function PreorderCheckoutPage({ params, searchParams }: { p
   return (
     <div className="mx-auto max-w-2xl px-4 py-8 lg:px-6">
       <Link href={`/preorder/${p.id}`} className="text-sm text-gray-500 hover:text-primary">← Kembali ke produk</Link>
-      <h1 className="mt-3 text-2xl font-extrabold text-gray-900">Checkout Pre-Order</h1>
+      <h1 className="mt-3 text-2xl font-extrabold text-gray-900">Checkout Exclusive Launch</h1>
 
       {/* Ringkasan produk */}
       <div className="mt-4 flex gap-3 rounded-2xl border bg-white p-4">
