@@ -45,10 +45,10 @@ export default function EventCard({ e }: { e: EventCardData }) {
           <span className="flex h-4 w-4 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white">
             {e.community.logo ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={e.community.logo} alt="" className="h-full w-full object-cover" />
+              <img loading="lazy" decoding="async" src={e.community.logo} alt="" className="h-full w-full object-cover" />
             ) : (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src="/logo.png" alt="" className="h-2.5 w-2.5 object-contain" />
+              <img loading="lazy" decoding="async" src="/logo.png" alt="" className="h-2.5 w-2.5 object-contain" />
             )}
           </span>
           <span className="truncate">{e.community.name}</span>
@@ -96,7 +96,7 @@ export default function EventCard({ e }: { e: EventCardData }) {
       <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br from-primaryDark to-primary sm:h-28 sm:w-28">
         {e.campaign.banner ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={e.campaign.banner} alt="" className="h-full w-full object-cover" />
+          <img loading="lazy" decoding="async" src={e.campaign.banner} alt="" className="h-full w-full object-cover" />
         ) : (
           <span className="flex h-full w-full items-center justify-center text-[11px] font-bold uppercase tracking-wide text-white/90">{e.campaign.brand.slice(0, 6)}</span>
         )}

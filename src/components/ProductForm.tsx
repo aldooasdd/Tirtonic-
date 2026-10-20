@@ -301,7 +301,7 @@ export default function ProductForm({
                     {v.gambar ? (
                       <span className="flex items-center gap-2">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={v.gambar} alt="" className="h-12 w-12 rounded border object-contain" />
+                        <img loading="lazy" decoding="async" src={v.gambar} alt="" className="h-12 w-12 rounded border object-contain" />
                         <input type="hidden" name="v_existingGambar" value={v.gambar} />
                         <button type="button" onClick={() => setVariant(i, "gambar", null)} className="text-xs text-red-500 hover:underline">
                           Hapus foto
@@ -345,7 +345,7 @@ export default function ProductForm({
               {images.map((g) => (
                 <span key={g} className="relative">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={g} alt="" className="h-16 w-16 border object-contain" />
+                  <img loading="lazy" decoding="async" src={g} alt="" className="h-16 w-16 border object-contain" />
                   <input type="hidden" name="existingGambar" value={g} />
                   <button
                     type="button"
@@ -368,7 +368,7 @@ export default function ProductForm({
           {sizeChart && (
             <div className="mb-2 flex items-center gap-3">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={sizeChart} alt="" className="h-20 w-20 rounded-lg border object-cover" />
+              <img loading="lazy" decoding="async" src={sizeChart} alt="" className="h-20 w-20 rounded-lg border object-cover" />
               <input type="hidden" name="sizeChartUrl" value={sizeChart} />
               <button type="button" onClick={() => setSizeChart(null)} className="text-xs text-red-500 hover:underline">
                 Hapus size chart

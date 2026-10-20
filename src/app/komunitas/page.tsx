@@ -105,10 +105,10 @@ export default async function KomunitasHome() {
           <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full border border-gray-200 bg-white">
             {community.logo ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={community.logo} alt="" className="h-full w-full object-cover" />
+              <img loading="lazy" decoding="async" src={community.logo} alt="" className="h-full w-full object-cover" />
             ) : (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src="/logo.png" alt="" className="h-7 w-7 object-contain" />
+              <img loading="lazy" decoding="async" src="/logo.png" alt="" className="h-7 w-7 object-contain" />
             )}
           </div>
           <div>
@@ -146,7 +146,7 @@ export default async function KomunitasHome() {
                     <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-primaryDark to-primary">
                       {c.banner ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={c.banner} alt="" className="h-full w-full object-cover" />
+                        <img loading="lazy" decoding="async" src={c.banner} alt="" className="h-full w-full object-cover" />
                       ) : (
                         <span className="text-[10px] font-bold uppercase text-white">{c.brand.slice(0, 4)}</span>
                       )}
@@ -171,7 +171,7 @@ export default async function KomunitasHome() {
                 <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-gray-300 to-gray-400">
                   {c.banner ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={c.banner} alt="" className="h-full w-full object-cover opacity-80" />
+                    <img loading="lazy" decoding="async" src={c.banner} alt="" className="h-full w-full object-cover opacity-80" />
                   ) : (
                     <span className="text-[10px] font-bold uppercase text-white">{c.brand.slice(0, 4)}</span>
                   )}

@@ -35,7 +35,7 @@ export default async function PreorderOrderPage({ params }: { params: { id: stri
           <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg border bg-gray-100">
             {o.gambar && (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={o.gambar} alt="" className="h-full w-full object-cover" />
+              <img loading="lazy" decoding="async" src={o.gambar} alt="" className="h-full w-full object-cover" />
             )}
           </div>
           <div className="min-w-0 flex-1">

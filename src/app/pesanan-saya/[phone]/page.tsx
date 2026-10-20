@@ -71,7 +71,7 @@ export default async function PesananSayaPage({ params }: { params: { phone: str
             <div className="flex items-center justify-between">
               <Link href="/" className="flex items-center gap-2.5 transition hover:opacity-90">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/logo.png" alt="Tirtonic" className="h-9 w-9 object-contain" />
+                <img loading="lazy" decoding="async" src="/logo.png" alt="Tirtonic" className="h-9 w-9 object-contain" />
                 <span className="text-sm font-semibold tracking-tight text-gray-900">Tirtonic · Pesanan Saya</span>
               </Link>
               <Link href="/pesanan-saya" className="glass-btn rounded-full px-4 py-1.5 text-sm font-medium text-gray-700 transition hover:text-primary">
@@ -123,7 +123,7 @@ export default async function PesananSayaPage({ params }: { params: { phone: str
                             <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg border bg-gray-100">
                               {i.gambar && (
                                 // eslint-disable-next-line @next/next/no-img-element
-                                <img src={i.gambar} alt="" className="h-full w-full object-cover" />
+                                <img loading="lazy" decoding="async" src={i.gambar} alt="" className="h-full w-full object-cover" />
                               )}
                             </div>
                             <div className="min-w-0 flex-1">

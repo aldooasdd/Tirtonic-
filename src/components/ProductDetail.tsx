@@ -254,7 +254,7 @@ export default function ProductDetail({ p }: { p: P }) {
                     >
                       {c.gambar && (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={c.gambar} alt="" className="h-6 w-6 rounded object-cover" />
+                        <img loading="lazy" decoding="async" src={c.gambar} alt="" className="h-6 w-6 rounded object-cover" />
                       )}
                       {c.warna}
                     </button>
@@ -387,11 +387,11 @@ export default function ProductDetail({ p }: { p: P }) {
                     <div className="flex gap-2 pt-1">
                       <a href={process.env.NEXT_PUBLIC_INSTAGRAM || "https://instagram.com/tirtonic"} target="_blank" rel="noreferrer" aria-label="Instagram" className="flex h-9 w-9 items-center justify-center rounded-lg border bg-white transition hover:bg-gray-50">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src="/ig-icon.png" alt="" className="h-5 w-5 object-contain" />
+                        <img loading="lazy" decoding="async" src="/ig-icon.png" alt="" className="h-5 w-5 object-contain" />
                       </a>
                       <a href={waLink("Halo Admin Tirtonic, saya mau tanya produk.")} target="_blank" rel="noreferrer" aria-label="WhatsApp" className="flex h-9 w-9 items-center justify-center rounded-lg border bg-white transition hover:bg-gray-50">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src="/wa-icon.png" alt="" className="h-6 w-6 object-contain" />
+                        <img loading="lazy" decoding="async" src="/wa-icon.png" alt="" className="h-6 w-6 object-contain" />
                       </a>
                     </div>
                   </div>
@@ -430,7 +430,7 @@ export default function ProductDetail({ p }: { p: P }) {
                 className="flex h-9 w-9 items-center justify-center rounded-full border bg-white transition hover:bg-gray-50"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={s.icon} alt="" className={`${s.size} object-contain`} />
+                <img loading="lazy" decoding="async" src={s.icon} alt="" className={`${s.size} object-contain`} />
               </a>
             ))}
           </div>
@@ -451,7 +451,7 @@ export default function ProductDetail({ p }: { p: P }) {
               ×
             </button>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={p.sizeChart} alt="Size chart" className="max-h-[90vh] w-full rounded-lg object-contain" />
+            <img loading="lazy" decoding="async" src={p.sizeChart} alt="Size chart" className="max-h-[90vh] w-full rounded-lg object-contain" />
           </div>
         </div>
       )}

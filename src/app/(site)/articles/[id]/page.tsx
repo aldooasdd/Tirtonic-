@@ -62,7 +62,7 @@ export default async function ArticleDetail({ params }: { params: { id: string }
           </div>
           {a.gambar && (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={a.gambar} alt={a.judul} className="mt-6 w-full rounded-lg object-cover" />
+            <img loading="lazy" decoding="async" src={a.gambar} alt={a.judul} className="mt-6 w-full rounded-lg object-cover" />
           )}
           <div className="mt-2 text-gray-800"><MiniMarkdown text={a.konten} /></div>
         </article>
@@ -79,7 +79,7 @@ export default async function ArticleDetail({ params }: { params: { id: string }
                       <div className="h-24 w-24 shrink-0 overflow-hidden rounded-lg bg-gray-100">
                         {p.gambar && (
                           // eslint-disable-next-line @next/next/no-img-element
-                          <img src={p.gambar} alt="" className="h-full w-full object-cover" />
+                          <img loading="lazy" decoding="async" src={p.gambar} alt="" className="h-full w-full object-cover" />
                         )}
                       </div>
                       <div className="min-w-0">

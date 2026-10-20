@@ -87,7 +87,7 @@ export default async function EventDetail({ params }: { params: { id: string } }
             <div className="aspect-[16/10] w-full overflow-hidden rounded-2xl border border-gray-200 bg-gradient-to-br from-primaryDark to-primary">
               {e.campaign.banner ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={e.campaign.banner} alt="" className="h-full w-full object-cover" />
+                <img loading="lazy" decoding="async" src={e.campaign.banner} alt="" className="h-full w-full object-cover" />
               ) : (
                 <span className="flex h-full w-full items-center justify-center text-2xl font-bold uppercase tracking-widest text-white/90">{e.campaign.brand}</span>
               )}
@@ -136,10 +136,10 @@ export default async function EventDetail({ params }: { params: { id: string } }
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/5">
                   {e.community.logo ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={e.community.logo} alt="" className="h-full w-full object-cover" />
+                    <img loading="lazy" decoding="async" src={e.community.logo} alt="" className="h-full w-full object-cover" />
                   ) : (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src="/logo.png" alt="" className="h-4 w-4 object-contain" />
+                    <img loading="lazy" decoding="async" src="/logo.png" alt="" className="h-4 w-4 object-contain" />
                   )}
                 </div>
                 <div>

@@ -81,7 +81,7 @@ export default function ArticleForm({
         {edit && article!.gambar && (
           <div className="mb-2">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={article!.gambar} alt="" className="h-20 w-28 rounded-lg border object-cover" />
+            <img loading="lazy" decoding="async" src={article!.gambar} alt="" className="h-20 w-28 rounded-lg border object-cover" />
             <input type="hidden" name="existingGambar" value={article!.gambar} />
           </div>
         )}

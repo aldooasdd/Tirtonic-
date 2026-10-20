@@ -30,7 +30,7 @@ export default async function TrafikPage() {
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2.5">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="" className="h-8 w-8" />
+            <img loading="lazy" decoding="async" src="/logo.png" alt="" className="h-8 w-8" />
             <div className="leading-tight">
               <div className="text-sm font-extrabold text-gray-900">Trafik Produk</div>
               <div className="text-[11px] text-gray-400">Produk paling sering dilihat</div>
@@ -72,7 +72,7 @@ export default async function TrafikPage() {
                 <li key={p.id} className="flex items-center gap-3 px-5 py-3">
                   <span className="w-5 shrink-0 text-sm font-bold text-gray-400">{i + 1}</span>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={p.gambar[0] || ""} alt="" className="h-10 w-10 shrink-0 rounded bg-gray-100 object-cover" />
+                  <img loading="lazy" decoding="async" src={p.gambar[0] || ""} alt="" className="h-10 w-10 shrink-0 rounded bg-gray-100 object-cover" />
                   <div className="min-w-0 flex-1">
                     <Link href={`/product/${p.id}`} target="_blank" className="block truncate text-sm font-medium text-gray-900 hover:text-primary">
                       {p.nama}

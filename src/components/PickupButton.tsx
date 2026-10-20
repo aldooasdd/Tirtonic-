@@ -28,7 +28,7 @@ export default function PickupButton({
       {open && (
         <div className="mt-2 rounded-xl border border-gray-200 bg-white p-4 text-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={`/api/${qrPath}/${token}`} alt={label} className="mx-auto h-44 w-44" />
+          <img loading="lazy" decoding="async" src={`/api/${qrPath}/${token}`} alt={label} className="mx-auto h-44 w-44" />
           <p className="mt-2 text-xs text-gray-500">{hint}</p>
         </div>
       )}

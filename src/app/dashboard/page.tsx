@@ -65,7 +65,7 @@ export default async function AdminDashboard() {
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2.5">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="" className="h-8 w-8" />
+            <img loading="lazy" decoding="async" src="/logo.png" alt="" className="h-8 w-8" />
             <div className="leading-tight">
               <div className="text-sm font-extrabold text-gray-900">Tirtonic Admin</div>
               <div className="text-[11px] text-gray-400">Masuk sebagai {role?.label ?? "—"}</div>
@@ -185,7 +185,7 @@ export default async function AdminDashboard() {
                 {slides.map((s) => (
                   <div key={s.id} className="relative">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={s.gambar} alt="" className="h-20 w-36 rounded-lg border object-cover" />
+                    <img loading="lazy" decoding="async" src={s.gambar} alt="" className="h-20 w-36 rounded-lg border object-cover" />
                     {s.gambarMobile && (
                       <span className="absolute bottom-1 left-1 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-bold text-white">+ mobile</span>
                     )}
@@ -247,7 +247,7 @@ export default async function AdminDashboard() {
                   <div key={s.id} className="relative w-40 rounded-xl border p-2">
                     {s.foto ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={s.foto} alt="" className="mb-2 h-28 w-full rounded-lg border object-cover" />
+                      <img loading="lazy" decoding="async" src={s.foto} alt="" className="mb-2 h-28 w-full rounded-lg border object-cover" />
                     ) : (
                       <div className="mb-2 flex h-28 w-full items-center justify-center rounded-lg border bg-gray-50 text-xs text-gray-300">Tanpa foto</div>
                     )}
@@ -301,7 +301,7 @@ export default async function AdminDashboard() {
                 {brands.map((b) => (
                   <div key={b.id} className="relative w-40 rounded-xl border p-2">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={b.foto} alt="" className="mb-2 h-28 w-full rounded-lg border object-cover" />
+                    <img loading="lazy" decoding="async" src={b.foto} alt="" className="mb-2 h-28 w-full rounded-lg border object-cover" />
                     <p className="truncate text-sm font-semibold text-gray-900">{b.nama}</p>
                     <a href={`/shop?brand=${encodeURIComponent(b.nama)}`} target="_blank" rel="noreferrer" className="mt-1 inline-block text-xs font-semibold text-primary hover:underline">
                       Lihat di Shop ↗
@@ -430,7 +430,7 @@ export default async function AdminDashboard() {
                     <div className="h-10 w-10 shrink-0 overflow-hidden rounded border bg-gray-100">
                       {p.gambar[0] && (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={p.gambar[0]} alt="" className="h-full w-full object-cover" />
+                        <img loading="lazy" decoding="async" src={p.gambar[0]} alt="" className="h-full w-full object-cover" />
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
@@ -529,7 +529,7 @@ export default async function AdminDashboard() {
                 <li key={a.id} className="flex items-center gap-3 px-5 py-3">
                   {a.gambar ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={a.gambar} alt="" className="h-11 w-11 shrink-0 rounded-lg border object-cover" />
+                    <img loading="lazy" decoding="async" src={a.gambar} alt="" className="h-11 w-11 shrink-0 rounded-lg border object-cover" />
                   ) : (
                     <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border bg-gray-100 text-[9px] text-gray-300">
                       no img

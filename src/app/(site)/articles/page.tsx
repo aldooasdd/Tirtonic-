@@ -50,7 +50,7 @@ export default async function ArticlesPage({ searchParams }: { searchParams: { p
                     <div className="overflow-hidden bg-gray-100">
                       {a.gambar ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={a.gambar} alt={a.judul} className="w-full object-cover transition duration-300 group-hover:scale-105" />
+                        <img loading="lazy" decoding="async" src={a.gambar} alt={a.judul} className="w-full object-cover transition duration-300 group-hover:scale-105" />
                       ) : (
                         <div className="flex aspect-[4/3] w-full items-center justify-center text-gray-300">No image</div>
                       )}
@@ -100,7 +100,7 @@ export default async function ArticlesPage({ searchParams }: { searchParams: { p
                       <div className="h-16 w-16 shrink-0 overflow-hidden rounded-md bg-gray-100">
                         {a.gambar ? (
                           // eslint-disable-next-line @next/next/no-img-element
-                          <img src={a.gambar} alt={a.judul} className="h-full w-full object-cover" />
+                          <img loading="lazy" decoding="async" src={a.gambar} alt={a.judul} className="h-full w-full object-cover" />
                         ) : (
                           <div className="flex h-full w-full items-center justify-center text-[10px] text-gray-300">No image</div>
                         )}

@@ -21,7 +21,7 @@ export default function StringerLogin() {
       <form action={action} className="w-full max-w-sm rounded-2xl border border-gray-200 bg-white p-7 shadow-sm">
         <div className="mb-5 text-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="Tirtonic" className="mx-auto h-12 w-12" />
+          <img loading="lazy" decoding="async" src="/logo.png" alt="Tirtonic" className="mx-auto h-12 w-12" />
           <h1 className="mt-3 text-xl font-extrabold text-gray-900">Stringer Tirtonic</h1>
           <p className="mt-1 text-sm text-gray-500">Masukkan kode cabang untuk mulai.</p>
         </div>

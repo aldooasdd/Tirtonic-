@@ -35,10 +35,10 @@ export default function HeroCarousel({ slides }: { slides: Slide[] }) {
             <>
               {/* mobile (square) — falls back to desktop image if none set */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={s.gambarMobile || s.gambar} alt="" className="h-full w-full object-cover sm:hidden" />
+              <img loading={idx === 0 ? "eager" : "lazy"} decoding="async" src={s.gambarMobile || s.gambar} alt="" className="h-full w-full object-cover sm:hidden" />
               {/* desktop (wide) */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={s.gambar} alt="" className="hidden h-full w-full object-cover sm:block" />
+              <img loading={idx === 0 ? "eager" : "lazy"} decoding="async" src={s.gambar} alt="" className="hidden h-full w-full object-cover sm:block" />
             </>
           );
           return (

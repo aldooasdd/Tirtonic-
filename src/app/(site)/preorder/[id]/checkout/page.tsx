@@ -25,7 +25,7 @@ export default async function PreorderCheckoutPage({ params }: { params: { id: s
         <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg border bg-gray-100">
           {p.gambar[0] && (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={p.gambar[0]} alt="" className="h-full w-full object-cover" />
+            <img loading="lazy" decoding="async" src={p.gambar[0]} alt="" className="h-full w-full object-cover" />
           )}
         </div>
         <div className="min-w-0 flex-1">

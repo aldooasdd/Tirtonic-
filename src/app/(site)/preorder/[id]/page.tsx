@@ -18,14 +18,14 @@ export default async function PreorderDetail({ params }: { params: { id: string 
           <div className="aspect-square overflow-hidden rounded-2xl border bg-gray-100">
             {p.gambar[0] && (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={p.gambar[0]} alt={p.nama} className="h-full w-full object-cover" />
+              <img loading="lazy" decoding="async" src={p.gambar[0]} alt={p.nama} className="h-full w-full object-cover" />
             )}
           </div>
           {p.gambar.length > 1 && (
             <div className="mt-3 grid grid-cols-4 gap-2">
               {p.gambar.slice(1, 5).map((g, i) => (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img key={i} src={g} alt="" className="aspect-square w-full rounded-lg border object-cover" />
+                <img loading="lazy" decoding="async" key={i} src={g} alt="" className="aspect-square w-full rounded-lg border object-cover" />
               ))}
             </div>
           )}

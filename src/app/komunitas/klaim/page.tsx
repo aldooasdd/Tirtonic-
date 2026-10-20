@@ -48,7 +48,7 @@ export default async function KlaimPage() {
                     <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-primaryDark to-primary">
                       {c.banner ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={c.banner} alt="" className="h-full w-full object-cover" />
+                        <img loading="lazy" decoding="async" src={c.banner} alt="" className="h-full w-full object-cover" />
                       ) : (
                         <span className="text-[10px] font-bold uppercase text-white">{c.brand.slice(0, 4)}</span>
                       )}

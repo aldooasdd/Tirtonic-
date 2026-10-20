@@ -151,7 +151,7 @@ export default function CheckoutPage() {
                   <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded border bg-gray-100">
                     {x.gambar && (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={x.gambar} alt="" className="h-full w-full object-cover" />
+                      <img loading="lazy" decoding="async" src={x.gambar} alt="" className="h-full w-full object-cover" />
                     )}
                     <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-gray-800 px-1 text-[10px] font-bold text-white">{x.qty}</span>
                   </div>

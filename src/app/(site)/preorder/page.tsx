@@ -30,7 +30,7 @@ export default async function PreorderCatalog() {
               <div className="relative aspect-square bg-gray-100">
                 {p.gambar[0] && (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={p.gambar[0]} alt={p.nama} className="h-full w-full object-cover transition group-hover:scale-105" />
+                  <img loading="lazy" decoding="async" src={p.gambar[0]} alt={p.nama} className="h-full w-full object-cover transition group-hover:scale-105" />
                 )}
                 <span className="absolute left-2 top-2 rounded-full bg-primary px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">Pre-Order</span>
               </div>

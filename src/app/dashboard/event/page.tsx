@@ -120,7 +120,7 @@ export default async function AdminEvent() {
                   <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-primaryDark to-primary">
                     {k.logo ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={k.logo} alt="" className="h-full w-full object-cover" />
+                      <img loading="lazy" decoding="async" src={k.logo} alt="" className="h-full w-full object-cover" />
                     ) : (
                       <span className="text-[10px] font-bold uppercase text-white">{k.name.slice(0, 3)}</span>
                     )}
@@ -156,7 +156,7 @@ export default async function AdminEvent() {
                   <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-primaryDark to-primary">
                     {k.logo ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={k.logo} alt="" className="h-full w-full object-cover" />
+                      <img loading="lazy" decoding="async" src={k.logo} alt="" className="h-full w-full object-cover" />
                     ) : (
                       <span className="text-[10px] font-bold uppercase text-white">{k.name.slice(0, 3)}</span>
                     )}
@@ -232,7 +232,7 @@ export default async function AdminEvent() {
                     <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-primaryDark to-primary">
                       {c.banner ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={c.banner} alt="" className="h-full w-full object-cover" />
+                        <img loading="lazy" decoding="async" src={c.banner} alt="" className="h-full w-full object-cover" />
                       ) : (
                         <span className="text-[9px] font-bold uppercase text-white">{c.brand.slice(0, 4)}</span>
                       )}

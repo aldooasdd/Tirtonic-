@@ -22,7 +22,7 @@ export default function ArticleCard({ a, compact = false }: { a: ArticleCardData
       <div className="aspect-[4/3] overflow-hidden bg-gray-100">
         {a.gambar ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={a.gambar} alt={a.judul} className="h-full w-full object-cover" />
+          <img loading="lazy" decoding="async" src={a.gambar} alt={a.judul} className="h-full w-full object-cover" />
         ) : (
           <div className="flex h-full w-full items-center justify-center text-gray-300">No image</div>
         )}

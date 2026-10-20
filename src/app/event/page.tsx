@@ -83,7 +83,7 @@ export default async function EventLanding() {
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2.5 transition hover:opacity-90">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo.png" alt="Tirtonic" className="h-9 w-9 object-contain" />
+              <img loading="lazy" decoding="async" src="/logo.png" alt="Tirtonic" className="h-9 w-9 object-contain" />
               <span className="text-sm font-semibold tracking-tight text-gray-900">Tirtonic Event</span>
             </Link>
             <Link href="/komunitas" className="glass-btn rounded-full px-4 py-1.5 text-sm font-medium text-gray-700 transition hover:text-primary">
@@ -129,7 +129,7 @@ export default async function EventLanding() {
                     <div className="relative h-28 bg-gradient-to-br from-primaryDark to-primary">
                       {c.banner && (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={c.banner} alt="" className="h-full w-full object-cover" />
+                        <img loading="lazy" decoding="async" src={c.banner} alt="" className="h-full w-full object-cover" />
                       )}
                       <span className="absolute left-2.5 top-2.5 rounded-full bg-black/40 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white backdrop-blur-sm">{c.brand}</span>
                     </div>
@@ -187,7 +187,7 @@ export default async function EventLanding() {
                   <div className="relative h-28 bg-gradient-to-br from-gray-300 to-gray-400">
                     {c.banner && (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={c.banner} alt="" className="h-full w-full object-cover opacity-80" />
+                      <img loading="lazy" decoding="async" src={c.banner} alt="" className="h-full w-full object-cover opacity-80" />
                     )}
                     <span className="absolute left-2.5 top-2.5 rounded-full bg-black/40 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white backdrop-blur-sm">{c.brand}</span>
                     <span className="absolute right-2.5 top-2.5 rounded-full bg-white/90 px-2.5 py-0.5 text-[10px] font-bold text-gray-600 backdrop-blur-sm">Menunggu brand</span>

@@ -137,7 +137,7 @@ export default function PreorderCheckout({ productId, harga, variants = [], bonu
           <div className="mt-2 flex gap-3">
             {bonus.foto && (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={bonus.foto} alt="" className="h-14 w-14 shrink-0 rounded-lg border object-cover" />
+              <img loading="lazy" decoding="async" src={bonus.foto} alt="" className="h-14 w-14 shrink-0 rounded-lg border object-cover" />
             )}
             <div className="min-w-0">
               <p className="text-sm font-semibold text-gray-900">{bonus.nama}</p>

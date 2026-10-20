@@ -33,7 +33,7 @@ function PodiumSlot({ row, rank }: { row: Row; rank: number }) {
       <div className="relative">
         <div className={`flex items-center justify-center rounded-full bg-primary/5 ring-4 ${ring} ${big ? "h-20 w-20" : "h-16 w-16"}`}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="" className={big ? "h-12 w-12 object-contain" : "h-10 w-10 object-contain"} />
+          <img loading="lazy" decoding="async" src="/logo.png" alt="" className={big ? "h-12 w-12 object-contain" : "h-10 w-10 object-contain"} />
         </div>
         <span className={`absolute -top-1.5 right-0 flex h-6 w-6 items-center justify-center rounded-full text-xs font-extrabold ring-2 ring-gray-50 ${rankStyle(rank)}`}>{rank}</span>
       </div>
@@ -104,7 +104,7 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
       <header className="rounded-b-[1.25rem] bg-gradient-to-br from-primaryDark to-primary px-5 pb-8 pt-10 text-white">
         <div className="flex items-start justify-between">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="Tirtonic" className="h-11 w-11 object-contain" />
+          <img loading="lazy" decoding="async" src="/logo.png" alt="Tirtonic" className="h-11 w-11 object-contain" />
           {/* Pilih bulan (pojok kanan atas) */}
           <div className="flex items-center gap-1 rounded-full bg-white/15 px-1.5 py-1">
             <Link
@@ -184,7 +184,7 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
                       <span className="w-5 shrink-0 text-center text-sm font-bold text-gray-400">{i + 4}</span>
                       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/5">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src="/logo.png" alt="" className="h-6 w-6 object-contain" />
+                        <img loading="lazy" decoding="async" src="/logo.png" alt="" className="h-6 w-6 object-contain" />
                       </div>
                       <p className="min-w-0 flex-1 truncate font-semibold text-gray-900">{nama}</p>
                       <span className="shrink-0 rounded-full border border-gray-200 px-3 py-0.5 text-sm font-bold text-gray-800">{r.n}</span>

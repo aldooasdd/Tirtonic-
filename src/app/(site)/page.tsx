@@ -23,7 +23,7 @@ function OurStore({ stores }: { stores: StoreItem[] }) {
       <div className="mb-1.5 flex items-center justify-between gap-3">
         <h2 className="flex items-center gap-2 text-xl font-extrabold text-gray-900">
           Our Store {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="" className="h-7 w-7" />
+          <img loading="lazy" decoding="async" src="/logo.png" alt="" className="h-7 w-7" />
         </h2>
       </div>
       {stores.length === 0 ? (
@@ -34,7 +34,7 @@ function OurStore({ stores }: { stores: StoreItem[] }) {
             const inner = s.foto ? (
               // square 1080x1080 photo
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={s.foto} alt={s.nama} className="h-full w-full object-cover" />
+              <img loading="lazy" decoding="async" src={s.foto} alt={s.nama} className="h-full w-full object-cover" />
             ) : (
               <div className="flex h-full w-full flex-col justify-end bg-gradient-to-br from-primaryDark to-primary p-5 text-white">
                 <div className="text-3xl font-black uppercase drop-shadow">{s.nama}</div>
@@ -71,7 +71,7 @@ function StringingRoom({ rooms }: { rooms: Room[] }) {
       <div className="mb-1.5 flex items-center gap-3">
         <h2 className="flex items-center gap-2 text-xl font-extrabold text-gray-900">
           Tirtonic Stringing Room {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="" className="h-7 w-7" />
+          <img loading="lazy" decoding="async" src="/logo.png" alt="" className="h-7 w-7" />
         </h2>
       </div>
       {/* Grid full-width: semua card tinggi sama (ngikut antrian paling banyak) */}
@@ -145,7 +145,7 @@ function BrandPopular({ brands }: { brands: BrandItem[] }) {
       <div className="mb-1.5 flex items-center justify-between gap-3">
         <h2 className="flex items-center gap-2 text-xl font-extrabold text-gray-900">
           Brand Popular {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="" className="h-7 w-7" />
+          <img loading="lazy" decoding="async" src="/logo.png" alt="" className="h-7 w-7" />
         </h2>
         <Link href="/shop" className="text-sm font-semibold text-primary hover:underline">
           View All
@@ -161,7 +161,7 @@ function BrandPopular({ brands }: { brands: BrandItem[] }) {
             <p className="mb-2 text-center text-sm font-bold uppercase text-gray-900">{b.nama}</p>
             <div className="aspect-[3/2] overflow-hidden rounded-lg bg-gray-100">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={b.foto} alt={b.nama} className="h-full w-full object-cover" />
+              <img loading="lazy" decoding="async" src={b.foto} alt={b.nama} className="h-full w-full object-cover" />
             </div>
           </Link>
         ))}
@@ -177,7 +177,7 @@ function ForYou({ products }: { products: ProductCardData[] }) {
       <div className="mb-1.5 flex items-center justify-between gap-3">
         <h2 className="flex items-center gap-2 text-xl font-extrabold text-gray-900">
           Recommended For You {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="" className="h-7 w-7" />
+          <img loading="lazy" decoding="async" src="/logo.png" alt="" className="h-7 w-7" />
         </h2>
         <Link href="/shop?sort=popular" className="text-sm font-semibold text-primary hover:underline">
           View All
@@ -201,7 +201,7 @@ function NewArrival({ products }: { products: ProductCardData[] }) {
       <div className="mb-1.5 flex items-center justify-between gap-3">
         <h2 className="flex items-center gap-2 text-xl font-extrabold text-gray-900">
           New Arrival {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="" className="h-7 w-7" />
+          <img loading="lazy" decoding="async" src="/logo.png" alt="" className="h-7 w-7" />
         </h2>
         <Link href="/shop?sort=newest" className="text-sm font-semibold text-primary hover:underline">
           View All
@@ -225,7 +225,7 @@ function BestDeal({ products }: { products: ProductCardData[] }) {
       <div className="mb-1.5 flex items-center justify-between gap-3">
         <h2 className="flex items-center gap-2 text-xl font-extrabold text-gray-900">
           Best Deal {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="" className="h-7 w-7" />
+          <img loading="lazy" decoding="async" src="/logo.png" alt="" className="h-7 w-7" />
         </h2>
         <Link href="/shop?deal=1" className="text-sm font-semibold text-primary hover:underline">
           View All
@@ -248,7 +248,7 @@ function NewArticles({ articles }: { articles: ArticleCardData[] }) {
       <div className="mb-1.5 flex items-center justify-between gap-3">
         <h2 className="flex items-center gap-2 text-xl font-extrabold text-gray-900">
           New Article {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="" className="h-7 w-7" />
+          <img loading="lazy" decoding="async" src="/logo.png" alt="" className="h-7 w-7" />
         </h2>
         <Link href="/articles" className="text-sm font-semibold text-primary hover:underline">
           View All
@@ -264,7 +264,7 @@ function NewArticles({ articles }: { articles: ArticleCardData[] }) {
               <div className="aspect-[16/10] overflow-hidden bg-gray-100">
                 {a.gambar ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={a.gambar} alt={a.judul} className="h-full w-full object-cover transition duration-300 group-hover:scale-105" />
+                  <img loading="lazy" decoding="async" src={a.gambar} alt={a.judul} className="h-full w-full object-cover transition duration-300 group-hover:scale-105" />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center text-gray-300">No image</div>
                 )}
@@ -295,11 +295,11 @@ function PreorderBanners({ products }: { products: PreorderBanner[] }) {
           {/* HP: bannerMobile, Desktop: bannerDesktop; fallback foto produk */}
           {(p.bannerMobile || p.bannerDesktop || p.gambar[0]) && (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={p.bannerMobile || p.bannerDesktop || p.gambar[0]} alt={p.nama} className="absolute inset-0 h-full w-full object-cover sm:hidden" />
+            <img loading="lazy" decoding="async" src={p.bannerMobile || p.bannerDesktop || p.gambar[0]} alt={p.nama} className="absolute inset-0 h-full w-full object-cover sm:hidden" />
           )}
           {(p.bannerDesktop || p.gambar[0]) && (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={p.bannerDesktop || p.gambar[0]} alt={p.nama} className="absolute inset-0 hidden h-full w-full object-cover sm:block" />
+            <img loading="lazy" decoding="async" src={p.bannerDesktop || p.gambar[0]} alt={p.nama} className="absolute inset-0 hidden h-full w-full object-cover sm:block" />
           )}
           {/* gradient atas biar teks kebaca di foto apa pun */}
           <div aria-hidden className="absolute inset-x-0 top-0 h-2/5 bg-gradient-to-b from-black/45 to-transparent" />

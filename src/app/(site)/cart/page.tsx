@@ -24,7 +24,7 @@ export default function CartPage() {
                 <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg border bg-gray-100">
                   {x.gambar && (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={x.gambar} alt="" className="h-full w-full object-cover" />
+                    <img loading="lazy" decoding="async" src={x.gambar} alt="" className="h-full w-full object-cover" />
                   )}
                 </div>
                 <div className="min-w-0 flex-1">

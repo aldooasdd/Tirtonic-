@@ -62,7 +62,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
         <div style={{ display: "flex", marginTop: 56, width: "100%", height: 460, borderRadius: 36, overflow: "hidden", background: "rgba(255,255,255,0.08)", border: "2px solid rgba(255,255,255,0.15)" }}>
           {e.banner ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={e.banner} width={920} height={460} style={{ width: "100%", height: "100%", objectFit: "cover" }} alt="" />
+            <img loading="lazy" decoding="async" src={e.banner} width={920} height={460} style={{ width: "100%", height: "100%", objectFit: "cover" }} alt="" />
           ) : (
             <div style={{ display: "flex", width: "100%", height: "100%", alignItems: "center", justifyContent: "center", fontSize: 120, fontWeight: 800, color: "rgba(255,255,255,0.25)" }}>{e.brand}</div>
           )}
@@ -79,7 +79,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
         {/* QR + CTA */}
         <div style={{ display: "flex", alignItems: "center", gap: 36, marginTop: "auto", background: "rgba(255,255,255,0.1)", borderRadius: 32, padding: 32 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={qr} width={200} height={200} style={{ borderRadius: 20, background: "#fff", padding: 12 }} alt="" />
+          <img loading="lazy" decoding="async" src={qr} width={200} height={200} style={{ borderRadius: 20, background: "#fff", padding: 12 }} alt="" />
           <div style={{ display: "flex", flexDirection: "column" }}>
             <div style={{ display: "flex", fontSize: 44, fontWeight: 800 }}>Scan buat gabung</div>
             <div style={{ display: "flex", fontSize: 34, marginTop: 8, color: "#9fe3c9" }}>tirtonic.com/event</div>

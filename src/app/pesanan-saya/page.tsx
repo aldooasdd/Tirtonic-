@@ -26,7 +26,7 @@ export default function CekPesananPage({ searchParams }: { searchParams: { e?: s
         <div className="glass-card rounded-3xl p-7 sm:p-8">
           <Link href="/" className="flex items-center justify-center gap-2.5 transition hover:opacity-90">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="Tirtonic" className="h-11 w-11 object-contain" />
+            <img loading="lazy" decoding="async" src="/logo.png" alt="Tirtonic" className="h-11 w-11 object-contain" />
           </Link>
           <h1 className="mt-4 text-center text-xl font-extrabold tracking-tight text-gray-900 sm:text-2xl">Cek Pesanan Saya</h1>
           <p className="mt-1.5 text-center text-sm text-gray-500">Masukkan nomor WhatsApp yang kamu pakai saat belanja.</p>
