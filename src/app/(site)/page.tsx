@@ -305,7 +305,6 @@ function PreorderBanners({ products }: { products: PreorderBanner[] }) {
           <div aria-hidden className="absolute inset-x-0 top-0 h-2/5 bg-gradient-to-b from-black/45 to-transparent" />
           <div className="absolute inset-x-0 top-0 px-4 pt-8 text-center sm:pt-10">
             <h2 className="text-3xl font-extrabold tracking-tight text-white drop-shadow sm:text-5xl">{p.nama}</h2>
-            {p.tagline && <p className="mt-2 text-lg font-semibold text-white/90 drop-shadow sm:text-2xl">{p.tagline}</p>}
             {p.estimasi && <p className="mt-1.5 text-sm text-white/80 drop-shadow sm:text-base">{p.estimasi}</p>}
             <div className="mt-5 flex justify-center">
               <Link href={`/preorder/${p.id}`} className="glass-primary inline-flex items-center gap-1 rounded-full py-1.5 pl-5 pr-1.5 text-sm font-semibold transition">
