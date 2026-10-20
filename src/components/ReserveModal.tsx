@@ -14,10 +14,13 @@ export default function ReserveModal({ productId, harga, dpBenefits, lunasBenefi
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [plan, setPlan] = useState<"dp" | "lunas">("dp");
+  const [dp, setDp] = useState(MIN_DP);
   const benefits = plan === "lunas" ? lunasBenefits : dpBenefits;
+  const bayar = plan === "lunas" ? harga : Math.min(Math.max(dp, MIN_DP), harga);
+  const kurang = Math.max(0, harga - bayar);
 
   function go() {
-    router.push(`/preorder/${productId}/checkout${plan === "lunas" ? "?lunas=1" : ""}`);
+    router.push(`/preorder/${productId}/checkout${plan === "lunas" ? "?lunas=1" : `?dp=${bayar}`}`);
   }
 
   return (
@@ -73,6 +76,23 @@ export default function ReserveModal({ productId, harga, dpBenefits, lunasBenefi
                 </ul>
               </div>
             )}
+
+            {plan === "dp" && (
+              <div className="mt-4">
+                <label className="text-xs font-semibold text-gray-600">Nominal DP (min {rupiah(MIN_DP)})</label>
+                <input
+                  type="number" min={MIN_DP} max={harga} step={1000} value={dp}
+                  onChange={(e) => setDp(Math.floor(Number(e.target.value) || 0))}
+                  className="mt-1 w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm outline-none focus:border-primary"
+                />
+              </div>
+            )}
+
+            <div className="mt-4 space-y-0.5 border-t pt-4 text-sm">
+              <div className="flex justify-between text-gray-500"><span>Total harga</span><span>{rupiah(harga)}</span></div>
+              <div className="flex justify-between font-semibold text-primary"><span>Dibayar sekarang</span><span>{rupiah(bayar)}</span></div>
+              <div className="flex justify-between text-gray-500"><span>Kurang (saat barang ready)</span><span>{rupiah(kurang)}</span></div>
+            </div>
 
             <div className="mt-6 flex gap-3">
               <button type="button" onClick={() => setOpen(false)} className="flex-1 rounded-full border border-gray-300 bg-white py-3 text-sm font-bold text-gray-700 transition hover:bg-gray-50">

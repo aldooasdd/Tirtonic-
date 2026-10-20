@@ -12,13 +12,13 @@ const MIN_DP = 100_000;
 type Variant = { id: string; nama: string; harga: number; stok: number };
 type Bonus = { nama: string; deskripsi: string | null; foto: string | null } | null;
 
-export default function PreorderCheckout({ productId, harga, variants = [], bonus = null, defaultFull = false, dpBenefits = [], lunasBenefits = [] }: { productId: string; harga: number; nama: string; variants?: Variant[]; bonus?: Bonus; defaultFull?: boolean; dpBenefits?: string[]; lunasBenefits?: string[] }) {
+export default function PreorderCheckout({ productId, harga, variants = [], bonus = null, defaultFull = false, initialDp, dpBenefits = [], lunasBenefits = [] }: { productId: string; harga: number; nama: string; variants?: Variant[]; bonus?: Bonus; defaultFull?: boolean; initialDp?: number; dpBenefits?: string[]; lunasBenefits?: string[] }) {
   const router = useRouter();
   const hasVariants = variants.length > 0;
   const [variantId, setVariantId] = useState<string>("");
   const [qty, setQty] = useState(1);
   const [plan, setPlan] = useState<"dp" | "lunas">(defaultFull ? "lunas" : "dp");
-  const [dp, setDp] = useState(defaultFull ? 0 : MIN_DP);
+  const [dp, setDp] = useState(defaultFull ? 0 : Math.max(MIN_DP, initialDp ?? MIN_DP));
   const [provinsi, setProvinsi] = useState("");
   const [kota, setKota] = useState("");
   const [busy, setBusy] = useState(false);

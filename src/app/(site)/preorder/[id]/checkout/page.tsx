@@ -7,8 +7,9 @@ import PreorderCheckout from "@/components/PreorderCheckout";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Checkout Pre-Order — Tirtonic" };
 
-export default async function PreorderCheckoutPage({ params, searchParams }: { params: { id: string }; searchParams: { lunas?: string } }) {
+export default async function PreorderCheckoutPage({ params, searchParams }: { params: { id: string }; searchParams: { lunas?: string; dp?: string } }) {
   const defaultFull = searchParams.lunas === "1";
+  const initialDp = Number(searchParams.dp) > 0 ? Math.floor(Number(searchParams.dp)) : undefined;
   const p = await safeQuery(
     () => prisma.preorderProduct.findUnique({ where: { id: params.id }, include: { variants: { orderBy: { urutan: "asc" } } } }),
     null
@@ -45,6 +46,7 @@ export default async function PreorderCheckoutPage({ params, searchParams }: { p
           nama={p.nama}
           variants={variantData}
           defaultFull={defaultFull}
+          initialDp={initialDp}
           dpBenefits={dpBenefits}
           lunasBenefits={lunasBenefits}
         />
