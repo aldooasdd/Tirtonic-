@@ -307,7 +307,7 @@ function PreorderBanners({ products }: { products: PreorderBanner[] }) {
               {p.kuota && (
                 <span className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-black/5 px-3 py-1 text-xs font-bold text-gray-800 backdrop-blur-md">
                   <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-                  {Math.min(p._count.orders, p.kuota)}/{p.kuota} terpesan
+                  {Math.min(p._count.orders, p.kuota)}/{p.kuota}
                 </span>
               )}
               <p className="text-sm font-semibold text-gray-800 sm:text-lg">{p.nama}</p>
