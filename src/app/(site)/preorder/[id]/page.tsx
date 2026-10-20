@@ -66,7 +66,7 @@ export default async function PreorderDetail({ params }: { params: { id: string 
             title="Bayar DP"
             priceTop={`Mulai ${rupiah(DP_MIN)}`}
             priceSub="atau 30% dari harga"
-            btnText={`Reserve Now · Bayar DP ${rupiah(DP_MIN)}`}
+            btnText="Reserve Now"
             benefits={dpBenefits}
           />
           <PayCard
@@ -74,7 +74,7 @@ export default async function PreorderDetail({ params }: { params: { id: string 
             title="Bayar Lunas"
             priceTop={rupiah(p.harga)}
             priceSub="harga penuh, sekali bayar"
-            btnText={`Reserve Now · Bayar Lunas ${rupiah(p.harga)}`}
+            btnText="Reserve Now"
             benefits={lunasBenefits}
           />
         </div>
