@@ -61,7 +61,8 @@ export async function createPreorder(input: PreorderInput): Promise<CreatePreord
 
   const total = hargaSatuan * qty;
   const dp = Math.floor(input.dp || 0);
-  if (dp < MIN_DP) return { ok: false, error: `DP minimal ${rupiah(MIN_DP)}.` };
+  const minDp = Math.max(1, p.dpMin); // dpMin 0 = tanpa minimum, tapi DP tetap harus > 0
+  if (dp < minDp) return { ok: false, error: p.dpMin > 0 ? `DP minimal ${rupiah(p.dpMin)}.` : "Masukkan nominal DP." };
   if (dp > total) return { ok: false, error: "DP tidak boleh melebihi total harga." };
 
   const order = await prisma.preorderOrder.create({

@@ -4,19 +4,17 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { rupiah } from "@/lib/format";
 
-const MIN_DP = 100_000;
-
 // Tombol Reserve Now di detail PO → buka modal pemilih plan (DP / Lunas),
 // lalu lanjut ke halaman checkout sesuai plan.
-export default function ReserveModal({ productId, harga, dpBenefits, lunasBenefits }: {
-  productId: string; harga: number; dpBenefits: string[]; lunasBenefits: string[];
+export default function ReserveModal({ productId, harga, dpBenefits, lunasBenefits, minDp = 100_000 }: {
+  productId: string; harga: number; dpBenefits: string[]; lunasBenefits: string[]; minDp?: number;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [plan, setPlan] = useState<"dp" | "lunas">("dp");
-  const [dp, setDp] = useState(MIN_DP);
+  const [dp, setDp] = useState(minDp || 0);
   const benefits = plan === "lunas" ? lunasBenefits : dpBenefits;
-  const bayar = plan === "lunas" ? harga : Math.min(Math.max(dp, MIN_DP), harga);
+  const bayar = plan === "lunas" ? harga : Math.min(Math.max(dp, minDp), harga);
   const kurang = Math.max(0, harga - bayar);
 
   function go() {
@@ -43,7 +41,7 @@ export default function ReserveModal({ productId, harga, dpBenefits, lunasBenefi
 
             <div className="mt-4 space-y-2">
               {([
-                { key: "dp" as const, title: "Down Payment", sub: `Mulai dari ${rupiah(MIN_DP)}` },
+                { key: "dp" as const, title: "Down Payment", sub: minDp > 0 ? `Mulai dari ${rupiah(minDp)}` : "Nominal bebas" },
                 { key: "lunas" as const, title: "Bayar Lunas", sub: `${rupiah(harga)} — sekali bayar` },
               ]).map((opt) => {
                 const on = plan === opt.key;
@@ -79,7 +77,7 @@ export default function ReserveModal({ productId, harga, dpBenefits, lunasBenefi
 
             {plan === "dp" && (
               <div className="mt-4">
-                <label className="text-xs font-semibold text-gray-600">Nominal DP (mulai dari {rupiah(MIN_DP)})</label>
+                <label className="text-xs font-semibold text-gray-600">Nominal DP {minDp > 0 ? `(mulai dari ${rupiah(minDp)})` : "(bebas)"}</label>
                 <input
                   type="text" inputMode="numeric" value={dp ? String(dp) : ""}
                   onChange={(e) => setDp(Number(e.target.value.replace(/\D/g, "")) || 0)}

@@ -47,6 +47,7 @@ export default async function PreorderCheckoutPage({ params, searchParams }: { p
           variants={variantData}
           defaultFull={defaultFull}
           initialDp={initialDp}
+          minDp={p.dpMin}
           dpBenefits={dpBenefits}
           lunasBenefits={lunasBenefits}
         />

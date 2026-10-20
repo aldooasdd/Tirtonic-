@@ -12,13 +12,13 @@ const MIN_DP = 100_000;
 type Variant = { id: string; nama: string; harga: number; stok: number };
 type Bonus = { nama: string; deskripsi: string | null; foto: string | null } | null;
 
-export default function PreorderCheckout({ productId, harga, variants = [], bonus = null, defaultFull = false, initialDp, dpBenefits = [], lunasBenefits = [] }: { productId: string; harga: number; nama: string; variants?: Variant[]; bonus?: Bonus; defaultFull?: boolean; initialDp?: number; dpBenefits?: string[]; lunasBenefits?: string[] }) {
+export default function PreorderCheckout({ productId, harga, variants = [], bonus = null, defaultFull = false, initialDp, minDp = 100_000, dpBenefits = [], lunasBenefits = [] }: { productId: string; harga: number; nama: string; variants?: Variant[]; bonus?: Bonus; defaultFull?: boolean; initialDp?: number; minDp?: number; dpBenefits?: string[]; lunasBenefits?: string[] }) {
   const router = useRouter();
   const hasVariants = variants.length > 0;
   const [variantId, setVariantId] = useState<string>("");
   const [qty, setQty] = useState(1);
   const [plan, setPlan] = useState<"dp" | "lunas">(defaultFull ? "lunas" : "dp");
-  const [dp, setDp] = useState(defaultFull ? 0 : Math.max(MIN_DP, initialDp ?? MIN_DP));
+  const [dp, setDp] = useState(defaultFull ? 0 : Math.max(minDp, initialDp ?? minDp));
   const [metode, setMetode] = useState<"pickup" | "kirim">("pickup");
   const [cabang, setCabang] = useState("");
   const [provinsi, setProvinsi] = useState("");
@@ -41,7 +41,7 @@ export default function PreorderCheckout({ productId, harga, variants = [], bonu
     setError(null);
     if (hasVariants && !variantId) return setError("Pilih varian dulu.");
     if (hasVariants && selVar && qty > selVar.stok) return setError(`Stok varian ${selVar.nama} tinggal ${selVar.stok}.`);
-    if (dp < MIN_DP) return setError(`DP minimal ${rupiah(MIN_DP)}.`);
+    if (dp < Math.max(1, minDp)) return setError(minDp > 0 ? `DP minimal ${rupiah(minDp)}.` : "Masukkan nominal DP.");
     if (dp > total) return setError("DP tidak boleh melebihi total harga.");
     if (metode === "pickup" && !cabang) return setError("Pilih cabang pengambilan dulu.");
     const fd = new FormData(e.currentTarget);
