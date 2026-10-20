@@ -542,6 +542,7 @@ export async function createPreorderProduct(formData: FormData) {
     estimasi = "Available starting " + launchAt.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
   }
   const isiBox = ((formData.get("isiBox") as string) || "").split("\n").map((s) => s.trim()).filter(Boolean);
+  const lunasBenefits = ((formData.get("lunasBenefits") as string) || "").split("\n").map((s) => s.trim()).filter(Boolean);
   const bonusNama = ((formData.get("bonusNama") as string) || "").trim() || null;
   const bonusDeskripsi = ((formData.get("bonusDeskripsi") as string) || "").trim() || null;
   const variants = formData.get("hasVariants") ? await parsePreorderVariants(formData) : [];
@@ -550,7 +551,7 @@ export async function createPreorderProduct(formData: FormData) {
   const bannersMobile = await uploadNamedImages(formData, "bannersMobile");
   const bonusFoto = await uploadNamedImage(formData, "bonusFoto");
   await prisma.preorderProduct.create({
-    data: { nama, tagline, slogan, harga, deskripsi, estimasi, launchAt, isiBox, gambar, bannersDesktop, bannersMobile, bonusNama, bonusDeskripsi, bonusFoto, ...(variants.length ? { variants: { create: variants } } : {}) },
+    data: { nama, tagline, slogan, harga, deskripsi, estimasi, launchAt, isiBox, lunasBenefits, gambar, bannersDesktop, bannersMobile, bonusNama, bonusDeskripsi, bonusFoto, ...(variants.length ? { variants: { create: variants } } : {}) },
   });
   revalidatePreorder();
   redirect("/dashboard");
@@ -577,6 +578,7 @@ export async function updatePreorderProduct(id: string, formData: FormData) {
     estimasi = "Available starting " + launchAt.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
   }
   const isiBox = ((formData.get("isiBox") as string) || "").split("\n").map((s) => s.trim()).filter(Boolean);
+  const lunasBenefits = ((formData.get("lunasBenefits") as string) || "").split("\n").map((s) => s.trim()).filter(Boolean);
   const bonusNama = ((formData.get("bonusNama") as string) || "").trim() || null;
   const bonusDeskripsi = ((formData.get("bonusDeskripsi") as string) || "").trim() || null;
   const newGambar = await uploadImages(formData);
@@ -586,7 +588,7 @@ export async function updatePreorderProduct(id: string, formData: FormData) {
   await prisma.preorderProduct.update({
     where: { id },
     data: {
-      nama, tagline, slogan, harga, deskripsi, estimasi, launchAt, isiBox, bonusNama, bonusDeskripsi, bonusFoto,
+      nama, tagline, slogan, harga, deskripsi, estimasi, launchAt, isiBox, lunasBenefits, bonusNama, bonusDeskripsi, bonusFoto,
       ...(newGambar.length ? { gambar: newGambar } : {}),
       ...(newBannersDesktop.length ? { bannersDesktop: newBannersDesktop } : {}),
       ...(newBannersMobile.length ? { bannersMobile: newBannersMobile } : {}),

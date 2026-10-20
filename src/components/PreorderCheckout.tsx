@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { rupiah } from "@/lib/format";
 import { submitPreorder } from "@/app/(site)/preorder/actions";
 import wilayah from "@/lib/wilayah.json";
@@ -12,7 +12,7 @@ const MIN_DP = 100_000;
 type Variant = { id: string; nama: string; harga: number; stok: number };
 type Bonus = { nama: string; deskripsi: string | null; foto: string | null } | null;
 
-export default function PreorderCheckout({ productId, harga, variants = [], bonus = null }: { productId: string; harga: number; nama: string; variants?: Variant[]; bonus?: Bonus }) {
+export default function PreorderCheckout({ productId, harga, variants = [], bonus = null, defaultFull = false }: { productId: string; harga: number; nama: string; variants?: Variant[]; bonus?: Bonus; defaultFull?: boolean }) {
   const router = useRouter();
   const hasVariants = variants.length > 0;
   const [variantId, setVariantId] = useState<string>("");
@@ -29,6 +29,9 @@ export default function PreorderCheckout({ productId, harga, variants = [], bonu
   const total = hargaSatuan * qty;
   const kotaOptions = (wilayah as Record<string, string[]>)[provinsi] ?? [];
   const sisa = Math.max(0, total - dp);
+
+  // Mode "Bayar Lunas" dari laman detail (?lunas=1): DP otomatis = total.
+  useEffect(() => { if (defaultFull) setDp(total); }, [defaultFull, total]);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();

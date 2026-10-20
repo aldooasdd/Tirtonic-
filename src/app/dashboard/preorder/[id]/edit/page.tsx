@@ -51,7 +51,9 @@ export default async function EditPreorderPage({ params }: { params: { id: strin
         </div>
 
         <div className="rounded-lg border border-amber-200 bg-amber-50/50 p-4">
-          <p className="mb-2 text-sm font-semibold text-gray-900">Bonus jika bayar penuh (lunas) di awal</p>
+          <p className="mb-2 text-sm font-semibold text-gray-900">Benefit kalau bayar LUNAS (satu per baris)</p>
+          <textarea name="lunasBenefits" rows={4} defaultValue={p.lunasBenefits.join("\n")} placeholder={"Prioritas pengiriman\nGratis pasang senar\nGratis overgrip & dampener"} className="field" />
+          <p className="mb-2 mt-4 text-sm font-semibold text-gray-900">Bonus jika bayar penuh (opsional)</p>
           <div className="space-y-2">
             <input name="bonusNama" defaultValue={p.bonusNama ?? ""} placeholder="Nama bonus (mis. Grip Tenis)" className="field" />
             <textarea name="bonusDeskripsi" rows={2} defaultValue={p.bonusDeskripsi ?? ""} placeholder="Deskripsi bonus (opsional)" className="field" />

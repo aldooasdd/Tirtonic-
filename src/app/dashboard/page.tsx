@@ -421,13 +421,15 @@ export default async function AdminDashboard() {
                 <textarea name="isiBox" rows={3} placeholder={"Contoh:\nRaket Tenis\nCover Raket\nKartu Garansi"} className="field" />
               </div>
               <div className="rounded-lg border border-amber-200 bg-amber-50/50 p-4">
-                <p className="mb-2 text-sm font-semibold text-gray-900">Bonus jika bayar penuh (lunas) di awal</p>
+                <p className="mb-2 text-sm font-semibold text-gray-900">Benefit kalau bayar LUNAS (satu per baris)</p>
+                <textarea name="lunasBenefits" rows={4} placeholder={"Contoh:\nPrioritas pengiriman\nGratis pasang senar\nGratis overgrip & dampener"} className="field" />
+                <p className="mt-1.5 text-xs text-gray-400">Tampil di kartu &quot;Bayar Lunas&quot; halaman detail. Kosongkan = pakai benefit default.</p>
+                <p className="mb-2 mt-4 text-sm font-semibold text-gray-900">Bonus jika bayar penuh (opsional)</p>
                 <div className="space-y-2">
                   <input name="bonusNama" placeholder="Nama bonus (mis. Grip Tenis)" className="field" />
                   <textarea name="bonusDeskripsi" rows={2} placeholder="Deskripsi bonus (opsional)" className="field" />
                   <label className="block text-xs text-gray-500">Foto bonus: <input name="bonusFoto" type="file" accept="image/*" className="text-xs" /></label>
                 </div>
-                <p className="mt-1.5 text-xs text-gray-400">Kosongkan kalau tidak ada bonus. Tampil saat customer pilih bayar penuh.</p>
               </div>
 
               <PreorderVariantInput />

@@ -35,6 +35,7 @@ model PreorderProduct {
   bannerMobile  String? // (lama) foto hero HP tunggal — fallback
   bannersDesktop String[] @default([]) // slide hero desktop (beberapa foto)
   bannersMobile  String[] @default([]) // slide hero HP (beberapa foto)
+  lunasBenefits  String[] @default([]) // benefit khusus kalau bayar lunas (satu per baris)
   deskripsi String?
   bonusNama      String? // bonus jika bayar penuh (lunas) di awal: nama
   bonusDeskripsi String? // bonus: deskripsi
