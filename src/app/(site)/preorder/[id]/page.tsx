@@ -90,11 +90,11 @@ function PayCard({ href, title, priceTop, priceSub, btnText, benefits }: {
 }) {
   return (
     <div className="rounded-3xl border border-white/50 bg-white/40 p-3 shadow-[0_8px_30px_rgba(0,0,0,0.08)] backdrop-blur-md">
-      <div className="glass-primary rounded-2xl p-5 text-white">
-        <p className="text-sm font-bold uppercase tracking-wide text-white/90">{title}</p>
-        <p className="mt-3 text-3xl font-extrabold leading-none">{priceTop}</p>
-        <p className="mt-1 text-xs text-white/70">{priceSub}</p>
-        <Link href={href} className="mt-4 block rounded-full bg-white py-2.5 text-center text-sm font-bold text-primary transition hover:bg-white/90">
+      <div className="rounded-2xl border border-white/60 bg-white/50 p-5 shadow-sm backdrop-blur-md">
+        <p className="text-sm font-bold uppercase tracking-wide text-gray-500">{title}</p>
+        <p className="mt-3 text-3xl font-extrabold leading-none text-gray-900">{priceTop}</p>
+        <p className="mt-1 text-xs text-gray-400">{priceSub}</p>
+        <Link href={href} className="glass-primary mt-4 block rounded-full py-2.5 text-center text-sm font-bold text-white transition hover:brightness-110">
           {btnText}
         </Link>
       </div>
