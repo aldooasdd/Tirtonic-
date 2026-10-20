@@ -521,12 +521,12 @@ export async function createPreorderProduct(formData: FormData) {
   if (!nama || harga <= 0) throw new Error("Nama dan harga wajib diisi.");
   const deskripsi = ((formData.get("deskripsi") as string) || "").trim() || null;
   const tagline = ((formData.get("tagline") as string) || "").trim() || null;
-  // Estimasi dari <input type="date"> (YYYY-MM-DD) → "Tiba 30 November 2026".
+  // Estimasi dari <input type="date"> (YYYY-MM-DD) → "Available starting 30 November 2026".
   const estRaw = ((formData.get("estimasi") as string) || "").trim();
   let estimasi: string | null = null;
   if (/^\d{4}-\d{2}-\d{2}$/.test(estRaw)) {
     const [y, m, d] = estRaw.split("-").map(Number);
-    estimasi = "Tiba " + new Date(y, m - 1, d).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+    estimasi = "Available starting " + new Date(y, m - 1, d).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
   }
   const isiBox = ((formData.get("isiBox") as string) || "").split("\n").map((s) => s.trim()).filter(Boolean);
   const bonusNama = ((formData.get("bonusNama") as string) || "").trim() || null;
