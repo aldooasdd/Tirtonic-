@@ -68,8 +68,8 @@ export default function ReserveModal({ productId, harga, dpBenefits, lunasBenefi
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setOpen(false)} />
-          <div className="relative w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl">
+          <div className="absolute inset-0 bg-black/25" onClick={() => setOpen(false)} />
+          <div className="glass-card relative w-full max-w-md rounded-3xl p-6">
             <h3 className="text-lg font-extrabold text-gray-900">Pilih cara bayar</h3>
             <p className="mt-1 text-sm text-gray-500">Pilih salah satu metode pembayaran.</p>
 
