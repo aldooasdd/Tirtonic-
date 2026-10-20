@@ -413,6 +413,7 @@ export default async function AdminDashboard() {
               <input name="slogan" placeholder="Slogan di bawah nama produk (hero)" className="field" />
               <input name="kuota" type="number" min={1} placeholder="Total slot PO (mis. 100) — kosong = tanpa batas" className="field" />
               <label className="flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" name="dpMinOn" defaultChecked /> Pakai DP minimal Rp100.000 (hilangkan centang = DP bebas / tanpa minimum)</label>
+              <label className="flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" name="showOnLanding" defaultChecked /> Tampilkan di landing page (hilangkan centang = cuma muncul di halaman Pre-Order)</label>
               <div>
                 <label className="label">Estimasi tiba</label>
                 <input name="estimasi" type="date" className="field" />
