@@ -76,7 +76,7 @@ export default function ReserveModal({ productId, harga, dpBenefits, lunasBenefi
             <div className="mt-4 space-y-2">
               {([
                 { key: "dp" as const, title: "Down Payment", sub: minDp > 0 ? `Mulai dari ${rupiah(minDp)}` : "Nominal bebas" },
-                { key: "lunas" as const, title: "Bayar Lunas", sub: `${rupiah(hargaEff)} — sekali bayar` },
+                { key: "lunas" as const, title: "Bayar Lunas", sub: lunasBenefits.length ? `${rupiah(hargaEff)} + ${lunasBenefits.length} Benefit Exclusive` : `${rupiah(hargaEff)} — sekali bayar` },
               ]).map((opt) => {
                 const on = plan === opt.key;
                 return (
