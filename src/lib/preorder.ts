@@ -2,6 +2,7 @@ import "server-only";
 import { prisma } from "@/lib/prisma";
 import { createDokuPayment } from "@/lib/doku";
 import { sendWa } from "@/lib/wa";
+import { notifyN8N } from "@/lib/notify";
 import { normalizePhone } from "@/lib/string-finder/phone";
 
 export const MIN_DP = 100_000; // DP minimal Rp100.000
@@ -110,15 +111,6 @@ const msgPelunasanDiterima = (o: Ord) => L(
   `No. Pesanan : ${o.invoice}`, `Produk : ${o.productNama}`,
   `Total Dibayar : ${rupiah(o.total)}`, opsiPenerimaan(o), "",
   "Status pesanan dapat dipantau melalui:", linkPesanan(o.id), "", SIGN);
-
-const msgDikirim = (o: Ord) => L(
-  TITLE, "",
-  "Pesanan Anda telah kami kirimkan.", "",
-  `No. Pesanan : ${o.invoice}`, `Produk : ${o.productNama}`,
-  `Kurir : ${o.kurir}`, `No. Resi : ${o.resi}`, "",
-  "Lacak pengiriman melalui:", linkPesanan(o.id), "",
-  "Terima kasih telah menjadi bagian dari Exclusive Launch Tirtonic. Semoga produk ini menemani permainan terbaik Anda.", "",
-  SIGN);
 
 const msgDibatalkan = (o: Ord, dpDibayar: boolean) => L(
   TITLE, "",
@@ -262,10 +254,21 @@ export async function markPreorderShipped(id: string, resi: string, kurir?: stri
   if (!o) return { ok: false, error: "Pesanan tidak ditemukan." };
   if (o.status !== "LUNAS" || !(o.arrivedAt || o.readyAt)) return { ok: false, error: "Barang belum ditandai tiba / belum lunas." };
   const noResi = resi?.trim() || null;
+  const noKurir = kurir?.trim() || null;
   const updated = await prisma.preorderOrder.update({
-    where: { id }, data: { status: "SHIPPED", resi: noResi, kurir: kurir?.trim() || null, shippedAt: new Date() },
+    where: { id }, data: { status: "SHIPPED", resi: noResi, kurir: noKurir, shippedAt: new Date() },
   });
-  if (noResi) await waTo(o.telepon, msgDikirim(updated)); // #7 (pickup tanpa resi → tidak kirim)
+  // #7: pakai alur "shipped" yang sama dgn pesanan shop (n8n N8N_ORDER_SHIPPED_URL).
+  // Pickup tanpa resi → tidak kirim notif pengiriman.
+  if (noResi) {
+    await notifyN8N("shipped", {
+      id: updated.id, invoice: updated.invoice, nama: updated.nama, email: updated.email, telepon: updated.telepon,
+      alamat: updated.alamat, kota: updated.kota, provinsi: updated.provinsi, kodePos: updated.kodePos,
+      kurir: noKurir ?? "", ongkir: 0, subtotal: updated.total, diskon: 0, kupon: null,
+      total: updated.total, status: updated.status, resi: noResi, metodeBayar: "DOKU", catatan: updated.catatan,
+      items: [{ nama: updated.productNama, varian: updated.varian, harga: updated.harga, qty: updated.qty }],
+    }, { orderUrl: linkPesanan(updated.id) });
+  }
   return { ok: true };
 }
 

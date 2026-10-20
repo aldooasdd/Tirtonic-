@@ -77,14 +77,19 @@ export default function PreorderOrderActions({ id, status, defaultKekurangan, ar
     }
     return (
       <div className="flex flex-wrap items-center gap-2">
-        <input value={kurirVal} onChange={(e) => setKurirVal(e.target.value)} placeholder="Kurir (JNE/J&T…)" className="w-28 rounded-md border border-gray-300 px-2.5 py-1.5 text-xs outline-none focus:border-primary" />
+        <select value={kurirVal} onChange={(e) => setKurirVal(e.target.value)} className="w-32 rounded-md border border-gray-300 px-2.5 py-1.5 text-xs outline-none focus:border-primary">
+          <option value="">Pilih kurir</option>
+          <option value="Lion Parcel">Lion Parcel</option>
+          <option value="JNE">JNE</option>
+          <option value="J&T">J&T</option>
+        </select>
         <input value={resiVal} onChange={(e) => setResiVal(e.target.value)} placeholder="No. resi" className="w-36 rounded-md border border-gray-300 px-2.5 py-1.5 text-xs outline-none focus:border-primary" />
         <button
-          onClick={() => { if (resiVal.trim() && confirm("Kirim info resi ke WhatsApp customer?")) run(() => adminPreorderShipped(id, resiVal, kurirVal)); }}
+          onClick={() => { if (resiVal.trim()) run(() => adminPreorderShipped(id, resiVal.trim(), kurirVal.trim())); }}
           disabled={pending || !resiVal.trim()}
           className="rounded-md border border-blue-300 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 transition hover:bg-blue-100 disabled:opacity-50"
         >
-          Kirim → Tandai Dikirim
+          Kirim + Kirim Resi
         </button>
       </div>
     );

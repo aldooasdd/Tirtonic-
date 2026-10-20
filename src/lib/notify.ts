@@ -38,7 +38,7 @@ function urlFor(kind: NotifyKind): string | null {
 }
 
 /** Fire-and-forget POST ke n8n. Tidak pernah melempar error (biar tak menggagalkan order). */
-export async function notifyN8N(kind: NotifyKind, order: OrderLike): Promise<void> {
+export async function notifyN8N(kind: NotifyKind, order: OrderLike, opts?: { orderUrl?: string }): Promise<void> {
   const url = urlFor(kind);
   if (!url) return; // belum dikonfigurasi
 
@@ -46,7 +46,7 @@ export async function notifyN8N(kind: NotifyKind, order: OrderLike): Promise<voi
   const payload = {
     event: kind, // "paid" | "shipped"
     invoice: order.invoice,
-    orderUrl: `${base}/order/${order.id}`,
+    orderUrl: opts?.orderUrl ?? `${base}/order/${order.id}`,
     customer: { nama: order.nama, email: order.email, telepon: order.telepon },
     alamat: { alamat: order.alamat, kota: order.kota, provinsi: order.provinsi, kodePos: order.kodePos },
     kurir: order.kurir,
