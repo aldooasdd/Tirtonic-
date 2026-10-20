@@ -19,6 +19,7 @@ export default function PreorderCheckout({ productId, harga, variants = [], bonu
   const [qty, setQty] = useState(1);
   const [plan, setPlan] = useState<"dp" | "lunas">(defaultFull ? "lunas" : "dp");
   const [dp, setDp] = useState(defaultFull ? 0 : Math.max(MIN_DP, initialDp ?? MIN_DP));
+  const [metode, setMetode] = useState<"pickup" | "kirim">("pickup");
   const [provinsi, setProvinsi] = useState("");
   const [kota, setKota] = useState("");
   const [busy, setBusy] = useState(false);
@@ -42,13 +43,16 @@ export default function PreorderCheckout({ productId, harga, variants = [], bonu
     if (dp < MIN_DP) return setError(`DP minimal ${rupiah(MIN_DP)}.`);
     if (dp > total) return setError("DP tidak boleh melebihi total harga.");
     const fd = new FormData(e.currentTarget);
+    const pickup = metode === "pickup";
+    const catatanRaw = String(fd.get("catatan") || "");
     setBusy(true);
     try {
       const res = await submitPreorder({
         productId, variantId: variantId || undefined, qty, dp,
-        nama: String(fd.get("nama") || ""), email: String(fd.get("email") || ""), telepon: String(fd.get("telepon") || ""),
-        alamat: String(fd.get("alamat") || ""), kota, provinsi,
-        kodePos: String(fd.get("kodePos") || ""), catatan: String(fd.get("catatan") || ""),
+        nama: String(fd.get("nama") || ""), email: "", telepon: String(fd.get("telepon") || ""),
+        alamat: pickup ? "AMBIL DI TOKO" : String(fd.get("alamat") || ""),
+        kota: pickup ? "-" : kota, provinsi: pickup ? "-" : provinsi,
+        kodePos: "", catatan: pickup ? `[AMBIL DI TOKO] ${catatanRaw}`.trim() : catatanRaw,
       });
       if (!res.ok) { setError(res.error); setBusy(false); return; }
       if (res.paymentUrl) window.location.href = res.paymentUrl;
@@ -87,19 +91,45 @@ export default function PreorderCheckout({ productId, harga, variants = [], bonu
         </div>
       )}
 
+      {/* Metode pengambilan */}
+      <div className="grid grid-cols-2 gap-2">
+        {([
+          { key: "pickup" as const, title: "Pengambilan di Toko", sub: "Siap diambil saat produk tiba" },
+          { key: "kirim" as const, title: "Pengiriman ke Alamat", sub: "Diantar langsung ke tujuan Anda" },
+        ]).map((opt) => {
+          const on = metode === opt.key;
+          return (
+            <button
+              type="button"
+              key={opt.key}
+              onClick={() => setMetode(opt.key)}
+              className={`rounded-xl border p-3 text-left transition ${on ? "border-primary bg-primary/5" : "border-gray-200 hover:border-gray-300"}`}
+            >
+              <span className="block text-sm font-bold text-gray-900">{opt.title}</span>
+              <span className="block text-xs text-gray-500">{opt.sub}</span>
+            </button>
+          );
+        })}
+      </div>
+
       <input name="nama" required placeholder="Nama lengkap" className={field} />
       <input name="telepon" type="tel" inputMode="numeric" required placeholder="No. WhatsApp (08xxx)" className={field} />
-      <textarea name="alamat" required rows={2} placeholder="Alamat lengkap" className={field} />
-      <div className="grid grid-cols-2 gap-2">
-        <select required value={provinsi} onChange={(e) => { setProvinsi(e.target.value); setKota(""); }} className={field}>
-          <option value="">Provinsi</option>
-          {PROVINSI.map((p) => <option key={p} value={p}>{p}</option>)}
-        </select>
-        <select required value={kota} onChange={(e) => setKota(e.target.value)} disabled={!provinsi} className={field}>
-          <option value="">Kota/Kab.</option>
-          {kotaOptions.map((k) => <option key={k} value={k}>{k}</option>)}
-        </select>
-      </div>
+
+      {metode === "kirim" && (
+        <>
+          <textarea name="alamat" required rows={2} placeholder="Alamat lengkap" className={field} />
+          <div className="grid grid-cols-2 gap-2">
+            <select required value={provinsi} onChange={(e) => { setProvinsi(e.target.value); setKota(""); }} className={field}>
+              <option value="">Provinsi</option>
+              {PROVINSI.map((p) => <option key={p} value={p}>{p}</option>)}
+            </select>
+            <select required value={kota} onChange={(e) => setKota(e.target.value)} disabled={!provinsi} className={field}>
+              <option value="">Kota/Kab.</option>
+              {kotaOptions.map((k) => <option key={k} value={k}>{k}</option>)}
+            </select>
+          </div>
+        </>
+      )}
       <textarea name="catatan" rows={2} placeholder="Catatan (opsional)" className={field} />
 
       {/* Ringkasan pembayaran (plan & DP sudah dipilih di langkah sebelumnya) */}
