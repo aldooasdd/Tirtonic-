@@ -410,6 +410,7 @@ export default async function AdminDashboard() {
                 <input name="harga" type="number" min={1} required placeholder="Harga (Rp) *" className="field" />
               </div>
               <input name="tagline" placeholder="Subjudul landing (mis. Hello, hello.)" className="field" />
+              <input name="slogan" placeholder="Slogan di bawah nama produk (hero)" className="field" />
               <div>
                 <label className="label">Estimasi tiba</label>
                 <input name="estimasi" type="date" className="field" />

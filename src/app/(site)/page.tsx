@@ -282,7 +282,7 @@ function NewArticles({ articles }: { articles: ArticleCardData[] }) {
   );
 }
 
-type PreorderBanner = { id: string; nama: string; tagline: string | null; harga: number; gambar: string[]; bannerDesktop: string | null; bannerMobile: string | null; estimasi: string | null };
+type PreorderBanner = { id: string; nama: string; tagline: string | null; slogan: string | null; harga: number; gambar: string[]; bannerDesktop: string | null; bannerMobile: string | null; estimasi: string | null };
 
 // Hero pre-order di landing (ala Apple): judul + subjudul + estimasi di tengah,
 // tombol Learn more + Pre-order (glass-primary hijau tua), lalu foto landscape.
@@ -305,6 +305,7 @@ function PreorderBanners({ products }: { products: PreorderBanner[] }) {
           <div aria-hidden className="absolute inset-x-0 top-0 h-2/5 bg-gradient-to-b from-black/45 to-transparent" />
           <div className="absolute inset-x-0 top-0 px-4 pt-8 text-center sm:pt-10">
             <h2 className="text-3xl font-extrabold tracking-tight text-white drop-shadow sm:text-5xl">{p.nama}</h2>
+            {p.slogan && <p className="mt-2 text-lg font-semibold text-white/90 drop-shadow sm:text-2xl">{p.slogan}</p>}
             {p.estimasi && <p className="mt-1.5 text-sm text-white/80 drop-shadow sm:text-base">{p.estimasi}</p>}
             <div className="mt-5 flex justify-center">
               <Link href={`/preorder/${p.id}`} className="relative inline-flex items-center gap-1 overflow-hidden rounded-full bg-white/10 py-1.5 pl-5 pr-1.5 text-sm font-semibold text-white transition hover:brightness-110">
@@ -354,7 +355,7 @@ export default async function HomePage() {
     safeQuery(() => prisma.popularBrand.findMany({ orderBy: [{ urutan: "asc" }, { nama: "asc" }] }), []),
     safeQuery(() => prisma.sfBranch.findMany({ where: { isActive: true, slug: { not: "tirtonic" } }, orderBy: { name: "asc" }, select: { id: true, name: true } }), []),
     safeQuery(() => prisma.sfOrder.findMany({ where: { status: { in: ["antri", "dikerjakan"] } }, orderBy: { createdAt: "asc" }, select: { resultCode: true, status: true, branchId: true, stringerName: true } }), []),
-    safeQuery(() => prisma.preorderProduct.findMany({ where: { isActive: true }, orderBy: { createdAt: "desc" }, take: 4, select: { id: true, nama: true, tagline: true, harga: true, gambar: true, bannerDesktop: true, bannerMobile: true, estimasi: true } }), []),
+    safeQuery(() => prisma.preorderProduct.findMany({ where: { isActive: true }, orderBy: { createdAt: "desc" }, take: 4, select: { id: true, nama: true, tagline: true, slogan: true, harga: true, gambar: true, bannerDesktop: true, bannerMobile: true, estimasi: true } }), []),
   ]);
   const toCard = (p: (typeof latest)[number]) => ({ id: p.id, nama: p.nama, harga: p.harga, hargaDiskon: p.hargaDiskon, gambar: p.gambar, status: p.status, fromPrice: p._count.variants > 0 });
   const arrivals = latest.map(toCard);

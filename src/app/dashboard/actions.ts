@@ -521,6 +521,7 @@ export async function createPreorderProduct(formData: FormData) {
   if (!nama || harga <= 0) throw new Error("Nama dan harga wajib diisi.");
   const deskripsi = ((formData.get("deskripsi") as string) || "").trim() || null;
   const tagline = ((formData.get("tagline") as string) || "").trim() || null;
+  const slogan = ((formData.get("slogan") as string) || "").trim() || null;
   // Estimasi dari <input type="date"> (YYYY-MM-DD) → "Available starting 30 November 2026".
   const estRaw = ((formData.get("estimasi") as string) || "").trim();
   let estimasi: string | null = null;
@@ -537,7 +538,7 @@ export async function createPreorderProduct(formData: FormData) {
   const bannerMobile = await uploadNamedImage(formData, "bannerMobile");
   const bonusFoto = await uploadNamedImage(formData, "bonusFoto");
   await prisma.preorderProduct.create({
-    data: { nama, tagline, harga, deskripsi, estimasi, isiBox, gambar, bannerDesktop, bannerMobile, bonusNama, bonusDeskripsi, bonusFoto, ...(variants.length ? { variants: { create: variants } } : {}) },
+    data: { nama, tagline, slogan, harga, deskripsi, estimasi, isiBox, gambar, bannerDesktop, bannerMobile, bonusNama, bonusDeskripsi, bonusFoto, ...(variants.length ? { variants: { create: variants } } : {}) },
   });
   revalidatePreorder();
   redirect("/dashboard");
