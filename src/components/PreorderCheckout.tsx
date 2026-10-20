@@ -143,7 +143,7 @@ export default function PreorderCheckout({ productId, harga, variants = [], bonu
         {/* DP amount hanya untuk plan Down Payment */}
         {plan === "dp" && (
           <div className="mt-3">
-            <label className="text-xs font-semibold text-gray-600">Nominal DP (min {rupiah(MIN_DP)})</label>
+            <label className="text-xs font-semibold text-gray-600">Nominal DP (mulai dari {rupiah(MIN_DP)})</label>
             <input
               type="number" min={MIN_DP} max={total} step={1000} value={dp}
               onChange={(e) => setDp(Math.floor(Number(e.target.value) || 0))}
