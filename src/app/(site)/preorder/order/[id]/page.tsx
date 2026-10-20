@@ -58,7 +58,7 @@ export default async function PreorderOrderPage({ params }: { params: { id: stri
         {o.status === "WAITING_LUNAS" && (
           <div className="mt-4 rounded-xl border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700">
             <p>Sisa pembayaran {rupiah(sisa)}{o.batasPelunasan ? ` · batas ${new Date(o.batasPelunasan).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}` : ""}.</p>
-            {o.lunasUrl && <a href={o.lunasUrl} className="btn-pill mt-2 w-full bg-primary hover:bg-primaryDark">Lunasi Sekarang</a>}
+            <Link href={`/preorder/order/${o.id}/bayar`} className="btn-pill mt-2 w-full bg-primary hover:bg-primaryDark">Lunasi Sekarang</Link>
           </div>
         )}
 

@@ -46,6 +46,7 @@ const TITLE = "*Tirtonic Exclusive Launch*";
 const SIGN = `Salam hangat,${NL}Tirtonic Tennis Store`;
 const L = (...xs: (string | null | undefined)[]) => xs.filter((x) => x != null).join(NL);
 const linkPesanan = (id: string) => `${SITE}/preorder/order/${id}`;
+const linkBayar = (id: string) => `${SITE}/preorder/order/${id}/bayar`; // auto-buat link DOKU baru → anti-expired
 const fmtTgl = (d: Date) => d.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Jakarta" });
 const lineVarian = (o: Ord) => (o.varian ? `Varian : ${o.varian}` : null);
 const isPickup = (o: Ord) => o.alamat?.startsWith("AMBIL DI TOKO");
@@ -81,14 +82,14 @@ const msgProdukTibaLunas = (o: Ord) => L(
   "Benefit gratis pasang senar Anda siap digunakan. Silakan informasikan jenis senar dan tarikan yang diinginkan dengan membalas pesan ini.", "",
   SIGN);
 
-const msgProdukTibaDp = (o: Ord, payUrl: string | null) => L(
+const msgProdukTibaDp = (o: Ord) => L(
   TITLE, "",
   "Kabar baik, produk pesanan Anda telah tiba di Tirtonic.", "",
   `No. Pesanan : ${o.invoice}`, `Produk : ${o.productNama}`, lineVarian(o),
   `Sisa Pembayaran : ${rupiah(o.kekurangan ?? 0)}`,
   o.batasPelunasan ? `Batas Pelunasan : ${fmtTgl(o.batasPelunasan)}` : null, "",
   "Silakan selesaikan pelunasan melalui tautan berikut:",
-  payUrl ?? "Hubungi admin untuk cara pelunasan.", "",
+  linkBayar(o.id), "",
   "Setelah pelunasan diterima, produk dapat langsung diambil di toko atau kami kirimkan ke alamat Anda.", "",
   SIGN);
 
@@ -99,7 +100,7 @@ const msgPengingat = (o: Ord) => L(
   `Sisa Pembayaran : ${rupiah(o.kekurangan ?? 0)}`,
   o.batasPelunasan ? `Batas Pelunasan : ${fmtTgl(o.batasPelunasan)}` : null, "",
   "Pelunasan dapat dilakukan melalui:",
-  o.lunasUrl ?? "Hubungi admin untuk cara pelunasan.", "",
+  linkBayar(o.id), "",
   "Apabila pelunasan belum diterima hingga batas waktu, reservasi akan dibatalkan sesuai ketentuan pre-order. Jika ada kendala, silakan balas pesan ini dan tim kami akan membantu.", "",
   SIGN);
 
@@ -228,7 +229,7 @@ export async function confirmPreorderReady(id: string, kekurangan: number): Prom
     data: { status: "WAITING_LUNAS", kekurangan: sisa, readyAt: new Date(), invoiceLunas, batasPelunasan, lunasUrl: payUrl, reminderSentAt: null },
   });
 
-  await waTo(o.telepon, msgProdukTibaDp(updated, payUrl)); // #4
+  await waTo(o.telepon, msgProdukTibaDp(updated)); // #4
   return { ok: true };
 }
 
@@ -280,6 +281,24 @@ export async function cancelPreorder(id: string): Promise<boolean> {
   }
   if (dpDibayar) await waTo(o.telepon, msgDibatalkan(o, true)); // #8
   return true;
+}
+
+/** Buat ulang link pelunasan DOKU (invoice baru, anti-expired) → URL bayar. Dipakai laman /bayar. */
+export async function refreshPelunasanLink(id: string): Promise<{ ok: boolean; url?: string | null; error?: string }> {
+  const o = await prisma.preorderOrder.findUnique({ where: { id } });
+  if (!o) return { ok: false, error: "Pesanan tidak ditemukan." };
+  if (o.status !== "WAITING_LUNAS") return { ok: false, error: "Pesanan tidak sedang menunggu pelunasan." };
+  const sisa = o.kekurangan ?? Math.max(0, o.total - o.dp);
+  if (sisa <= 0) return { ok: false, error: "Tidak ada sisa pembayaran." };
+
+  const invoiceLunas = genInvoice("-LN"); // invoice DOKU harus unik tiap request
+  const url = await createDokuPayment({
+    id: o.id, invoice: invoiceLunas, total: sisa,
+    nama: o.nama, email: o.email, telepon: o.telepon,
+    callbackPath: `/preorder/order/${o.id}`, dueMinutes: LUNAS_DUE_MIN,
+  });
+  await prisma.preorderOrder.update({ where: { id }, data: { invoiceLunas, lunasUrl: url } });
+  return { ok: true, url };
 }
 
 /** Cron: pengingat H-2 (#5) + auto-batal lewat batas (#8). Dipanggil dari /api/cron/preorder. */
