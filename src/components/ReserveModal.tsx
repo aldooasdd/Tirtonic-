@@ -81,8 +81,8 @@ export default function ReserveModal({ productId, harga, dpBenefits, lunasBenefi
               <div className="mt-4">
                 <label className="text-xs font-semibold text-gray-600">Nominal DP (mulai dari {rupiah(MIN_DP)})</label>
                 <input
-                  type="number" min={MIN_DP} max={harga} step={1000} value={dp}
-                  onChange={(e) => setDp(Math.floor(Number(e.target.value) || 0))}
+                  type="text" inputMode="numeric" value={dp ? String(dp) : ""}
+                  onChange={(e) => setDp(Number(e.target.value.replace(/\D/g, "")) || 0)}
                   className="mt-1 w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm outline-none focus:border-primary"
                 />
               </div>
