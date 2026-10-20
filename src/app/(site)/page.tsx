@@ -307,15 +307,36 @@ function PreorderBanners({ products }: { products: PreorderBanner[] }) {
             <h2 className="text-3xl font-extrabold tracking-tight text-white drop-shadow sm:text-5xl">{p.nama}</h2>
             {p.estimasi && <p className="mt-1.5 text-sm text-white/80 drop-shadow sm:text-base">{p.estimasi}</p>}
             <div className="mt-5 flex justify-center">
-              <Link href={`/preorder/${p.id}`} className="glass-primary inline-flex items-center gap-1 rounded-full py-1.5 pl-5 pr-1.5 text-sm font-semibold transition">
-                <span className="px-1">{rupiah(p.harga)}</span>
-                <span className="rounded-full bg-white/20 px-5 py-1.5 font-bold">Pre-order</span>
+              <Link href={`/preorder/${p.id}`} className="glass-primary relative inline-flex items-center gap-1 overflow-hidden rounded-full py-1.5 pl-5 pr-1.5 text-sm font-semibold text-white transition hover:brightness-110">
+                {/* liquid glass: rim shadow + distorsi backdrop (SVG #container-glass) */}
+                <span aria-hidden className="pointer-events-none absolute inset-0 rounded-full shadow-[inset_3px_3px_0.5px_-3px_rgba(255,255,255,0.6),inset_-3px_-3px_0.5px_-3px_rgba(255,255,255,0.5),inset_0_0_6px_6px_rgba(255,255,255,0.12),0_0_12px_rgba(0,0,0,0.15)]" />
+                <span aria-hidden className="pointer-events-none absolute inset-0 -z-10 rounded-full" style={{ backdropFilter: 'url("#container-glass")' }} />
+                <span className="relative z-10 px-1">{rupiah(p.harga)}</span>
+                <span className="relative z-10 rounded-full bg-white/20 px-5 py-1.5 font-bold">Pre-order</span>
               </Link>
             </div>
           </div>
         </div>
       ))}
+      <GlassFilter />
     </section>
+  );
+}
+
+// Filter distorsi untuk efek liquid glass (dipakai via backdropFilter: url(#container-glass)).
+function GlassFilter() {
+  return (
+    <svg className="hidden" aria-hidden>
+      <defs>
+        <filter id="container-glass" x="0%" y="0%" width="100%" height="100%" colorInterpolationFilters="sRGB">
+          <feTurbulence type="fractalNoise" baseFrequency="0.05 0.05" numOctaves="1" seed="1" result="turbulence" />
+          <feGaussianBlur in="turbulence" stdDeviation="2" result="blurredNoise" />
+          <feDisplacementMap in="SourceGraphic" in2="blurredNoise" scale="70" xChannelSelector="R" yChannelSelector="B" result="displaced" />
+          <feGaussianBlur in="displaced" stdDeviation="4" result="finalBlur" />
+          <feComposite in="finalBlur" in2="finalBlur" operator="over" />
+        </filter>
+      </defs>
+    </svg>
   );
 }
 
