@@ -71,7 +71,7 @@ export default function ArticleForm({
       <div>
         <label className="label">Konten *</label>
         <RichText name="konten" defaultValue={article?.konten || ""} />
-        <p className="mt-1 text-xs text-gray-400">Pilih teks lalu klik B (tebal) / I (miring). Enter = baris baru, ¶ = paragraf baru.</p>
+        <p className="mt-1 text-xs text-gray-400">Pilih teks lalu klik B (tebal) / I (miring). A+ / A / a = ukuran font. Enter = baris baru, ¶ = paragraf baru.</p>
       </div>
 
       <div>
