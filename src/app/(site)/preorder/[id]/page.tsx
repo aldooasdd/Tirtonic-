@@ -33,7 +33,7 @@ export default async function PreorderDetail({ params }: { params: { id: string 
 
         {/* Info + checkout */}
         <div>
-          <span className="inline-flex rounded-full bg-primary px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">Pre-Order</span>
+          <span className="glass-primary inline-flex rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-white">Tirtonic Exclusive Launch</span>
           <h1 className="mt-2 text-2xl font-extrabold text-gray-900">{p.nama}</h1>
           <p className="mt-1 text-2xl font-extrabold text-primary">{rupiah(p.harga)}</p>
           {p.estimasi && <p className="mt-1 text-sm text-gray-500">Estimasi: {p.estimasi}</p>}
