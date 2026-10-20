@@ -20,6 +20,7 @@ export default function PreorderCheckout({ productId, harga, variants = [], bonu
   const [plan, setPlan] = useState<"dp" | "lunas">(defaultFull ? "lunas" : "dp");
   const [dp, setDp] = useState(defaultFull ? 0 : Math.max(MIN_DP, initialDp ?? MIN_DP));
   const [metode, setMetode] = useState<"pickup" | "kirim">("pickup");
+  const [cabang, setCabang] = useState("");
   const [provinsi, setProvinsi] = useState("");
   const [kota, setKota] = useState("");
   const [busy, setBusy] = useState(false);
@@ -42,6 +43,7 @@ export default function PreorderCheckout({ productId, harga, variants = [], bonu
     if (hasVariants && selVar && qty > selVar.stok) return setError(`Stok varian ${selVar.nama} tinggal ${selVar.stok}.`);
     if (dp < MIN_DP) return setError(`DP minimal ${rupiah(MIN_DP)}.`);
     if (dp > total) return setError("DP tidak boleh melebihi total harga.");
+    if (metode === "pickup" && !cabang) return setError("Pilih cabang pengambilan dulu.");
     const fd = new FormData(e.currentTarget);
     const pickup = metode === "pickup";
     const catatanRaw = String(fd.get("catatan") || "");
@@ -50,9 +52,9 @@ export default function PreorderCheckout({ productId, harga, variants = [], bonu
       const res = await submitPreorder({
         productId, variantId: variantId || undefined, qty, dp,
         nama: String(fd.get("nama") || ""), email: "", telepon: String(fd.get("telepon") || ""),
-        alamat: pickup ? "AMBIL DI TOKO" : String(fd.get("alamat") || ""),
-        kota: pickup ? "-" : kota, provinsi: pickup ? "-" : provinsi,
-        kodePos: "", catatan: pickup ? `[AMBIL DI TOKO] ${catatanRaw}`.trim() : catatanRaw,
+        alamat: pickup ? `AMBIL DI TOKO - Cabang ${cabang}` : String(fd.get("alamat") || ""),
+        kota: pickup ? cabang : kota, provinsi: pickup ? "-" : provinsi,
+        kodePos: "", catatan: pickup ? `[AMBIL DI TOKO - ${cabang}] ${catatanRaw}`.trim() : catatanRaw,
       });
       if (!res.ok) { setError(res.error); setBusy(false); return; }
       if (res.paymentUrl) window.location.href = res.paymentUrl;
@@ -112,6 +114,15 @@ export default function PreorderCheckout({ productId, harga, variants = [], bonu
         })}
       </div>
 
+      {metode === "pickup" && (
+        <select value={cabang} onChange={(e) => setCabang(e.target.value)} className={field}>
+          <option value="">Pilih cabang pengambilan</option>
+          <option value="Jogja">Tirtonic Jogja</option>
+          <option value="Semarang">Tirtonic Semarang</option>
+          <option value="Solo">Tirtonic Solo</option>
+        </select>
+      )}
+
       <input name="nama" required placeholder="Nama lengkap" className={field} />
       <input name="telepon" type="tel" inputMode="numeric" required placeholder="No. WhatsApp (08xxx)" className={field} />
 
@@ -134,7 +145,8 @@ export default function PreorderCheckout({ productId, harga, variants = [], bonu
 
       {/* Ringkasan pembayaran (plan & DP sudah dipilih di langkah sebelumnya) */}
       <div className="rounded-2xl border bg-white p-4">
-        <div className="flex justify-between text-sm text-gray-500"><span>Cara bayar</span><span className="font-semibold text-gray-900">{plan === "lunas" ? "Bayar Lunas" : "Down Payment"}</span></div>
+        <div className="flex justify-between text-sm text-gray-500"><span>Metode</span><span className="font-semibold text-gray-900">{metode === "pickup" ? `Ambil di Toko${cabang ? ` — ${cabang}` : ""}` : "Kirim ke Alamat"}</span></div>
+        <div className="mt-1 flex justify-between text-sm text-gray-500"><span>Cara bayar</span><span className="font-semibold text-gray-900">{plan === "lunas" ? "Bayar Lunas" : "Down Payment"}</span></div>
         <div className="mt-2 space-y-0.5 border-t pt-2 text-sm">
           <div className="flex justify-between text-gray-500"><span>Total harga</span><span>{rupiah(total)}</span></div>
           <div className="flex justify-between font-semibold text-primary"><span>Dibayar sekarang</span><span>{rupiah(Math.min(dp, total))}</span></div>
