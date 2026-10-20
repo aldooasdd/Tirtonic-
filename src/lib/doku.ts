@@ -102,6 +102,6 @@ export function verifyDokuNotification(headers: Headers, rawBody: string, reques
   const got = headers.get("Signature") || "";
   const expected = signature(requestId, timestamp, target, rawBody);
   const ok = got.length === expected.length && crypto.timingSafeEqual(Buffer.from(got), Buffer.from(expected));
-  if (!ok) console.error("DOKU notify signature mismatch", { target, requestId, hasSig: Boolean(got) });
+  if (!ok) console.error("DOKU notify signature mismatch", { target, requestId, timestamp, got, expected, baseUrl: BASE_URL });
   return ok;
 }
