@@ -10,8 +10,9 @@ type Row = { key: string; warna: string; ukuran: string; harga: string; stok: st
 let k = 0;
 const newRow = (): Row => ({ key: `v${k++}`, warna: "", ukuran: "", harga: "", stok: "" });
 
-export default function PreorderVariantInput() {
+export default function PreorderVariantInput({ defaultLabel = "" }: { defaultLabel?: string }) {
   const [has, setHas] = useState(false);
+  const [label, setLabel] = useState(defaultLabel);
   const [rows, setRows] = useState<Row[]>([newRow()]);
   const [bulk, setBulk] = useState("");
 
@@ -26,12 +27,17 @@ export default function PreorderVariantInput() {
     <div className="rounded-lg border border-gray-200 p-4">
       <label className="flex items-center gap-2 font-semibold text-gray-900">
         <input type="checkbox" checked={has} onChange={(e) => setHas(e.target.checked)} />
-        Produk punya varian (warna / ukuran)
+        Produk punya varian
       </label>
       {has && <input type="hidden" name="hasVariants" value="1" />}
 
       {has && (
         <div className="mt-4 space-y-3">
+          <div>
+            <label className="label">Nama atribut varian</label>
+            <input name="varianLabel" value={label} onChange={(e) => setLabel(e.target.value)} placeholder="mis. Warna / Ukuran / Edisi" className="field" />
+          </div>
+
           <div className="flex flex-wrap items-end gap-2 rounded-lg bg-primary/5 p-3">
             <div className="flex-1">
               <label className="label">Set harga semua varian (Rp)</label>
@@ -42,14 +48,10 @@ export default function PreorderVariantInput() {
 
           {rows.map((v, i) => (
             <div key={v.key} className="rounded-lg border bg-gray-50 p-3">
-              <div className="grid gap-2 sm:grid-cols-4">
+              <div className="grid gap-2 sm:grid-cols-3">
                 <div>
-                  <label className="label">Warna *</label>
-                  <input name="v_warna" value={v.warna} onChange={(e) => set(i, "warna", e.target.value)} placeholder="Biru" className="field" />
-                </div>
-                <div>
-                  <label className="label">Ukuran</label>
-                  <input name="v_ukuran" value={v.ukuran} onChange={(e) => set(i, "ukuran", e.target.value)} placeholder="42 (opsional)" className="field" />
+                  <label className="label">{label.trim() || "Nilai"} *</label>
+                  <input name="v_warna" value={v.warna} onChange={(e) => set(i, "warna", e.target.value)} placeholder="mis. Hijau" className="field" />
                 </div>
                 <div>
                   <label className="label">Harga (Rp) *</label>
@@ -62,7 +64,7 @@ export default function PreorderVariantInput() {
               </div>
               <div className="mt-2 flex items-center gap-3">
                 <label className="text-xs text-gray-500">
-                  Foto warna: <input name="v_gambar" type="file" accept="image/*" className="text-xs" />
+                  Foto varian: <input name="v_gambar" type="file" accept="image/*" className="text-xs" />
                 </label>
                 {rows.length > 1 && (
                   <button type="button" onClick={() => setRows((prev) => prev.filter((_, idx) => idx !== i))} className="ml-auto text-xs font-semibold text-red-500 hover:underline">
@@ -76,9 +78,7 @@ export default function PreorderVariantInput() {
           <button type="button" onClick={() => setRows((prev) => [...prev, newRow()])} className="rounded-full border px-4 py-2 text-sm font-semibold text-primary hover:border-primary">
             + Tambah varian
           </button>
-          <p className="text-xs text-gray-400">
-            Satu baris = satu kombinasi. Untuk warna yang punya beberapa ukuran, buat baris per ukuran dengan warna sama. Foto cukup diisi di salah satu baris tiap warna.
-          </p>
+          <p className="text-xs text-gray-400">Satu baris = satu nilai varian. Tiap baris wajib ada nilai + harga.</p>
         </div>
       )}
     </div>

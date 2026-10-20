@@ -12,7 +12,7 @@ const MIN_DP = 100_000;
 type Variant = { id: string; nama: string; harga: number; stok: number };
 type Bonus = { nama: string; deskripsi: string | null; foto: string | null } | null;
 
-export default function PreorderCheckout({ productId, harga, variants = [], bonus = null, defaultFull = false, initialDp, initialVariantId, minDp = 100_000, dpBenefits = [], lunasBenefits = [] }: { productId: string; harga: number; nama: string; variants?: Variant[]; bonus?: Bonus; defaultFull?: boolean; initialDp?: number; initialVariantId?: string; minDp?: number; dpBenefits?: string[]; lunasBenefits?: string[] }) {
+export default function PreorderCheckout({ productId, harga, variants = [], bonus = null, defaultFull = false, initialDp, initialVariantId, minDp = 100_000, varianLabel, dpBenefits = [], lunasBenefits = [] }: { productId: string; harga: number; nama: string; variants?: Variant[]; bonus?: Bonus; defaultFull?: boolean; initialDp?: number; initialVariantId?: string; minDp?: number; varianLabel?: string | null; dpBenefits?: string[]; lunasBenefits?: string[] }) {
   const router = useRouter();
   const hasVariants = variants.length > 0;
   const [variantId, setVariantId] = useState<string>(initialVariantId && variants.some((v) => v.id === initialVariantId) ? initialVariantId : "");
@@ -71,7 +71,7 @@ export default function PreorderCheckout({ productId, harga, variants = [], bonu
     <form onSubmit={onSubmit} className="space-y-3">
       {hasVariants && (
         <div>
-          <p className="text-sm font-semibold text-gray-700">Pilih varian</p>
+          <p className="text-sm font-semibold text-gray-700">Pilih {varianLabel?.trim() || "varian"}</p>
           <div className="mt-1.5 flex flex-wrap gap-2">
             {variants.map((v) => {
               const habis = v.stok <= 0;

@@ -8,8 +8,8 @@ type Variant = { id: string; nama: string; harga: number; stok: number };
 
 // Tombol Reserve Now di detail PO → buka modal pilih varian + plan (DP / Lunas),
 // lalu lanjut ke halaman checkout sesuai pilihan.
-export default function ReserveModal({ productId, harga, dpBenefits, lunasBenefits, minDp = 100_000, variants = [] }: {
-  productId: string; harga: number; dpBenefits: string[]; lunasBenefits: string[]; minDp?: number; variants?: Variant[];
+export default function ReserveModal({ productId, harga, dpBenefits, lunasBenefits, minDp = 100_000, variants = [], varianLabel }: {
+  productId: string; harga: number; dpBenefits: string[]; lunasBenefits: string[]; minDp?: number; variants?: Variant[]; varianLabel?: string | null;
 }) {
   const router = useRouter();
   const hasVariants = variants.length > 0;
@@ -36,7 +36,7 @@ export default function ReserveModal({ productId, harga, dpBenefits, lunasBenefi
     <>
       {hasVariants && (
         <div className="mt-6">
-          <p className="text-sm font-semibold text-gray-700">Pilih varian</p>
+          <p className="text-sm font-semibold text-gray-700">Pilih {varianLabel?.trim() || "varian"}</p>
           <div className="mt-1.5 flex flex-wrap gap-2">
             {variants.map((v) => {
               const habis = v.stok <= 0;

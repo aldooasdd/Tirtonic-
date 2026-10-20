@@ -103,7 +103,7 @@ export default async function EditPreorderPage({ params }: { params: { id: strin
           </div>
         )}
         <p className="text-xs text-gray-400">Centang &quot;punya varian&quot; di bawah untuk MENGGANTI seluruh varian. Biarkan tidak dicentang kalau tidak ingin mengubah varian.</p>
-        <PreorderVariantInput />
+        <PreorderVariantInput defaultLabel={p.varianLabel ?? ""} />
 
         <button className="btn-green">Simpan Perubahan</button>
       </form>
