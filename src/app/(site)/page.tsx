@@ -306,7 +306,7 @@ function PreorderBanners({ products }: { products: PreorderBanner[] }) {
               <LaunchCountdown date={p.launchAt ? p.launchAt.toISOString() : null} />
               <p className="text-sm font-semibold text-gray-800 sm:text-lg">{p.nama}</p>
               {p.slogan && <h2 className="my-px text-xl font-bold tracking-tight text-gray-900 sm:text-[2.75rem]">{p.slogan}</h2>}
-              {p.estimasi && <p className="mt-1.5 text-xs font-light text-gray-600 sm:text-sm">{p.estimasi}</p>}
+              {p.estimasi && <p className="mt-2 text-xs font-light text-gray-600 sm:mt-3 sm:text-sm">{p.estimasi}</p>}
             </div>
             <Link href={`/preorder/${p.id}`} className="relative inline-flex shrink-0 items-center gap-1 overflow-hidden rounded-full bg-black/5 py-1.5 pl-4 pr-1.5 text-sm font-semibold text-gray-900 transition hover:brightness-105">
               {/* liquid glass: rim shadow + distorsi backdrop (SVG #container-glass) */}
