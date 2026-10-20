@@ -33,7 +33,6 @@ export default function PreorderCheckout({ productId, harga, variants = [], bonu
 
   // Plan "lunas" → DP = total (ikut perubahan varian/qty).
   useEffect(() => { if (plan === "lunas") setDp(total); }, [plan, total]);
-  const benefits = plan === "lunas" ? lunasBenefits : dpBenefits;
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -112,64 +111,14 @@ export default function PreorderCheckout({ productId, harga, variants = [], bonu
       </div>
       <textarea name="catatan" rows={2} placeholder="Catatan (opsional)" className={field} />
 
-      {/* Pilih cara bayar (plan) */}
-      <div className="rounded-2xl border bg-white p-3">
-        <p className="text-base font-bold text-gray-900">Pilih cara bayar</p>
-        <div className="mt-3 space-y-2">
-          {([
-            { key: "dp" as const, title: "Down Payment", sub: `Mulai dari ${rupiah(MIN_DP)}` },
-            { key: "lunas" as const, title: "Bayar Lunas", sub: `${rupiah(total)} — sekali bayar` },
-          ]).map((opt) => {
-            const on = plan === opt.key;
-            return (
-              <button
-                type="button"
-                key={opt.key}
-                onClick={() => { setPlan(opt.key); setDp(opt.key === "lunas" ? total : MIN_DP); }}
-                className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left transition ${on ? "border-primary bg-primary/5" : "border-gray-200 hover:border-gray-300"}`}
-              >
-                <span>
-                  <span className="block text-sm font-bold text-gray-900">{opt.title}</span>
-                  <span className="block text-xs text-gray-500">{opt.sub}</span>
-                </span>
-                <span className={`flex h-5 w-5 items-center justify-center rounded-full border-2 ${on ? "border-primary" : "border-gray-300"}`}>
-                  {on && <span className="h-2.5 w-2.5 rounded-full bg-primary" />}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* DP amount hanya untuk plan Down Payment */}
-        {plan === "dp" && (
-          <div className="mt-3">
-            <label className="text-xs font-semibold text-gray-600">Nominal DP (mulai dari {rupiah(MIN_DP)})</label>
-            <input
-              type="number" min={MIN_DP} max={total} step={1000} value={dp}
-              onChange={(e) => setDp(Math.floor(Number(e.target.value) || 0))}
-              className={`${field} mt-1`}
-            />
-          </div>
-        )}
-
-        <div className="mt-3 space-y-0.5 border-t pt-3 text-sm">
+      {/* Ringkasan pembayaran (plan & DP sudah dipilih di langkah sebelumnya) */}
+      <div className="rounded-2xl border bg-white p-4">
+        <div className="flex justify-between text-sm text-gray-500"><span>Cara bayar</span><span className="font-semibold text-gray-900">{plan === "lunas" ? "Bayar Lunas" : "Down Payment"}</span></div>
+        <div className="mt-2 space-y-0.5 border-t pt-2 text-sm">
           <div className="flex justify-between text-gray-500"><span>Total harga</span><span>{rupiah(total)}</span></div>
           <div className="flex justify-between font-semibold text-primary"><span>Dibayar sekarang</span><span>{rupiah(Math.min(dp, total))}</span></div>
           <div className="flex justify-between text-gray-500"><span>Sisa (saat barang ready)</span><span>{rupiah(sisa)}</span></div>
         </div>
-
-        {benefits.length > 0 && (
-          <div className="mt-3 border-t pt-3">
-            <p className="text-sm font-semibold text-gray-900">Benefit:</p>
-            <ul className="mt-2 space-y-1.5 text-sm text-gray-600">
-              {benefits.map((b, i) => (
-                <li key={i} className="flex items-start gap-2">
-                  <span className="mt-0.5 text-primary">✓</span>{b.replace(/^[\s✓✔•\-]+/, "")}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
       </div>
 
       {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>}
