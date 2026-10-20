@@ -301,21 +301,20 @@ function PreorderBanners({ products }: { products: PreorderBanner[] }) {
             // eslint-disable-next-line @next/next/no-img-element
             <img loading="lazy" decoding="async" src={p.bannerDesktop || p.gambar[0]} alt={p.nama} className="absolute inset-0 hidden h-full w-full object-cover sm:block" />
           )}
-          {/* gradient atas biar teks kebaca di foto apa pun */}
-          <div aria-hidden className="absolute inset-x-0 top-0 h-2/5 bg-gradient-to-b from-black/45 to-transparent" />
-          <div className="absolute inset-x-0 top-0 px-4 pt-8 text-center sm:pt-10">
-            <h2 className="text-3xl font-extrabold tracking-tight text-white drop-shadow sm:text-5xl">{p.nama}</h2>
-            {p.slogan && <p className="mt-2 text-lg font-semibold text-white/90 drop-shadow sm:text-2xl">{p.slogan}</p>}
-            {p.estimasi && <p className="mt-1.5 text-sm text-white/80 drop-shadow sm:text-base">{p.estimasi}</p>}
-            <div className="mt-5 flex justify-center">
-              <Link href={`/preorder/${p.id}`} className="relative inline-flex items-center gap-1 overflow-hidden rounded-full bg-white/10 py-1.5 pl-5 pr-1.5 text-sm font-semibold text-white transition hover:brightness-110">
-                {/* liquid glass: rim shadow + distorsi backdrop (SVG #container-glass) */}
-                <span aria-hidden className="pointer-events-none absolute inset-0 rounded-full shadow-[inset_3px_3px_0.5px_-3px_rgba(255,255,255,0.6),inset_-3px_-3px_0.5px_-3px_rgba(255,255,255,0.5),inset_0_0_6px_6px_rgba(255,255,255,0.12),0_0_12px_rgba(0,0,0,0.15)]" />
-                <span aria-hidden className="pointer-events-none absolute inset-0 -z-10 rounded-full" style={{ backdropFilter: 'url("#container-glass")' }} />
-                <span className="relative z-10 px-1">{rupiah(p.harga)}</span>
-                <span className="glass-primary relative z-10 rounded-full px-5 py-1.5 font-bold text-white">Pre-order</span>
-              </Link>
+          {/* Layout ala Apple: teks kiri-bawah, kapsul kanan-bawah */}
+          <div className="absolute inset-0 flex items-end justify-between gap-3 p-5 sm:p-10">
+            <div className="min-w-0 text-left">
+              <p className="text-sm font-semibold text-gray-800 sm:text-lg">{p.nama}</p>
+              {p.slogan && <h2 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-5xl">{p.slogan}</h2>}
+              {p.estimasi && <p className="mt-1.5 text-xs text-gray-600 sm:text-sm">{p.estimasi}</p>}
             </div>
+            <Link href={`/preorder/${p.id}`} className="relative inline-flex shrink-0 items-center gap-1 overflow-hidden rounded-full bg-black/5 py-1.5 pl-4 pr-1.5 text-sm font-semibold text-gray-900 transition hover:brightness-105">
+              {/* liquid glass: rim shadow + distorsi backdrop (SVG #container-glass) */}
+              <span aria-hidden className="pointer-events-none absolute inset-0 rounded-full shadow-[inset_3px_3px_0.5px_-3px_rgba(255,255,255,0.6),inset_-3px_-3px_0.5px_-3px_rgba(255,255,255,0.5),inset_0_0_6px_6px_rgba(255,255,255,0.12),0_0_12px_rgba(0,0,0,0.15)]" />
+              <span aria-hidden className="pointer-events-none absolute inset-0 -z-10 rounded-full" style={{ backdropFilter: 'url("#container-glass")' }} />
+              <span className="relative z-10 px-1">{rupiah(p.harga)}</span>
+              <span className="glass-primary relative z-10 rounded-full px-5 py-1.5 font-bold text-white">Pre-order</span>
+            </Link>
           </div>
         </div>
       ))}
