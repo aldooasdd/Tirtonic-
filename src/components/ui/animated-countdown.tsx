@@ -64,7 +64,7 @@ const unitVariantClasses: Record<CountdownVariant, string> = {
     "border-gray-200 bg-gray-100 shadow-sm transition hover:border-primary/35 hover:bg-gray-200/70 hover:shadow-primary/10",
   digital:
     "border-cyan-400/20 bg-cyan-400/[0.055] font-mono shadow-[0_0_28px_-18px_rgba(34,211,238,0.9)] transition hover:border-cyan-300/40 hover:bg-cyan-400/[0.09]",
-  minimal: "border-transparent bg-transparent transition hover:bg-gray-100/70",
+  minimal: "border-transparent bg-transparent",
   classic:
     "border-gray-200 bg-white shadow-sm transition hover:border-primary/30 hover:bg-gray-100/70",
 };
@@ -180,7 +180,6 @@ function CountdownUnit({
       initial={reduceMotion ? false : { opacity: 0, y: 12, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ delay: reduceMotion ? 0 : index * 0.055, duration: 0.35, ease: "easeOut" }}
-      whileHover={reduceMotion ? undefined : { y: -3 }}
       className={cn(
         "relative flex flex-col items-center justify-center overflow-hidden border text-center",
         unitVariantClasses[variant],
