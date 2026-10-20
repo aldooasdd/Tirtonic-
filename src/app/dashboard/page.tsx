@@ -527,7 +527,7 @@ export default async function AdminDashboard() {
 
         {/* product list (search live di client) */}
         {can("produk") && (
-        <details className="group overflow-hidden rounded-2xl border bg-white shadow-sm" open>
+        <details className="group overflow-hidden rounded-2xl border bg-white shadow-sm">
           <summary className="flex cursor-pointer items-center justify-between px-5 py-4 font-bold text-gray-900">
             <span className="flex items-center gap-2">Daftar Produk</span>
             <span className="text-xs font-normal text-gray-400">{products.length} produk</span>
