@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 type Step = { date: string; desc: string };
 type TrackData = { history: Step[]; status?: string; fallbackUrl?: string | null; resi?: string; kurir?: string };
@@ -24,6 +24,9 @@ export default function CustomerTracking({ orderId, kurir, resi }: { orderId: st
       setBusy(false);
     }
   }
+
+  // Auto-lacak saat laman dibuka. ponytail: 1 call Binderbyte per buka laman.
+  useEffect(() => { lacak(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, []);
 
   return (
     <div className="mt-2 rounded-xl border border-blue-200 bg-blue-50/60 p-3 text-sm">
