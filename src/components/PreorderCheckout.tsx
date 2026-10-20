@@ -82,7 +82,7 @@ export default function PreorderCheckout({ productId, harga, variants = [], bonu
                   key={v.id}
                   disabled={habis}
                   onClick={() => { setVariantId(v.id); setQty(1); }}
-                  className={`rounded-full border px-3 py-1.5 text-sm ${on ? "border-primary bg-primary/10 font-semibold text-primary" : "border-gray-300 text-gray-700"} ${habis ? "cursor-not-allowed opacity-40 line-through" : ""}`}
+                  className={`rounded-xl border px-3 py-1.5 text-sm ${on ? "border-primary bg-primary/10 font-semibold text-primary" : "border-gray-300 text-gray-700"} ${habis ? "cursor-not-allowed opacity-40 line-through" : ""}`}
                 >
                   {v.nama}{habis ? " (habis)" : ""}
                 </button>
