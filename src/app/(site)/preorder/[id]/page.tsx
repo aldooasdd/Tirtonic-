@@ -59,7 +59,7 @@ export default async function PreorderDetail({ params }: { params: { id: string 
 
       {/* Pilihan pembayaran: Bayar DP vs Bayar Lunas */}
       <div className="mt-10 border-t pt-8">
-        <h2 className="mb-5 text-xl font-extrabold text-gray-900">Pilih cara bayar</h2>
+        <h2 className="mb-5 text-xl font-extrabold text-gray-900">Payment Method</h2>
         <div className="grid gap-4 sm:grid-cols-2">
           <PayCard
             href={`/preorder/${p.id}/checkout`}
@@ -79,6 +79,18 @@ export default async function PreorderDetail({ params }: { params: { id: string 
           />
         </div>
         <p className="mt-3 text-center text-xs text-gray-400">Pembayaran aman via DOKU. Langsung checkout, tanpa keranjang.</p>
+      </div>
+
+      {/* Syarat metode pembayaran */}
+      <div className="mt-10 border-t pt-8">
+        <h2 className="mb-4 text-xl font-extrabold text-gray-900">Payment Method Terms</h2>
+        <ul className="list-disc space-y-2 pl-5 text-sm leading-relaxed text-gray-600">
+          <li>Down Payment mulai dari Rp100.000 untuk mengamankan slot reservasi.</li>
+          <li>Pelunasan dilakukan paling lambat 7 hari setelah kami menginformasikan produk tiba.</li>
+          <li>Apabila pelunasan tidak dilakukan hingga batas waktu, reservasi dibatalkan dan Down Payment tidak dapat dikembalikan.</li>
+          <li>Benefit bayar lunas tidak berlaku untuk pembayaran Down Payment.</li>
+          <li>Estimasi kedatangan dapat berubah mengikuti jadwal dari brand; perubahan akan kami informasikan melalui WhatsApp.</li>
+        </ul>
       </div>
     </div>
   );
