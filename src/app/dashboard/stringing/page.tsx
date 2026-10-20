@@ -6,6 +6,7 @@ import { displayPhone } from "@/lib/string-finder/phone";
 import { startStringing, finishStringing } from "./actions";
 import { logout } from "../actions";
 import RacketQrPrint from "@/components/RacketQrPrint";
+import BranchFilterChips from "@/components/BranchFilterChips";
 import DeleteStringingButton from "@/components/DeleteStringingButton";
 import CancelStringingButton from "@/components/CancelStringingButton";
 import DoneStringingCard, { type DoneOrder } from "@/components/DoneStringingCard";
@@ -155,6 +156,8 @@ export default async function StringingQueuePage() {
         </div>
       </div>
 
+      <BranchFilterChips branches={branches} />
+
       {/* Card per cabang: antrian aktif + badge dikerjakan/antri — 2 kolom */}
       <div className="grid gap-5 lg:grid-cols-2">
         {branches.map((b) => {
@@ -162,7 +165,7 @@ export default async function StringingQueuePage() {
           const prog = list.filter((o) => o.status === "dikerjakan").length;
           const wait = list.filter((o) => o.status === "antri").length;
           return (
-            <section key={b.id} className="rounded-2xl border border-gray-200 bg-gray-50/70 p-4">
+            <section key={b.id} data-branch-section={b.id} className="rounded-2xl border border-gray-200 bg-gray-50/70 p-4">
               <div className="flex items-center justify-between gap-2">
                 <h2 className="text-base font-extrabold text-gray-900">{b.name}</h2>
                 <div className="flex gap-2">
