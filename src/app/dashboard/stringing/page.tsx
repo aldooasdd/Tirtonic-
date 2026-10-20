@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { isAuthed, can } from "@/lib/auth";
+import { isAuthed, can, sessionBranchId } from "@/lib/auth";
 import { prisma, safeQuery } from "@/lib/prisma";
 import { displayPhone } from "@/lib/string-finder/phone";
 import { startStringing, finishStringing } from "./actions";
@@ -45,8 +45,9 @@ function fmt(d: Date) {
 }
 
 type OrderRow = Awaited<ReturnType<typeof getOrders>>[number];
-function getOrders() {
+function getOrders(branchId: string | null) {
   return prisma.sfOrder.findMany({
+    where: branchId ? { branchId } : undefined,
     orderBy: [{ status: "asc" }, { createdAt: "desc" }],
     take: 300,
     include: { branch: { select: { name: true } }, result: { select: { condition: true } } },
@@ -110,9 +111,11 @@ export default async function StringingQueuePage() {
   if (!isAuthed()) redirect("/dashboard/login");
   if (!can("stringing")) redirect("/dashboard");
 
+  // Stringer per cabang → cuma lihat cabangnya. Bos/admin (branchId null) → semua.
+  const branchId = sessionBranchId();
   const [branches, orders] = await Promise.all([
-    safeQuery(() => prisma.sfBranch.findMany({ where: { isActive: true, slug: { not: "tirtonic" } }, orderBy: { name: "asc" }, select: { id: true, name: true } }), []),
-    safeQuery(() => getOrders(), [] as OrderRow[]),
+    safeQuery(() => prisma.sfBranch.findMany({ where: { isActive: true, slug: { not: "tirtonic" }, ...(branchId ? { id: branchId } : {}) }, orderBy: { name: "asc" }, select: { id: true, name: true } }), []),
+    safeQuery(() => getOrders(branchId), [] as OrderRow[]),
   ]);
 
   const active = orders.filter((o) => o.status === "antri" || o.status === "dikerjakan");

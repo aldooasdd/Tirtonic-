@@ -52,6 +52,16 @@ export async function findRoleByPassword(input: string): Promise<string | null> 
   return null;
 }
 
+/** Cocokkan input dengan accessCode cabang (login stringer per cabang). Return branchId atau null. */
+export async function findBranchByAccessCode(input: string): Promise<string | null> {
+  if (!input) return null;
+  const b = await prisma.sfBranch.findFirst({
+    where: { accessCode: input, isActive: true, slug: { not: "tirtonic" } },
+    select: { id: true },
+  });
+  return b?.id ?? null;
+}
+
 export async function setRolePassword(key: string, pw: string): Promise<void> {
   const hash = hashPassword(pw);
   await prisma.rolePassword.upsert({ where: { role: key }, update: { hash }, create: { role: key, hash } });

@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { createSession, destroySession, isAuthed, requireSection, currentRole } from "@/lib/auth";
-import { findRoleByPassword, roleMatches, setRolePassword, hashPassword } from "@/lib/role-password";
+import { findRoleByPassword, findBranchByAccessCode, roleMatches, setRolePassword, hashPassword } from "@/lib/role-password";
 import { verifyPickupToken, verifyReturnToken } from "@/lib/pickup-token";
 import { uploadFile, uploadFromUrl, storageConfigured } from "@/lib/storage";
 import { fetchTokopedia } from "@/lib/tokopedia";
@@ -31,9 +31,11 @@ export type LoginState = { error: string };
 export async function login(_prev: LoginState, formData: FormData): Promise<LoginState> {
   const pw = (formData.get("password") as string) || "";
   const role = await findRoleByPassword(pw);
-  if (!role) return { error: "Password salah." };
-  createSession(role);
-  redirect("/dashboard");
+  if (role) { createSession(role); redirect("/dashboard"); }
+  // Login stringer per cabang: pakai accessCode cabang → sesi dibatasi ke cabang itu.
+  const branchId = await findBranchByAccessCode(pw);
+  if (branchId) { createSession(`stringer:${branchId}`); redirect("/dashboard/stringing"); }
+  return { error: "Password salah." };
 }
 
 export async function logout() {

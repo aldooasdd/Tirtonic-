@@ -3,14 +3,23 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { requireSection } from "@/lib/auth";
+import { requireSection, sessionBranchId } from "@/lib/auth";
 import { sendWa, salam, stringingRoomLink } from "@/lib/wa";
 import { normalizePhone } from "@/lib/string-finder/phone";
 
 const requireAuth = () => requireSection("stringing");
 
+// Stringer per cabang cuma boleh aksi order cabangnya. Bos/admin (branchId null) bebas.
+async function assertBranch(id: string) {
+  const bid = sessionBranchId();
+  if (!bid) return;
+  const o = await prisma.sfOrder.findUnique({ where: { id }, select: { branchId: true } });
+  if (o?.branchId !== bid) throw new Error("Unauthorized");
+}
+
 export async function startStringing(id: string, formData: FormData) {
   requireAuth();
+  await assertBranch(id);
   const stringerName = String(formData.get("stringer") ?? "").trim();
   if (!stringerName) return; // nama stringer wajib (input juga sudah `required` di UI)
   // Hanya dari "antri" — klik dobel / request kedua tidak kirim WA lagi.
@@ -37,6 +46,7 @@ ${order.branch.name} 🎾`,
 
 export async function finishStringing(id: string) {
   requireAuth();
+  await assertBranch(id);
   // Hanya dari "dikerjakan" — klik dobel tidak kirim WA lagi.
   const { count } = await prisma.sfOrder.updateMany({
     where: { id, status: "dikerjakan" },
@@ -65,6 +75,7 @@ ${order.branch.name} 🎾`,
 // Edit detail pesanan (senar, tarikan, raket, nama, WA). Tarikan selalu disimpan lbs.
 export async function updateStringing(id: string, formData: FormData) {
   requireAuth();
+  await assertBranch(id);
   const str = (k: string) => String(formData.get(k) ?? "").trim();
   const tens = (k: string) => {
     const n = Number(str(k));
@@ -89,12 +100,14 @@ export async function updateStringing(id: string, formData: FormData) {
 
 export async function cancelStringing(id: string) {
   requireAuth();
+  await assertBranch(id);
   await prisma.sfOrder.update({ where: { id }, data: { status: "batal" } });
   revalidatePath("/dashboard/stringing");
 }
 
 export async function deleteStringingOrder(id: string) {
   requireAuth();
+  await assertBranch(id);
   await prisma.sfOrder.delete({ where: { id } });
   revalidatePath("/dashboard/stringing");
 }

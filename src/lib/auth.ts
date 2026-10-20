@@ -31,17 +31,31 @@ export function destroySession() {
   cookies().delete(COOKIE);
 }
 
-/** Role dari cookie, atau null kalau belum login / cookie tidak valid. */
-export function currentRole(): Role | null {
+// Key cookie tervalidasi (sig cocok) atau null. Key bisa "stringer:<branchId>".
+function validKey(): string | null {
   const c = cookies().get(COOKIE)?.value;
   if (!c) return null;
   const dot = c.lastIndexOf(".");
   if (dot < 0) return null;
   const key = c.slice(0, dot);
   const sig = c.slice(dot + 1);
-  const role = ROLES[key];
-  if (!role) return null;
-  return safeEqual(sig, sign(key)) ? role : null;
+  return safeEqual(sig, sign(key)) ? key : null;
+}
+
+const STRINGER_PREFIX = "stringer:";
+
+/** Role dari cookie, atau null kalau belum login / cookie tidak valid. */
+export function currentRole(): Role | null {
+  const key = validKey();
+  if (!key) return null;
+  const baseKey = key.startsWith(STRINGER_PREFIX) ? "stringer" : key;
+  return ROLES[baseKey] ?? null;
+}
+
+/** Cabang yang login dibatasi ke sana (stringer per cabang), atau null = semua cabang. */
+export function sessionBranchId(): string | null {
+  const key = validKey();
+  return key?.startsWith(STRINGER_PREFIX) ? key.slice(STRINGER_PREFIX.length) : null;
 }
 
 export function isAuthed(): boolean {
