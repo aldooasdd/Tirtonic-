@@ -1,4 +1,5 @@
 import Link from "next/link";
+import LaunchCountdown from "@/components/LaunchCountdown";
 import { prisma, safeQuery } from "@/lib/prisma";
 import Footer, { Benefits } from "@/components/Footer";
 import { ArticleCardData } from "@/components/ArticleCard";
@@ -282,7 +283,7 @@ function NewArticles({ articles }: { articles: ArticleCardData[] }) {
   );
 }
 
-type PreorderBanner = { id: string; nama: string; tagline: string | null; slogan: string | null; harga: number; gambar: string[]; bannerDesktop: string | null; bannerMobile: string | null; estimasi: string | null };
+type PreorderBanner = { id: string; nama: string; tagline: string | null; slogan: string | null; harga: number; gambar: string[]; bannerDesktop: string | null; bannerMobile: string | null; estimasi: string | null; launchAt: Date | null };
 
 // Hero pre-order di landing (ala Apple): judul + subjudul + estimasi di tengah,
 // tombol Learn more + Pre-order (glass-primary hijau tua), lalu foto landscape.
@@ -304,6 +305,7 @@ function PreorderBanners({ products }: { products: PreorderBanner[] }) {
           {/* Layout ala Apple: teks kiri-bawah, kapsul kanan-bawah */}
           <div className="absolute inset-0 flex items-end justify-between gap-3 p-5 sm:p-10">
             <div className="min-w-0 text-left">
+              <LaunchCountdown date={p.launchAt ? p.launchAt.toISOString() : null} />
               <p className="text-sm font-semibold text-gray-800 sm:text-lg">{p.nama}</p>
               {p.slogan && <h2 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-5xl">{p.slogan}</h2>}
               {p.estimasi && <p className="mt-1.5 text-xs text-gray-600 sm:text-sm">{p.estimasi}</p>}
@@ -354,7 +356,7 @@ export default async function HomePage() {
     safeQuery(() => prisma.popularBrand.findMany({ orderBy: [{ urutan: "asc" }, { nama: "asc" }] }), []),
     safeQuery(() => prisma.sfBranch.findMany({ where: { isActive: true, slug: { not: "tirtonic" } }, orderBy: { name: "asc" }, select: { id: true, name: true } }), []),
     safeQuery(() => prisma.sfOrder.findMany({ where: { status: { in: ["antri", "dikerjakan"] } }, orderBy: { createdAt: "asc" }, select: { resultCode: true, status: true, branchId: true, stringerName: true } }), []),
-    safeQuery(() => prisma.preorderProduct.findMany({ where: { isActive: true }, orderBy: { createdAt: "desc" }, take: 4, select: { id: true, nama: true, tagline: true, slogan: true, harga: true, gambar: true, bannerDesktop: true, bannerMobile: true, estimasi: true } }), []),
+    safeQuery(() => prisma.preorderProduct.findMany({ where: { isActive: true }, orderBy: { createdAt: "desc" }, take: 4, select: { id: true, nama: true, tagline: true, slogan: true, harga: true, gambar: true, bannerDesktop: true, bannerMobile: true, estimasi: true, launchAt: true } }), []),
   ]);
   const toCard = (p: (typeof latest)[number]) => ({ id: p.id, nama: p.nama, harga: p.harga, hargaDiskon: p.hargaDiskon, gambar: p.gambar, status: p.status, fromPrice: p._count.variants > 0 });
   const arrivals = latest.map(toCard);

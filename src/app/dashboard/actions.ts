@@ -525,9 +525,11 @@ export async function createPreorderProduct(formData: FormData) {
   // Estimasi dari <input type="date"> (YYYY-MM-DD) → "Available starting 30 November 2026".
   const estRaw = ((formData.get("estimasi") as string) || "").trim();
   let estimasi: string | null = null;
+  let launchAt: Date | null = null;
   if (/^\d{4}-\d{2}-\d{2}$/.test(estRaw)) {
     const [y, m, d] = estRaw.split("-").map(Number);
-    estimasi = "Available starting " + new Date(y, m - 1, d).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+    launchAt = new Date(y, m - 1, d);
+    estimasi = "Available starting " + launchAt.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
   }
   const isiBox = ((formData.get("isiBox") as string) || "").split("\n").map((s) => s.trim()).filter(Boolean);
   const bonusNama = ((formData.get("bonusNama") as string) || "").trim() || null;
@@ -538,7 +540,7 @@ export async function createPreorderProduct(formData: FormData) {
   const bannerMobile = await uploadNamedImage(formData, "bannerMobile");
   const bonusFoto = await uploadNamedImage(formData, "bonusFoto");
   await prisma.preorderProduct.create({
-    data: { nama, tagline, slogan, harga, deskripsi, estimasi, isiBox, gambar, bannerDesktop, bannerMobile, bonusNama, bonusDeskripsi, bonusFoto, ...(variants.length ? { variants: { create: variants } } : {}) },
+    data: { nama, tagline, slogan, harga, deskripsi, estimasi, launchAt, isiBox, gambar, bannerDesktop, bannerMobile, bonusNama, bonusDeskripsi, bonusFoto, ...(variants.length ? { variants: { create: variants } } : {}) },
   });
   revalidatePreorder();
   redirect("/dashboard");
@@ -558,9 +560,11 @@ export async function updatePreorderProduct(id: string, formData: FormData) {
   // Estimasi: hanya diganti kalau admin pilih tanggal baru; kalau kosong, pakai lama.
   const estRaw = ((formData.get("estimasi") as string) || "").trim();
   let estimasi = cur.estimasi;
+  let launchAt = cur.launchAt;
   if (/^\d{4}-\d{2}-\d{2}$/.test(estRaw)) {
     const [y, m, d] = estRaw.split("-").map(Number);
-    estimasi = "Available starting " + new Date(y, m - 1, d).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+    launchAt = new Date(y, m - 1, d);
+    estimasi = "Available starting " + launchAt.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
   }
   const isiBox = ((formData.get("isiBox") as string) || "").split("\n").map((s) => s.trim()).filter(Boolean);
   const bonusNama = ((formData.get("bonusNama") as string) || "").trim() || null;
@@ -571,7 +575,7 @@ export async function updatePreorderProduct(id: string, formData: FormData) {
   const bonusFoto = (await uploadNamedImage(formData, "bonusFoto")) ?? cur.bonusFoto;
   await prisma.preorderProduct.update({
     where: { id },
-    data: { nama, tagline, slogan, harga, deskripsi, estimasi, isiBox, bannerDesktop, bannerMobile, bonusNama, bonusDeskripsi, bonusFoto, ...(newGambar.length ? { gambar: newGambar } : {}) },
+    data: { nama, tagline, slogan, harga, deskripsi, estimasi, launchAt, isiBox, bannerDesktop, bannerMobile, bonusNama, bonusDeskripsi, bonusFoto, ...(newGambar.length ? { gambar: newGambar } : {}) },
   });
   revalidatePreorder();
   redirect("/dashboard");

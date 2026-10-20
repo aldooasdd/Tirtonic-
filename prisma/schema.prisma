@@ -28,6 +28,7 @@ model PreorderProduct {
   nama      String
   tagline   String? // subjudul hero landing, mis. "Hello, hello."
   slogan    String? // slogan pendek di bawah nama produk (hero landing)
+  launchAt  DateTime? // tanggal hari-H launching (buat countdown di hero)
   harga     Int // harga penuh
   gambar    String[]        @default([]) // foto produk (galeri di halaman detail)
   bannerDesktop String? // foto hero landing untuk desktop (landscape)
