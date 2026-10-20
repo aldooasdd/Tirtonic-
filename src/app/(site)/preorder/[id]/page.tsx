@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import PreorderGallery from "@/components/PreorderGallery";
 import ReserveModal from "@/components/ReserveModal";
 import { prisma, safeQuery } from "@/lib/prisma";
 import { rupiah } from "@/lib/format";
@@ -18,23 +19,8 @@ export default async function PreorderDetail({ params }: { params: { id: string 
     <div className="mx-auto max-w-site px-4 py-8 lg:px-6">
       <Link href="/preorder" className="text-sm text-gray-500 hover:text-primary">← Semua pre-order</Link>
       <div className="mt-4 grid gap-8 lg:grid-cols-2">
-        {/* Galeri */}
-        <div>
-          <div className="aspect-square overflow-hidden rounded-2xl border bg-gray-100">
-            {p.gambar[0] && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img loading="lazy" decoding="async" src={p.gambar[0]} alt={p.nama} className="h-full w-full object-cover" />
-            )}
-          </div>
-          {p.gambar.length > 1 && (
-            <div className="mt-3 grid grid-cols-4 gap-2">
-              {p.gambar.slice(1, 5).map((g, i) => (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img loading="lazy" decoding="async" key={i} src={g} alt="" className="aspect-square w-full rounded-lg border object-cover" />
-              ))}
-            </div>
-          )}
-        </div>
+        {/* Galeri (slide) */}
+        <PreorderGallery images={p.gambar} alt={p.nama} />
 
         {/* Info + checkout */}
         <div>
