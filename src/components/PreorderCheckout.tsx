@@ -164,7 +164,7 @@ export default function PreorderCheckout({ productId, harga, variants = [], bonu
             <ul className="mt-2 space-y-1.5 text-sm text-gray-600">
               {benefits.map((b, i) => (
                 <li key={i} className="flex items-start gap-2">
-                  <span className="mt-0.5 text-primary">✓</span>{b}
+                  <span className="mt-0.5 text-primary">✓</span>{b.replace(/^[\s✓✔•\-]+/, "")}
                 </li>
               ))}
             </ul>

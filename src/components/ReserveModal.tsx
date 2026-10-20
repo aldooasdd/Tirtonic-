@@ -71,7 +71,7 @@ export default function ReserveModal({ productId, harga, dpBenefits, lunasBenefi
                 <p className="text-sm font-semibold text-gray-900">Benefit:</p>
                 <ul className="mt-2 space-y-1.5 text-sm text-gray-600">
                   {benefits.map((b, i) => (
-                    <li key={i} className="flex items-start gap-2"><span className="mt-0.5 text-primary">✓</span>{b}</li>
+                    <li key={i} className="flex items-start gap-2"><span className="mt-0.5 text-primary">✓</span>{b.replace(/^[\s✓✔•\-]+/, "")}</li>
                   ))}
                 </ul>
               </div>
