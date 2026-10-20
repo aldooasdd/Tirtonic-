@@ -69,29 +69,7 @@ export default function PreorderCheckout({ productId, harga, variants = [], bonu
 
   return (
     <form onSubmit={onSubmit} className="space-y-3">
-      {hasVariants && (
-        <div>
-          <p className="text-sm font-semibold text-gray-700">Pilih {varianLabel?.trim() || "varian"}</p>
-          <div className="mt-1.5 flex flex-wrap gap-2">
-            {variants.map((v) => {
-              const habis = v.stok <= 0;
-              const on = v.id === variantId;
-              return (
-                <button
-                  type="button"
-                  key={v.id}
-                  disabled={habis}
-                  onClick={() => { setVariantId(v.id); setQty(1); }}
-                  className={`rounded-xl border px-3 py-1.5 text-sm ${on ? "border-primary bg-primary/10 font-semibold text-primary" : "border-gray-300 text-gray-700"} ${habis ? "cursor-not-allowed opacity-40 line-through" : ""}`}
-                >
-                  {v.nama}{habis ? " (habis)" : ""}
-                </button>
-              );
-            })}
-          </div>
-          {selVar && <p className="mt-1.5 text-xs text-gray-400">{rupiah(selVar.harga)} · stok {selVar.stok}</p>}
-        </div>
-      )}
+      {/* Varian sudah dipilih di laman detail (lewat ?variant=). */}
 
       {/* Metode pengambilan */}
       <div className="grid grid-cols-2 gap-2">
