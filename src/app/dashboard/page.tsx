@@ -440,12 +440,12 @@ export default async function AdminDashboard() {
                 <div>
                   <label className="label">Foto banner landing — Desktop (bisa beberapa, auto-slide)</label>
                   <input name="bannersDesktop" type="file" accept="image/*" multiple className="text-sm" />
-                  <p className="mt-1 text-xs text-gray-400">Landscape lebar. Ideal <b>1920×820 px</b> (21:9). Objek penting di bawah-tengah (teks menimpa bagian atas).</p>
+                  <p className="mt-1 text-xs text-gray-400">Ukuran <b>bebas</b> — tinggi banner ikut rasio foto. Kalau beberapa foto, samakan rasionya. Teks & tombol menimpa kiri-bawah & kanan-bawah.</p>
                 </div>
                 <div>
                   <label className="label">Foto banner landing — HP (bisa beberapa, auto-slide)</label>
                   <input name="bannersMobile" type="file" accept="image/*" multiple className="text-sm" />
-                  <p className="mt-1 text-xs text-gray-400">Lebih tegak. Ideal <b>1080×1350 px</b> (4:5). Objek penting di bawah-tengah.</p>
+                  <p className="mt-1 text-xs text-gray-400">Ukuran <b>bebas</b> — tinggi ikut rasio foto. Samakan rasio kalau beberapa. Idealnya lebih tegak untuk HP.</p>
                 </div>
               </div>
               <button className="btn-green">Tambah Produk PO</button>

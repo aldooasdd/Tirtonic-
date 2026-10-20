@@ -293,7 +293,7 @@ function PreorderBanners({ products }: { products: PreorderBanner[] }) {
   return (
     <section className="mx-auto max-w-site space-y-4 px-4 py-2 lg:px-6">
       {products.map((p) => (
-        <div key={p.id} className="relative h-[42vh] min-h-[240px] w-full overflow-hidden rounded-2xl sm:h-[50vh]">
+        <div key={p.id} className="relative w-full overflow-hidden rounded-2xl">
           {/* Slide banner (crossfade). Fallback: banner tunggal lama → foto produk. */}
           {(() => {
             const dt = p.bannersDesktop.length ? p.bannersDesktop : (p.bannerDesktop ? [p.bannerDesktop] : p.gambar.slice(0, 1));
