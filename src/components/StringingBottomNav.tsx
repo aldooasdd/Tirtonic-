@@ -19,7 +19,7 @@ export default function StringingBottomNav({ active, phone }: { active: Key; pho
     { key: "shop", label: "Shop", href: "/shop", icon: ICONS.shop },
     { key: "leaderboard", label: "Leaderboard", href: "/leaderboard", icon: ICONS.trophy },
     { key: "event", label: "Event", href: "/event", icon: ICONS.event },
-    { key: "launch", label: "Exclusive Launch", href: "/preorder", icon: ICONS.rocket },
+    { key: "launch", label: "Launch", href: "/preorder", icon: ICONS.rocket },
   ];
   return (
     <nav className="fixed inset-x-0 bottom-4 z-20 mx-auto max-w-md px-4">
@@ -31,7 +31,7 @@ export default function StringingBottomNav({ active, phone }: { active: Key; pho
             className={`flex min-h-[48px] flex-1 flex-col items-center justify-center gap-0.5 rounded-full py-1.5 text-[11px] font-semibold transition ${it.key === active ? "text-primary" : "text-gray-400 hover:text-gray-600"}`}
           >
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{it.icon}</svg>
-            <span>{it.label}</span>
+            <span className="whitespace-nowrap">{it.label}</span>
           </Link>
         ))}
       </div>
