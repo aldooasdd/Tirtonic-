@@ -312,7 +312,7 @@ function PreorderBanners({ products }: { products: PreorderBanner[] }) {
                 <span aria-hidden className="pointer-events-none absolute inset-0 rounded-full shadow-[inset_3px_3px_0.5px_-3px_rgba(255,255,255,0.6),inset_-3px_-3px_0.5px_-3px_rgba(255,255,255,0.5),inset_0_0_6px_6px_rgba(255,255,255,0.12),0_0_12px_rgba(0,0,0,0.15)]" />
                 <span aria-hidden className="pointer-events-none absolute inset-0 -z-10 rounded-full" style={{ backdropFilter: 'url("#container-glass")' }} />
                 <span className="relative z-10 px-1">{rupiah(p.harga)}</span>
-                <span className="relative z-10 rounded-full bg-white/20 px-5 py-1.5 font-bold">Pre-order</span>
+                <span className="glass-primary relative z-10 rounded-full px-5 py-1.5 font-bold text-white">Pre-order</span>
               </Link>
             </div>
           </div>
