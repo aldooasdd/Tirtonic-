@@ -544,6 +544,39 @@ export async function createPreorderProduct(formData: FormData) {
   redirect("/dashboard");
 }
 
+/** Edit produk pre-order. Foto kosong = pertahankan yang lama. Varian tidak diubah di sini. */
+export async function updatePreorderProduct(id: string, formData: FormData) {
+  requireSection("pesanan");
+  const cur = await prisma.preorderProduct.findUnique({ where: { id } });
+  if (!cur) throw new Error("Produk PO tidak ditemukan.");
+  const nama = ((formData.get("nama") as string) || "").trim();
+  const harga = toInt(formData.get("harga"));
+  if (!nama || harga <= 0) throw new Error("Nama dan harga wajib diisi.");
+  const deskripsi = ((formData.get("deskripsi") as string) || "").trim() || null;
+  const tagline = ((formData.get("tagline") as string) || "").trim() || null;
+  const slogan = ((formData.get("slogan") as string) || "").trim() || null;
+  // Estimasi: hanya diganti kalau admin pilih tanggal baru; kalau kosong, pakai lama.
+  const estRaw = ((formData.get("estimasi") as string) || "").trim();
+  let estimasi = cur.estimasi;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(estRaw)) {
+    const [y, m, d] = estRaw.split("-").map(Number);
+    estimasi = "Available starting " + new Date(y, m - 1, d).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+  }
+  const isiBox = ((formData.get("isiBox") as string) || "").split("\n").map((s) => s.trim()).filter(Boolean);
+  const bonusNama = ((formData.get("bonusNama") as string) || "").trim() || null;
+  const bonusDeskripsi = ((formData.get("bonusDeskripsi") as string) || "").trim() || null;
+  const newGambar = await uploadImages(formData);
+  const bannerDesktop = (await uploadNamedImage(formData, "bannerDesktop")) ?? cur.bannerDesktop;
+  const bannerMobile = (await uploadNamedImage(formData, "bannerMobile")) ?? cur.bannerMobile;
+  const bonusFoto = (await uploadNamedImage(formData, "bonusFoto")) ?? cur.bonusFoto;
+  await prisma.preorderProduct.update({
+    where: { id },
+    data: { nama, tagline, slogan, harga, deskripsi, estimasi, isiBox, bannerDesktop, bannerMobile, bonusNama, bonusDeskripsi, bonusFoto, ...(newGambar.length ? { gambar: newGambar } : {}) },
+  });
+  revalidatePreorder();
+  redirect("/dashboard");
+}
+
 export async function deletePreorderProduct(id: string) {
   requireSection("pesanan");
   await prisma.preorderProduct.delete({ where: { id } });

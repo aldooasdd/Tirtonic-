@@ -467,6 +467,7 @@ export default async function AdminDashboard() {
                       <p className={`truncate font-medium ${p.isActive ? "text-gray-900" : "text-gray-400 line-through"}`}>{p.nama}</p>
                       <p className="text-xs text-gray-400">{rupiah(p.harga)}{p.estimasi ? ` · ${p.estimasi}` : ""}</p>
                     </div>
+                    <Link href={`/dashboard/preorder/${p.id}/edit`} className="rounded-full border px-3 py-1 text-xs font-semibold text-gray-600 transition hover:border-primary hover:text-primary">Edit</Link>
                     <form action={togglePreorderProduct.bind(null, p.id)}>
                       <button className="rounded-full border px-3 py-1 text-xs font-semibold text-gray-600 transition hover:border-primary hover:text-primary">{p.isActive ? "Nonaktifkan" : "Aktifkan"}</button>
                     </form>
