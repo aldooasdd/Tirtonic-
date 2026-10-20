@@ -3,7 +3,7 @@ import { prisma, safeQuery } from "@/lib/prisma";
 import { rupiah } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Pre-Order — Tirtonic", description: "Pesan duluan produk tenis pilihan dengan DP, barang menyusul." };
+export const metadata = { title: "Exclusive Launch — Tirtonic", description: "Pesan duluan produk tenis pilihan dengan DP, barang menyusul." };
 
 export default async function PreorderCatalog() {
   const products = await safeQuery(
@@ -15,9 +15,9 @@ export default async function PreorderCatalog() {
     <div className="mx-auto max-w-site px-4 py-8 lg:px-6">
       <div className="mb-6">
         <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
-          <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Pre-Order
+          <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Exclusive Launch
         </span>
-        <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-gray-900 sm:text-3xl">Pre-Order</h1>
+        <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-gray-900 sm:text-3xl">Exclusive Launch</h1>
         <p className="mt-1 text-sm text-gray-500">Pesan duluan, bayar DP (min {rupiah(100000)}), barang menyusul. Sisa dilunasi saat barang ready.</p>
       </div>
 
@@ -32,7 +32,7 @@ export default async function PreorderCatalog() {
                   // eslint-disable-next-line @next/next/no-img-element
                   <img loading="lazy" decoding="async" src={p.gambar[0]} alt={p.nama} className="h-full w-full object-cover transition group-hover:scale-105" />
                 )}
-                <span className="absolute left-2 top-2 rounded-full bg-primary px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">Pre-Order</span>
+                <span className="absolute left-2 top-2 rounded-full bg-primary px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">Exclusive Launch</span>
               </div>
               <div className="p-3">
                 <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-gray-900">{p.nama}</h3>
