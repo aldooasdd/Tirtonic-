@@ -146,6 +146,35 @@ export default async function AdminDashboard() {
           <div className="border-t p-5">
             <ArticleForm action={createArticle} />
           </div>
+          <div className="border-t">
+            <div className="flex items-center justify-between px-5 py-3">
+              <h2 className="font-bold text-gray-900">Daftar Artikel</h2>
+              <span className="text-xs text-gray-400">{articles.length} item</span>
+            </div>
+            {articles.length === 0 ? (
+              <p className="px-5 py-12 text-center text-gray-400">Belum ada artikel.</p>
+            ) : (
+              <ul className="divide-y border-t">
+                {articles.map((a) => (
+                  <li key={a.id} className="flex items-center gap-3 px-5 py-3">
+                    {a.gambar ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img loading="lazy" decoding="async" src={a.gambar} alt="" className="h-11 w-11 shrink-0 rounded-lg border object-cover" />
+                    ) : (
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border bg-gray-100 text-[9px] text-gray-300">
+                        no img
+                      </div>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate font-medium text-gray-900">{a.judul}</div>
+                      <div className="text-xs text-gray-400">{fmtDate(a.tanggal)}{a.tag ? ` · ${a.tag}` : ""}</div>
+                    </div>
+                    <ArticleRowActions id={a.id} />
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </details>
         )}
 
@@ -511,40 +540,6 @@ export default async function AdminDashboard() {
             habis: p.status === "SOLD" || (p.variants.length ? p.variants.every((v) => v.stok <= 0) : p.stok != null && p.stok <= 0),
           }))}
         />
-        )}
-
-        {/* article list */}
-        {can("artikel") && (
-
-        <div className="overflow-hidden rounded-2xl border bg-white shadow-sm">
-          <div className="flex items-center justify-between border-b px-5 py-4">
-            <h2 className="font-bold text-gray-900">Daftar Artikel</h2>
-            <span className="text-xs text-gray-400">{articles.length} item</span>
-          </div>
-          {articles.length === 0 ? (
-            <p className="px-5 py-12 text-center text-gray-400">Belum ada artikel. Tambahkan lewat panel di atas.</p>
-          ) : (
-            <ul className="divide-y">
-              {articles.map((a) => (
-                <li key={a.id} className="flex items-center gap-3 px-5 py-3">
-                  {a.gambar ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img loading="lazy" decoding="async" src={a.gambar} alt="" className="h-11 w-11 shrink-0 rounded-lg border object-cover" />
-                  ) : (
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border bg-gray-100 text-[9px] text-gray-300">
-                      no img
-                    </div>
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate font-medium text-gray-900">{a.judul}</div>
-                    <div className="text-xs text-gray-400">{fmtDate(a.tanggal)}{a.tag ? ` · ${a.tag}` : ""}</div>
-                  </div>
-                  <ArticleRowActions id={a.id} />
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
         )}
 
         <p className="text-center text-xs text-gray-400">
