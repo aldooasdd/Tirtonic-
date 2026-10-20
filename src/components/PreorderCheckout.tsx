@@ -12,12 +12,13 @@ const MIN_DP = 100_000;
 type Variant = { id: string; nama: string; harga: number; stok: number };
 type Bonus = { nama: string; deskripsi: string | null; foto: string | null } | null;
 
-export default function PreorderCheckout({ productId, harga, variants = [], bonus = null, defaultFull = false }: { productId: string; harga: number; nama: string; variants?: Variant[]; bonus?: Bonus; defaultFull?: boolean }) {
+export default function PreorderCheckout({ productId, harga, variants = [], bonus = null, defaultFull = false, dpBenefits = [], lunasBenefits = [] }: { productId: string; harga: number; nama: string; variants?: Variant[]; bonus?: Bonus; defaultFull?: boolean; dpBenefits?: string[]; lunasBenefits?: string[] }) {
   const router = useRouter();
   const hasVariants = variants.length > 0;
   const [variantId, setVariantId] = useState<string>("");
   const [qty, setQty] = useState(1);
-  const [dp, setDp] = useState(MIN_DP);
+  const [plan, setPlan] = useState<"dp" | "lunas">(defaultFull ? "lunas" : "dp");
+  const [dp, setDp] = useState(defaultFull ? 0 : MIN_DP);
   const [provinsi, setProvinsi] = useState("");
   const [kota, setKota] = useState("");
   const [busy, setBusy] = useState(false);
@@ -30,8 +31,9 @@ export default function PreorderCheckout({ productId, harga, variants = [], bonu
   const kotaOptions = (wilayah as Record<string, string[]>)[provinsi] ?? [];
   const sisa = Math.max(0, total - dp);
 
-  // Mode "Bayar Lunas" dari laman detail (?lunas=1): DP otomatis = total.
-  useEffect(() => { if (defaultFull) setDp(total); }, [defaultFull, total]);
+  // Plan "lunas" → DP = total (ikut perubahan varian/qty).
+  useEffect(() => { if (plan === "lunas") setDp(total); }, [plan, total]);
+  const benefits = plan === "lunas" ? lunasBenefits : dpBenefits;
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -110,49 +112,71 @@ export default function PreorderCheckout({ productId, harga, variants = [], bonu
       </div>
       <textarea name="catatan" rows={2} placeholder="Catatan (opsional)" className={field} />
 
-      {/* DP */}
-      <div className="rounded-xl border border-primary/30 bg-primary/5 p-3">
-        <label className="text-sm font-semibold text-gray-700">Uang muka (DP) — min {rupiah(MIN_DP)}</label>
-        <input
-          type="number"
-          min={MIN_DP}
-          max={total}
-          step={1000}
-          value={dp}
-          onChange={(e) => setDp(Math.floor(Number(e.target.value) || 0))}
-          className={`${field} mt-1`}
-        />
-        <button type="button" onClick={() => setDp(total)} className="mt-2 text-xs font-semibold text-primary hover:underline">
-          Bayar penuh (lunas){bonus ? " — dapat bonus 🎁" : ""}
-        </button>
-        <div className="mt-2 space-y-0.5 text-sm">
+      {/* Pilih cara bayar (plan) */}
+      <div className="rounded-2xl border bg-white p-3">
+        <p className="text-base font-bold text-gray-900">Pilih cara bayar</p>
+        <div className="mt-3 space-y-2">
+          {([
+            { key: "dp" as const, title: "Down Payment", sub: `Mulai dari ${rupiah(MIN_DP)}` },
+            { key: "lunas" as const, title: "Bayar Lunas", sub: `${rupiah(total)} — sekali bayar` },
+          ]).map((opt) => {
+            const on = plan === opt.key;
+            return (
+              <button
+                type="button"
+                key={opt.key}
+                onClick={() => { setPlan(opt.key); setDp(opt.key === "lunas" ? total : MIN_DP); }}
+                className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left transition ${on ? "border-primary bg-primary/5" : "border-gray-200 hover:border-gray-300"}`}
+              >
+                <span>
+                  <span className="block text-sm font-bold text-gray-900">{opt.title}</span>
+                  <span className="block text-xs text-gray-500">{opt.sub}</span>
+                </span>
+                <span className={`flex h-5 w-5 items-center justify-center rounded-full border-2 ${on ? "border-primary" : "border-gray-300"}`}>
+                  {on && <span className="h-2.5 w-2.5 rounded-full bg-primary" />}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* DP amount hanya untuk plan Down Payment */}
+        {plan === "dp" && (
+          <div className="mt-3">
+            <label className="text-xs font-semibold text-gray-600">Nominal DP (min {rupiah(MIN_DP)})</label>
+            <input
+              type="number" min={MIN_DP} max={total} step={1000} value={dp}
+              onChange={(e) => setDp(Math.floor(Number(e.target.value) || 0))}
+              className={`${field} mt-1`}
+            />
+          </div>
+        )}
+
+        <div className="mt-3 space-y-0.5 border-t pt-3 text-sm">
           <div className="flex justify-between text-gray-500"><span>Total harga</span><span>{rupiah(total)}</span></div>
-          <div className="flex justify-between font-semibold text-primary"><span>DP dibayar sekarang</span><span>{rupiah(Math.min(dp, total))}</span></div>
+          <div className="flex justify-between font-semibold text-primary"><span>Dibayar sekarang</span><span>{rupiah(Math.min(dp, total))}</span></div>
           <div className="flex justify-between text-gray-500"><span>Sisa (saat barang ready)</span><span>{rupiah(sisa)}</span></div>
         </div>
-      </div>
 
-      {bonus && (
-        <div className={`rounded-xl border p-3 ${sisa === 0 ? "border-amber-300 bg-amber-50" : "border-gray-200 bg-gray-50"}`}>
-          <p className="text-xs font-semibold text-gray-700">🎁 Bonus jika bayar penuh (lunas){sisa === 0 ? " — kamu dapat ini!" : ""}</p>
-          <div className="mt-2 flex gap-3">
-            {bonus.foto && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img loading="lazy" decoding="async" src={bonus.foto} alt="" className="h-14 w-14 shrink-0 rounded-lg border object-cover" />
-            )}
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-gray-900">{bonus.nama}</p>
-              {bonus.deskripsi && <p className="text-xs text-gray-500">{bonus.deskripsi}</p>}
-            </div>
+        {benefits.length > 0 && (
+          <div className="mt-3 border-t pt-3">
+            <p className="text-sm font-semibold text-gray-900">Benefit:</p>
+            <ul className="mt-2 space-y-1.5 text-sm text-gray-600">
+              {benefits.map((b, i) => (
+                <li key={i} className="flex items-start gap-2">
+                  <span className="mt-0.5 text-primary">✓</span>{b}
+                </li>
+              ))}
+            </ul>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>}
       <button type="submit" disabled={busy} className="btn-pill w-full bg-primary hover:bg-primaryDark disabled:opacity-60">
-        {busy ? "Memproses…" : `Bayar DP ${rupiah(Math.min(dp, total))}`}
+        {busy ? "Memproses…" : `${plan === "lunas" ? "Bayar Lunas" : "Bayar DP"} ${rupiah(Math.min(dp, total))}`}
       </button>
-      <p className="text-center text-xs text-gray-400">Pembayaran DP via DOKU. Konfirmasi & info pelunasan dikirim lewat WhatsApp.</p>
+      <p className="text-center text-xs text-gray-400">Pembayaran aman via DOKU. Konfirmasi & info pelunasan dikirim lewat WhatsApp.</p>
     </form>
   );
 }

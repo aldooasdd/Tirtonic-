@@ -9,10 +9,6 @@ export default async function PreorderDetail({ params }: { params: { id: string 
   const p = await safeQuery(() => prisma.preorderProduct.findUnique({ where: { id: params.id }, select: { id: true, nama: true, harga: true, gambar: true, deskripsi: true, estimasi: true, isiBox: true, lunasBenefits: true, isActive: true } }), null);
   if (!p || !p.isActive) notFound();
 
-  const DP_MIN = 100_000;
-  const dpBenefits = ["Slot reservasi aman", "Sisa dibayar setelah produk tiba"];
-  const lunasBenefits = p.lunasBenefits.length ? p.lunasBenefits : ["Slot reservasi aman", "Tanpa sisa tagihan", "Prioritas pengiriman", "Gratis pasang senar", "Gratis overgrip & dampener"];
-
   return (
     <div className="mx-auto max-w-site px-4 py-8 lg:px-6">
       <Link href="/preorder" className="text-sm text-gray-500 hover:text-primary">← Semua pre-order</Link>
@@ -43,6 +39,10 @@ export default async function PreorderDetail({ params }: { params: { id: string 
           {p.estimasi && <p className="mt-1 text-sm text-gray-500">Estimasi: {p.estimasi}</p>}
           {p.deskripsi && <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-gray-600">{p.deskripsi}</p>}
 
+          <Link href={`/preorder/${p.id}/checkout`} className="glass-primary mt-6 block rounded-full py-3 text-center text-sm font-bold text-white transition hover:brightness-110">
+            Reserve Now
+          </Link>
+          <p className="mt-2 text-center text-xs text-gray-400">Pembayaran aman via DOKU. Langsung checkout, tanpa keranjang.</p>
         </div>
       </div>
 
@@ -69,55 +69,6 @@ export default async function PreorderDetail({ params }: { params: { id: string 
         </ul>
       </div>
 
-      {/* Pilihan pembayaran: Bayar DP vs Bayar Lunas */}
-      <div className="mt-10 border-t pt-8">
-        <h2 className="mb-5 text-xl font-extrabold text-gray-900">Payment Method</h2>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <PayCard
-            href={`/preorder/${p.id}/checkout`}
-            title="Down Payment"
-            priceTop={`Mulai dari ${rupiah(DP_MIN)}`}
-            priceSub="atau 30% dari harga"
-            btnText="Reserve Now"
-            benefits={dpBenefits}
-          />
-          <PayCard
-            href={`/preorder/${p.id}/checkout?lunas=1`}
-            title="Bayar Lunas"
-            priceTop={rupiah(p.harga)}
-            priceSub="harga penuh, sekali bayar"
-            btnText="Reserve Now"
-            benefits={lunasBenefits}
-          />
-        </div>
-        <p className="mt-3 text-center text-xs text-gray-400">Pembayaran aman via DOKU. Langsung checkout, tanpa keranjang.</p>
-      </div>
-    </div>
-  );
-}
-
-// Kartu pilihan bayar: liquid glass, header hijau tua glass + daftar benefit.
-function PayCard({ href, title, priceTop, priceSub, btnText, benefits }: {
-  href: string; title: string; priceTop: string; priceSub: string; btnText: string; benefits: string[];
-}) {
-  return (
-    <div className="rounded-3xl border border-white/50 bg-white/40 p-3 shadow-[0_8px_30px_rgba(0,0,0,0.08)] backdrop-blur-md">
-      <div className="rounded-2xl border border-white/60 bg-white/50 p-5 shadow-sm backdrop-blur-md">
-        <p className="text-sm font-bold uppercase tracking-wide text-gray-500">{title}</p>
-        <p className="mt-3 text-3xl font-extrabold leading-none text-gray-900">{priceTop}</p>
-        <p className="mt-1 text-xs text-gray-400">{priceSub}</p>
-        <Link href={href} className="glass-primary mt-4 block rounded-full py-2.5 text-center text-sm font-bold text-white transition hover:brightness-110">
-          {btnText}
-        </Link>
-      </div>
-      <ul className="space-y-2 px-2 py-4 text-sm text-gray-700">
-        {benefits.map((b, i) => (
-          <li key={i} className="flex items-start gap-2">
-            <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-primary/15 text-[10px] font-bold text-primary">✓</span>
-            {b}
-          </li>
-        ))}
-      </ul>
     </div>
   );
 }

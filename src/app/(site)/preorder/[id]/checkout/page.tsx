@@ -15,6 +15,8 @@ export default async function PreorderCheckoutPage({ params, searchParams }: { p
   );
   if (!p || !p.isActive) notFound();
   const variantData = p.variants.map((v) => ({ id: v.id, nama: v.ukuran ? `${v.warna} / ${v.ukuran}` : v.warna, harga: v.harga, stok: v.stok }));
+  const dpBenefits = ["Slot reservasi aman", "Sisa dibayar setelah produk tiba"];
+  const lunasBenefits = p.lunasBenefits.length ? p.lunasBenefits : ["Slot reservasi aman", "Tanpa sisa tagihan", "Prioritas pengiriman", "Gratis pasang senar", "Gratis overgrip & dampener"];
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8 lg:px-6">
@@ -43,7 +45,8 @@ export default async function PreorderCheckoutPage({ params, searchParams }: { p
           nama={p.nama}
           variants={variantData}
           defaultFull={defaultFull}
-          bonus={p.bonusNama ? { nama: p.bonusNama, deskripsi: p.bonusDeskripsi, foto: p.bonusFoto } : null}
+          dpBenefits={dpBenefits}
+          lunasBenefits={lunasBenefits}
         />
       </div>
     </div>
