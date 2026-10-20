@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import ReserveModal from "@/components/ReserveModal";
 import { prisma, safeQuery } from "@/lib/prisma";
 import { rupiah } from "@/lib/format";
 
@@ -8,6 +9,9 @@ export const dynamic = "force-dynamic";
 export default async function PreorderDetail({ params }: { params: { id: string } }) {
   const p = await safeQuery(() => prisma.preorderProduct.findUnique({ where: { id: params.id }, select: { id: true, nama: true, harga: true, gambar: true, deskripsi: true, estimasi: true, isiBox: true, lunasBenefits: true, isActive: true } }), null);
   if (!p || !p.isActive) notFound();
+
+  const dpBenefits = ["Slot reservasi aman", "Sisa dibayar setelah produk tiba"];
+  const lunasBenefits = p.lunasBenefits.length ? p.lunasBenefits : ["Slot reservasi aman", "Tanpa sisa tagihan", "Prioritas pengiriman", "Gratis pasang senar", "Gratis overgrip & dampener"];
 
   return (
     <div className="mx-auto max-w-site px-4 py-8 lg:px-6">
@@ -39,10 +43,7 @@ export default async function PreorderDetail({ params }: { params: { id: string 
           {p.estimasi && <p className="mt-1 text-sm text-gray-500">Estimasi: {p.estimasi}</p>}
           {p.deskripsi && <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-gray-600">{p.deskripsi}</p>}
 
-          <Link href={`/preorder/${p.id}/checkout`} className="glass-primary mt-6 block rounded-full py-3 text-center text-sm font-bold text-white transition hover:brightness-110">
-            Reserve Now
-          </Link>
-          <p className="mt-2 text-center text-xs text-gray-400">Pembayaran aman via DOKU. Langsung checkout, tanpa keranjang.</p>
+          <ReserveModal productId={p.id} harga={p.harga} dpBenefits={dpBenefits} lunasBenefits={lunasBenefits} />
         </div>
       </div>
 
