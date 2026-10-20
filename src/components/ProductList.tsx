@@ -29,7 +29,6 @@ export default function ProductList({ products }: { products: P[] }) {
     <div className="overflow-hidden rounded-2xl border bg-white shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b px-5 py-4">
         <div className="flex flex-wrap items-center gap-2">
-          <h2 className="font-bold text-gray-900">Daftar Produk</h2>
           <div className="flex rounded-full border p-0.5 text-xs font-semibold">
             {FILTERS.map((f) => (
               <button
