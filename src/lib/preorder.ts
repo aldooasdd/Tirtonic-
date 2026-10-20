@@ -1,11 +1,13 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
 import { createDokuPayment } from "@/lib/doku";
-import { sendWa, salam } from "@/lib/wa";
+import { sendWa } from "@/lib/wa";
 import { normalizePhone } from "@/lib/string-finder/phone";
 
 export const MIN_DP = 100_000; // DP minimal Rp100.000
-const PO_DUE_MIN = 1440; // batas bayar DOKU untuk PO: 1 hari
+const PO_DUE_MIN = 1440; // batas bayar DOKU untuk DP: 1 hari
+const LUNAS_DAYS = 7; // batas pelunasan setelah barang ready
+const LUNAS_DUE_MIN = LUNAS_DAYS * 1440; // link DOKU pelunasan berlaku sepanjang batas
 
 const SITE = (process.env.NEXT_PUBLIC_SITE_URL || "https://tirtonic.com").replace(/\/$/, "");
 const rupiah = (n: number) => "Rp " + Number(n || 0).toLocaleString("id-ID");
@@ -29,6 +31,105 @@ function genInvoice(suffix = ""): string {
   const ymd = `${String(d.getFullYear()).slice(2)}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}`;
   const rand = Math.floor(1000 + Math.random() * 9000);
   return `PO-${ymd}-${rand}${suffix}`;
+}
+
+// ── Template pesan WhatsApp (Bagian C) ───────────────────────────────────────
+// Judul tebal di WA pakai *...*. Variabel diisi dari order.
+type Ord = {
+  id: string; invoice: string; nama: string; telepon: string; productNama: string;
+  varian: string | null; estimasi: string | null; total: number; dp: number;
+  kekurangan: number | null; batasPelunasan: Date | null; lunasUrl: string | null;
+  kurir: string | null; resi: string | null; alamat: string; kota: string; status: string;
+};
+
+const TITLE = "*Tirtonic Exclusive Launch*";
+const SIGN = `Salam hangat,${NL}Tirtonic Tennis Store`;
+const L = (...xs: (string | null | undefined)[]) => xs.filter((x) => x != null).join(NL);
+const linkPesanan = (id: string) => `${SITE}/preorder/order/${id}`;
+const fmtTgl = (d: Date) => d.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Jakarta" });
+const lineVarian = (o: Ord) => (o.varian ? `Varian : ${o.varian}` : null);
+const isPickup = (o: Ord) => o.alamat?.startsWith("AMBIL DI TOKO");
+const opsiPenerimaan = (o: Ord) =>
+  isPickup(o)
+    ? `Produk siap diambil di Tirtonic ${o.kota}. Tunjukkan nomor pesanan saat pengambilan.`
+    : "Produk akan kami kirimkan ke alamat Anda dalam 1–2 hari kerja.";
+
+const msgReservasiLunas = (o: Ord) => L(
+  TITLE, "",
+  "Terima kasih, reservasi Anda telah kami terima dan pembayaran telah lunas.", "",
+  `No. Pesanan : ${o.invoice}`, `Produk : ${o.productNama}`, lineVarian(o),
+  `Total Dibayar : ${rupiah(o.total)}`, o.estimasi ? `Estimasi Tiba : ${o.estimasi}` : null, "",
+  "Sebagai pembeli dengan pembayaran lunas, Anda mendapatkan:",
+  "• Prioritas pengiriman/pengambilan", "• Gratis pasang senar", "• Gratis overgrip & dampener", "",
+  "Kami akan mengabari Anda segera setelah produk tiba. Status pesanan dapat dipantau melalui:",
+  linkPesanan(o.id), "", SIGN);
+
+const msgReservasiDp = (o: Ord) => L(
+  TITLE, "",
+  "Terima kasih, reservasi Anda telah kami terima.", "",
+  `No. Pesanan : ${o.invoice}`, `Produk : ${o.productNama}`, lineVarian(o),
+  `DP Dibayar : ${rupiah(o.dp)}`, `Sisa Pembayaran : ${rupiah(o.total - o.dp)}`,
+  o.estimasi ? `Estimasi Tiba : ${o.estimasi}` : null, "",
+  "Slot reservasi Anda telah aman. Sisa pembayaran dapat dilunasi setelah produk tiba; kami akan mengirimkan informasi pelunasan melalui WhatsApp ini.", "",
+  "Ingin menikmati benefit pembeli lunas seperti prioritas pengiriman dan gratis pasang senar? Anda dapat melunasi lebih awal kapan saja melalui:",
+  linkPesanan(o.id), "", SIGN);
+
+const msgProdukTibaLunas = (o: Ord) => L(
+  TITLE, "",
+  "Kabar baik, produk pesanan Anda telah tiba di Tirtonic.", "",
+  `No. Pesanan : ${o.invoice}`, `Produk : ${o.productNama}`, lineVarian(o), opsiPenerimaan(o), "",
+  "Benefit gratis pasang senar Anda siap digunakan. Silakan informasikan jenis senar dan tarikan yang diinginkan dengan membalas pesan ini.", "",
+  SIGN);
+
+const msgProdukTibaDp = (o: Ord, payUrl: string | null) => L(
+  TITLE, "",
+  "Kabar baik, produk pesanan Anda telah tiba di Tirtonic.", "",
+  `No. Pesanan : ${o.invoice}`, `Produk : ${o.productNama}`, lineVarian(o),
+  `Sisa Pembayaran : ${rupiah(o.kekurangan ?? 0)}`,
+  o.batasPelunasan ? `Batas Pelunasan : ${fmtTgl(o.batasPelunasan)}` : null, "",
+  "Silakan selesaikan pelunasan melalui tautan berikut:",
+  payUrl ?? "Hubungi admin untuk cara pelunasan.", "",
+  "Setelah pelunasan diterima, produk dapat langsung diambil di toko atau kami kirimkan ke alamat Anda.", "",
+  SIGN);
+
+const msgPengingat = (o: Ord) => L(
+  TITLE, "",
+  "Kami ingin mengingatkan bahwa pelunasan pesanan Anda akan berakhir dalam 2 hari.", "",
+  `No. Pesanan : ${o.invoice}`, `Produk : ${o.productNama}`,
+  `Sisa Pembayaran : ${rupiah(o.kekurangan ?? 0)}`,
+  o.batasPelunasan ? `Batas Pelunasan : ${fmtTgl(o.batasPelunasan)}` : null, "",
+  "Pelunasan dapat dilakukan melalui:",
+  o.lunasUrl ?? "Hubungi admin untuk cara pelunasan.", "",
+  "Apabila pelunasan belum diterima hingga batas waktu, reservasi akan dibatalkan sesuai ketentuan pre-order. Jika ada kendala, silakan balas pesan ini dan tim kami akan membantu.", "",
+  SIGN);
+
+const msgPelunasanDiterima = (o: Ord) => L(
+  TITLE, "",
+  "Terima kasih, pelunasan pesanan Anda telah kami terima.", "",
+  `No. Pesanan : ${o.invoice}`, `Produk : ${o.productNama}`,
+  `Total Dibayar : ${rupiah(o.total)}`, opsiPenerimaan(o), "",
+  "Status pesanan dapat dipantau melalui:", linkPesanan(o.id), "", SIGN);
+
+const msgDikirim = (o: Ord) => L(
+  TITLE, "",
+  "Pesanan Anda telah kami kirimkan.", "",
+  `No. Pesanan : ${o.invoice}`, `Produk : ${o.productNama}`,
+  `Kurir : ${o.kurir}`, `No. Resi : ${o.resi}`, "",
+  "Lacak pengiriman melalui:", linkPesanan(o.id), "",
+  "Terima kasih telah menjadi bagian dari Exclusive Launch Tirtonic. Semoga produk ini menemani permainan terbaik Anda.", "",
+  SIGN);
+
+const msgDibatalkan = (o: Ord, dpDibayar: boolean) => L(
+  TITLE, "",
+  "Dengan berat hati kami informasikan bahwa reservasi Anda telah dibatalkan karena pelunasan belum kami terima hingga batas waktu.", "",
+  `No. Pesanan : ${o.invoice}`, `Produk : ${o.productNama}`,
+  dpDibayar ? `Sesuai ketentuan pre-order, DP sebesar ${rupiah(o.dp)} kami konversi menjadi voucher belanja yang berlaku 3 bulan.` : null, "",
+  "Apabila Anda masih berminat, silakan hubungi kami dengan membalas pesan ini. Kami akan membantu sesuai ketersediaan stok.", "",
+  "Terima kasih atas pengertian Anda.", "", SIGN);
+
+async function waTo(phone: string, message: string) {
+  const p = normalizePhone(phone) ?? phone.replace(/\D/g, "");
+  try { await sendWa(p, message); } catch { /* jangan gagalkan aksi utama */ }
 }
 
 /** Buat pesanan pre-order + link bayar DP di DOKU. Harga diverifikasi dari DB. */
@@ -72,6 +173,7 @@ export async function createPreorder(input: PreorderInput): Promise<CreatePreord
       kodePos: input.kodePos?.trim() || null,
       catatan: input.catatan?.trim() || null,
       productId: p.id, productNama: p.nama, variantId, varian, gambar: p.gambar[0] ?? null,
+      estimasi: p.estimasi,
       harga: hargaSatuan, qty, total, dp,
     },
   });
@@ -85,30 +187,27 @@ export async function createPreorder(input: PreorderInput): Promise<CreatePreord
   return { ok: true, orderId: order.id, invoice: order.invoice, paymentUrl };
 }
 
-/** DP lunas (dipanggil webhook DOKU). Idempoten. Kirim WA konfirmasi ke customer. */
+/** Pembayaran pertama lunas di DOKU (webhook). Bayar penuh → LUNAS (#1), DP → DP_PAID (#2). Idempoten. */
 export async function markPreorderDpPaid(id: string, ref?: string): Promise<boolean> {
   const o = await prisma.preorderOrder.findUnique({ where: { id } });
   if (!o) return false;
   if (o.status !== "PENDING_DP") return true; // sudah diproses
-  await prisma.preorderOrder.update({
-    where: { id },
-    data: { status: "DP_PAID", dpPaidAt: new Date(), paymentRefDp: ref ?? o.paymentRefDp },
-  });
-  // ponytail: stok dipotong saat DP lunas (reserve on DP). Race create→DP minim, abaikan.
+  // ponytail: stok dipotong saat pembayaran pertama diterima (reserve on pay).
   if (o.variantId) {
     try { await prisma.preorderVariant.update({ where: { id: o.variantId }, data: { stok: { decrement: o.qty } } }); } catch { /* varian terhapus */ }
   }
-  const sisa = o.total - o.dp;
-  await waTo(o.telepon,
-    `Selamat ${salam()} kak ${o.nama}${NL}${NL}` +
-    `Terima kasih! DP pesanan *pre-order* sudah kami terima.${NL}${NL}` +
-    `Invoice : ${o.invoice}${NL}Produk : ${o.productNama} (x${o.qty})${NL}` +
-    `Total : ${rupiah(o.total)}${NL}DP dibayar : ${rupiah(o.dp)}${NL}Sisa : ${rupiah(sisa)}${NL}${NL}` +
-    `Barangnya sedang kami siapkan. Begitu barang ready, kami kirim info pelunasan sisa pembayaran lewat WhatsApp ini.`);
+  const lunasPenuh = o.dp >= o.total;
+  const updated = await prisma.preorderOrder.update({
+    where: { id },
+    data: lunasPenuh
+      ? { status: "LUNAS", dpPaidAt: new Date(), lunasAt: new Date(), paymentRefDp: ref ?? o.paymentRefDp }
+      : { status: "DP_PAID", dpPaidAt: new Date(), paymentRefDp: ref ?? o.paymentRefDp },
+  });
+  await waTo(o.telepon, lunasPenuh ? msgReservasiLunas(updated) : msgReservasiDp(updated)); // #1 / #2
   return true;
 }
 
-/** Admin: barang ready → set kekurangan, buat link bayar DOKU, kirim WA ke customer. */
+/** Admin: barang ready (pembeli DP) → set kekurangan, batas pelunasan, link DOKU, WA #4. */
 export async function confirmPreorderReady(id: string, kekurangan: number): Promise<{ ok: boolean; error?: string }> {
   const o = await prisma.preorderOrder.findUnique({ where: { id } });
   if (!o) return { ok: false, error: "Pesanan tidak ditemukan." };
@@ -117,55 +216,93 @@ export async function confirmPreorderReady(id: string, kekurangan: number): Prom
   if (sisa <= 0) return { ok: false, error: "Nominal kekurangan harus lebih dari 0." };
 
   const invoiceLunas = genInvoice("-LN");
-  await prisma.preorderOrder.update({
-    where: { id },
-    data: { status: "WAITING_LUNAS", kekurangan: sisa, readyAt: new Date(), invoiceLunas },
-  });
-
+  const batasPelunasan = new Date(Date.now() + LUNAS_DAYS * 86_400_000);
   const payUrl = await createDokuPayment({
     id: o.id, invoice: invoiceLunas, total: sisa,
     nama: o.nama, email: o.email, telepon: o.telepon,
-    callbackPath: `/preorder/order/${o.id}`, dueMinutes: PO_DUE_MIN,
+    callbackPath: `/preorder/order/${o.id}`, dueMinutes: LUNAS_DUE_MIN,
   });
 
-  await waTo(o.telepon,
-    `Selamat ${salam()} kak ${o.nama}${NL}${NL}` +
-    `Kabar baik! Barang pre-order kamu sudah *ready*.${NL}${NL}` +
-    `Invoice : ${o.invoice}${NL}Produk : ${o.productNama} (x${o.qty})${NL}` +
-    `Total : ${rupiah(o.total)}${NL}DP : ${rupiah(o.dp)}${NL}*Sisa pembayaran : ${rupiah(sisa)}*${NL}${NL}` +
-    (payUrl ? `Silakan lunasi di sini:${NL}${payUrl}${NL}${NL}` : `Silakan lakukan pelunasan. Hubungi admin untuk cara bayar.${NL}${NL}`) +
-    `Setelah lunas, pesanan langsung kami proses & kirim.`);
+  const updated = await prisma.preorderOrder.update({
+    where: { id },
+    data: { status: "WAITING_LUNAS", kekurangan: sisa, readyAt: new Date(), invoiceLunas, batasPelunasan, lunasUrl: payUrl, reminderSentAt: null },
+  });
+
+  await waTo(o.telepon, msgProdukTibaDp(updated, payUrl)); // #4
   return { ok: true };
 }
 
-/** Pelunasan lunas (webhook DOKU, dicocokkan via invoiceLunas). Kirim WA ke customer. */
+/** Admin: barang tiba utk pembeli yang BAYAR PENUH di awal → WA #3. */
+export async function confirmPreorderArrivedLunas(id: string): Promise<{ ok: boolean; error?: string }> {
+  const o = await prisma.preorderOrder.findUnique({ where: { id } });
+  if (!o) return { ok: false, error: "Pesanan tidak ditemukan." };
+  if (o.status !== "LUNAS" || o.arrivedAt || o.readyAt) return { ok: false, error: "Hanya pesanan lunas yang barangnya belum ditandai tiba." };
+  const updated = await prisma.preorderOrder.update({ where: { id }, data: { arrivedAt: new Date() } });
+  await waTo(o.telepon, msgProdukTibaLunas(updated)); // #3
+  return { ok: true };
+}
+
+/** Pelunasan lunas (webhook DOKU, dicocokkan via invoiceLunas) → LUNAS, WA #6. */
 export async function markPreorderLunas(invoiceLunas: string, ref?: string): Promise<boolean> {
   const o = await prisma.preorderOrder.findUnique({ where: { invoiceLunas } });
   if (!o) return false;
   if (o.status !== "WAITING_LUNAS") return true;
-  await prisma.preorderOrder.update({
+  const updated = await prisma.preorderOrder.update({
     where: { id: o.id },
     data: { status: "LUNAS", lunasAt: new Date(), paymentRefLunas: ref ?? o.paymentRefLunas },
   });
-  await waTo(o.telepon,
-    `Selamat ${salam()} kak ${o.nama}${NL}${NL}` +
-    `Pelunasan pesanan *pre-order* ${o.invoice} sudah kami terima. Lunas${NL}${NL}` +
-    `${o.productNama} (x${o.qty}) akan segera kami proses & kirim. Terima kasih sudah menunggu!`);
+  await waTo(o.telepon, msgPelunasanDiterima(updated)); // #6
   return true;
 }
 
+/** Admin: input resi (pengiriman) atau tandai diambil (pickup) → SHIPPED. WA #7 bila ada resi. */
+export async function markPreorderShipped(id: string, resi: string, kurir?: string): Promise<{ ok: boolean; error?: string }> {
+  const o = await prisma.preorderOrder.findUnique({ where: { id } });
+  if (!o) return { ok: false, error: "Pesanan tidak ditemukan." };
+  if (o.status !== "LUNAS" || !(o.arrivedAt || o.readyAt)) return { ok: false, error: "Barang belum ditandai tiba / belum lunas." };
+  const noResi = resi?.trim() || null;
+  const updated = await prisma.preorderOrder.update({
+    where: { id }, data: { status: "SHIPPED", resi: noResi, kurir: kurir?.trim() || null, shippedAt: new Date() },
+  });
+  if (noResi) await waTo(o.telepon, msgDikirim(updated)); // #7 (pickup tanpa resi → tidak kirim)
+  return { ok: true };
+}
+
+/** Batalkan pesanan. Kirim WA #8 bila DP sudah dibayar (konversi voucher). */
 export async function cancelPreorder(id: string): Promise<boolean> {
-  const o = await prisma.preorderOrder.findUnique({ where: { id }, select: { status: true, variantId: true, qty: true } });
-  if (!o || o.status === "LUNAS" || o.status === "CANCELLED") return false;
+  const o = await prisma.preorderOrder.findUnique({ where: { id } });
+  if (!o || o.status === "SHIPPED" || o.status === "CANCELLED") return false;
+  const dpDibayar = o.status === "DP_PAID" || o.status === "WAITING_LUNAS"; // DP betul-betul masuk
   await prisma.preorderOrder.update({ where: { id }, data: { status: "CANCELLED" } });
-  // Stok sudah dipotong saat DP lunas → kembalikan kalau dibatalkan setelah itu.
-  if (o.variantId && (o.status === "DP_PAID" || o.status === "WAITING_LUNAS")) {
+  // Stok dipotong saat pembayaran pertama → kembalikan kalau dibatalkan setelah itu.
+  if (o.variantId && (o.status === "DP_PAID" || o.status === "WAITING_LUNAS" || o.status === "LUNAS")) {
     try { await prisma.preorderVariant.update({ where: { id: o.variantId }, data: { stok: { increment: o.qty } } }); } catch { /* varian terhapus */ }
   }
+  if (dpDibayar) await waTo(o.telepon, msgDibatalkan(o, true)); // #8
   return true;
 }
 
-async function waTo(phone: string, message: string) {
-  const p = normalizePhone(phone) ?? phone.replace(/\D/g, "");
-  try { await sendWa(p, message); } catch { /* jangan gagalkan aksi utama */ }
+/** Cron: pengingat H-2 (#5) + auto-batal lewat batas (#8). Dipanggil dari /api/cron/preorder. */
+export async function runPreorderCron(): Promise<{ reminded: number; cancelled: number }> {
+  const now = new Date();
+  const soon = new Date(now.getTime() + 2 * 86_400_000); // 2 hari lagi
+  let reminded = 0, cancelled = 0;
+
+  // Pengingat: batas dalam ≤2 hari, belum lewat, belum pernah diingatkan.
+  const toRemind = await prisma.preorderOrder.findMany({
+    where: { status: "WAITING_LUNAS", reminderSentAt: null, batasPelunasan: { gt: now, lte: soon } },
+  });
+  for (const o of toRemind) {
+    await waTo(o.telepon, msgPengingat(o));
+    await prisma.preorderOrder.update({ where: { id: o.id }, data: { reminderSentAt: now } });
+    reminded++;
+  }
+
+  // Lewat batas → batalkan (#8 via cancelPreorder).
+  const expired = await prisma.preorderOrder.findMany({
+    where: { status: "WAITING_LUNAS", batasPelunasan: { lt: now } }, select: { id: true },
+  });
+  for (const o of expired) { if (await cancelPreorder(o.id)) cancelled++; }
+
+  return { reminded, cancelled };
 }

@@ -14,10 +14,11 @@ const BADGE: Record<string, string> = {
   DP_PAID: "bg-emerald-100 text-emerald-700",
   WAITING_LUNAS: "bg-blue-100 text-blue-700",
   LUNAS: "bg-green-100 text-green-700",
+  SHIPPED: "bg-gray-200 text-gray-700",
   CANCELLED: "bg-red-100 text-red-600",
 };
 const LABEL: Record<string, string> = {
-  PENDING_DP: "Menunggu DP", DP_PAID: "DP Lunas", WAITING_LUNAS: "Menunggu Pelunasan", LUNAS: "Lunas", CANCELLED: "Batal",
+  PENDING_DP: "Menunggu DP", DP_PAID: "DP Lunas", WAITING_LUNAS: "Menunggu Pelunasan", LUNAS: "Lunas", SHIPPED: "Dikirim/Diambil", CANCELLED: "Batal",
 };
 
 function fmt(d: Date) {
@@ -85,7 +86,7 @@ export default async function DashboardPreorder() {
                   </div>
 
                   <div className="mt-4 border-t pt-3">
-                    <PreorderOrderActions id={o.id} status={o.status} defaultKekurangan={Math.max(0, o.total - o.dp)} />
+                    <PreorderOrderActions id={o.id} status={o.status} defaultKekurangan={Math.max(0, o.total - o.dp)} arrived={!!o.arrivedAt || !!o.readyAt} pickup={o.alamat?.startsWith("AMBIL DI TOKO")} resi={o.resi} kurir={o.kurir} />
                   </div>
                 </div>
               );

@@ -9,7 +9,7 @@ import { verifyPickupToken, verifyReturnToken } from "@/lib/pickup-token";
 import { uploadFile, uploadFromUrl, storageConfigured } from "@/lib/storage";
 import { fetchTokopedia } from "@/lib/tokopedia";
 import { markOrderPaid, markOrderShipped, markOrderDelivered, cancelOrder } from "@/lib/orders";
-import { confirmPreorderReady, cancelPreorder } from "@/lib/preorder";
+import { confirmPreorderReady, confirmPreorderArrivedLunas, markPreorderShipped, cancelPreorder } from "@/lib/preorder";
 import { slugify } from "@/lib/article-slug";
 import { sendWa } from "@/lib/wa";
 import { createCommunitySession } from "@/lib/community-auth";
@@ -629,6 +629,18 @@ export async function adminPreorderReady(id: string, kekurangan: number) {
   revalidatePreorder();
 }
 
+export async function adminPreorderArrived(id: string) {
+  requireSection("pesanan");
+  await confirmPreorderArrivedLunas(id);
+  revalidatePreorder();
+}
+
+export async function adminPreorderShipped(id: string, resi: string, kurir?: string) {
+  requireSection("pesanan");
+  await markPreorderShipped(id, resi, kurir);
+  revalidatePreorder();
+}
+
 export async function adminCancelPreorder(id: string) {
   requireSection("pesanan");
   await cancelPreorder(id);
@@ -638,7 +650,7 @@ export async function adminCancelPreorder(id: string) {
 export async function adminDeletePreorder(id: string) {
   requireSection("pesanan");
   const o = await prisma.preorderOrder.findUnique({ where: { id }, select: { status: true } });
-  if (!o || (o.status !== "CANCELLED" && o.status !== "LUNAS")) return;
+  if (!o || (o.status !== "CANCELLED" && o.status !== "LUNAS" && o.status !== "SHIPPED")) return;
   await prisma.preorderOrder.delete({ where: { id } });
   revalidatePreorder();
 }

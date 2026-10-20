@@ -71,7 +71,8 @@ enum PreorderStatus {
   PENDING_DP // dibuat, DP belum dibayar
   DP_PAID // DP lunas, menunggu barang
   WAITING_LUNAS // barang ready, kekurangan dikirim, menunggu pelunasan
-  LUNAS // pelunasan diterima
+  LUNAS // lunas (bayar penuh di awal / DP dilunasi), menunggu tiba/kirim
+  SHIPPED // sudah dikirim (resi diinput) / sudah diambil
   CANCELLED
 }
 
@@ -97,12 +98,20 @@ model PreorderOrder {
   total           Int // harga * qty
   dp              Int // uang muka dibayar
   kekurangan      Int? // diisi admin saat barang ready (default total - dp)
+  estimasi        String? // snapshot estimasi tiba produk
   status          PreorderStatus   @default(PENDING_DP)
   paymentRefDp    String?
   paymentRefLunas String?
+  lunasUrl        String? // link DOKU pelunasan (dipakai ulang di pengingat)
+  batasPelunasan  DateTime? // deadline pelunasan (ready + 7 hari)
+  reminderSentAt  DateTime? // pengingat H-2 sudah dikirim
+  kurir           String?
+  resi            String?
   dpPaidAt        DateTime?
   readyAt         DateTime?
+  arrivedAt       DateTime? // barang tiba utk pembeli lunas-di-awal
   lunasAt         DateTime?
+  shippedAt       DateTime?
   product         PreorderProduct? @relation(fields: [productId], references: [id], onDelete: SetNull)
   createdAt       DateTime         @default(now())
 
