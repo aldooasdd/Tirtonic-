@@ -39,10 +39,6 @@ export default async function PreorderDetail({ params }: { params: { id: string 
           {p.estimasi && <p className="mt-1 text-sm text-gray-500">Estimasi: {p.estimasi}</p>}
           {p.deskripsi && <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-gray-600">{p.deskripsi}</p>}
 
-          <Link href={`/preorder/${p.id}/checkout`} className="glass-primary mt-6 inline-flex w-full items-center justify-center rounded-full px-6 py-3 text-sm font-bold transition">
-            Pre-order Sekarang
-          </Link>
-          <p className="mt-2 text-xs text-gray-400">Bayar DP (min {rupiah(100000)}) via DOKU. Langsung checkout, tanpa keranjang.</p>
         </div>
       </div>
 
