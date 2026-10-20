@@ -528,18 +528,25 @@ export default async function AdminDashboard() {
 
         {/* product list (search live di client) */}
         {can("produk") && (
-
-        <ProductList
-          products={products.map((p) => ({
-            id: p.id,
-            nama: p.nama,
-            kategori: p.kategori,
-            harga: p.harga,
-            status: p.status,
-            gambar: p.gambar,
-            habis: p.status === "SOLD" || (p.variants.length ? p.variants.every((v) => v.stok <= 0) : p.stok != null && p.stok <= 0),
-          }))}
-        />
+        <details className="group overflow-hidden rounded-2xl border bg-white shadow-sm" open>
+          <summary className="flex cursor-pointer items-center justify-between px-5 py-4 font-bold text-gray-900">
+            <span className="flex items-center gap-2">Daftar Produk</span>
+            <span className="text-xs font-normal text-gray-400">{products.length} produk</span>
+          </summary>
+          <div className="border-t">
+            <ProductList
+              products={products.map((p) => ({
+                id: p.id,
+                nama: p.nama,
+                kategori: p.kategori,
+                harga: p.harga,
+                status: p.status,
+                gambar: p.gambar,
+                habis: p.status === "SOLD" || (p.variants.length ? p.variants.every((v) => v.stok <= 0) : p.stok != null && p.stok <= 0),
+              }))}
+            />
+          </div>
+        </details>
         )}
 
         <p className="text-center text-xs text-gray-400">
