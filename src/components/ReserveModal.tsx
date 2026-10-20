@@ -34,13 +34,36 @@ export default function ReserveModal({ productId, harga, dpBenefits, lunasBenefi
 
   return (
     <>
+      {hasVariants && (
+        <div className="mt-6">
+          <p className="text-sm font-semibold text-gray-700">Pilih varian</p>
+          <div className="mt-1.5 flex flex-wrap gap-2">
+            {variants.map((v) => {
+              const habis = v.stok <= 0;
+              const on = v.id === variantId;
+              return (
+                <button
+                  type="button" key={v.id} disabled={habis}
+                  onClick={() => { setVariantId(v.id); setErr(""); }}
+                  className={`rounded-full border px-3 py-1.5 text-sm ${on ? "border-primary bg-primary/10 font-semibold text-primary" : "border-gray-300 text-gray-700"} ${habis ? "cursor-not-allowed opacity-40 line-through" : ""}`}
+                >
+                  {v.nama}{habis ? " (habis)" : ""}
+                </button>
+              );
+            })}
+          </div>
+          {selVar && <p className="mt-1.5 text-xs text-gray-400">{rupiah(selVar.harga)} · stok {selVar.stok}</p>}
+        </div>
+      )}
+
       <button
         type="button"
-        onClick={() => setOpen(true)}
-        className="glass-primary mt-6 block w-full rounded-full py-3 text-center text-sm font-bold text-white transition hover:brightness-110"
+        onClick={() => { if (hasVariants && !variantId) { setErr("Pilih varian dulu."); return; } setErr(""); setOpen(true); }}
+        className="glass-primary mt-4 block w-full rounded-full py-3 text-center text-sm font-bold text-white transition hover:brightness-110"
       >
         Reserve Now
       </button>
+      {err && !open && <p className="mt-2 text-center text-sm text-red-600">{err}</p>}
       <p className="mt-2 text-center text-xs text-gray-400">Pembayaran aman via DOKU. Langsung checkout, tanpa keranjang.</p>
 
       {open && (
@@ -49,28 +72,6 @@ export default function ReserveModal({ productId, harga, dpBenefits, lunasBenefi
           <div className="relative w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl">
             <h3 className="text-lg font-extrabold text-gray-900">Pilih cara bayar</h3>
             <p className="mt-1 text-sm text-gray-500">Pilih salah satu metode pembayaran.</p>
-
-            {hasVariants && (
-              <div className="mt-4">
-                <p className="text-sm font-semibold text-gray-700">Pilih varian</p>
-                <div className="mt-1.5 flex flex-wrap gap-2">
-                  {variants.map((v) => {
-                    const habis = v.stok <= 0;
-                    const on = v.id === variantId;
-                    return (
-                      <button
-                        type="button" key={v.id} disabled={habis}
-                        onClick={() => { setVariantId(v.id); setErr(""); }}
-                        className={`rounded-full border px-3 py-1.5 text-sm ${on ? "border-primary bg-primary/10 font-semibold text-primary" : "border-gray-300 text-gray-700"} ${habis ? "cursor-not-allowed opacity-40 line-through" : ""}`}
-                      >
-                        {v.nama}{habis ? " (habis)" : ""}
-                      </button>
-                    );
-                  })}
-                </div>
-                {selVar && <p className="mt-1.5 text-xs text-gray-400">{rupiah(selVar.harga)} · stok {selVar.stok}</p>}
-              </div>
-            )}
 
             <div className="mt-4 space-y-2">
               {([
