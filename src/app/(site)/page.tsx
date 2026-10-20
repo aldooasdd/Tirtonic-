@@ -307,7 +307,7 @@ function PreorderBanners({ products }: { products: PreorderBanner[] }) {
             <h2 className="text-3xl font-extrabold tracking-tight text-white drop-shadow sm:text-5xl">{p.nama}</h2>
             {p.estimasi && <p className="mt-1.5 text-sm text-white/80 drop-shadow sm:text-base">{p.estimasi}</p>}
             <div className="mt-5 flex justify-center">
-              <Link href={`/preorder/${p.id}`} className="glass-primary relative inline-flex items-center gap-1 overflow-hidden rounded-full py-1.5 pl-5 pr-1.5 text-sm font-semibold text-white transition hover:brightness-110">
+              <Link href={`/preorder/${p.id}`} className="relative inline-flex items-center gap-1 overflow-hidden rounded-full bg-white/10 py-1.5 pl-5 pr-1.5 text-sm font-semibold text-white transition hover:brightness-110">
                 {/* liquid glass: rim shadow + distorsi backdrop (SVG #container-glass) */}
                 <span aria-hidden className="pointer-events-none absolute inset-0 rounded-full shadow-[inset_3px_3px_0.5px_-3px_rgba(255,255,255,0.6),inset_-3px_-3px_0.5px_-3px_rgba(255,255,255,0.5),inset_0_0_6px_6px_rgba(255,255,255,0.12),0_0_12px_rgba(0,0,0,0.15)]" />
                 <span aria-hidden className="pointer-events-none absolute inset-0 -z-10 rounded-full" style={{ backdropFilter: 'url("#container-glass")' }} />
