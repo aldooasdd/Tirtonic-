@@ -15,7 +15,7 @@ export async function POST(req: Request) {
     // Belum disetel — terima saja biar DOKU tidak retry terus.
     return Response.json({ ok: false, reason: "not_configured" });
   }
-  if (!verifyDokuNotification(req.headers, raw)) {
+  if (!verifyDokuNotification(req.headers, raw, new URL(req.url).pathname)) {
     return Response.json({ ok: false, reason: "invalid_signature" }, { status: 401 });
   }
 
@@ -32,6 +32,7 @@ export async function POST(req: Request) {
 
   const invoice = String(order.invoice_number ?? data.invoice_number ?? "");
   const status = String(transaction.status ?? data.status ?? "").toUpperCase();
+  console.log("DOKU notify", { invoice, status });
   if (!invoice) return Response.json({ ok: false, reason: "no_invoice" }, { status: 400 });
 
   // Hanya proses pembayaran sukses; status lain diabaikan.
@@ -56,5 +57,6 @@ export async function POST(req: Request) {
   const poLunas = await prisma.preorderOrder.findUnique({ where: { invoiceLunas: invoice }, select: { id: true } });
   if (poLunas) { await markPreorderLunas(invoice, ref); return Response.json({ ok: true }); }
 
+  console.warn("DOKU notify: invoice tidak cocok order apa pun", { invoice });
   return Response.json({ ok: true });
 }

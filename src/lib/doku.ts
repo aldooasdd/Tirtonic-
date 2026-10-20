@@ -92,14 +92,16 @@ export async function createDokuPayment(order: DokuOrder): Promise<string | null
 }
 
 /** Verifikasi signature notifikasi (webhook) dari DOKU. */
-export function verifyDokuNotification(headers: Headers, rawBody: string): boolean {
+export function verifyDokuNotification(headers: Headers, rawBody: string, requestPath?: string): boolean {
   if (!dokuConfigured) return false;
   const requestId = headers.get("Request-Id") || "";
   const timestamp = headers.get("Request-Timestamp") || "";
-  const target = headers.get("Request-Target") || "/api/doku/notify";
+  // DOKU menandatangani dgn Request-Target = path endpoint notifikasi. Pakai path
+  // request asli (anti-salah kalau di belakang redirect/domain), fallback ke header.
+  const target = headers.get("Request-Target") || requestPath || "/api/doku/notify";
   const got = headers.get("Signature") || "";
   const expected = signature(requestId, timestamp, target, rawBody);
-  const a = Buffer.from(got);
-  const b = Buffer.from(expected);
-  return a.length === b.length && crypto.timingSafeEqual(a, b);
+  const ok = got.length === expected.length && crypto.timingSafeEqual(Buffer.from(got), Buffer.from(expected));
+  if (!ok) console.error("DOKU notify signature mismatch", { target, requestId, hasSig: Boolean(got) });
+  return ok;
 }
