@@ -7,11 +7,12 @@ import { rupiah } from "@/lib/format";
 export const dynamic = "force-dynamic";
 
 export default async function PreorderDetail({ params }: { params: { id: string } }) {
-  const p = await safeQuery(() => prisma.preorderProduct.findUnique({ where: { id: params.id }, select: { id: true, nama: true, harga: true, gambar: true, deskripsi: true, estimasi: true, isiBox: true, lunasBenefits: true, dpMin: true, isActive: true } }), null);
+  const p = await safeQuery(() => prisma.preorderProduct.findUnique({ where: { id: params.id }, select: { id: true, nama: true, harga: true, gambar: true, deskripsi: true, estimasi: true, isiBox: true, lunasBenefits: true, dpMin: true, isActive: true, variants: { orderBy: { urutan: "asc" }, select: { id: true, warna: true, ukuran: true, harga: true, stok: true } } } }), null);
   if (!p || !p.isActive) notFound();
 
   const dpBenefits = ["Slot reservasi aman", "Sisa dibayar setelah produk tiba"];
   const lunasBenefits = p.lunasBenefits.length ? p.lunasBenefits : ["Slot reservasi aman", "Tanpa sisa tagihan", "Prioritas pengiriman", "Gratis pasang senar", "Gratis overgrip & dampener"];
+  const variantData = p.variants.map((v) => ({ id: v.id, nama: v.ukuran ? `${v.warna} / ${v.ukuran}` : v.warna, harga: v.harga, stok: v.stok }));
 
   return (
     <div className="mx-auto max-w-site px-4 py-8 lg:px-6">
@@ -43,7 +44,7 @@ export default async function PreorderDetail({ params }: { params: { id: string 
           {p.estimasi && <p className="mt-1 text-sm text-gray-500">Estimasi: {p.estimasi}</p>}
           {p.deskripsi && <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-gray-600">{p.deskripsi}</p>}
 
-          <ReserveModal productId={p.id} harga={p.harga} minDp={p.dpMin} dpBenefits={dpBenefits} lunasBenefits={lunasBenefits} />
+          <ReserveModal productId={p.id} harga={p.harga} minDp={p.dpMin} variants={variantData} dpBenefits={dpBenefits} lunasBenefits={lunasBenefits} />
         </div>
       </div>
 

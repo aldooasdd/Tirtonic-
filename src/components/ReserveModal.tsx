@@ -4,21 +4,32 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { rupiah } from "@/lib/format";
 
-// Tombol Reserve Now di detail PO → buka modal pemilih plan (DP / Lunas),
-// lalu lanjut ke halaman checkout sesuai plan.
-export default function ReserveModal({ productId, harga, dpBenefits, lunasBenefits, minDp = 100_000 }: {
-  productId: string; harga: number; dpBenefits: string[]; lunasBenefits: string[]; minDp?: number;
+type Variant = { id: string; nama: string; harga: number; stok: number };
+
+// Tombol Reserve Now di detail PO → buka modal pilih varian + plan (DP / Lunas),
+// lalu lanjut ke halaman checkout sesuai pilihan.
+export default function ReserveModal({ productId, harga, dpBenefits, lunasBenefits, minDp = 100_000, variants = [] }: {
+  productId: string; harga: number; dpBenefits: string[]; lunasBenefits: string[]; minDp?: number; variants?: Variant[];
 }) {
   const router = useRouter();
+  const hasVariants = variants.length > 0;
   const [open, setOpen] = useState(false);
+  const [variantId, setVariantId] = useState("");
   const [plan, setPlan] = useState<"dp" | "lunas">("dp");
   const [dp, setDp] = useState(minDp || 0);
+  const [err, setErr] = useState("");
+  const selVar = variants.find((v) => v.id === variantId);
+  const hargaEff = hasVariants ? (selVar?.harga ?? harga) : harga;
   const benefits = plan === "lunas" ? lunasBenefits : dpBenefits;
-  const bayar = plan === "lunas" ? harga : Math.min(Math.max(dp, minDp), harga);
-  const kurang = Math.max(0, harga - bayar);
+  const bayar = plan === "lunas" ? hargaEff : Math.min(Math.max(dp, minDp), hargaEff);
+  const kurang = Math.max(0, hargaEff - bayar);
 
   function go() {
-    router.push(`/preorder/${productId}/checkout${plan === "lunas" ? "?lunas=1" : `?dp=${bayar}`}`);
+    if (hasVariants && !variantId) return setErr("Pilih varian dulu.");
+    const q = new URLSearchParams();
+    if (plan === "lunas") q.set("lunas", "1"); else q.set("dp", String(bayar));
+    if (variantId) q.set("variant", variantId);
+    router.push(`/preorder/${productId}/checkout?${q.toString()}`);
   }
 
   return (
@@ -39,10 +50,32 @@ export default function ReserveModal({ productId, harga, dpBenefits, lunasBenefi
             <h3 className="text-lg font-extrabold text-gray-900">Pilih cara bayar</h3>
             <p className="mt-1 text-sm text-gray-500">Pilih salah satu metode pembayaran.</p>
 
+            {hasVariants && (
+              <div className="mt-4">
+                <p className="text-sm font-semibold text-gray-700">Pilih varian</p>
+                <div className="mt-1.5 flex flex-wrap gap-2">
+                  {variants.map((v) => {
+                    const habis = v.stok <= 0;
+                    const on = v.id === variantId;
+                    return (
+                      <button
+                        type="button" key={v.id} disabled={habis}
+                        onClick={() => { setVariantId(v.id); setErr(""); }}
+                        className={`rounded-full border px-3 py-1.5 text-sm ${on ? "border-primary bg-primary/10 font-semibold text-primary" : "border-gray-300 text-gray-700"} ${habis ? "cursor-not-allowed opacity-40 line-through" : ""}`}
+                      >
+                        {v.nama}{habis ? " (habis)" : ""}
+                      </button>
+                    );
+                  })}
+                </div>
+                {selVar && <p className="mt-1.5 text-xs text-gray-400">{rupiah(selVar.harga)} · stok {selVar.stok}</p>}
+              </div>
+            )}
+
             <div className="mt-4 space-y-2">
               {([
                 { key: "dp" as const, title: "Down Payment", sub: minDp > 0 ? `Mulai dari ${rupiah(minDp)}` : "Nominal bebas" },
-                { key: "lunas" as const, title: "Bayar Lunas", sub: `${rupiah(harga)} — sekali bayar` },
+                { key: "lunas" as const, title: "Bayar Lunas", sub: `${rupiah(hargaEff)} — sekali bayar` },
               ]).map((opt) => {
                 const on = plan === opt.key;
                 return (
@@ -87,10 +120,12 @@ export default function ReserveModal({ productId, harga, dpBenefits, lunasBenefi
             )}
 
             <div className="mt-4 space-y-0.5 border-t pt-4 text-sm">
-              <div className="flex justify-between text-gray-500"><span>Total harga</span><span>{rupiah(harga)}</span></div>
+              <div className="flex justify-between text-gray-500"><span>Total harga</span><span>{rupiah(hargaEff)}</span></div>
               <div className="flex justify-between font-semibold text-primary"><span>Dibayar sekarang</span><span>{rupiah(bayar)}</span></div>
               <div className="flex justify-between text-gray-500"><span>Kurang (saat barang ready)</span><span>{rupiah(kurang)}</span></div>
             </div>
+
+            {err && <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{err}</p>}
 
             <div className="mt-6 flex gap-3">
               <button type="button" onClick={() => setOpen(false)} className="flex-1 rounded-full border border-gray-300 bg-white py-3 text-sm font-bold text-gray-700 transition hover:bg-gray-50">
