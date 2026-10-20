@@ -39,6 +39,7 @@ export default async function EditPreorderPage({ params }: { params: { id: strin
         </div>
         <input name="tagline" defaultValue={p.tagline ?? ""} placeholder="Subjudul landing (mis. Hello, hello.)" className="field" />
         <input name="slogan" defaultValue={p.slogan ?? ""} placeholder="Slogan di bawah nama produk (hero)" className="field" />
+        <input name="kuota" type="number" min={1} defaultValue={p.kuota ?? ""} placeholder="Total slot PO (mis. 100) — kosong = tanpa batas" className="field" />
         <div>
           <label className="label">Estimasi tiba</label>
           <input name="estimasi" type="date" className="field" />

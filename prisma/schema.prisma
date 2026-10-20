@@ -36,6 +36,7 @@ model PreorderProduct {
   bannersDesktop String[] @default([]) // slide hero desktop (beberapa foto)
   bannersMobile  String[] @default([]) // slide hero HP (beberapa foto)
   lunasBenefits  String[] @default([]) // benefit khusus kalau bayar lunas (satu per baris)
+  kuota          Int?     // total slot PO (buat hitungan "X/kuota" di landing). null = tanpa batas
   deskripsi String?
   bonusNama      String? // bonus jika bayar penuh (lunas) di awal: nama
   bonusDeskripsi String? // bonus: deskripsi

@@ -411,6 +411,7 @@ export default async function AdminDashboard() {
               </div>
               <input name="tagline" placeholder="Subjudul landing (mis. Hello, hello.)" className="field" />
               <input name="slogan" placeholder="Slogan di bawah nama produk (hero)" className="field" />
+              <input name="kuota" type="number" min={1} placeholder="Total slot PO (mis. 100) — kosong = tanpa batas" className="field" />
               <div>
                 <label className="label">Estimasi tiba</label>
                 <input name="estimasi" type="date" className="field" />
