@@ -469,7 +469,7 @@ export async function adminCancelOrder(id: string) {
 export async function adminDeleteOrder(id: string) {
   requireSection("pesanan");
   const o = await prisma.order.findUnique({ where: { id }, select: { status: true } });
-  if (!o || (o.status !== "CANCELLED" && o.status !== "DELIVERED")) return;
+  if (!o || (o.status !== "CANCELLED" && o.status !== "DELIVERED" && o.status !== "SHIPPED")) return;
   await prisma.order.delete({ where: { id } });
   revalidatePath("/dashboard/orders");
 }
