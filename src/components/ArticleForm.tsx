@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef } from "react";
 import { useFormStatus } from "react-dom";
+import RichText from "@/components/RichText";
 
 type ArticleInput = {
   id: string;
@@ -35,7 +35,6 @@ export default function ArticleForm({
   article?: ArticleInput;
 }) {
   const edit = Boolean(article);
-  const kontenRef = useRef<HTMLTextAreaElement>(null);
 
   return (
     <form action={action} className="space-y-4">
@@ -71,9 +70,8 @@ export default function ArticleForm({
 
       <div>
         <label className="label">Konten *</label>
-        <FormatToolbar target={kontenRef} />
-        <textarea ref={kontenRef} name="konten" rows={14} required defaultValue={article?.konten} className="field font-mono text-sm" />
-        <p className="mt-1 text-xs text-gray-400">Blok teks lalu klik tombol. **tebal**, *miring*, baris diawali ## = judul, ### = sub-judul.</p>
+        <RichText name="konten" defaultValue={article?.konten || ""} />
+        <p className="mt-1 text-xs text-gray-400">Pilih teks lalu klik B (tebal) / I (miring). Enter = baris baru, ¶ = paragraf baru.</p>
       </div>
 
       <div>
@@ -91,38 +89,5 @@ export default function ArticleForm({
 
       <SaveBtn edit={edit} />
     </form>
-  );
-}
-
-// Toolbar format konten: bungkus teks terpilih (tebal/miring) atau beri awalan baris (judul/sub-judul).
-function FormatToolbar({ target }: { target: React.RefObject<HTMLTextAreaElement> }) {
-  function wrap(mark: string) {
-    const t = target.current;
-    if (!t) return;
-    const { selectionStart: s, selectionEnd: e, value } = t;
-    const sel = value.slice(s, e) || "teks";
-    t.setRangeText(mark + sel + mark, s, e, "end");
-    t.setSelectionRange(s + mark.length, s + mark.length + sel.length);
-    t.focus();
-  }
-  function heading(prefix: string) {
-    const t = target.current;
-    if (!t) return;
-    const { selectionStart: s, value } = t;
-    const start = value.lastIndexOf("\n", s - 1) + 1;
-    const line = value.slice(start).split("\n")[0];
-    const bare = line.replace(/^#{2,3}\s+/, "");
-    t.setRangeText(prefix ? `${prefix} ${bare}` : bare, start, start + line.length, "end");
-    t.focus();
-  }
-  const btn = "rounded-md border border-gray-300 px-2.5 py-1 text-xs text-gray-700 hover:border-primary hover:text-primary";
-  return (
-    <div className="mb-1.5 flex flex-wrap gap-1.5">
-      <button type="button" onClick={() => wrap("**")} className={`${btn} font-extrabold`} title="Tebal">B</button>
-      <button type="button" onClick={() => wrap("*")} className={`${btn} italic`} title="Miring">I</button>
-      <button type="button" onClick={() => heading("##")} className={btn} title="Judul besar">Judul</button>
-      <button type="button" onClick={() => heading("###")} className={btn} title="Sub-judul">Sub-judul</button>
-      <button type="button" onClick={() => heading("")} className={btn} title="Teks biasa">Normal</button>
-    </div>
   );
 }
