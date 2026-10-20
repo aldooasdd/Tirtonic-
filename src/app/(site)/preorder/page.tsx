@@ -24,7 +24,7 @@ export default async function PreorderCatalog() {
       {products.length === 0 ? (
         <p className="rounded-2xl border border-dashed p-10 text-center text-gray-400">Belum ada produk pre-order.</p>
       ) : (
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {products.map((p) => (
             <Link key={p.id} href={`/preorder/${p.id}`} className="group glass-card overflow-hidden rounded-2xl transition hover:shadow-md">
               <div className="relative aspect-square bg-gray-100">
