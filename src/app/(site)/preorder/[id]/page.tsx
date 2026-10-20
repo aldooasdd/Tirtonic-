@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import PreorderGallery from "@/components/PreorderGallery";
 import ReserveModal from "@/components/ReserveModal";
+import ClampText from "@/components/ClampText";
 import { prisma, safeQuery } from "@/lib/prisma";
 import { rupiah } from "@/lib/format";
 
@@ -28,7 +29,7 @@ export default async function PreorderDetail({ params }: { params: { id: string 
           <h1 className="mt-2 text-2xl font-extrabold text-gray-900">{p.nama}</h1>
           <p className="mt-1 text-2xl font-extrabold text-primary">{rupiah(p.harga)}</p>
           {p.estimasi && <p className="mt-1 text-sm text-gray-500">Estimasi: {p.estimasi}</p>}
-          {p.deskripsi && <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-gray-600">{p.deskripsi}</p>}
+          {p.deskripsi && <ClampText text={p.deskripsi} />}
 
           <ReserveModal productId={p.id} harga={p.harga} minDp={p.dpMin} variants={variantData} varianLabel={p.varianLabel} dpBenefits={dpBenefits} lunasBenefits={lunasBenefits} />
         </div>
