@@ -438,13 +438,13 @@ export default async function AdminDashboard() {
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
-                  <label className="label">Foto banner landing — Desktop</label>
-                  <input name="bannerDesktop" type="file" accept="image/*" className="text-sm" />
+                  <label className="label">Foto banner landing — Desktop (bisa beberapa, auto-slide)</label>
+                  <input name="bannersDesktop" type="file" accept="image/*" multiple className="text-sm" />
                   <p className="mt-1 text-xs text-gray-400">Landscape lebar. Ideal <b>1920×820 px</b> (21:9). Objek penting di bawah-tengah (teks menimpa bagian atas).</p>
                 </div>
                 <div>
-                  <label className="label">Foto banner landing — HP</label>
-                  <input name="bannerMobile" type="file" accept="image/*" className="text-sm" />
+                  <label className="label">Foto banner landing — HP (bisa beberapa, auto-slide)</label>
+                  <input name="bannersMobile" type="file" accept="image/*" multiple className="text-sm" />
                   <p className="mt-1 text-xs text-gray-400">Lebih tegak. Ideal <b>1080×1350 px</b> (4:5). Objek penting di bawah-tengah.</p>
                 </div>
               </div>

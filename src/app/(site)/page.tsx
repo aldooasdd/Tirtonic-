@@ -1,4 +1,5 @@
 import Link from "next/link";
+import PreorderHeroSlides from "@/components/PreorderHeroSlides";
 import LaunchCountdown from "@/components/LaunchCountdown";
 import { prisma, safeQuery } from "@/lib/prisma";
 import Footer, { Benefits } from "@/components/Footer";
@@ -283,7 +284,7 @@ function NewArticles({ articles }: { articles: ArticleCardData[] }) {
   );
 }
 
-type PreorderBanner = { id: string; nama: string; tagline: string | null; slogan: string | null; harga: number; gambar: string[]; bannerDesktop: string | null; bannerMobile: string | null; estimasi: string | null; launchAt: Date | null };
+type PreorderBanner = { id: string; nama: string; tagline: string | null; slogan: string | null; harga: number; gambar: string[]; bannerDesktop: string | null; bannerMobile: string | null; bannersDesktop: string[]; bannersMobile: string[]; estimasi: string | null; launchAt: Date | null };
 
 // Hero pre-order di landing (ala Apple): judul + subjudul + estimasi di tengah,
 // tombol Learn more + Pre-order (glass-primary hijau tua), lalu foto landscape.
@@ -293,15 +294,12 @@ function PreorderBanners({ products }: { products: PreorderBanner[] }) {
     <section className="mx-auto max-w-site space-y-4 px-4 py-2 lg:px-6">
       {products.map((p) => (
         <div key={p.id} className="relative h-[42vh] min-h-[240px] w-full overflow-hidden rounded-2xl sm:h-[50vh]">
-          {/* HP: bannerMobile, Desktop: bannerDesktop; fallback foto produk */}
-          {(p.bannerMobile || p.bannerDesktop || p.gambar[0]) && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img loading="lazy" decoding="async" src={p.bannerMobile || p.bannerDesktop || p.gambar[0]} alt={p.nama} className="absolute inset-0 h-full w-full object-cover sm:hidden" />
-          )}
-          {(p.bannerDesktop || p.gambar[0]) && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img loading="lazy" decoding="async" src={p.bannerDesktop || p.gambar[0]} alt={p.nama} className="absolute inset-0 hidden h-full w-full object-cover sm:block" />
-          )}
+          {/* Slide banner (crossfade). Fallback: banner tunggal lama → foto produk. */}
+          {(() => {
+            const dt = p.bannersDesktop.length ? p.bannersDesktop : (p.bannerDesktop ? [p.bannerDesktop] : p.gambar.slice(0, 1));
+            const mb = p.bannersMobile.length ? p.bannersMobile : (p.bannerMobile ? [p.bannerMobile] : dt);
+            return <PreorderHeroSlides desktop={dt} mobile={mb} alt={p.nama} />;
+          })()}
           {/* Layout ala Apple: teks kiri-bawah, kapsul kanan-bawah */}
           <div className="absolute inset-0 flex items-end justify-between gap-3 p-5 sm:p-10">
             <div className="min-w-0 text-left">
@@ -356,7 +354,7 @@ export default async function HomePage() {
     safeQuery(() => prisma.popularBrand.findMany({ orderBy: [{ urutan: "asc" }, { nama: "asc" }] }), []),
     safeQuery(() => prisma.sfBranch.findMany({ where: { isActive: true, slug: { not: "tirtonic" } }, orderBy: { name: "asc" }, select: { id: true, name: true } }), []),
     safeQuery(() => prisma.sfOrder.findMany({ where: { status: { in: ["antri", "dikerjakan"] } }, orderBy: { createdAt: "asc" }, select: { resultCode: true, status: true, branchId: true, stringerName: true } }), []),
-    safeQuery(() => prisma.preorderProduct.findMany({ where: { isActive: true }, orderBy: { createdAt: "desc" }, take: 4, select: { id: true, nama: true, tagline: true, slogan: true, harga: true, gambar: true, bannerDesktop: true, bannerMobile: true, estimasi: true, launchAt: true } }), []),
+    safeQuery(() => prisma.preorderProduct.findMany({ where: { isActive: true }, orderBy: { createdAt: "desc" }, take: 4, select: { id: true, nama: true, tagline: true, slogan: true, harga: true, gambar: true, bannerDesktop: true, bannerMobile: true, bannersDesktop: true, bannersMobile: true, estimasi: true, launchAt: true } }), []),
   ]);
   const toCard = (p: (typeof latest)[number]) => ({ id: p.id, nama: p.nama, harga: p.harga, hargaDiskon: p.hargaDiskon, gambar: p.gambar, status: p.status, fromPrice: p._count.variants > 0 });
   const arrivals = latest.map(toCard);

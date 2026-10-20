@@ -31,8 +31,10 @@ model PreorderProduct {
   launchAt  DateTime? // tanggal hari-H launching (buat countdown di hero)
   harga     Int // harga penuh
   gambar    String[]        @default([]) // foto produk (galeri di halaman detail)
-  bannerDesktop String? // foto hero landing untuk desktop (landscape)
-  bannerMobile  String? // foto hero landing untuk HP
+  bannerDesktop String? // (lama) foto hero desktop tunggal — fallback
+  bannerMobile  String? // (lama) foto hero HP tunggal — fallback
+  bannersDesktop String[] @default([]) // slide hero desktop (beberapa foto)
+  bannersMobile  String[] @default([]) // slide hero HP (beberapa foto)
   deskripsi String?
   bonusNama      String? // bonus jika bayar penuh (lunas) di awal: nama
   bonusDeskripsi String? // bonus: deskripsi

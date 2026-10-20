@@ -483,6 +483,16 @@ async function uploadNamedImage(formData: FormData, field: string): Promise<stri
   return uploadFile(f, "preorder");
 }
 
+// Upload beberapa file bernama <field> ke Storage → array URL (kosong kalau tak ada).
+async function uploadNamedImages(formData: FormData, field: string): Promise<string[]> {
+  const files = formData.getAll(field).filter((f): f is File => f instanceof File && f.size > 0);
+  if (files.length === 0) return [];
+  if (!storageConfigured) throw new Error("Supabase Storage belum dikonfigurasi (cek .env).");
+  const urls: string[] = [];
+  for (const f of files) urls.push(await uploadFile(f, "preorder"));
+  return urls;
+}
+
 // Parse varian PO dari field array v_* (warna/ukuran/harga/stok/foto). Tanpa diskon.
 async function parsePreorderVariants(formData: FormData) {
   const warna = formData.getAll("v_warna").map(String);
@@ -536,11 +546,11 @@ export async function createPreorderProduct(formData: FormData) {
   const bonusDeskripsi = ((formData.get("bonusDeskripsi") as string) || "").trim() || null;
   const variants = formData.get("hasVariants") ? await parsePreorderVariants(formData) : [];
   const gambar = await uploadImages(formData);
-  const bannerDesktop = await uploadNamedImage(formData, "bannerDesktop");
-  const bannerMobile = await uploadNamedImage(formData, "bannerMobile");
+  const bannersDesktop = await uploadNamedImages(formData, "bannersDesktop");
+  const bannersMobile = await uploadNamedImages(formData, "bannersMobile");
   const bonusFoto = await uploadNamedImage(formData, "bonusFoto");
   await prisma.preorderProduct.create({
-    data: { nama, tagline, slogan, harga, deskripsi, estimasi, launchAt, isiBox, gambar, bannerDesktop, bannerMobile, bonusNama, bonusDeskripsi, bonusFoto, ...(variants.length ? { variants: { create: variants } } : {}) },
+    data: { nama, tagline, slogan, harga, deskripsi, estimasi, launchAt, isiBox, gambar, bannersDesktop, bannersMobile, bonusNama, bonusDeskripsi, bonusFoto, ...(variants.length ? { variants: { create: variants } } : {}) },
   });
   revalidatePreorder();
   redirect("/dashboard");
@@ -570,12 +580,17 @@ export async function updatePreorderProduct(id: string, formData: FormData) {
   const bonusNama = ((formData.get("bonusNama") as string) || "").trim() || null;
   const bonusDeskripsi = ((formData.get("bonusDeskripsi") as string) || "").trim() || null;
   const newGambar = await uploadImages(formData);
-  const bannerDesktop = (await uploadNamedImage(formData, "bannerDesktop")) ?? cur.bannerDesktop;
-  const bannerMobile = (await uploadNamedImage(formData, "bannerMobile")) ?? cur.bannerMobile;
+  const newBannersDesktop = await uploadNamedImages(formData, "bannersDesktop");
+  const newBannersMobile = await uploadNamedImages(formData, "bannersMobile");
   const bonusFoto = (await uploadNamedImage(formData, "bonusFoto")) ?? cur.bonusFoto;
   await prisma.preorderProduct.update({
     where: { id },
-    data: { nama, tagline, slogan, harga, deskripsi, estimasi, launchAt, isiBox, bannerDesktop, bannerMobile, bonusNama, bonusDeskripsi, bonusFoto, ...(newGambar.length ? { gambar: newGambar } : {}) },
+    data: {
+      nama, tagline, slogan, harga, deskripsi, estimasi, launchAt, isiBox, bonusNama, bonusDeskripsi, bonusFoto,
+      ...(newGambar.length ? { gambar: newGambar } : {}),
+      ...(newBannersDesktop.length ? { bannersDesktop: newBannersDesktop } : {}),
+      ...(newBannersMobile.length ? { bannersMobile: newBannersMobile } : {}),
+    },
   });
   revalidatePreorder();
   redirect("/dashboard");

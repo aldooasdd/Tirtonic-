@@ -75,14 +75,26 @@ export default async function EditPreorderPage({ params }: { params: { id: strin
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
-            <label className="label">Banner landing — Desktop</label>
-            <input name="bannerDesktop" type="file" accept="image/*" className="text-sm" />
-            {imgPreview(p.bannerDesktop, "Banner desktop")}
+            <label className="label">Banner landing — Desktop (bisa beberapa, auto-slide)</label>
+            <input name="bannersDesktop" type="file" accept="image/*" multiple className="text-sm" />
+            <p className="mt-1 text-xs text-gray-400">Upload baru = ganti semua slide desktop. Kosongkan kalau tidak ganti.</p>
+            <div className="mt-1 flex flex-wrap gap-2">
+              {(p.bannersDesktop.length ? p.bannersDesktop : p.bannerDesktop ? [p.bannerDesktop] : []).map((g) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img key={g} loading="lazy" decoding="async" src={g} alt="" className="h-14 w-20 rounded border object-cover" />
+              ))}
+            </div>
           </div>
           <div>
-            <label className="label">Banner landing — HP</label>
-            <input name="bannerMobile" type="file" accept="image/*" className="text-sm" />
-            {imgPreview(p.bannerMobile, "Banner HP")}
+            <label className="label">Banner landing — HP (bisa beberapa, auto-slide)</label>
+            <input name="bannersMobile" type="file" accept="image/*" multiple className="text-sm" />
+            <p className="mt-1 text-xs text-gray-400">Upload baru = ganti semua slide HP. Kosongkan kalau tidak ganti.</p>
+            <div className="mt-1 flex flex-wrap gap-2">
+              {(p.bannersMobile.length ? p.bannersMobile : p.bannerMobile ? [p.bannerMobile] : []).map((g) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img key={g} loading="lazy" decoding="async" src={g} alt="" className="h-14 w-20 rounded border object-cover" />
+              ))}
+            </div>
           </div>
         </div>
 
