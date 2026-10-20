@@ -591,6 +591,8 @@ export async function updatePreorderProduct(id: string, formData: FormData) {
   const newBannersDesktop = await uploadNamedImages(formData, "bannersDesktop");
   const newBannersMobile = await uploadNamedImages(formData, "bannersMobile");
   const bonusFoto = (await uploadNamedImage(formData, "bonusFoto")) ?? cur.bonusFoto;
+  // Varian: kalau admin centang "punya varian" → ganti seluruh set. Kalau tidak → biarkan.
+  const newVariants = formData.get("hasVariants") ? await parsePreorderVariants(formData) : null;
   await prisma.preorderProduct.update({
     where: { id },
     data: {
@@ -598,6 +600,7 @@ export async function updatePreorderProduct(id: string, formData: FormData) {
       ...(newGambar.length ? { gambar: newGambar } : {}),
       ...(newBannersDesktop.length ? { bannersDesktop: newBannersDesktop } : {}),
       ...(newBannersMobile.length ? { bannersMobile: newBannersMobile } : {}),
+      ...(newVariants ? { variants: { deleteMany: {}, create: newVariants } } : {}),
     },
   });
   revalidatePreorder();

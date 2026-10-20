@@ -3,6 +3,7 @@ import Link from "next/link";
 import { isAuthed, can } from "@/lib/auth";
 import { prisma, safeQuery } from "@/lib/prisma";
 import { updatePreorderProduct } from "@/app/dashboard/actions";
+import PreorderVariantInput from "@/components/PreorderVariantInput";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Edit Produk Pre-Order — Tirtonic" };
@@ -97,10 +98,12 @@ export default async function EditPreorderPage({ params }: { params: { id: strin
         </div>
 
         {p.variants.length > 0 && (
-          <p className="rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-500">
-            Produk ini punya {p.variants.length} varian. Varian tidak diubah lewat halaman edit — hapus & buat ulang produk kalau mau ganti varian.
-          </p>
+          <div className="rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-600">
+            Varian sekarang: {p.variants.map((v) => `${v.ukuran ? `${v.warna}/${v.ukuran}` : v.warna} (stok ${v.stok})`).join(", ")}
+          </div>
         )}
+        <p className="text-xs text-gray-400">Centang &quot;punya varian&quot; di bawah untuk MENGGANTI seluruh varian. Biarkan tidak dicentang kalau tidak ingin mengubah varian.</p>
+        <PreorderVariantInput />
 
         <button className="btn-green">Simpan Perubahan</button>
       </form>
