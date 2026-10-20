@@ -63,7 +63,7 @@ export default async function PreorderDetail({ params }: { params: { id: string 
         <div className="grid gap-4 sm:grid-cols-2">
           <PayCard
             href={`/preorder/${p.id}/checkout`}
-            title="Bayar DP"
+            title="Down Payment"
             priceTop={`Mulai ${rupiah(DP_MIN)}`}
             priceSub="atau 30% dari harga"
             btnText="Reserve Now"
