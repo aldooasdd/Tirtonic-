@@ -97,7 +97,6 @@ export default function PreorderCheckout({ productId, harga, variants = [], bonu
 
       <input name="nama" required placeholder="Nama lengkap" className={field} />
       <input name="telepon" type="tel" inputMode="numeric" required placeholder="No. WhatsApp (08xxx)" className={field} />
-      <input name="email" type="email" required placeholder="Email" className={field} />
       <textarea name="alamat" required rows={2} placeholder="Alamat lengkap" className={field} />
       <div className="grid grid-cols-2 gap-2">
         <select required value={provinsi} onChange={(e) => { setProvinsi(e.target.value); setKota(""); }} className={field}>
@@ -109,7 +108,6 @@ export default function PreorderCheckout({ productId, harga, variants = [], bonu
           {kotaOptions.map((k) => <option key={k} value={k}>{k}</option>)}
         </select>
       </div>
-      <input name="kodePos" inputMode="numeric" placeholder="Kode pos (opsional)" className={field} />
       <textarea name="catatan" rows={2} placeholder="Catatan (opsional)" className={field} />
 
       {/* DP */}

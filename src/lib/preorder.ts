@@ -34,13 +34,13 @@ function genInvoice(suffix = ""): string {
 /** Buat pesanan pre-order + link bayar DP di DOKU. Harga diverifikasi dari DB. */
 export async function createPreorder(input: PreorderInput): Promise<CreatePreorderResult> {
   const nama = input.nama?.trim();
-  const email = input.email?.trim();
   const telepon = input.telepon?.trim();
+  // Email tak diisi customer → fallback biar DOKU (butuh email valid) tetap jalan.
+  const email = input.email?.trim() || `po${telepon?.replace(/\D/g, "")}@tirtonic.com`;
   const alamat = input.alamat?.trim();
   const kota = input.kota?.trim();
   const provinsi = input.provinsi?.trim();
-  if (!nama || !email || !telepon || !alamat || !kota || !provinsi) return { ok: false, error: "Lengkapi data pengiriman dulu." };
-  if (!/^\S+@\S+\.\S+$/.test(email)) return { ok: false, error: "Email tidak valid." };
+  if (!nama || !telepon || !alamat || !kota || !provinsi) return { ok: false, error: "Lengkapi data pengiriman dulu." };
 
   const p = await prisma.preorderProduct.findUnique({ where: { id: input.productId }, include: { variants: true } });
   if (!p || !p.isActive) return { ok: false, error: "Produk pre-order tidak tersedia." };
