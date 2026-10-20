@@ -9,7 +9,7 @@ import { verifyPickupToken, verifyReturnToken } from "@/lib/pickup-token";
 import { uploadFile, uploadFromUrl, storageConfigured } from "@/lib/storage";
 import { fetchTokopedia } from "@/lib/tokopedia";
 import { markOrderPaid, markOrderShipped, markOrderDelivered, cancelOrder } from "@/lib/orders";
-import { confirmPreorderReady, confirmPreorderArrivedLunas, markPreorderShipped, cancelPreorder } from "@/lib/preorder";
+import { confirmPreorderReady, confirmPreorderArrivedLunas, markPreorderShipped, markPreorderDpPaid, cancelPreorder } from "@/lib/preorder";
 import { slugify } from "@/lib/article-slug";
 import { sendWa } from "@/lib/wa";
 import { createCommunitySession } from "@/lib/community-auth";
@@ -626,6 +626,13 @@ export async function togglePreorderProduct(id: string) {
 export async function adminPreorderReady(id: string, kekurangan: number) {
   requireSection("pesanan");
   await confirmPreorderReady(id, kekurangan);
+  revalidatePreorder();
+}
+
+/** Manual: tandai pembayaran pertama diterima (fallback kalau webhook DOKU tak masuk). */
+export async function adminPreorderMarkPaid(id: string) {
+  requireSection("pesanan");
+  await markPreorderDpPaid(id, "MANUAL");
   revalidatePreorder();
 }
 
