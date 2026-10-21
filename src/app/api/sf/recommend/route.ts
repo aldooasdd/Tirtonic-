@@ -7,7 +7,7 @@ import { makeCode } from "@/lib/string-finder/slip";
 import { validateAnswers } from "@/lib/string-finder/validate";
 import { profileSentence } from "@/lib/string-finder/profile";
 import { suggestTension } from "@/lib/string-finder/tension";
-import { racketStringWeights, racketStringNote, racketLabel, hasRacketInput, type RacketType, type RacketInput } from "@/lib/string-finder/racket";
+import { racketStringWeights, racketStringNote, racketLabel, hasRacketInput, type RacketInput } from "@/lib/string-finder/racket";
 import type { LabMetric, PickDTO } from "@/lib/string-finder/dto";
 import { getActiveBranch } from "@/lib/string-finder/session";
 
@@ -39,15 +39,9 @@ export async function POST(req: NextRequest) {
   if (!v.ok) return NextResponse.json({ error: v.error }, { status: 400 });
   const answers = v.answers;
 
-  const b = body as { racketHead?: unknown; racketType?: unknown };
+  const b = body as { racketHead?: unknown };
   const headNum = Number(b?.racketHead);
-  // racketType bisa array (multi) atau string (lama). Saring hanya nilai valid.
-  const rawTypes = Array.isArray(b?.racketType) ? b.racketType : b?.racketType != null ? [b.racketType] : [];
-  const types = rawTypes.filter((t): t is RacketType => t === "power" || t === "spin" || t === "control");
-  const racket: RacketInput = {
-    head: Number.isFinite(headNum) ? headNum : null,
-    types: types.length ? types : null,
-  };
+  const racket: RacketInput = { head: Number.isFinite(headNum) ? headNum : null };
   const hasRacket = hasRacketInput(racket);
 
   const { prepared, rules, ruleVersion, datasetVersion } = await getEngine();

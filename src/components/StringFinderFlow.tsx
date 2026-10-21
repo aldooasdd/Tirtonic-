@@ -1,21 +1,18 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { RACKET_TYPES, racketLabel, type RacketType } from "@/lib/string-finder/racket";
+import { racketLabel } from "@/lib/string-finder/racket";
 
-// Pecah string raket tersimpan ("Nama · Jenis + Jenis · 100 in²") → field terpisah.
-function parseRacket(str: string): { name: string; head: string; types: RacketType[] } {
+// Pecah string raket tersimpan ("Nama · 100 in²") → field terpisah.
+function parseRacket(str: string): { name: string; head: string } {
   const tokens = str.split("·").map((s) => s.trim()).filter(Boolean);
-  let head = ""; const types: RacketType[] = []; const nameParts: string[] = [];
+  let head = ""; const nameParts: string[] = [];
   for (const tok of tokens) {
     const hm = tok.match(/^(\d{2,3})\s*in²$/);
     if (hm) { head = hm[1]; continue; }
-    const parts = tok.split("+").map((s) => s.trim());
-    const keys = parts.map((p) => RACKET_TYPES.find((t) => t.label.toLowerCase() === p.toLowerCase())?.key).filter(Boolean) as RacketType[];
-    if (keys.length > 0 && keys.length === parts.length) { types.push(...keys); continue; }
     nameParts.push(tok);
   }
-  return { name: nameParts.join(" · "), head, types };
+  return { name: nameParts.join(" · "), head };
 }
 
 export type Question = {
@@ -61,10 +58,9 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
   const [chosen, setChosen] = useState<number | null>(null);
   const [nama, setNama] = useState("");
   const [wa, setWa] = useState("");
-  // Konsep raket: customer isi head size (in²) + jenis raket (power/spin/control).
+  // Konsep raket: customer isi head size (in²).
   const [racketHead, setRacketHead] = useState("");
   const [racketName, setRacketName] = useState(""); // merk/tipe raket, diketik manual
-  const [racketTypes, setRacketTypes] = useState<RacketType[]>([]);
   const [tension, setTension] = useState(""); // Main (dalam satuan `unit`)
   const [tensionCross, setTensionCross] = useState(""); // Cross (dalam satuan `unit`)
   const [unit, setUnit] = useState<"lbs" | "kg">("lbs"); // satuan tampilan tarikan; disimpan selalu lbs
@@ -97,7 +93,6 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
     const r = parseRacket(racket);
     setRacketName(r.name);
     setRacketHead(r.head);
-    setRacketTypes(r.types);
   }
   // "Pilih senar sendiri": katalog semua senar + senar yang dipilih manual (di luar 3 rekomendasi).
   const [manualPick, setManualPick] = useState<SenarCard | null>(null);
@@ -126,7 +121,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
     setPhase("intro"); setStep(0); setAnswers({}); setRec(null); setErr("");
     setChosen(null); setNama(""); setWa(""); setRacketHead("");
     setTension(""); setHistory(null); setManualPick(null); setCatalogSearch("");
-    setRacketTypes([]); setRacketName("");
+    setRacketName("");
     setManualKind(null); setHybridMain(""); setHybridCross(""); setCatalogManual(""); setUnit("lbs");
   }
 
@@ -144,7 +139,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
 
   // Label raket untuk disimpan & ditampilkan, mis. "Power · 100 in²".
   const headNum = parseInt(racketHead, 10);
-  const racketLbl = racketLabel({ head: Number.isFinite(headNum) ? headNum : null, types: racketTypes.length ? racketTypes : null });
+  const racketLbl = racketLabel({ head: Number.isFinite(headNum) ? headNum : null });
   // Raket final: merk/tipe manual + label turunan (head/jenis), digabung.
   const racketStr = [racketName.trim() || null, racketLbl].filter(Boolean).join(" · ") || null;
 
@@ -230,7 +225,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
       const res = await fetch("/api/sf/recommend", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ answers, racketHead: Number.isFinite(headNum) ? headNum : null, racketType: racketTypes }),
+        body: JSON.stringify({ answers, racketHead: Number.isFinite(headNum) ? headNum : null }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Gagal menghitung rekomendasi.");
