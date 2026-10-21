@@ -72,14 +72,15 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
   const submitLock = useRef(false);
   const [history, setHistory] = useState<HistItem[] | null>(null);
   // Profil pelanggan dari nomor WA (kalau pernah stringing di sini) → tampilkan raket lamanya.
+  const [lookupPhone, setLookupPhone] = useState(""); // input cek riwayat (container atas)
   const [profile, setProfile] = useState<{ count: number; lastName: string | null; rackets: string[] } | null>(null);
   useEffect(() => {
-    const digits = wa.replace(/\D/g, "");
+    const digits = lookupPhone.replace(/\D/g, "");
     if (digits.length < 9) { setProfile(null); return; }
     const ctrl = new AbortController();
     const t = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/sf/history?phone=${encodeURIComponent(wa)}`, { signal: ctrl.signal });
+        const res = await fetch(`/api/sf/history?phone=${encodeURIComponent(lookupPhone)}`, { signal: ctrl.signal });
         if (!res.ok) { setProfile(null); return; }
         const d = await res.json();
         if (!d.count) { setProfile(null); return; }
@@ -89,7 +90,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
       } catch { /* abaikan */ }
     }, 500);
     return () => { clearTimeout(t); ctrl.abort(); };
-  }, [wa]);
+  }, [lookupPhone]);
 
   // Isi field dari string raket tersimpan (dipakai saat klik chip raket).
   function fillRacket(racket: string) {
@@ -354,24 +355,38 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
           <h1 className="text-2xl font-extrabold text-gray-900">Detail Pelanggan & Raket</h1>
           <p className="mt-2 text-sm text-gray-600">Masukkan nomor WhatsApp Anda. Kami akan menggunakannya untuk memberi kabar saat raket selesai dipasang senar dan menampilkan riwayat stringing Anda sebelumnya.</p>
 
-          {profile && profile.rackets.length > 0 && (
-            <div className="glass-card mt-4 rounded-2xl p-4">
-              <p className="text-sm font-semibold text-gray-900">Nomor ini pernah stringing di sini ({profile.count}×)</p>
-              <p className="mt-0.5 text-xs text-gray-500">Klik raket yang mau di-restring — data di bawah terisi otomatis.</p>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {profile.rackets.map((r) => (
-                  <button
-                    key={r}
-                    type="button"
-                    onClick={() => { if (profile.lastName && !nama) setNama(profile.lastName); fillRacket(r); }}
-                    className="rounded-xl border border-primary/30 bg-primary/5 px-3 py-1.5 text-sm font-medium text-primary transition hover:bg-primary/10"
-                  >
-                    {r}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+          {/* Cek riwayat: input nomor sendiri → klik raket lama → isi form di bawah. */}
+          <div className="glass-card mt-4 rounded-2xl p-4">
+            <label className="label">Cek riwayat pelanggan <span className="text-gray-400">(nomor WhatsApp)</span></label>
+            <input
+              value={lookupPhone}
+              onChange={(e) => setLookupPhone(e.target.value)}
+              inputMode="tel"
+              className="field"
+              placeholder="08xxxxxxxxxx"
+            />
+            {lookupPhone.replace(/\D/g, "").length >= 9 && (
+              profile && profile.rackets.length > 0 ? (
+                <div className="mt-3">
+                  <p className="text-xs text-gray-500">Pernah stringing {profile.count}× di sini. Klik raket yang mau di-restring — data di bawah terisi otomatis.</p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {profile.rackets.map((r) => (
+                      <button
+                        key={r}
+                        type="button"
+                        onClick={() => { setWa(lookupPhone); if (profile.lastName) setNama(profile.lastName); fillRacket(r); }}
+                        className="rounded-xl border border-primary/30 bg-primary/5 px-3 py-1.5 text-sm font-medium text-primary transition hover:bg-primary/10"
+                      >
+                        {r}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <p className="mt-2 text-xs text-gray-400">Belum ada riwayat untuk nomor ini.</p>
+              )
+            )}
+          </div>
 
           <div className="mt-5 space-y-3 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
             <div>
