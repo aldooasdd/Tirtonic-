@@ -1,5 +1,6 @@
 import { prisma, safeQuery } from "@/lib/prisma";
 import { trackResi, courierTrackUrl } from "@/lib/tracking";
+import { markOrderDelivered } from "@/lib/orders";
 
 export const dynamic = "force-dynamic";
 
@@ -24,5 +25,10 @@ export async function GET(req: Request) {
     // Tak terlacak via API (Paxel / belum set key / gagal) → kasih link situs kurir.
     return Response.json({ history: [], fallbackUrl: courierTrackUrl(order.kurir, order.resi), resi: order.resi, kurir: order.kurir });
   }
+  // Auto tandai diterima kalau lacakan sudah "delivered" (tak perlu admin klik).
+  if (order.status === "SHIPPED" && /deliver|terkirim|diterima|selesai/i.test(result.status)) {
+    try { await markOrderDelivered(id); } catch { /* jangan gagalkan respons lacak */ }
+  }
+
   return Response.json({ history: result.history, status: result.status, resi: order.resi, kurir: order.kurir });
 }
