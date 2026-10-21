@@ -413,27 +413,6 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
               />
               <p className="mt-1 text-xs text-gray-400">Umumnya 95–120 in². Lihat di frame/gagang raket.</p>
             </div>
-            <div>
-              <label className="label">Jenis raket <span className="text-gray-400">(opsional)</span></label>
-              <div className="flex flex-wrap gap-2">
-                {RACKET_TYPES.map((t) => {
-                  const on = racketTypes.includes(t.key);
-                  return (
-                    <button
-                      key={t.key}
-                      type="button"
-                      onClick={() => setRacketTypes((cur) => (on ? cur.filter((x) => x !== t.key) : [...cur, t.key]))}
-                      className={`rounded-lg border px-4 py-2 text-sm font-medium transition ${
-                        on ? "border-primary bg-primary text-white" : "border-gray-300 text-gray-700 hover:border-primary"
-                      }`}
-                    >
-                      {t.label}
-                    </button>
-                  );
-                })}
-              </div>
-              <p className="mt-1 text-xs text-gray-400">Boleh pilih lebih dari satu (mis. Spin + Control). Memengaruhi rekomendasi senar & tarikan.</p>
-            </div>
             {err && <p className="text-sm text-red-600">{err}</p>}
 
             <div className="space-y-2">
