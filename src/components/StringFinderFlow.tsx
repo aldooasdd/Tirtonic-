@@ -3,6 +3,21 @@
 import { useEffect, useRef, useState } from "react";
 import { RACKET_TYPES, racketLabel, type RacketType } from "@/lib/string-finder/racket";
 
+// Pecah string raket tersimpan ("Nama · Jenis + Jenis · 100 in²") → field terpisah.
+function parseRacket(str: string): { name: string; head: string; types: RacketType[] } {
+  const tokens = str.split("·").map((s) => s.trim()).filter(Boolean);
+  let head = ""; const types: RacketType[] = []; const nameParts: string[] = [];
+  for (const tok of tokens) {
+    const hm = tok.match(/^(\d{2,3})\s*in²$/);
+    if (hm) { head = hm[1]; continue; }
+    const parts = tok.split("+").map((s) => s.trim());
+    const keys = parts.map((p) => RACKET_TYPES.find((t) => t.label.toLowerCase() === p.toLowerCase())?.key).filter(Boolean) as RacketType[];
+    if (keys.length > 0 && keys.length === parts.length) { types.push(...keys); continue; }
+    nameParts.push(tok);
+  }
+  return { name: nameParts.join(" · "), head, types };
+}
+
 export type Question = {
   id: string;
   type: "single" | "multi";
@@ -335,7 +350,15 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
               {profile.lastRacket && <p className="mt-0.5 text-sm text-gray-600">Raket terakhir: <span className="font-medium text-gray-800">{profile.lastRacket}</span></p>}
               <button
                 type="button"
-                onClick={() => { if (profile.lastName) setNama(profile.lastName); if (profile.lastRacket) setRacketName(profile.lastRacket); }}
+                onClick={() => {
+                  if (profile.lastName) setNama(profile.lastName);
+                  if (profile.lastRacket) {
+                    const r = parseRacket(profile.lastRacket);
+                    setRacketName(r.name);
+                    setRacketHead(r.head);
+                    setRacketTypes(r.types);
+                  }
+                }}
                 className="btn-pill mt-2 bg-primary px-4 py-1.5 text-xs hover:bg-primaryDark"
               >
                 Pakai data ini
