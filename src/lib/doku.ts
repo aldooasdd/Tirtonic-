@@ -14,6 +14,9 @@ const CLIENT_ID = process.env.DOKU_CLIENT_ID || "";
 const SECRET_KEY = process.env.DOKU_SECRET_KEY || "";
 const BASE_URL = (process.env.DOKU_BASE_URL || "https://api-sandbox.doku.com").replace(/\/$/, "");
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://tirtonic.com").replace(/\/$/, "");
+// URL notifikasi harus domain kanonik (www) — apex tirtonic.com ke-redirect 308,
+// DOKU tak mengikuti redirect pada POST server-to-server → notifikasi hilang.
+const NOTIFY_URL = SITE_URL.replace("://tirtonic.com", "://www.tirtonic.com") + "/api/doku/notify";
 
 export const dokuConfigured = Boolean(CLIENT_ID && SECRET_KEY);
 
@@ -67,7 +70,7 @@ export async function createDokuPayment(order: DokuOrder): Promise<string | null
     payment: { payment_due_date: order.dueMinutes ?? 60 },
     customer: { name: order.nama, email: order.email, phone: order.telepon.replace(/\D/g, "") },
     // Paksa HTTP notification ke endpoint kita (gak tergantung setelan per-channel di dashboard DOKU).
-    additional_info: { override_notification_url: `${SITE_URL}/api/doku/notify` },
+    additional_info: { override_notification_url: NOTIFY_URL },
   });
 
   try {
