@@ -1,6 +1,6 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
-import { createDokuPayment } from "@/lib/doku";
+import { createDokuPayment, checkDokuStatus } from "@/lib/doku";
 import { sendWa } from "@/lib/wa";
 import { notifyN8N } from "@/lib/notify";
 import { normalizePhone } from "@/lib/string-finder/phone";
@@ -304,11 +304,32 @@ export async function refreshPelunasanLink(id: string): Promise<{ ok: boolean; u
   return { ok: true, url };
 }
 
-/** Cron: pengingat H-2 (#5) + auto-batal lewat batas (#8). Dipanggil dari /api/cron/preorder. */
-export async function runPreorderCron(): Promise<{ reminded: number; cancelled: number }> {
+/** Cron: polling status DOKU (jaring kalau customer tak balik) + pengingat H-2 (#5)
+ *  + auto-batal lewat batas (#8). Dipanggil dari /api/cron/preorder. */
+export async function runPreorderCron(): Promise<{ paid: number; reminded: number; cancelled: number }> {
   const now = new Date();
   const soon = new Date(now.getTime() + 2 * 86_400_000); // 2 hari lagi
-  let reminded = 0, cancelled = 0;
+  let paid = 0, reminded = 0, cancelled = 0;
+
+  // Polling status DOKU: webhook DOKU tak reliable → cek langsung order yang belum lunas.
+  // DP belum dibayar (umur ≤3 hari biar tak polling order telantar).
+  const pendingDp = await prisma.preorderOrder.findMany({
+    where: { status: "PENDING_DP", createdAt: { gt: new Date(now.getTime() - 3 * 86_400_000) } },
+    select: { id: true, invoice: true },
+  });
+  for (const o of pendingDp) {
+    const st = await checkDokuStatus(o.invoice);
+    if (st === "SUCCESS" || st === "PAID") { await markPreorderDpPaid(o.id); paid++; }
+  }
+  // Menunggu pelunasan → cek invoiceLunas.
+  const waiting = await prisma.preorderOrder.findMany({
+    where: { status: "WAITING_LUNAS", invoiceLunas: { not: null } },
+    select: { invoiceLunas: true },
+  });
+  for (const o of waiting) {
+    const st = await checkDokuStatus(o.invoiceLunas!);
+    if (st === "SUCCESS" || st === "PAID") { await markPreorderLunas(o.invoiceLunas!); paid++; }
+  }
 
   // Pengingat: batas dalam ≤2 hari, belum lewat, belum pernah diingatkan.
   const toRemind = await prisma.preorderOrder.findMany({
@@ -326,5 +347,5 @@ export async function runPreorderCron(): Promise<{ reminded: number; cancelled: 
   });
   for (const o of expired) { if (await cancelPreorder(o.id)) cancelled++; }
 
-  return { reminded, cancelled };
+  return { paid, reminded, cancelled };
 }
