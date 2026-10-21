@@ -155,7 +155,7 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
 
       {rows.length === 0 ? (
         <div className="-mt-6 px-4">
-          <p className="rounded-2xl border border-gray-100 bg-white p-8 text-center text-sm text-gray-400 shadow-sm">
+          <p className="glass-card rounded-2xl p-8 text-center text-sm text-gray-400">
             Belum ada stringing di {bulanShort}.
           </p>
         </div>
@@ -163,7 +163,7 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
         <>
           {/* Podium 3 teratas */}
           <div className="mt-4 px-4">
-            <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+            <div className="glass-card rounded-2xl p-5">
               <div className="flex items-end justify-center gap-3">
                 {podium.map((p) => <PodiumSlot key={p.row!.phone} row={p.row!} rank={p.rank} />)}
               </div>
@@ -179,7 +179,7 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
                   return (
                     <div
                       key={r.phone}
-                      className="flex items-center gap-3 rounded-2xl border border-gray-100 bg-white p-3 shadow-sm"
+                      className="glass-card flex items-center gap-3 rounded-2xl p-3"
                     >
                       <span className="w-5 shrink-0 text-center text-sm font-bold text-gray-400">{i + 4}</span>
                       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/5">
