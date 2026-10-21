@@ -10,6 +10,7 @@ export const dynamic = "force-dynamic";
 // (stok dipotong + event dikirim ke n8n). Sebelum itu, endpoint tetap aman (no-op).
 export async function POST(req: Request) {
   const raw = await req.text();
+  console.log("DOKU notify RAW", { headers: Object.fromEntries(req.headers), body: raw.slice(0, 2000) });
 
   if (!dokuConfigured) {
     // Belum disetel — terima saja biar DOKU tidak retry terus.

@@ -66,6 +66,8 @@ export async function createDokuPayment(order: DokuOrder): Promise<string | null
     },
     payment: { payment_due_date: order.dueMinutes ?? 60 },
     customer: { name: order.nama, email: order.email, phone: order.telepon.replace(/\D/g, "") },
+    // Paksa HTTP notification ke endpoint kita (gak tergantung setelan per-channel di dashboard DOKU).
+    additional_info: { override_notification_url: `${SITE_URL}/api/doku/notify` },
   });
 
   try {
