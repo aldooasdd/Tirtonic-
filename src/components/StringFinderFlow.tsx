@@ -356,7 +356,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
           <p className="mt-2 text-sm text-gray-600">Masukkan nomor WhatsApp Anda. Kami akan menggunakannya untuk memberi kabar saat raket selesai dipasang senar dan menampilkan riwayat stringing Anda sebelumnya.</p>
 
           {/* Cek riwayat: input nomor sendiri → klik raket lama → isi form di bawah. */}
-          <div className="glass-card mt-4 rounded-2xl p-4">
+          <div className="mt-4 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
             <label className="label">Cek riwayat pelanggan <span className="text-gray-400">(nomor WhatsApp)</span></label>
             <input
               value={lookupPhone}
