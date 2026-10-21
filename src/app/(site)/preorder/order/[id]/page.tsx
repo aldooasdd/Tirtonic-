@@ -69,7 +69,7 @@ export default async function PreorderOrderPage({ params }: { params: { id: stri
 
         {o.status === "PENDING_DP" && (
           <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-700">
-            <p>Pembayaran DP {rupiah(o.dp)} belum selesai. Link bayar hanya berlaku {5} menit — klik tombol di bawah untuk bayar / dapat link baru.</p>
+            <p>Pembayaran DP {rupiah(o.dp)} belum selesai. Link bayar berlaku 1 jam — klik tombol di bawah untuk bayar / dapat link baru.</p>
             <Link href={`/preorder/order/${o.id}/bayar-dp`} className="btn-pill mt-2 w-full bg-primary hover:bg-primaryDark">Bayar Sekarang</Link>
           </div>
         )}
