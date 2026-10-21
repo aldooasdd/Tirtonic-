@@ -71,7 +71,7 @@ export default async function RiwayatPage({ params }: { params: { phone: string 
 
       {orders.length === 0 ? (
         <div className="px-4">
-          <p className="-mt-5 rounded-2xl border border-gray-100 bg-white p-8 text-center text-sm text-gray-400 shadow-sm">
+          <p className="glass-card -mt-5 rounded-2xl p-8 text-center text-sm text-gray-400">
             {phone ? "Belum ada riwayat stringing untuk nomor ini." : "Nomor WhatsApp pada tautan ini tidak valid."}
           </p>
         </div>
@@ -81,7 +81,7 @@ export default async function RiwayatPage({ params }: { params: { phone: string 
           <div className="-mt-6 px-4">
             <div className="flex gap-3 overflow-x-auto pb-1">
               {cards.map((c) => (
-                <div key={c.l} className="min-w-[8.5rem] flex-1 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+                <div key={c.l} className="glass-card min-w-[8.5rem] flex-1 rounded-2xl p-4">
                   <p className="text-xs text-gray-500">{c.l}</p>
                   <p className={`mt-1 text-2xl font-extrabold ${c.c}`}>{c.n}</p>
                 </div>
@@ -91,7 +91,7 @@ export default async function RiwayatPage({ params }: { params: { phone: string 
 
           {/* Ringkasan + progress */}
           <div className="mt-4 px-4">
-            <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+            <div className="glass-card rounded-2xl p-5">
               <h2 className="font-bold text-gray-900">Ringkasan</h2>
               <div className="mt-3 flex items-end justify-between">
                 <div><p className="text-xs text-gray-400">Total</p><p className="text-lg font-extrabold text-gray-900">{orders.length}</p></div>
@@ -107,7 +107,7 @@ export default async function RiwayatPage({ params }: { params: { phone: string 
 
           {/* Stringing per bulan (6 bulan terakhir) */}
           <div className="mt-4 px-4">
-            <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+            <div className="glass-card rounded-2xl p-5">
               <h2 className="font-bold text-gray-900">Stringing per bulan</h2>
               <div className="mt-5 flex items-end gap-2">
                 {months.map((mo, i) => (
@@ -131,7 +131,7 @@ export default async function RiwayatPage({ params }: { params: { phone: string 
 
           {/* Semua stringing (tabel) */}
           <div className="mt-5 px-4">
-            <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white">
+            <div className="glass-card overflow-hidden rounded-2xl">
               <div className="border-b border-gray-100 px-5 py-4"><h2 className="font-bold text-gray-900">Semua stringing</h2></div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
