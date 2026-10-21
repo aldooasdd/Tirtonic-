@@ -73,7 +73,7 @@ export default async function RiwayatPage({ params, searchParams }: { params: { 
               <p className="text-xs text-white/70">{phone ? displayPhone(phone) : "Nomor tidak valid"}</p>
             </div>
           </div>
-          <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">Tirtonic Stringing Room</span>
+          <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">Dashboard User Tirtonic</span>
         </div>
       </header>
 
