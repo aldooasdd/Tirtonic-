@@ -177,7 +177,7 @@ export default async function RiwayatPage({ params, searchParams }: { params: { 
                     </div>
                     <div className="mt-1.5 flex gap-1">
                       {Array.from({ length: 10 }, (_, i) => (
-                        <div key={i} className={`h-2 flex-1 rounded-full ${i < age.filled ? age.bar : "bg-gray-200"}`} />
+                        <div key={i} className={`h-2 flex-1 rounded-full ${i < age.filled ? `${age.bar} animate-pulse` : "bg-gray-200"}`} />
                       ))}
                     </div>
                   </div>
