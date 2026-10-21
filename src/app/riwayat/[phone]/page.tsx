@@ -12,6 +12,13 @@ const badge = (s: string) =>
   : s === "batal" ? "bg-red-100 text-red-600"
   : "bg-gray-100 text-gray-600";
 
+// Usia senar dari waktu string. Habis = 3 bulan (90 hari): bar penuh, "Saatnya ganti senar".
+function stringAge(createdAt: Date) {
+  const days = Math.max(0, Math.floor((Date.now() - new Date(createdAt).getTime()) / 86400000));
+  const filled = Math.min(10, Math.max(1, Math.round((Math.min(1, days / 90)) * 10)));
+  return { filled, ganti: days >= 90, label: days < 60 ? `${days} hari` : `${Math.round(days / 30)} bulan` };
+}
+
 export default async function RiwayatPage({ params }: { params: { phone: string } }) {
   const phone = normalizePhone(decodeURIComponent(params.phone));
   const orders = phone
@@ -19,7 +26,7 @@ export default async function RiwayatPage({ params }: { params: { phone: string 
         where: { phone },
         orderBy: { createdAt: "desc" },
         take: 100,
-        select: { resultCode: true, chosenString: true, tensionLbs: true, tensionCrossLbs: true, racket: true, stringerName: true, status: true, createdAt: true, customerName: true },
+        select: { resultCode: true, chosenString: true, tensionLbs: true, tensionCrossLbs: true, racket: true, stringerName: true, status: true, createdAt: true, customerName: true, branch: { select: { name: true } } },
       })
     : [];
 
@@ -106,32 +113,50 @@ export default async function RiwayatPage({ params }: { params: { phone: string 
             </div>
           </div>
 
-          {/* Semua stringing (tabel) */}
-          <div className="mt-5 px-4">
-            <div className="glass-card overflow-hidden rounded-2xl">
-              <div className="border-b border-gray-100 px-5 py-4"><h2 className="font-bold text-gray-900">Semua stringing</h2></div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-gray-100 text-left text-xs font-semibold text-gray-500">
-                      <th className="px-5 py-3">Tanggal</th><th className="px-5 py-3">Senar</th><th className="px-5 py-3">Tarikan</th><th className="px-5 py-3">Raket</th><th className="px-5 py-3">Stringer</th><th className="px-5 py-3">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {orders.map((o) => (
-                      <tr key={o.resultCode} className="border-b border-gray-50 last:border-0">
-                        <td className="whitespace-nowrap px-5 py-3 text-gray-500">{new Date(o.createdAt).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</td>
-                        <td className="px-5 py-3 font-medium text-gray-900">{o.chosenString ?? "—"}</td>
-                        <td className="whitespace-nowrap px-5 py-3 text-gray-700">{o.tensionLbs ? `${o.tensionLbs}${o.tensionCrossLbs ? `/${o.tensionCrossLbs}` : ""} lbs` : "—"}</td>
-                        <td className="px-5 py-3 text-gray-700">{o.racket ?? "—"}</td>
-                        <td className="px-5 py-3 text-gray-700">{o.stringerName ?? "—"}</td>
-                        <td className="px-5 py-3"><span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${badge(o.status)}`}>{STATUS_LABEL[o.status] ?? o.status}</span></td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+          {/* Semua stringing */}
+          <div className="mt-5 space-y-3 px-4">
+            <h2 className="font-bold text-gray-900">Semua stringing</h2>
+            {orders.map((o) => {
+              const age = stringAge(o.createdAt);
+              const fullBed = !o.tensionCrossLbs || o.tensionCrossLbs === o.tensionLbs;
+              return (
+                <div key={o.resultCode} className="glass-card rounded-2xl p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <p className="font-bold leading-tight text-gray-900">{[o.racket, o.chosenString].filter(Boolean).join(" · ") || "Stringing"}</p>
+                    <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold ${badge(o.status)}`}>{STATUS_LABEL[o.status] ?? o.status}</span>
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500">
+                    {new Date(o.createdAt).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}
+                    {o.branch?.name ? ` · ${o.branch.name}` : ""}
+                    {o.stringerName ? ` · oleh ${o.stringerName}` : ""}
+                  </p>
+                  {o.tensionLbs != null && (
+                    <div className="mt-3 space-y-1 text-sm">
+                      {fullBed ? (
+                        <div className="flex justify-between"><span className="text-gray-500">FULL BED</span><span className="font-semibold text-gray-900">{o.tensionLbs} lbs</span></div>
+                      ) : (
+                        <>
+                          <div className="flex justify-between"><span className="text-gray-500">MAIN</span><span className="font-semibold text-gray-900">{o.tensionLbs} lbs</span></div>
+                          <div className="flex justify-between"><span className="text-gray-500">CROSS</span><span className="font-semibold text-gray-900">{o.tensionCrossLbs} lbs</span></div>
+                        </>
+                      )}
+                    </div>
+                  )}
+                  {/* Usia senar: habis di 3 bulan (90 hari) -> bar penuh merah */}
+                  <div className="mt-3 border-t border-gray-100 pt-3">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-gray-500">Usia senar: <span className="font-semibold text-gray-700">{age.label}</span></span>
+                      <span className={`font-semibold ${age.ganti ? "text-red-600" : "text-emerald-600"}`}>{age.ganti ? "Saatnya ganti senar" : "Kondisi baik"}</span>
+                    </div>
+                    <div className="mt-1.5 flex gap-1">
+                      {Array.from({ length: 10 }, (_, i) => (
+                        <div key={i} className={`h-2 flex-1 rounded-full ${i < age.filled ? (age.ganti ? "bg-red-500" : "bg-emerald-500") : "bg-gray-200"}`} />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </>
       )}
