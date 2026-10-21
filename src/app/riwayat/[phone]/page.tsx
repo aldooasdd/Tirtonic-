@@ -26,7 +26,6 @@ export default async function RiwayatPage({ params }: { params: { phone: string 
   const name = orders.find((o) => o.customerName)?.customerName ?? null;
   const selesai = orders.filter((o) => o.status === "selesai").length;
   const proses = orders.filter((o) => o.status === "antri" || o.status === "dikerjakan").length;
-  const pct = orders.length ? Math.round((selesai / orders.length) * 100) : 0;
 
   // Jumlah stringing per bulan — 6 bulan terakhir (termasuk bulan ini).
   const now = new Date();
@@ -80,22 +79,6 @@ export default async function RiwayatPage({ params }: { params: { phone: string 
                   <p className={`mt-1 text-2xl font-extrabold ${c.c}`}>{c.n}</p>
                 </div>
               ))}
-            </div>
-          </div>
-
-          {/* Ringkasan + progress */}
-          <div className="mt-4 px-4">
-            <div className="glass-card rounded-2xl p-5">
-              <h2 className="font-bold text-gray-900">Ringkasan</h2>
-              <div className="mt-3 flex items-end justify-between">
-                <div><p className="text-xs text-gray-400">Total</p><p className="text-lg font-extrabold text-gray-900">{orders.length}</p></div>
-                <div><p className="text-xs text-gray-400">Selesai</p><p className="text-lg font-extrabold text-primary">{selesai}</p></div>
-                <div><p className="text-xs text-gray-400">Proses</p><p className="text-lg font-extrabold text-gray-900">{proses}</p></div>
-              </div>
-              <div className="mt-3 h-2 overflow-hidden rounded-full bg-gray-100">
-                <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
-              </div>
-              <p className="mt-2 text-xs text-gray-500">{selesai} dari {orders.length} stringing selesai ({pct}%)</p>
             </div>
           </div>
 
