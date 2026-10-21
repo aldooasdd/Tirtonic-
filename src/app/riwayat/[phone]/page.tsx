@@ -12,11 +12,16 @@ const badge = (s: string) =>
   : s === "batal" ? "bg-red-100 text-red-600"
   : "bg-gray-100 text-gray-600";
 
-// Usia senar dari waktu string. Habis = 3 bulan (90 hari): bar penuh, "Saatnya ganti senar".
+// Usia senar dari waktu string. 0-2 bln hijau, 2-3 bln kuning, >3 bln merah (habis).
 function stringAge(createdAt: Date) {
   const days = Math.max(0, Math.floor((Date.now() - new Date(createdAt).getTime()) / 86400000));
   const filled = Math.min(10, Math.max(1, Math.round((Math.min(1, days / 90)) * 10)));
-  return { filled, ganti: days >= 90, label: days < 60 ? `${days} hari` : `${Math.round(days / 30)} bulan` };
+  const label = days < 60 ? `${days} hari` : `${Math.round(days / 30)} bulan`;
+  const { text, bar, fg } =
+    days >= 90 ? { text: "Disarankan ganti senar", bar: "bg-red-500", fg: "text-red-600" }
+    : days >= 60 ? { text: "Mendekati waktu ganti", bar: "bg-amber-400", fg: "text-amber-600" }
+    : { text: "Kondisi optimal", bar: "bg-emerald-500", fg: "text-emerald-600" };
+  return { filled, label, text, bar, fg };
 }
 
 export default async function RiwayatPage({ params }: { params: { phone: string } }) {
@@ -146,11 +151,11 @@ export default async function RiwayatPage({ params }: { params: { phone: string 
                   <div className="mt-3 border-t border-gray-100 pt-3">
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-gray-500">Usia senar: <span className="font-semibold text-gray-700">{age.label}</span></span>
-                      <span className={`font-semibold ${age.ganti ? "text-red-600" : "text-emerald-600"}`}>{age.ganti ? "Saatnya ganti senar" : "Kondisi baik"}</span>
+                      <span className={`font-semibold ${age.fg}`}>{age.text}</span>
                     </div>
                     <div className="mt-1.5 flex gap-1">
                       {Array.from({ length: 10 }, (_, i) => (
-                        <div key={i} className={`h-2 flex-1 rounded-full ${i < age.filled ? (age.ganti ? "bg-red-500" : "bg-emerald-500") : "bg-gray-200"}`} />
+                        <div key={i} className={`h-2 flex-1 rounded-full ${i < age.filled ? age.bar : "bg-gray-200"}`} />
                       ))}
                     </div>
                   </div>
