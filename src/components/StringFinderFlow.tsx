@@ -56,6 +56,22 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
   const [submitting, setSubmitting] = useState(false);
   const submitLock = useRef(false);
   const [history, setHistory] = useState<HistItem[] | null>(null);
+  // Profil pelanggan dari nomor WA (kalau pernah stringing di sini) → tampilkan raket lamanya.
+  const [profile, setProfile] = useState<{ count: number; lastName: string | null; lastRacket: string | null } | null>(null);
+  useEffect(() => {
+    const digits = wa.replace(/\D/g, "");
+    if (digits.length < 9) { setProfile(null); return; }
+    const ctrl = new AbortController();
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/sf/history?phone=${encodeURIComponent(wa)}`, { signal: ctrl.signal });
+        if (!res.ok) { setProfile(null); return; }
+        const d = await res.json();
+        setProfile(d.count > 0 ? { count: d.count, lastName: d.lastName ?? null, lastRacket: d.lastRacket ?? null } : null);
+      } catch { /* abaikan */ }
+    }, 500);
+    return () => { clearTimeout(t); ctrl.abort(); };
+  }, [wa]);
   // "Pilih senar sendiri": katalog semua senar + senar yang dipilih manual (di luar 3 rekomendasi).
   const [manualPick, setManualPick] = useState<SenarCard | null>(null);
   // Jalur manual non-rekomendasi: "hybrid" (main+cross beda senar). null = full bed / pilih katalog.
@@ -311,6 +327,21 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
           <button onClick={() => { setPhase("intro"); setHistory(null); }} className="mb-4 text-sm font-semibold text-gray-500 hover:text-gray-900">← Kembali</button>
           <h1 className="text-2xl font-extrabold text-gray-900">Detail Pelanggan & Raket</h1>
           <p className="mt-2 text-sm text-gray-600">Masukkan nomor WhatsApp Anda. Kami akan menggunakannya untuk memberi kabar saat raket selesai dipasang senar dan menampilkan riwayat stringing Anda sebelumnya.</p>
+
+          {profile && (
+            <div className="glass-card mt-4 rounded-2xl p-4">
+              <p className="text-sm font-semibold text-gray-900">Nomor ini pernah stringing di sini ({profile.count}×)</p>
+              {profile.lastName && <p className="mt-0.5 text-sm text-gray-600">Nama: <span className="font-medium text-gray-800">{profile.lastName}</span></p>}
+              {profile.lastRacket && <p className="mt-0.5 text-sm text-gray-600">Raket terakhir: <span className="font-medium text-gray-800">{profile.lastRacket}</span></p>}
+              <button
+                type="button"
+                onClick={() => { if (profile.lastName) setNama(profile.lastName); if (profile.lastRacket) setRacketName(profile.lastRacket); }}
+                className="btn-pill mt-2 bg-primary px-4 py-1.5 text-xs hover:bg-primaryDark"
+              >
+                Pakai data ini
+              </button>
+            </div>
+          )}
 
           <div className="mt-5 space-y-3 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
             <div>
