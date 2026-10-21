@@ -13,7 +13,7 @@ export async function GET(req: NextRequest, { params }: { params: { phone: strin
   if (!phone) return new Response("Nomor tidak valid", { status: 400 });
   const name = req.nextUrl.searchParams.get("name") ?? "";
   const print = req.nextUrl.searchParams.get("print") === "1";
-  const url = `${req.nextUrl.origin}/user/${displayPhone(phone)}`;
+  const url = `${req.nextUrl.origin}/riwayat/${displayPhone(phone)}`;
   const qr = await QRCode.toString(url, { type: "svg", margin: 0, errorCorrectionLevel: "M" });
 
   // ponytail: ukuran label dikunci 50×20mm biar seragam antar toko (jangan auto/80mm lagi).

@@ -28,7 +28,7 @@ export default function StringingBottomNav({ active, phone }: { active: Key; pho
   const homePhone = phone || savedPhone;
 
   const items: { key: Key; label: string; href: string; icon: JSX.Element }[] = [
-    { key: "home", label: "Home", href: homePhone ? `/user/${encodeURIComponent(homePhone)}` : "/cari", icon: ICONS.home },
+    { key: "home", label: "Home", href: homePhone ? `/riwayat/${encodeURIComponent(homePhone)}` : "/cari", icon: ICONS.home },
     { key: "shop", label: "Shop", href: "/shop", icon: ICONS.shop },
     { key: "leaderboard", label: "Leaderboard", href: "/leaderboard", icon: ICONS.trophy },
     { key: "event", label: "Event", href: "/event", icon: ICONS.event },

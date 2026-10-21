@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 // Cetak stiker QR raket ke printer label NIIMBOT lewat Web Bluetooth
-// (niimbluelib). HANYA jalan di Chrome Android. QR membuka /user/<nomor>.
+// (niimbluelib). HANYA jalan di Chrome Android. QR membuka /riwayat/<nomor>.
 //
 // ponytail: ukuran label dikunci 50×20mm, dimensi dot dihitung dari dpi printer
 // yang benar-benar kesambung (203 vs 300dpi beda jauh) + dibatasi lebar printhead.
@@ -108,7 +108,7 @@ async function buildLabel(phone: string, dpi: number, headPx?: number): Promise<
   const QRCode = (await import("qrcode")).default;
   const qrSize = h - M * 2;
   const qrCanvas = document.createElement("canvas");
-  const url = `${window.location.origin}/user/${encodeURIComponent(phone)}`;
+  const url = `${window.location.origin}/riwayat/${encodeURIComponent(phone)}`;
   await QRCode.toCanvas(qrCanvas, url, { width: qrSize, margin: 1, errorCorrectionLevel: "M" });
   ctx.drawImage(qrCanvas, M, Math.round((h - qrSize) / 2), qrSize, qrSize);
 

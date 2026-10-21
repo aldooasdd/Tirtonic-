@@ -511,7 +511,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
               <h1 className="text-2xl font-extrabold text-gray-900 sm:text-3xl">Halo{nama ? `, ${nama}` : ""}! 👋</h1>
             </div>
             <div className="flex gap-2">
-              <a href={`/user/${encodeURIComponent(wa)}`} target="_blank" rel="noreferrer" className="rounded-full border border-gray-300 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50">Dashboard lengkap ↗</a>
+              <a href={`/riwayat/${encodeURIComponent(wa)}`} target="_blank" rel="noreferrer" className="rounded-full border border-gray-300 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50">Dashboard lengkap ↗</a>
               <button onClick={() => { setPhase("quiz"); setStep(0); }} className="btn-green px-5 py-2.5">+ Cari rekomendasi senar</button>
             </div>
           </div>
