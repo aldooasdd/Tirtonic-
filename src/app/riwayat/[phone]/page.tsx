@@ -61,10 +61,6 @@ export default async function RiwayatPage({ params }: { params: { phone: string 
           </div>
           <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">Tirtonic Stringing Room</span>
         </div>
-        <div className="mt-7">
-          <p className="text-4xl font-extrabold leading-none">{orders.length}</p>
-          <p className="mt-1.5 text-sm text-white/80">Total stringing di Tirtonic</p>
-        </div>
       </header>
 
       {orders.length === 0 ? (
