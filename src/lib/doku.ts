@@ -96,6 +96,37 @@ export async function createDokuPayment(order: DokuOrder): Promise<string | null
   }
 }
 
+/** Cek status transaksi langsung ke DOKU (tanpa webhook). Return status uppercase | null.
+ *  Dipakai halaman order saat customer balik dari DOKU — reliable walau notifikasi tak masuk. */
+export async function checkDokuStatus(invoice: string): Promise<string | null> {
+  if (!dokuConfigured || !invoice) return null;
+  const path = `/orders/v1/status/${invoice}`;
+  const requestId = crypto.randomUUID();
+  const timestamp = new Date().toISOString().split(".")[0] + "Z";
+  // GET tanpa body → stringToSign tanpa baris Digest.
+  const stringToSign =
+    `Client-Id:${CLIENT_ID}\n` +
+    `Request-Id:${requestId}\n` +
+    `Request-Timestamp:${timestamp}\n` +
+    `Request-Target:${path}`;
+  const sig = `HMACSHA256=${hmacBase64(stringToSign)}`;
+  try {
+    const res = await fetch(`${BASE_URL}${path}`, {
+      headers: { "Client-Id": CLIENT_ID, "Request-Id": requestId, "Request-Timestamp": timestamp, Signature: sig },
+      signal: AbortSignal.timeout(8000),
+    });
+    const data = await res.json();
+    const status = (data as Record<string, unknown>)?.transaction && typeof (data as { transaction?: { status?: unknown } }).transaction?.status !== "undefined"
+      ? (data as { transaction: { status: unknown } }).transaction.status
+      : (data as { status?: unknown }).status ?? null;
+    if (!status) console.error("checkDokuStatus: status kosong", data);
+    return status ? String(status).toUpperCase() : null;
+  } catch (e) {
+    console.error("checkDokuStatus gagal:", e);
+    return null;
+  }
+}
+
 /** Verifikasi signature notifikasi (webhook) dari DOKU. */
 export function verifyDokuNotification(headers: Headers, rawBody: string, requestPath?: string): boolean {
   if (!dokuConfigured) return false;

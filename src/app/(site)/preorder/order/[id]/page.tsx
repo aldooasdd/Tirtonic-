@@ -2,6 +2,8 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma, safeQuery } from "@/lib/prisma";
 import { rupiah } from "@/lib/format";
+import { checkDokuStatus } from "@/lib/doku";
+import { markPreorderDpPaid, markPreorderLunas } from "@/lib/preorder";
 
 export const dynamic = "force-dynamic";
 
@@ -15,8 +17,22 @@ const STATUS: Record<string, { label: string; cls: string; desc: string }> = {
 };
 
 export default async function PreorderOrderPage({ params }: { params: { id: string } }) {
-  const o = await safeQuery(() => prisma.preorderOrder.findUnique({ where: { id: params.id } }), null);
+  let o = await safeQuery(() => prisma.preorderOrder.findUnique({ where: { id: params.id } }), null);
   if (!o) notFound();
+
+  // Webhook DOKU tak selalu masuk → cek status langsung saat halaman dibuka.
+  // Kalau sudah dibayar, flip status + kirim WA, lalu muat ulang data order.
+  if (o.status === "PENDING_DP" || o.status === "WAITING_LUNAS") {
+    const inv = o.status === "WAITING_LUNAS" ? o.invoiceLunas : o.invoice;
+    if (inv) {
+      const st = await checkDokuStatus(inv);
+      if (st === "SUCCESS" || st === "PAID") {
+        if (o.status === "PENDING_DP") await markPreorderDpPaid(o.id);
+        else if (o.invoiceLunas) await markPreorderLunas(o.invoiceLunas);
+        o = (await safeQuery(() => prisma.preorderOrder.findUnique({ where: { id: params.id } }), o)) ?? o;
+      }
+    }
+  }
   const s = STATUS[o.status] ?? STATUS.PENDING_DP;
   const sisa = o.kekurangan ?? Math.max(0, o.total - o.dp);
 
