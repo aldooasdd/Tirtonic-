@@ -6,7 +6,7 @@ import { notifyN8N } from "@/lib/notify";
 import { normalizePhone } from "@/lib/string-finder/phone";
 
 export const MIN_DP = 100_000; // DP minimal Rp100.000
-const PO_DUE_MIN = 60; // batas bayar DOKU untuk DP: 1 jam
+const PO_DUE_MIN = 5; // batas bayar DOKU untuk DP: 5 menit
 const LUNAS_DAYS = 7; // batas pelunasan setelah barang ready
 const LUNAS_DUE_MIN = LUNAS_DAYS * 1440; // link DOKU pelunasan berlaku sepanjang batas
 
