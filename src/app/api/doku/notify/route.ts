@@ -5,6 +5,9 @@ import { markPreorderDpPaid, markPreorderLunas } from "@/lib/preorder";
 
 export const dynamic = "force-dynamic";
 
+// Ack yang DOKU harapkan (200 + body ini) supaya notifikasi dianggap sukses.
+const ACK = { responseCode: "2000000", responseMessage: "Successful" };
+
 // Webhook pembayaran DOKU. DOKU mem-POST ke sini setelah pembayaran.
 // Begitu DOKU dikonfigurasi (env terisi), notifikasi diverifikasi lalu order → LUNAS
 // (stok dipotong + event dikirim ke n8n). Sebelum itu, endpoint tetap aman (no-op).
@@ -27,7 +30,7 @@ export async function POST(req: Request) {
 
   // Hanya proses pembayaran sukses; status lain diabaikan.
   if (status && status !== "SUCCESS" && status !== "PAID") {
-    return Response.json({ ok: true, ignored: status });
+    return Response.json(ACK);
   }
 
   const ref = String(transaction.original_request_id ?? transaction.id ?? "") || undefined;
@@ -38,14 +41,14 @@ export async function POST(req: Request) {
       metodeBayar: String(service.id ?? service.payment_method_type ?? "") || undefined,
       paymentRef: ref,
     });
-    return Response.json({ ok: true });
+    return Response.json(ACK);
   }
 
   // Pre-order: invoice bisa untuk DP (invoice) atau pelunasan (invoiceLunas).
   const poDp = await prisma.preorderOrder.findUnique({ where: { invoice }, select: { id: true } });
-  if (poDp) { await markPreorderDpPaid(poDp.id, ref); return Response.json({ ok: true }); }
+  if (poDp) { await markPreorderDpPaid(poDp.id, ref); return Response.json(ACK); }
   const poLunas = await prisma.preorderOrder.findUnique({ where: { invoiceLunas: invoice }, select: { id: true } });
-  if (poLunas) { await markPreorderLunas(invoice, ref); return Response.json({ ok: true }); }
+  if (poLunas) { await markPreorderLunas(invoice, ref); return Response.json(ACK); }
 
-  return Response.json({ ok: true });
+  return Response.json(ACK);
 }
