@@ -67,6 +67,13 @@ export default async function PreorderOrderPage({ params }: { params: { id: stri
           <div className="flex justify-between text-gray-700"><span>Sisa pembayaran</span><span className="font-semibold">{o.status === "LUNAS" || o.status === "SHIPPED" ? "Lunas ✓" : rupiah(sisa)}</span></div>
         </div>
 
+        {o.status === "PENDING_DP" && (
+          <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-700">
+            <p>Pembayaran DP {rupiah(o.dp)} belum selesai. Link bayar hanya berlaku {5} menit — klik tombol di bawah untuk bayar / dapat link baru.</p>
+            <Link href={`/preorder/order/${o.id}/bayar-dp`} className="btn-pill mt-2 w-full bg-primary hover:bg-primaryDark">Bayar Sekarang</Link>
+          </div>
+        )}
+
         {o.status === "SHIPPED" && o.resi && (
           <p className="mt-4 rounded-xl border bg-gray-50 p-3 text-sm text-gray-700">Kurir {o.kurir} · Resi: <span className="font-mono font-semibold text-gray-900">{o.resi}</span></p>
         )}

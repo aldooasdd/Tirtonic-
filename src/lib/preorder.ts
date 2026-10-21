@@ -286,6 +286,21 @@ export async function cancelPreorder(id: string): Promise<boolean> {
   return true;
 }
 
+/** Buat ulang link DP DOKU (invoice baru, anti-expired) → URL bayar. Dipakai laman /bayar-dp. */
+export async function refreshDpLink(id: string): Promise<{ ok: boolean; url?: string | null; error?: string }> {
+  const o = await prisma.preorderOrder.findUnique({ where: { id } });
+  if (!o) return { ok: false, error: "Pesanan tidak ditemukan." };
+  if (o.status !== "PENDING_DP") return { ok: false, error: "Pesanan ini sudah dibayar / tidak menunggu pembayaran." };
+  const invoice = genInvoice(); // invoice DOKU harus unik tiap request
+  const url = await createDokuPayment({
+    id: o.id, invoice, total: o.dp,
+    nama: o.nama, email: o.email, telepon: o.telepon,
+    callbackPath: `/preorder/order/${o.id}`, dueMinutes: PO_DUE_MIN,
+  });
+  await prisma.preorderOrder.update({ where: { id }, data: { invoice } });
+  return { ok: true, url };
+}
+
 /** Buat ulang link pelunasan DOKU (invoice baru, anti-expired) → URL bayar. Dipakai laman /bayar. */
 export async function refreshPelunasanLink(id: string): Promise<{ ok: boolean; url?: string | null; error?: string }> {
   const o = await prisma.preorderOrder.findUnique({ where: { id } });
