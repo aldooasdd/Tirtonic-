@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 const ICONS = {
   home: <><path d="M3 10.5 12 3l9 7.5" /><path d="M5 9.5V21h14V9.5" /></>,
@@ -14,8 +17,18 @@ type Key = "home" | "shop" | "leaderboard" | "event" | "search" | "launch";
 // Navbar bawah ala app (capsule terbang). Shop → /shop, Search → /cari.
 // Leaderboard & Event masih placeholder (fitur nyusul).
 export default function StringingBottomNav({ active, phone }: { active: Key; phone?: string | null }) {
+  // Ingat nomor customer → Home selalu balik ke dashboard-nya walau pindah tab lain.
+  const [savedPhone, setSavedPhone] = useState<string | null>(null);
+  useEffect(() => {
+    try {
+      if (phone) localStorage.setItem("sf_phone", phone);
+      else setSavedPhone(localStorage.getItem("sf_phone"));
+    } catch { /* abaikan */ }
+  }, [phone]);
+  const homePhone = phone || savedPhone;
+
   const items: { key: Key; label: string; href: string; icon: JSX.Element }[] = [
-    { key: "home", label: "Home", href: phone ? `/riwayat/${encodeURIComponent(phone)}` : "/cari", icon: ICONS.home },
+    { key: "home", label: "Home", href: homePhone ? `/riwayat/${encodeURIComponent(homePhone)}` : "/cari", icon: ICONS.home },
     { key: "shop", label: "Shop", href: "/shop", icon: ICONS.shop },
     { key: "leaderboard", label: "Leaderboard", href: "/leaderboard", icon: ICONS.trophy },
     { key: "event", label: "Event", href: "/event", icon: ICONS.event },
