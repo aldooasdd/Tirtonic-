@@ -6,7 +6,7 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: "*",
       allow: "/",
       // halaman privat/transaksional & API tak perlu diindeks
-      disallow: ["/dashboard", "/checkout", "/cart", "/order", "/api", "/riwayat"],
+      disallow: ["/dashboard", "/checkout", "/cart", "/order", "/api", "/user"],
     },
     sitemap: "https://www.tirtonic.com/sitemap.xml",
   };

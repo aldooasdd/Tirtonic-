@@ -18,7 +18,7 @@ const LABEL: Record<string, string> = {
 };
 const fmt = (d: Date) => new Date(d).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
 
-// Daftar pesanan toko (shop) milik satu nomor HP. Dipakai di dashboard gabungan /riwayat/[phone].
+// Daftar pesanan toko (shop) milik satu nomor HP. Dipakai di dashboard gabungan /user/[phone].
 export default async function OrderHistory({ phone }: { phone: string }) {
   await expirePendingOrders();
   // telepon disimpan apa adanya saat checkout (0xxx / +62xxx / 62xxx) → cari semua varian.

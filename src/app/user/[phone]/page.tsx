@@ -83,7 +83,7 @@ export default async function RiwayatPage({ params, searchParams }: { params: { 
           {([["stringing", "Stringing"], ["pesanan", "Pesanan"]] as const).map(([k, l]) => (
             <Link
               key={k}
-              href={k === "stringing" ? `/riwayat/${encodeURIComponent(phone ?? "")}` : `/riwayat/${encodeURIComponent(phone ?? "")}?tab=pesanan`}
+              href={k === "stringing" ? `/user/${encodeURIComponent(phone ?? "")}` : `/user/${encodeURIComponent(phone ?? "")}?tab=pesanan`}
               className={`flex-1 rounded-full py-2 text-center text-sm font-semibold transition ${tab === k ? "bg-primary text-white shadow-sm" : "text-gray-500"}`}
             >
               {l}

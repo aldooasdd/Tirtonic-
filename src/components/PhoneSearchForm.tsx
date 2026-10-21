@@ -11,7 +11,7 @@ export default function PhoneSearchForm() {
     e.preventDefault();
     const p = phone.replace(/[^0-9]/g, "");
     if (p.length < 8) return;
-    router.push(`/riwayat/${encodeURIComponent(p)}`);
+    router.push(`/user/${encodeURIComponent(p)}`);
   }
 
   return (
