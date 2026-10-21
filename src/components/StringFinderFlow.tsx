@@ -72,7 +72,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
   const submitLock = useRef(false);
   const [history, setHistory] = useState<HistItem[] | null>(null);
   // Profil pelanggan dari nomor WA (kalau pernah stringing di sini) → tampilkan raket lamanya.
-  const [profile, setProfile] = useState<{ count: number; lastName: string | null; lastRacket: string | null } | null>(null);
+  const [profile, setProfile] = useState<{ count: number; lastName: string | null; rackets: string[] } | null>(null);
   useEffect(() => {
     const digits = wa.replace(/\D/g, "");
     if (digits.length < 9) { setProfile(null); return; }
@@ -82,11 +82,22 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
         const res = await fetch(`/api/sf/history?phone=${encodeURIComponent(wa)}`, { signal: ctrl.signal });
         if (!res.ok) { setProfile(null); return; }
         const d = await res.json();
-        setProfile(d.count > 0 ? { count: d.count, lastName: d.lastName ?? null, lastRacket: d.lastRacket ?? null } : null);
+        if (!d.count) { setProfile(null); return; }
+        // Raket unik dari riwayat (urut terbaru dulu).
+        const rackets = [...new Set((d.history as HistItem[]).map((h) => h.racket).filter(Boolean) as string[])];
+        setProfile({ count: d.count, lastName: d.lastName ?? null, rackets });
       } catch { /* abaikan */ }
     }, 500);
     return () => { clearTimeout(t); ctrl.abort(); };
   }, [wa]);
+
+  // Isi field dari string raket tersimpan (dipakai saat klik chip raket).
+  function fillRacket(racket: string) {
+    const r = parseRacket(racket);
+    setRacketName(r.name);
+    setRacketHead(r.head);
+    setRacketTypes(r.types);
+  }
   // "Pilih senar sendiri": katalog semua senar + senar yang dipilih manual (di luar 3 rekomendasi).
   const [manualPick, setManualPick] = useState<SenarCard | null>(null);
   // Jalur manual non-rekomendasi: "hybrid" (main+cross beda senar). null = full bed / pilih katalog.
@@ -343,26 +354,22 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
           <h1 className="text-2xl font-extrabold text-gray-900">Detail Pelanggan & Raket</h1>
           <p className="mt-2 text-sm text-gray-600">Masukkan nomor WhatsApp Anda. Kami akan menggunakannya untuk memberi kabar saat raket selesai dipasang senar dan menampilkan riwayat stringing Anda sebelumnya.</p>
 
-          {profile && (
+          {profile && profile.rackets.length > 0 && (
             <div className="glass-card mt-4 rounded-2xl p-4">
               <p className="text-sm font-semibold text-gray-900">Nomor ini pernah stringing di sini ({profile.count}×)</p>
-              {profile.lastName && <p className="mt-0.5 text-sm text-gray-600">Nama: <span className="font-medium text-gray-800">{profile.lastName}</span></p>}
-              {profile.lastRacket && <p className="mt-0.5 text-sm text-gray-600">Raket terakhir: <span className="font-medium text-gray-800">{profile.lastRacket}</span></p>}
-              <button
-                type="button"
-                onClick={() => {
-                  if (profile.lastName) setNama(profile.lastName);
-                  if (profile.lastRacket) {
-                    const r = parseRacket(profile.lastRacket);
-                    setRacketName(r.name);
-                    setRacketHead(r.head);
-                    setRacketTypes(r.types);
-                  }
-                }}
-                className="btn-pill mt-2 bg-primary px-4 py-1.5 text-xs hover:bg-primaryDark"
-              >
-                Pakai data ini
-              </button>
+              <p className="mt-0.5 text-xs text-gray-500">Klik raket yang mau di-restring — data di bawah terisi otomatis.</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {profile.rackets.map((r) => (
+                  <button
+                    key={r}
+                    type="button"
+                    onClick={() => { if (profile.lastName && !nama) setNama(profile.lastName); fillRacket(r); }}
+                    className="rounded-xl border border-primary/30 bg-primary/5 px-3 py-1.5 text-sm font-medium text-primary transition hover:bg-primary/10"
+                  >
+                    {r}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
