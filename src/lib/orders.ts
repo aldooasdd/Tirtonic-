@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { createDokuPayment } from "@/lib/doku";
 import { notifyN8N } from "@/lib/notify";
 import { computeCoupon } from "@/lib/coupons";
+import { trackResi } from "@/lib/tracking";
 
 export type CartLine = { productId: string; variantId?: string | null; qty: number };
 export type CheckoutInput = {
@@ -214,6 +215,24 @@ export async function expirePendingOrders(): Promise<void> {
 }
 
 /** Tandai pesanan sudah diterima customer → status DELIVERED (boleh dinilai). */
+/** Cron: cek resi order SHIPPED (≤14 hari) → auto DELIVERED kalau lacakan sudah terkirim.
+ *  Hemat kredit Binderbyte: cuma order SHIPPED, dibatasi. */
+export async function autoDeliverShipped(): Promise<number> {
+  const since = new Date(Date.now() - 14 * 86_400_000);
+  const orders = await prisma.order.findMany({
+    where: { status: "SHIPPED", resi: { not: null }, shippedAt: { gt: since } },
+    select: { id: true, kurir: true, resi: true }, take: 200,
+  });
+  let n = 0;
+  for (const o of orders) {
+    const r = await trackResi(o.kurir, o.resi!);
+    if (r && /deliver|terkirim|diterima|selesai/i.test(r.status)) {
+      if (await markOrderDelivered(o.id)) n++;
+    }
+  }
+  return n;
+}
+
 export async function markOrderDelivered(orderId: string): Promise<boolean> {
   const order = await prisma.order.findUnique({ where: { id: orderId }, select: { status: true } });
   if (!order || order.status !== "SHIPPED") return false; // hanya dari SHIPPED
