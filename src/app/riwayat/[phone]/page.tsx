@@ -1,6 +1,8 @@
+import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { normalizePhone, displayPhone } from "@/lib/string-finder/phone";
 import StringingBottomNav from "@/components/StringingBottomNav";
+import OrderHistory from "@/components/OrderHistory";
 
 export const dynamic = "force-dynamic";
 
@@ -24,8 +26,9 @@ function stringAge(createdAt: Date) {
   return { filled, label, text, bar, fg };
 }
 
-export default async function RiwayatPage({ params }: { params: { phone: string } }) {
+export default async function RiwayatPage({ params, searchParams }: { params: { phone: string }; searchParams: { tab?: string } }) {
   const phone = normalizePhone(decodeURIComponent(params.phone));
+  const tab = searchParams.tab === "pesanan" ? "pesanan" : "stringing";
   const orders = phone
     ? await prisma.sfOrder.findMany({
         where: { phone },
@@ -74,16 +77,35 @@ export default async function RiwayatPage({ params }: { params: { phone: string 
         </div>
       </header>
 
-      {orders.length === 0 ? (
+      {/* Tab Stringing | Pesanan */}
+      <div className="-mt-5 px-4">
+        <div className="flex gap-1 rounded-full border border-gray-100 bg-white/90 p-1 shadow-sm backdrop-blur">
+          {([["stringing", "Stringing"], ["pesanan", "Pesanan"]] as const).map(([k, l]) => (
+            <Link
+              key={k}
+              href={k === "stringing" ? `/riwayat/${encodeURIComponent(phone ?? "")}` : `/riwayat/${encodeURIComponent(phone ?? "")}?tab=pesanan`}
+              className={`flex-1 rounded-full py-2 text-center text-sm font-semibold transition ${tab === k ? "bg-primary text-white shadow-sm" : "text-gray-500"}`}
+            >
+              {l}
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      {tab === "pesanan" ? (
+        <div className="mt-4 px-4">
+          <OrderHistory phone={phone ?? ""} />
+        </div>
+      ) : orders.length === 0 ? (
         <div className="px-4">
-          <p className="glass-card -mt-5 rounded-2xl p-8 text-center text-sm text-gray-400">
+          <p className="glass-card mt-4 rounded-2xl p-8 text-center text-sm text-gray-400">
             {phone ? "Belum ada riwayat stringing untuk nomor ini." : "Nomor WhatsApp pada tautan ini tidak valid."}
           </p>
         </div>
       ) : (
         <>
           {/* Stat cards (geser) */}
-          <div className="-mt-6 px-4">
+          <div className="mt-4 px-4">
             <div className="flex gap-3 overflow-x-auto pb-1">
               {cards.map((c) => (
                 <div key={c.l} className="glass-card min-w-[8.5rem] flex-1 rounded-2xl p-4">
