@@ -26,7 +26,6 @@ export default async function RiwayatPage({ params }: { params: { phone: string 
   const name = orders.find((o) => o.customerName)?.customerName ?? null;
   const selesai = orders.filter((o) => o.status === "selesai").length;
   const proses = orders.filter((o) => o.status === "antri" || o.status === "dikerjakan").length;
-  const batal = orders.filter((o) => o.status === "batal").length;
   const pct = orders.length ? Math.round((selesai / orders.length) * 100) : 0;
 
   // Jumlah stringing per bulan — 6 bulan terakhir (termasuk bulan ini).
@@ -45,7 +44,6 @@ export default async function RiwayatPage({ params }: { params: { phone: string 
   const cards = [
     { l: "Selesai", n: selesai, c: "text-emerald-600" },
     { l: "Sedang proses", n: proses, c: "text-amber-600" },
-    { l: "Batal", n: batal, c: "text-gray-400" },
   ];
 
   return (
