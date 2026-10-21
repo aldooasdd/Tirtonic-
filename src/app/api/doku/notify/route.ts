@@ -10,30 +10,26 @@ export const dynamic = "force-dynamic";
 // (stok dipotong + event dikirim ke n8n). Sebelum itu, endpoint tetap aman (no-op).
 export async function POST(req: Request) {
   const raw = await req.text();
-  console.log("DOKU notify RAW", { headers: Object.fromEntries(req.headers), body: raw.slice(0, 2000) });
 
-  if (!dokuConfigured) {
-    // Belum disetel — terima saja biar DOKU tidak retry terus.
-    return Response.json({ ok: false, reason: "not_configured" });
-  }
-  if (!verifyDokuNotification(req.headers, raw, new URL(req.url).pathname)) {
-    return Response.json({ ok: false, reason: "invalid_signature" }, { status: 401 });
-  }
-
-  let data: Record<string, unknown>;
-  try {
-    data = JSON.parse(raw);
-  } catch {
-    return Response.json({ ok: false, reason: "bad_json" }, { status: 400 });
-  }
-
+  // Parse awal (buat log) — tak memengaruhi verifikasi yang pakai raw.
+  let data: Record<string, unknown> = {};
+  try { data = JSON.parse(raw) as Record<string, unknown>; } catch { /* body non-JSON */ }
   const order = (data.order ?? {}) as Record<string, unknown>;
   const transaction = (data.transaction ?? {}) as Record<string, unknown>;
   const service = (data.service ?? data.channel ?? {}) as Record<string, unknown>;
-
   const invoice = String(order.invoice_number ?? data.invoice_number ?? "");
   const status = String(transaction.status ?? data.status ?? "").toUpperCase();
-  console.log("DOKU notify", { invoice, status });
+  const sigOk = dokuConfigured && verifyDokuNotification(req.headers, raw, new URL(req.url).pathname);
+
+  // Log mentah ke DB (sementara, buat diagnosa). Jangan pernah gagalkan webhook.
+  try {
+    await prisma.webhookLog.create({
+      data: { source: "doku", invoice: invoice || null, statusTxn: status || null, sigOk, headers: Object.fromEntries(req.headers), body: raw.slice(0, 4000) },
+    });
+  } catch { /* abaikan */ }
+
+  if (!dokuConfigured) return Response.json({ ok: false, reason: "not_configured" });
+  if (!sigOk) return Response.json({ ok: false, reason: "invalid_signature" }, { status: 401 });
   if (!invoice) return Response.json({ ok: false, reason: "no_invoice" }, { status: 400 });
 
   // Hanya proses pembayaran sukses; status lain diabaikan.
@@ -58,6 +54,5 @@ export async function POST(req: Request) {
   const poLunas = await prisma.preorderOrder.findUnique({ where: { invoiceLunas: invoice }, select: { id: true } });
   if (poLunas) { await markPreorderLunas(invoice, ref); return Response.json({ ok: true }); }
 
-  console.warn("DOKU notify: invoice tidak cocok order apa pun", { invoice });
   return Response.json({ ok: true });
 }
