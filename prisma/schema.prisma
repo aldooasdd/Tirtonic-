@@ -533,17 +533,3 @@ model DemoParticipant {
   @@index([claimId])
 }
 
-// Log mentah notifikasi DOKU — dipakai sementara buat diagnosa webhook.
-model WebhookLog {
-  id        String   @id @default(cuid())
-  source    String   @default("doku")
-  invoice   String?
-  statusTxn String?
-  sigOk     Boolean?
-  matched   String? // order | preorder-dp | preorder-lunas | none
-  headers   Json?
-  body      String?
-  createdAt DateTime @default(now())
-
-  @@index([createdAt])
-}

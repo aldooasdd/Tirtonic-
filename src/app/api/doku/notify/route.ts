@@ -19,17 +19,10 @@ export async function POST(req: Request) {
   const service = (data.service ?? data.channel ?? {}) as Record<string, unknown>;
   const invoice = String(order.invoice_number ?? data.invoice_number ?? "");
   const status = String(transaction.status ?? data.status ?? "").toUpperCase();
-  const sigOk = dokuConfigured && verifyDokuNotification(req.headers, raw, new URL(req.url).pathname);
-
-  // Log mentah ke DB (sementara, buat diagnosa). Jangan pernah gagalkan webhook.
-  try {
-    await prisma.webhookLog.create({
-      data: { source: "doku", invoice: invoice || null, statusTxn: status || null, sigOk, headers: Object.fromEntries(req.headers), body: raw.slice(0, 4000) },
-    });
-  } catch { /* abaikan */ }
-
   if (!dokuConfigured) return Response.json({ ok: false, reason: "not_configured" });
-  if (!sigOk) return Response.json({ ok: false, reason: "invalid_signature" }, { status: 401 });
+  if (!verifyDokuNotification(req.headers, raw, new URL(req.url).pathname)) {
+    return Response.json({ ok: false, reason: "invalid_signature" }, { status: 401 });
+  }
   if (!invoice) return Response.json({ ok: false, reason: "no_invoice" }, { status: 400 });
 
   // Hanya proses pembayaran sukses; status lain diabaikan.
