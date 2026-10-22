@@ -16,6 +16,8 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Leaderboard Stringing — Tirtonic", robots: { index: false } };
 
 const LOCS = new Set(["jogja", "solo", "semarang"]);
+// Kapital awal tiap kata (privasi + rapi): "angga" -> "Angga".
+const cap = (s: string | null) => s ? s.replace(/\b\p{L}/gu, (c) => c.toUpperCase()) : s;
 // Warna badge rank: emas / perak / perunggu.
 const rankStyle = (r: number) =>
   r === 1 ? "bg-amber-400 text-white"
@@ -23,7 +25,7 @@ const rankStyle = (r: number) =>
   : r === 3 ? "bg-orange-400 text-white"
   : "bg-gray-100 text-gray-500";
 
-type Row = { phone: string; name: string | null; n: number };
+type Row = { phone: string; name: string | null; n: number; last: number };
 
 function Medal({ className = "" }: { className?: string }) {
   return (
@@ -49,7 +51,7 @@ function PodiumSlot({ row, rank }: { row: Row; rank: number }) {
       <p className="mt-2 w-full truncate text-center text-sm font-bold text-gray-900">{nama}</p>
       <span className="mt-1 inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-2.5 py-0.5 text-sm font-bold text-gray-800 shadow-sm">
         <Medal className={`h-3.5 w-3.5 ${rank === 1 ? "text-amber-400" : rank === 2 ? "text-gray-400" : "text-orange-400"}`} />
-        {row.n}
+        {row.n} stringing
       </span>
     </div>
   );
@@ -92,20 +94,22 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
 
   const orders = await prisma.sfOrder.findMany({
     where: { createdAt: { gte: start, lt: end }, ...(loc !== "global" ? { branch: { slug: loc } } : {}) },
-    select: { phone: true, customerName: true },
+    select: { phone: true, customerName: true, createdAt: true },
   });
 
-  // 1 nomor = 1 orang; hitung jumlah stringing bulan ini.
-  const map = new Map<string, { name: string | null; n: number }>();
+  // 1 nomor = 1 orang; hitung jumlah stringing bulan ini. `last` = kapan skor dicapai (tie-break).
+  const map = new Map<string, { name: string | null; n: number; last: number }>();
   for (const o of orders) {
-    const e = map.get(o.phone) ?? { name: null, n: 0 };
+    const e = map.get(o.phone) ?? { name: null, n: 0, last: 0 };
     e.n += 1;
+    e.last = Math.max(e.last, new Date(o.createdAt).getTime());
     if (!e.name && o.customerName) e.name = o.customerName;
     map.set(o.phone, e);
   }
+  // Seri (skor sama): yang lebih dulu mencapai skor (last lebih awal) menang.
   const rows: Row[] = [...map.entries()]
-    .map(([phone, v]) => ({ phone, name: v.name, n: v.n }))
-    .sort((a, b) => b.n - a.n)
+    .map(([phone, v]) => ({ phone, name: cap(v.name), n: v.n, last: v.last }))
+    .sort((a, b) => b.n - a.n || a.last - b.last)
     .slice(0, 10);
 
   const top3 = rows.slice(0, 3);
@@ -175,12 +179,14 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
         </div>
       ) : (
         <>
-          {/* Hadiah bulan ini */}
-          <div className="mt-6 px-4 text-center">
-            <p className="text-xs font-bold tracking-[0.2em] text-primary">HADIAH BULAN INI</p>
-            <p className="mt-1.5 text-sm text-gray-500">Tiga customer dengan stringing terbanyak mendapatkan hadiah eksklusif dari Tirtonic.</p>
-            {isCurrent && msLeft > 0 && <CountdownPeriode deadline={end.toISOString()} />}
-          </div>
+          {/* Hadiah bulan ini — hanya peringkat Global */}
+          {loc === "global" && (
+            <div className="mt-6 px-4 text-center">
+              <p className="text-xs font-bold tracking-[0.2em] text-primary">HADIAH BULAN INI</p>
+              <p className="mt-1.5 text-sm text-gray-500">Tiga customer dengan stringing terbanyak (peringkat Global) mendapatkan hadiah eksklusif dari Tirtonic.</p>
+              {isCurrent && msLeft > 0 && <CountdownPeriode deadline={end.toISOString()} />}
+            </div>
+          )}
 
           {/* Podium 3 teratas */}
           <div className="mt-4 px-4">
@@ -191,17 +197,19 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
             </div>
           </div>
 
-          {/* Kartu hadiah Juara 2 · 1 · 3 (urut samakan podium) */}
-          <div className="mt-3 px-4">
-            <div className="grid grid-cols-3 divide-x divide-gray-100 overflow-hidden rounded-2xl border border-gray-100">
-              {[2, 1, 3].map((r) => (
-                <div key={r} className={`px-3 py-4 text-center ${PRIZES[r].cls}`}>
-                  <p className={`text-xs font-extrabold tracking-wide ${PRIZES[r].tc}`}>{PRIZES[r].t}</p>
-                  <p className="mt-1.5 text-xs leading-snug text-gray-700">{PRIZES[r].d}</p>
-                </div>
-              ))}
+          {/* Kartu hadiah Juara 2 · 1 · 3 (urut samakan podium) — hanya Global */}
+          {loc === "global" && (
+            <div className="mt-3 px-4">
+              <div className="grid grid-cols-3 divide-x divide-gray-100 overflow-hidden rounded-2xl border border-gray-100">
+                {[2, 1, 3].map((r) => (
+                  <div key={r} className={`px-3 py-4 text-center ${PRIZES[r].cls}`}>
+                    <p className={`text-xs font-extrabold tracking-wide ${PRIZES[r].tc}`}>{PRIZES[r].t}</p>
+                    <p className="mt-1.5 text-xs leading-snug text-gray-700">{PRIZES[r].d}</p>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Peringkat 4+ */}
           {rest.length > 0 && (
@@ -220,7 +228,7 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
                         <img loading="lazy" decoding="async" src="/logo.png" alt="" className="h-6 w-6 object-contain" />
                       </div>
                       <p className="min-w-0 flex-1 truncate font-semibold text-gray-900">{nama}</p>
-                      <span className="shrink-0 rounded-full border border-gray-200 px-3 py-0.5 text-sm font-bold text-gray-800">{r.n}</span>
+                      <span className="shrink-0 rounded-full border border-gray-200 px-3 py-0.5 text-sm font-bold text-gray-800">{r.n} stringing</span>
                     </div>
                   );
                 })}

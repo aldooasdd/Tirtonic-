@@ -22,12 +22,17 @@ export async function GET(req: NextRequest) {
 
   const orders = await prisma.sfOrder.findMany({
     where: { createdAt: { gte: start, lt: end }, ...(loc !== "global" ? { branch: { slug: loc } } : {}) },
-    select: { phone: true },
+    select: { phone: true, createdAt: true },
   });
-  const counts = new Map<string, number>();
-  for (const o of orders) counts.set(o.phone, (counts.get(o.phone) ?? 0) + 1);
-
-  const sorted = [...counts.entries()].map(([p, n]) => ({ p, n })).sort((a, b) => b.n - a.n);
+  const counts = new Map<string, { n: number; last: number }>();
+  for (const o of orders) {
+    const e = counts.get(o.phone) ?? { n: 0, last: 0 };
+    e.n += 1;
+    e.last = Math.max(e.last, new Date(o.createdAt).getTime());
+    counts.set(o.phone, e);
+  }
+  // Seri: yang lebih dulu mencapai skor menang (sama seperti leaderboard).
+  const sorted = [...counts.entries()].map(([p, v]) => ({ p, n: v.n, last: v.last })).sort((a, b) => b.n - a.n || a.last - b.last);
   const idx = sorted.findIndex((x) => x.p === phone);
   if (idx < 0) return NextResponse.json({ found: false });
 
