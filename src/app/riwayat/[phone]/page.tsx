@@ -26,6 +26,14 @@ function stringAge(createdAt: Date) {
   return { filled, label, text, bar, fg };
 }
 
+// chosenString: "X (main) / Y (cross)" (hybrid) atau satu nama senar (full bed).
+function parseStrings(cs: string | null) {
+  if (!cs) return { main: null, cross: null, hybrid: false };
+  const m = cs.match(/^(.*?)\s*\(main\)\s*\/\s*(.*?)\s*\(cross\)\s*$/i);
+  if (m) return { main: m[1].trim(), cross: m[2].trim(), hybrid: true };
+  return { main: cs.trim(), cross: null, hybrid: false };
+}
+
 export default async function RiwayatPage({ params, searchParams }: { params: { phone: string }; searchParams: { tab?: string } }) {
   const phone = normalizePhone(decodeURIComponent(params.phone));
   const tab = searchParams.tab === "pesanan" ? "pesanan" : "stringing";
@@ -145,11 +153,11 @@ export default async function RiwayatPage({ params, searchParams }: { params: { 
             <h2 className="font-bold text-gray-900">Semua stringing</h2>
             {orders.map((o) => {
               const age = stringAge(o.createdAt);
-              const fullBed = !o.tensionCrossLbs || o.tensionCrossLbs === o.tensionLbs;
+              const s = parseStrings(o.chosenString);
               return (
                 <div key={o.resultCode} className="glass-card rounded-2xl p-4">
                   <div className="flex items-start justify-between gap-3">
-                    <p className="font-bold leading-tight text-gray-900">{[o.racket, o.chosenString].filter(Boolean).join(" · ") || "Stringing"}</p>
+                    <p className="font-bold leading-tight text-gray-900">{o.racket || o.chosenString || "Stringing"}</p>
                     <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold ${badge(o.status)}`}>{STATUS_LABEL[o.status] ?? o.status}</span>
                   </div>
                   <p className="mt-1 text-xs text-gray-500">
@@ -158,14 +166,28 @@ export default async function RiwayatPage({ params, searchParams }: { params: { 
                     {o.stringerName ? ` · oleh ${o.stringerName}` : ""}
                   </p>
                   {o.tensionLbs != null && (
-                    <div className="mt-3 space-y-1 text-sm">
-                      {fullBed ? (
-                        <div className="flex justify-between"><span className="text-gray-500">FULL BED</span><span className="font-semibold text-gray-900">{o.tensionLbs} lbs</span></div>
-                      ) : (
+                    <div className="mt-3 space-y-1.5 text-sm">
+                      {s.hybrid ? (
                         <>
-                          <div className="flex justify-between"><span className="text-gray-500">MAIN</span><span className="font-semibold text-gray-900">{o.tensionLbs} lbs</span></div>
-                          <div className="flex justify-between"><span className="text-gray-500">CROSS</span><span className="font-semibold text-gray-900">{o.tensionCrossLbs} lbs</span></div>
+                          <div className="flex items-baseline gap-3">
+                            <span className="w-16 shrink-0 text-xs font-medium tracking-wide text-gray-400">MAIN</span>
+                            <span className="min-w-0 flex-1 truncate text-gray-900">{s.main ?? "—"}</span>
+                            <span className="shrink-0 font-semibold text-gray-900">{o.tensionLbs} lbs</span>
+                          </div>
+                          <div className="flex items-baseline gap-3">
+                            <span className="w-16 shrink-0 text-xs font-medium tracking-wide text-gray-400">CROSS</span>
+                            <span className="min-w-0 flex-1 truncate text-gray-900">{s.cross ?? "—"}</span>
+                            <span className="shrink-0 font-semibold text-gray-900">{o.tensionCrossLbs ?? o.tensionLbs} lbs</span>
+                          </div>
                         </>
+                      ) : (
+                        <div className="flex items-baseline gap-3">
+                          <span className="w-16 shrink-0 text-xs font-medium tracking-wide text-gray-400">FULL BED</span>
+                          <span className="min-w-0 flex-1 truncate text-gray-900">{s.main ?? "—"}</span>
+                          <span className="shrink-0 font-semibold text-gray-900">
+                            {o.tensionLbs}{o.tensionCrossLbs && o.tensionCrossLbs !== o.tensionLbs ? ` / ${o.tensionCrossLbs}` : ""} lbs
+                          </span>
+                        </div>
                       )}
                     </div>
                   )}
