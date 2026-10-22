@@ -165,7 +165,13 @@ export default async function RiwayatPage({ params, searchParams }: { params: { 
               return (
                 <div key={o.resultCode} className="glass-card rounded-2xl p-4">
                   <div className="flex items-start justify-between gap-3">
-                    <p className="font-bold leading-tight text-gray-900">{cleanRacket(o.racket) || o.chosenString || "Stringing"}</p>
+                    <p className="font-bold leading-tight text-gray-900">
+                      {(() => {
+                        const r = cleanRacket(o.racket) || o.chosenString || "Stringing";
+                        const hm = r.match(/^(.*?)\s*·\s*(\d{2,3}\s*in²)$/);
+                        return hm ? <>{hm[1]} <span className="text-xs font-medium text-gray-500">· {hm[2]}</span></> : r;
+                      })()}
+                    </p>
                     <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold ${badge(o.status)}`}>{STATUS_LABEL[o.status] ?? o.status}</span>
                   </div>
                   <p className="mt-1 text-xs text-gray-500">
