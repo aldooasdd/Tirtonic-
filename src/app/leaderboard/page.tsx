@@ -3,6 +3,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import StringingBottomNav from "@/components/StringingBottomNav";
 import MyRank from "@/components/MyRank";
+import CountdownPeriode from "@/components/CountdownPeriode";
 
 // Hadiah per peringkat (urutan index = rank).
 const PRIZES: Record<number, { t: string; d: string; cls: string; tc: string }> = {
@@ -75,8 +76,6 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
   // Countdown periode (hanya bulan berjalan).
   const isCurrent = y === curY && m === curM;
   const msLeft = end.getTime() - real.getTime();
-  const sisaHari = Math.floor(msLeft / 86400000);
-  const sisaJam = Math.floor((msLeft % 86400000) / 3600000);
   const ymViewed = `${y}-${String(m + 1).padStart(2, "0")}`;
 
   // URL ke leaderboard dgn lokasi + bulan tertentu (ym dihilangkan kalau bulan ini).
@@ -180,9 +179,7 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
           <div className="mt-6 px-4 text-center">
             <p className="text-xs font-bold tracking-[0.2em] text-primary">HADIAH BULAN INI</p>
             <p className="mt-1.5 text-sm text-gray-500">Tiga customer dengan stringing terbanyak mendapatkan hadiah eksklusif dari Tirtonic.</p>
-            {isCurrent && msLeft > 0 && (
-              <p className="mt-1 text-sm font-bold text-gray-800">Periode berakhir dalam {sisaHari} hari {sisaJam} jam</p>
-            )}
+            {isCurrent && msLeft > 0 && <CountdownPeriode deadline={end.toISOString()} />}
           </div>
 
           {/* Podium 3 teratas */}
