@@ -49,8 +49,8 @@ function PodiumSlot({ row, rank }: { row: Row; rank: number }) {
         <span className={`absolute -top-1.5 right-0 flex h-6 w-6 items-center justify-center rounded-full text-xs font-extrabold ring-2 ring-gray-50 ${rankStyle(rank)}`}>{rank}</span>
       </div>
       <p className="mt-2 w-full truncate text-center text-sm font-bold text-gray-900">{nama}</p>
-      <span className="mt-1 inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-2.5 py-0.5 text-sm font-bold text-gray-800 shadow-sm">
-        <Medal className={`h-3.5 w-3.5 ${rank === 1 ? "text-amber-400" : rank === 2 ? "text-gray-400" : "text-orange-400"}`} />
+      <span className="mt-1 inline-flex items-center gap-1 whitespace-nowrap rounded-full border border-gray-200 bg-white px-2 py-0.5 text-xs font-bold text-gray-800 shadow-sm">
+        <Medal className={`h-3 w-3 ${rank === 1 ? "text-amber-400" : rank === 2 ? "text-gray-400" : "text-orange-400"}`} />
         {row.n} stringing
       </span>
     </div>
