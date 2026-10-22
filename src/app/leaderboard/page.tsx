@@ -2,6 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import StringingBottomNav from "@/components/StringingBottomNav";
+import MyRank from "@/components/MyRank";
+
+// Hadiah per peringkat (urutan index = rank).
+const PRIZES: Record<number, { t: string; d: string; cls: string; tc: string }> = {
+  1: { t: "JUARA 1", d: "Gratis 2× Stringing Service + Overgrip + Voucher Rp 50.000", cls: "bg-amber-50", tc: "text-amber-600" },
+  2: { t: "JUARA 2", d: "Gratis 1× Stringing Service + Voucher Rp 50.000", cls: "bg-gray-50", tc: "text-gray-500" },
+  3: { t: "JUARA 3", d: "Voucher Rp 50.000", cls: "bg-orange-50", tc: "text-orange-600" },
+};
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Leaderboard Stringing — Tirtonic", robots: { index: false } };
@@ -63,6 +71,13 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
   const start = new Date(y, m, 1);
   const end = new Date(y, m + 1, 1);
   const bulanShort = start.toLocaleDateString("id-ID", { month: "short", year: "numeric" });
+
+  // Countdown periode (hanya bulan berjalan).
+  const isCurrent = y === curY && m === curM;
+  const msLeft = end.getTime() - real.getTime();
+  const sisaHari = Math.floor(msLeft / 86400000);
+  const sisaJam = Math.floor((msLeft % 86400000) / 3600000);
+  const ymViewed = `${y}-${String(m + 1).padStart(2, "0")}`;
 
   // URL ke leaderboard dgn lokasi + bulan tertentu (ym dihilangkan kalau bulan ini).
   const mkUrl = (locV: string, yy: number, mm: number) => {
@@ -132,7 +147,7 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
         </div>
         <div className="mt-5">
           <h1 className="text-2xl font-extrabold leading-tight">Leaderboard</h1>
-          <p className="mt-1.5 text-sm text-white/80">Top stringing of the month</p>
+          <p className="mt-1.5 text-sm text-white/80">Top Stringer of the Month</p>
         </div>
         {/* Switch lokasi */}
         <div className="mt-5 flex gap-1 rounded-full bg-white/15 p-1">
@@ -161,12 +176,33 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
         </div>
       ) : (
         <>
+          {/* Hadiah bulan ini */}
+          <div className="mt-6 px-4 text-center">
+            <p className="text-xs font-bold tracking-[0.2em] text-primary">HADIAH BULAN INI</p>
+            <p className="mt-1.5 text-sm text-gray-500">Tiga customer dengan stringing terbanyak mendapatkan hadiah eksklusif dari Tirtonic.</p>
+            {isCurrent && msLeft > 0 && (
+              <p className="mt-1 text-sm font-bold text-gray-800">Periode berakhir dalam {sisaHari} hari {sisaJam} jam</p>
+            )}
+          </div>
+
           {/* Podium 3 teratas */}
           <div className="mt-4 px-4">
             <div className="glass-card rounded-2xl p-5">
               <div className="flex items-end justify-center gap-3">
                 {podium.map((p) => <PodiumSlot key={p.row!.phone} row={p.row!} rank={p.rank} />)}
               </div>
+            </div>
+          </div>
+
+          {/* Kartu hadiah Juara 2 · 1 · 3 (urut samakan podium) */}
+          <div className="mt-3 px-4">
+            <div className="grid grid-cols-3 divide-x divide-gray-100 overflow-hidden rounded-2xl border border-gray-100">
+              {[2, 1, 3].map((r) => (
+                <div key={r} className={`px-3 py-4 text-center ${PRIZES[r].cls}`}>
+                  <p className={`text-xs font-extrabold tracking-wide ${PRIZES[r].tc}`}>{PRIZES[r].t}</p>
+                  <p className="mt-1.5 text-xs leading-snug text-gray-700">{PRIZES[r].d}</p>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -194,6 +230,16 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
               </div>
             </div>
           )}
+
+          {/* Posisi viewer (pakai nomor HP tersimpan) */}
+          <MyRank loc={loc} ym={ymViewed} />
+
+          {/* Footer link */}
+          <div className="mt-6 px-4 text-center text-sm font-semibold text-primary">
+            <Link href="/leaderboard/syarat" className="hover:underline">Syarat &amp; Ketentuan</Link>
+            <span className="mx-2 text-gray-300">·</span>
+            <Link href="/leaderboard/pemenang" className="hover:underline">Pemenang Sebelumnya</Link>
+          </div>
         </>
       )}
 
