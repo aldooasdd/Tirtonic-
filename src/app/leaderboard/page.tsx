@@ -179,12 +179,10 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
         </div>
       ) : (
         <>
-          {/* Hadiah bulan ini — hanya peringkat Global */}
-          {loc === "global" && (
+          {/* Countdown periode — hanya Global, bulan berjalan */}
+          {loc === "global" && isCurrent && msLeft > 0 && (
             <div className="mt-6 px-4 text-center">
-              <p className="text-xs font-bold tracking-[0.2em] text-primary">HADIAH BULAN INI</p>
-              <p className="mt-1.5 text-sm text-gray-500">Tiga customer dengan stringing terbanyak (peringkat Global) mendapatkan hadiah eksklusif dari Tirtonic.</p>
-              {isCurrent && msLeft > 0 && <CountdownPeriode deadline={end.toISOString()} />}
+              <CountdownPeriode deadline={end.toISOString()} />
             </div>
           )}
 
