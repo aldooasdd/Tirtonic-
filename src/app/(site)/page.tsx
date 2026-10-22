@@ -300,8 +300,10 @@ function PreorderBanners({ products }: { products: PreorderBanner[] }) {
             const mb = p.bannersMobile.length ? p.bannersMobile : (p.bannerMobile ? [p.bannerMobile] : dt);
             return <PreorderHeroSlides desktop={dt} mobile={mb} alt={p.nama} />;
           })()}
-          {/* Layout ala Apple: teks kiri-bawah, kapsul kanan-bawah */}
-          <div className="absolute inset-0 flex items-end justify-between gap-3 p-5 sm:p-10">
+          {/* scrim bawah (mobile) biar teks kebaca di atas foto cover */}
+          <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-white/80 via-white/40 to-transparent sm:hidden" />
+          {/* Layout ala Apple: teks kiri-bawah, kapsul kanan-bawah. Mobile: ditumpuk. */}
+          <div className="absolute inset-0 flex flex-col items-start justify-end gap-3 p-5 sm:flex-row sm:items-end sm:justify-between sm:p-10">
             <div className="min-w-0 text-left">
               <LaunchCountdown date={p.launchAt ? p.launchAt.toISOString() : null} />
               {p.kuota && (
