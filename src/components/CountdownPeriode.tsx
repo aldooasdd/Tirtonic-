@@ -23,18 +23,18 @@ export default function CountdownPeriode({ deadline }: { deadline: string }) {
 
   return (
     <div>
-      <p className="text-base font-extrabold text-gray-900">Periode Berakhir Dalam</p>
-      <div className="mt-3 flex items-start justify-center gap-2 sm:gap-3">
+      <p className="text-xs font-bold text-gray-600">Periode Berakhir Dalam</p>
+      <div className="mt-1.5 flex items-start justify-center gap-1.5">
         {parts.map((p, i) => (
-          <div key={p.l} className="flex items-start gap-2 sm:gap-3">
+          <div key={p.l} className="flex items-start gap-1.5">
             <div className="flex flex-col items-center">
-              <span className="text-4xl font-extrabold leading-none text-red-600 tabular-nums">{pad(p.v)}</span>
-              <span className="mt-1.5 text-xs text-gray-400">{p.l}</span>
+              <span className="text-lg font-extrabold leading-none text-red-600 tabular-nums">{pad(p.v)}</span>
+              <span className="mt-0.5 text-[10px] text-gray-400">{p.l}</span>
             </div>
             {i < parts.length - 1 && (
-              <span className="flex flex-col gap-1 pt-2.5" aria-hidden>
-                <span className="h-1 w-1 rounded-full bg-gray-300" />
-                <span className="h-1 w-1 rounded-full bg-gray-300" />
+              <span className="flex flex-col gap-0.5 pt-1" aria-hidden>
+                <span className="h-0.5 w-0.5 rounded-full bg-gray-300" />
+                <span className="h-0.5 w-0.5 rounded-full bg-gray-300" />
               </span>
             )}
           </div>
