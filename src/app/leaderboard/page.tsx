@@ -148,9 +148,14 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
             )}
           </div>
         </div>
-        <div className="mt-5">
-          <h1 className="text-2xl font-extrabold leading-tight">Leaderboard</h1>
-          <p className="mt-1.5 text-sm text-white/80">Top Stringer of the Month</p>
+        <div className="mt-5 flex items-end justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-extrabold leading-tight">Leaderboard</h1>
+            <p className="mt-1.5 text-sm text-white/80">Top Stringer of the Month</p>
+          </div>
+          {loc === "global" && isCurrent && msLeft > 0 && (
+            <CountdownPeriode deadline={end.toISOString()} dark />
+          )}
         </div>
         {/* Switch lokasi */}
         <div className="mt-5 flex gap-1 rounded-full bg-white/15 p-1">
@@ -179,13 +184,6 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
         </div>
       ) : (
         <>
-          {/* Countdown periode — hanya Global, bulan berjalan */}
-          {loc === "global" && isCurrent && msLeft > 0 && (
-            <div className="mt-6 px-4 text-center">
-              <CountdownPeriode deadline={end.toISOString()} />
-            </div>
-          )}
-
           {/* Podium 3 teratas */}
           <div className="mt-4 px-4">
             <div className="glass-card rounded-2xl p-5">
