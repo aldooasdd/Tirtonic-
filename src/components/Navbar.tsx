@@ -32,7 +32,18 @@ export default function Navbar() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [kbOffset, setKbOffset] = useState(0);
   const [q, setQ] = useState("");
+  const [loginOpen, setLoginOpen] = useState(false);
+  const [loginPhone, setLoginPhone] = useState("");
   const router = useRouter();
+
+  function submitLogin(e: React.FormEvent) {
+    e.preventDefault();
+    const p = loginPhone.replace(/\D/g, "");
+    if (p.length < 9) return;
+    setLoginOpen(false);
+    setLoginPhone("");
+    router.push(`/riwayat/${encodeURIComponent(p)}`);
+  }
   const pathname = usePathname();
   const { count: cartCount } = useShopCart();
   const ig = "https://www.instagram.com/tirtonic.id";
@@ -141,6 +152,17 @@ export default function Navbar() {
               >
                 <SearchIcon />
               </button>
+              <button
+                type="button"
+                aria-label="Login"
+                onClick={() => { setLoginOpen(true); setOpen(false); setSearchOpen(false); setHidden(false); }}
+                className="hover:opacity-80"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+              </button>
               <Link href="/cart" aria-label="Keranjang" className="relative hover:opacity-80">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="9" cy="21" r="1" />
@@ -180,6 +202,34 @@ export default function Navbar() {
           )}
         </div>
       </div>
+
+      {loginOpen && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
+          onClick={() => setLoginOpen(false)}
+        >
+          <div
+            className="glass-card animate-dropdown w-full max-w-sm rounded-2xl p-6 text-gray-800"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="text-lg font-extrabold text-gray-900">Login User</h2>
+            <p className="mt-1 text-sm text-gray-500">Masukkan nomor WhatsApp untuk lihat riwayat stringing &amp; pesanan kamu.</p>
+            <form onSubmit={submitLogin} className="mt-4 space-y-3">
+              <input
+                autoFocus
+                value={loginPhone}
+                onChange={(e) => setLoginPhone(e.target.value)}
+                inputMode="tel"
+                placeholder="08xxxxxxxxxx"
+                className="field"
+              />
+              <button type="submit" disabled={loginPhone.replace(/\D/g, "").length < 9} className="glass-primary btn-pill w-full disabled:opacity-50">
+                Masuk
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </header>
   );
 }
