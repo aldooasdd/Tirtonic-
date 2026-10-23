@@ -159,7 +159,7 @@ export default function CheckoutPage() {
 
           {metode === "kirim" && (
             <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4 text-sm font-semibold text-primary">
-              🚚 Gratis ongkir ke seluruh Indonesia
+              Gratis ongkir ke seluruh Indonesia
             </div>
           )}
         </div>
