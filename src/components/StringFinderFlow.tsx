@@ -61,6 +61,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
   // Konsep raket: customer isi head size (in²).
   const [racketHead, setRacketHead] = useState("");
   const [racketName, setRacketName] = useState(""); // merk/tipe raket, diketik manual
+  const [racketWeight, setRacketWeight] = useState(""); // berat raket (gram)
   const [tension, setTension] = useState(""); // Main (dalam satuan `unit`)
   const [tensionCross, setTensionCross] = useState(""); // Cross (dalam satuan `unit`)
   const [unit, setUnit] = useState<"lbs" | "kg">("lbs"); // satuan tampilan tarikan; disimpan selalu lbs
@@ -119,7 +120,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
   // Bersihkan semua state → layar awal (data customer sebelumnya tidak tersisa).
   function resetAll() {
     setPhase("intro"); setStep(0); setAnswers({}); setRec(null); setErr("");
-    setChosen(null); setNama(""); setWa(""); setRacketHead("");
+    setChosen(null); setNama(""); setWa(""); setRacketHead(""); setRacketWeight("");
     setTension(""); setHistory(null); setManualPick(null); setCatalogSearch("");
     setRacketName("");
     setManualKind(null); setHybridMain(""); setHybridCross(""); setCatalogManual(""); setUnit("lbs");
@@ -141,7 +142,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
   const headNum = parseInt(racketHead, 10);
   const racketLbl = racketLabel({ head: Number.isFinite(headNum) ? headNum : null });
   // Raket final: merk/tipe manual + label turunan (head/jenis), digabung.
-  const racketStr = [racketName.trim() || null, racketLbl].filter(Boolean).join(" · ") || null;
+  const racketStr = [racketName.trim() || null, racketLbl, racketWeight.trim() ? `${racketWeight.trim()} g` : null].filter(Boolean).join(" · ") || null;
 
   const q = questions[step];
 
@@ -410,10 +411,21 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
               />
               <p className="mt-1 text-xs text-gray-400">Umumnya 95–120 in². Lihat di frame/gagang raket.</p>
             </div>
+            <div>
+              <label className="label">Berat raket <span className="text-red-500">*</span> <span className="text-gray-400">(gram)</span></label>
+              <input
+                value={racketWeight}
+                onChange={(e) => setRacketWeight(e.target.value.replace(/[^\d]/g, "").slice(0, 3))}
+                inputMode="numeric"
+                className="field"
+                placeholder="mis. 300"
+              />
+              <p className="mt-1 text-xs text-gray-400">Berat raket tanpa senar. Lihat di frame/gagang raket.</p>
+            </div>
             {err && <p className="text-sm text-red-600">{err}</p>}
 
             <div className="space-y-2">
-              <button onClick={() => { if (!nama.trim()) { setErr("Isi nama dulu ya."); return; } if (!wa.trim()) { setErr("Isi nomor WhatsApp dulu ya."); return; } if (!racketName.trim()) { setErr("Isi raket dulu ya."); return; } if (!racketHead.trim()) { setErr("Isi head size raket dulu ya."); return; } setErr(""); setPhase("choice"); }} disabled={!nama.trim() || !wa.trim() || !racketName.trim() || !racketHead.trim()} className="btn-green w-full py-3 disabled:opacity-40">
+              <button onClick={() => { if (!nama.trim()) { setErr("Isi nama dulu ya."); return; } if (!wa.trim()) { setErr("Isi nomor WhatsApp dulu ya."); return; } if (!racketName.trim()) { setErr("Isi raket dulu ya."); return; } if (!racketHead.trim()) { setErr("Isi head size raket dulu ya."); return; } if (!racketWeight.trim()) { setErr("Isi berat raket dulu ya."); return; } setErr(""); setPhase("choice"); }} disabled={!nama.trim() || !wa.trim() || !racketName.trim() || !racketHead.trim() || !racketWeight.trim()} className="btn-green w-full py-3 disabled:opacity-40">
                 Langsung cari senar →
               </button>
             </div>
