@@ -387,7 +387,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
 
           <div className="mt-5 space-y-3 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
             <div>
-              <label className="label">Nama <span className="text-gray-400">(opsional)</span></label>
+              <label className="label">Nama <span className="text-red-500">*</span></label>
               <input value={nama} onChange={(e) => setNama(e.target.value)} className="field" placeholder="Nama kamu" />
             </div>
             <div>
@@ -395,11 +395,11 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
               <input value={wa} onChange={(e) => { setWa(e.target.value); setHistory(null); }} inputMode="tel" className="field" placeholder="08xxxxxxxxxx" />
             </div>
             <div>
-              <label className="label">Raket <span className="text-gray-400">(opsional, merk/tipe)</span></label>
+              <label className="label">Raket <span className="text-red-500">*</span> <span className="text-gray-400">(merk/tipe)</span></label>
               <input value={racketName} onChange={(e) => setRacketName(e.target.value)} className="field" placeholder="mis. Yonex Ezone 98" />
             </div>
             <div>
-              <label className="label">Head size raket <span className="text-gray-400">(opsional, in²)</span></label>
+              <label className="label">Head size raket <span className="text-red-500">*</span> <span className="text-gray-400">(in²)</span></label>
               <input
                 value={racketHead}
                 onChange={(e) => setRacketHead(e.target.value.replace(/[^\d]/g, "").slice(0, 3))}
@@ -413,7 +413,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
             {err && <p className="text-sm text-red-600">{err}</p>}
 
             <div className="space-y-2">
-              <button onClick={() => { if (!wa.trim()) { setErr("Isi nomor WhatsApp dulu ya."); return; } setErr(""); setPhase("choice"); }} disabled={!wa.trim()} className="btn-green w-full py-3 disabled:opacity-40">
+              <button onClick={() => { if (!nama.trim()) { setErr("Isi nama dulu ya."); return; } if (!wa.trim()) { setErr("Isi nomor WhatsApp dulu ya."); return; } if (!racketName.trim()) { setErr("Isi raket dulu ya."); return; } if (!racketHead.trim()) { setErr("Isi head size raket dulu ya."); return; } setErr(""); setPhase("choice"); }} disabled={!nama.trim() || !wa.trim() || !racketName.trim() || !racketHead.trim()} className="btn-green w-full py-3 disabled:opacity-40">
                 Langsung cari senar →
               </button>
             </div>
