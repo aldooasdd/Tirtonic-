@@ -10,7 +10,7 @@ import { useState } from "react";
 // Dulu di-hardcode 591px/300dpi → di printer 203dpi konten jadi ~74mm (kebesaran,
 // kepotong). TASK & ARAH tetap hardcode ke nilai yang TERBUKTI nyetak — auto-detect
 // (getPrintTaskType/printDirection) pernah bikin cetakan blank (arah ke-rotate "left").
-const LABEL_MM = { w: 50, h: 20 };
+const LABEL_MM = { w: 40, h: 20 };
 const DENSITY = 3; // 1–5; naikkan kalau hasil tipis
 const FALLBACK_DPI = 203; // kalau dpi model tak terdeteksi (B-series umumnya 203dpi)
 const PRINT_DIRECTION: "top" | "left" = "top"; // putar kalau orientasi kebalik
