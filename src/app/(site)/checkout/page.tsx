@@ -102,7 +102,7 @@ export default function CheckoutPage() {
 
       <form onSubmit={onSubmit} className="grid gap-8 md:grid-cols-[1fr_360px]">
         <div className="space-y-4">
-          <div className="rounded-2xl border bg-white p-5">
+          <div className="glass-card rounded-2xl p-5">
             <h2 className="mb-4 font-bold text-gray-900">Data Penerima</h2>
             <div className="space-y-3">
               {/* Metode: ambil di toko / kirim */}
@@ -165,7 +165,7 @@ export default function CheckoutPage() {
         </div>
 
         <div className="md:sticky md:top-24 md:self-start">
-          <div className="rounded-2xl border bg-white p-5">
+          <div className="glass-card rounded-2xl p-5">
             <h2 className="mb-4 font-bold text-gray-900">Ringkasan Pesanan</h2>
             <ul className="space-y-3">
               {items.map((x) => (
