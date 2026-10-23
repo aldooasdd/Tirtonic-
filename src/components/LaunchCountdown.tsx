@@ -18,8 +18,8 @@ export default function LaunchCountdown({ date }: { date: string | null }) {
         targetDate={new Date(target)}
         variant="minimal"
         size="sm"
-        containerClassName="!p-0 [&>div]:!flex [&>div]:!flex-nowrap [&>div]:gap-1.5"
-        unitClassName="min-w-[1.9rem] flex-1 rounded-md border-0 bg-white/10 px-1 py-0.5 backdrop-blur-md shadow-[inset_3px_3px_0.5px_-3px_rgba(255,255,255,0.6),inset_-3px_-3px_0.5px_-3px_rgba(255,255,255,0.5),inset_0_0_6px_6px_rgba(255,255,255,0.12),0_0_12px_rgba(0,0,0,0.15)] sm:min-w-[2.2rem]"
+        containerClassName="!p-0 [&>div]:!flex [&>div]:!flex-nowrap [&>div]:!justify-start [&>div]:gap-1.5"
+        unitClassName="!w-auto min-w-0 flex-none rounded-md border-0 bg-white/10 px-1.5 py-0.5 backdrop-blur-md shadow-[inset_3px_3px_0.5px_-3px_rgba(255,255,255,0.6),inset_-3px_-3px_0.5px_-3px_rgba(255,255,255,0.5),inset_0_0_6px_6px_rgba(255,255,255,0.12),0_0_12px_rgba(0,0,0,0.15)]"
         numberClassName="text-sm sm:text-base"
         labelClassName="text-[8px] tracking-[0.08em]"
         onComplete={() => setDone(true)}
