@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import Logo from "./Logo";
 import { waLink } from "@/lib/format";
 import { useShopCart } from "./ShopCartProvider";
+import { userExists } from "@/app/riwayat/actions";
 
 const MENU = [
   { href: "/", label: "Home" },
@@ -34,15 +35,27 @@ export default function Navbar() {
   const [q, setQ] = useState("");
   const [loginOpen, setLoginOpen] = useState(false);
   const [loginPhone, setLoginPhone] = useState("");
+  const [loginBusy, setLoginBusy] = useState(false);
+  const [loginErr, setLoginErr] = useState<string | null>(null);
   const router = useRouter();
 
-  function submitLogin(e: React.FormEvent) {
+  async function submitLogin(e: React.FormEvent) {
     e.preventDefault();
     const p = loginPhone.replace(/\D/g, "");
     if (p.length < 9) return;
-    setLoginOpen(false);
-    setLoginPhone("");
-    router.push(`/riwayat/${encodeURIComponent(p)}`);
+    setLoginErr(null);
+    setLoginBusy(true);
+    try {
+      const ok = await userExists(p);
+      if (!ok) { setLoginErr("Nomor ini belum pernah transaksi di Tirtonic."); return; }
+      setLoginOpen(false);
+      setLoginPhone("");
+      router.push(`/riwayat/${encodeURIComponent(p)}`);
+    } catch {
+      setLoginErr("Gagal cek nomor. Coba lagi.");
+    } finally {
+      setLoginBusy(false);
+    }
   }
   const pathname = usePathname();
   const { count: cartCount } = useShopCart();
@@ -236,13 +249,14 @@ export default function Navbar() {
               <input
                 autoFocus
                 value={loginPhone}
-                onChange={(e) => setLoginPhone(e.target.value)}
+                onChange={(e) => { setLoginPhone(e.target.value); setLoginErr(null); }}
                 inputMode="tel"
                 placeholder="08xxxxxxxxxx"
                 className="w-full rounded-2xl border border-white/70 bg-white/60 px-4 py-3.5 text-base font-medium text-gray-900 outline-none backdrop-blur-md placeholder:text-gray-500 focus:border-primary"
               />
-              <button type="submit" disabled={loginPhone.replace(/\D/g, "").length < 9} className="w-full rounded-2xl border border-white/70 bg-white/60 px-4 py-3.5 text-base font-bold text-gray-900 backdrop-blur-md transition hover:bg-white/80 disabled:opacity-40">
-                Masuk
+              {loginErr && <p className="text-sm font-medium text-red-600">{loginErr}</p>}
+              <button type="submit" disabled={loginBusy || loginPhone.replace(/\D/g, "").length < 9} className="w-full rounded-2xl border border-white/70 bg-white/60 px-4 py-3.5 text-base font-bold text-gray-900 backdrop-blur-md transition hover:bg-white/80 disabled:opacity-40">
+                {loginBusy ? "Mengecek..." : "Masuk"}
               </button>
             </form>
           </div>
