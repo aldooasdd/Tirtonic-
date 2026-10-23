@@ -123,8 +123,9 @@ export default function Navbar() {
             </button>
 
             <div className="ml-auto flex items-center gap-3">
+              {/* desktop: inline search field; mobile: popup di atas pill (lihat bawah) */}
               {searchOpen && (
-                <form onSubmit={submitSearch} className="flex items-center">
+                <form onSubmit={submitSearch} className="hidden items-center sm:flex">
                   <input
                     autoFocus
                     value={q}
@@ -177,6 +178,20 @@ export default function Navbar() {
               </Link>
             </div>
           </div>
+
+          {/* mobile: search field pop out di atas pill */}
+          {searchOpen && (
+            <form onSubmit={submitSearch} className="glass-card animate-dropdown absolute bottom-full left-0 z-50 mb-2 w-full rounded-xl p-3 sm:hidden">
+              <input
+                autoFocus
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Escape") { setSearchOpen(false); setQ(""); } }}
+                placeholder="Cari produk..."
+                className="field"
+              />
+            </form>
+          )}
 
           {open && (
             <div
