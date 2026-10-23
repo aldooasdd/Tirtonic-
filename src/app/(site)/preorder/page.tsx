@@ -7,9 +7,16 @@ export const metadata = { title: "Exclusive Launch — Tirtonic", description: "
 
 export default async function PreorderCatalog() {
   const products = await safeQuery(
-    () => prisma.preorderProduct.findMany({ where: { isActive: true }, orderBy: { createdAt: "desc" } }),
+    () => prisma.preorderProduct.findMany({
+      where: { isActive: true },
+      orderBy: { createdAt: "desc" },
+      include: { _count: { select: { orders: { where: { status: { in: ["DP_PAID", "WAITING_LUNAS", "LUNAS", "SHIPPED"] } } } } } },
+    }),
     []
   );
+
+  const daysLeft = (d: Date | null) =>
+    d ? Math.ceil((new Date(d).getTime() - Date.now()) / 86400000) : null;
 
   return (
     <div className="mx-auto max-w-site px-4 py-8 lg:px-6">
@@ -38,6 +45,13 @@ export default async function PreorderCatalog() {
                 <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-gray-900">{p.nama}</h3>
                 <p className="mt-1 font-extrabold text-primary">{rupiah(p.harga)}</p>
                 {p.estimasi && <p className="mt-0.5 text-xs text-gray-400">{p.estimasi}</p>}
+                {(() => { const d = daysLeft(p.launchAt); return d !== null && d > 0 ? (
+                  <p className="mt-1.5 text-xs font-semibold text-gray-700">Tiba dalam {d} hari</p>
+                ) : null; })()}
+                {p.kuota !== null && (() => { const sisa = Math.max(0, p.kuota - p._count.orders); return (
+                  <p className="mt-0.5 text-xs font-medium text-amber-600">Kuota terbatas · Sisa {sisa} unit</p>
+                ); })()}
+                <span className="mt-2.5 block rounded-xl bg-primary px-3 py-2 text-center text-sm font-bold text-white transition group-hover:bg-primaryDark">Reserve Now</span>
               </div>
             </Link>
           ))}
