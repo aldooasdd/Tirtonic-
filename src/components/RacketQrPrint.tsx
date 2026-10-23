@@ -17,8 +17,9 @@ const PRINT_DIRECTION: "top" | "left" = "top"; // putar kalau orientasi kebalik
 const PRINT_TASK = "D110M_V4" as const; // task yang kepakai pas print pertama berhasil
 
 export default function RacketQrPrint({ phone, branch, className, label = "Cetak stiker QR raket" }: { phone: string; branch?: string | null; className?: string; label?: string }) {
-  // Jogja pakai kertas 4×2 cm (40×20mm); cabang lain 50×20mm.
-  const labelWmm = /jogja/i.test(branch ?? "") ? 40 : LABEL_MM.w;
+  // ponytail: semua cabang 50×20mm. Jogja 40mm bikin stiker blank di printer — balik 50mm.
+  void branch;
+  const labelWmm = LABEL_MM.w;
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
   const [err, setErr] = useState(false);
