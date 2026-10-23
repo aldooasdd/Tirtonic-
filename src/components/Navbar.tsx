@@ -180,16 +180,17 @@ export default function Navbar() {
             </div>
           </div>
 
-          {/* mobile: search field pop out di atas pill */}
+          {/* mobile: satu pil cari liquid glass di atas navbar */}
           {searchOpen && (
-            <form onSubmit={submitSearch} className="glass-card animate-dropdown absolute bottom-full left-0 z-50 mb-2 w-full rounded-xl p-3 sm:hidden">
+            <form onSubmit={submitSearch} className="glass-primary animate-dropdown absolute bottom-full left-0 z-50 mb-2 flex w-full items-center gap-2 rounded-xl px-5 py-3.5 sm:hidden">
+              <SearchIcon />
               <input
                 autoFocus
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Escape") { setSearchOpen(false); setQ(""); } }}
                 placeholder="Cari produk..."
-                className="field"
+                className="w-full bg-transparent text-base font-medium text-white outline-none placeholder:text-white/70"
               />
             </form>
           )}
