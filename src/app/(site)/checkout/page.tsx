@@ -235,7 +235,7 @@ export default function CheckoutPage() {
 
             {error && <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>}
 
-            <button type="submit" disabled={submitting} className="btn-pill mt-4 w-full bg-primary hover:bg-primaryDark disabled:opacity-60">
+            <button type="submit" disabled={submitting} className="glass-primary btn-pill mt-4 w-full disabled:opacity-60">
               {submitting ? "Memproses..." : "Buat Pesanan & Bayar"}
             </button>
             <p className="mt-2 text-center text-xs text-gray-400">Kamu akan diarahkan ke halaman pembayaran yang aman.</p>
