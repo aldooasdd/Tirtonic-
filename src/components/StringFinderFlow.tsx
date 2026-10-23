@@ -363,7 +363,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
             {lookupPhone.replace(/\D/g, "").length >= 9 && (
               profile && profile.rackets.length > 0 ? (
                 <div className="mt-3">
-                  {profile.lastName && <p className="text-sm font-bold text-gray-900">Selamat datang kembali, {profile.lastName} 👋</p>}
+                  {profile.lastName && <p className="text-sm font-bold text-gray-900">Selamat datang kembali, {profile.lastName}</p>}
                   <p className="mt-0.5 text-xs text-gray-500">Pernah stringing {profile.count}× di sini. Pilih raket yang mau di-restring — data di bawah terisi otomatis.</p>
                   <p className="mt-3 text-sm font-semibold text-gray-900">Pilih raket:</p>
                   <div className="mt-2 flex flex-wrap gap-2">
