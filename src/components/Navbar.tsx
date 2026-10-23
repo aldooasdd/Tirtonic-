@@ -227,11 +227,11 @@ export default function Navbar() {
           onClick={() => setLoginOpen(false)}
         >
           <div
-            className="animate-dropdown w-full max-w-sm rounded-[1.75rem] border border-white/25 bg-gray-600/30 p-7 text-white shadow-2xl backdrop-blur-2xl"
+            className="animate-dropdown w-full max-w-sm rounded-[1.75rem] border border-white/60 bg-white/50 p-7 text-gray-900 shadow-2xl backdrop-blur-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <h2 className="text-2xl font-extrabold tracking-tight">Login User</h2>
-            <p className="mt-1.5 text-sm text-white/70">Masukkan nomor WhatsApp untuk lihat riwayat stringing &amp; pesanan kamu.</p>
+            <p className="mt-1.5 text-sm text-gray-600">Masukkan nomor WhatsApp untuk lihat riwayat stringing &amp; pesanan kamu.</p>
             <form onSubmit={submitLogin} className="mt-5 space-y-3">
               <input
                 autoFocus
@@ -239,9 +239,9 @@ export default function Navbar() {
                 onChange={(e) => setLoginPhone(e.target.value)}
                 inputMode="tel"
                 placeholder="08xxxxxxxxxx"
-                className="w-full rounded-2xl border border-white/30 bg-white/15 px-4 py-3.5 text-base font-medium text-white outline-none backdrop-blur-md placeholder:text-white/60 focus:border-white/60"
+                className="w-full rounded-2xl border border-white/70 bg-white/60 px-4 py-3.5 text-base font-medium text-gray-900 outline-none backdrop-blur-md placeholder:text-gray-500 focus:border-primary"
               />
-              <button type="submit" disabled={loginPhone.replace(/\D/g, "").length < 9} className="w-full rounded-2xl border border-white/25 bg-white/20 px-4 py-3.5 text-base font-bold text-white backdrop-blur-md transition hover:bg-white/30 disabled:opacity-40">
+              <button type="submit" disabled={loginPhone.replace(/\D/g, "").length < 9} className="w-full rounded-2xl border border-white/70 bg-white/60 px-4 py-3.5 text-base font-bold text-gray-900 backdrop-blur-md transition hover:bg-white/80 disabled:opacity-40">
                 Masuk
               </button>
             </form>
