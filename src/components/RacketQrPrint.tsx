@@ -16,7 +16,9 @@ const FALLBACK_DPI = 203; // kalau dpi model tak terdeteksi (B-series umumnya 20
 const PRINT_DIRECTION: "top" | "left" = "top"; // putar kalau orientasi kebalik
 const PRINT_TASK = "D110M_V4" as const; // task yang kepakai pas print pertama berhasil
 
-export default function RacketQrPrint({ phone, className, label = "Cetak stiker QR raket" }: { phone: string; className?: string; label?: string }) {
+export default function RacketQrPrint({ phone, branch, className, label = "Cetak stiker QR raket" }: { phone: string; branch?: string | null; className?: string; label?: string }) {
+  // Jogja pakai kertas 4×2 cm (40×20mm); cabang lain 50×20mm.
+  const labelWmm = /jogja/i.test(branch ?? "") ? 40 : LABEL_MM.w;
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
   const [err, setErr] = useState(false);
@@ -34,7 +36,7 @@ export default function RacketQrPrint({ phone, className, label = "Cetak stiker 
       const dpi = meta?.dpi ?? FALLBACK_DPI;
 
       setMsg("Mencetak…");
-      const canvas = await buildLabel(phone, dpi, meta?.printheadPixels);
+      const canvas = await buildLabel(phone, dpi, labelWmm, meta?.printheadPixels);
       const encoded = nb.ImageEncoder.encodeCanvas(canvas, nb.PageColorType.SingleColor, PRINT_DIRECTION);
       const printTask = client.protocol.newPrintTask(PRINT_TASK, {
         totalPages: 1,
@@ -83,8 +85,8 @@ const mm2dots = (mm: number, dpi: number) => Math.round((mm / 25.4) * dpi);
 
 // Gambar label 50×20mm: QR di kiri, kolom kanan (logo + teks 3 baris) rata kiri.
 // Dimensi & layout diskalakan dari dpi printer; referensi layout = 236 dot tinggi.
-async function buildLabel(phone: string, dpi: number, headPx?: number): Promise<HTMLCanvasElement> {
-  let w = mm2dots(LABEL_MM.w, dpi);
+async function buildLabel(phone: string, dpi: number, widthMm: number, headPx?: number): Promise<HTMLCanvasElement> {
+  let w = mm2dots(widthMm, dpi);
   const h = mm2dots(LABEL_MM.h, dpi);
   if (headPx && w > headPx) w = headPx; // jangan lebihi lebar printhead
 
