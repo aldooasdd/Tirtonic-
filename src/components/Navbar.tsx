@@ -102,6 +102,7 @@ export default function Navbar() {
   if (pathname === "/contact") return null;
 
   return (
+    <>
     <header
       style={kbOffset ? { bottom: kbOffset } : undefined}
       className={`fixed inset-x-0 z-50 transition-transform duration-300
@@ -217,6 +218,7 @@ export default function Navbar() {
           )}
         </div>
       </div>
+    </header>
 
       {loginOpen && (
         <div
@@ -245,6 +247,6 @@ export default function Navbar() {
           </div>
         </div>
       )}
-    </header>
+    </>
   );
 }
