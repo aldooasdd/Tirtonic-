@@ -182,7 +182,7 @@ export default function Navbar() {
 
           {/* mobile: satu pil cari liquid glass di atas navbar */}
           {searchOpen && (
-            <form onSubmit={submitSearch} className="glass-primary animate-dropdown absolute bottom-full left-0 z-50 mb-2 flex w-full items-center gap-2 rounded-xl px-5 py-3.5 sm:hidden">
+            <form onSubmit={submitSearch} className="animate-dropdown absolute bottom-full left-0 z-50 mb-2 flex w-full items-center gap-2 rounded-xl border border-white/50 bg-white/40 px-5 py-3.5 text-gray-700 shadow-lg backdrop-blur-2xl sm:hidden">
               <SearchIcon />
               <input
                 autoFocus
@@ -190,7 +190,7 @@ export default function Navbar() {
                 onChange={(e) => setQ(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Escape") { setSearchOpen(false); setQ(""); } }}
                 placeholder="Cari produk..."
-                className="w-full bg-transparent text-base font-medium text-white outline-none placeholder:text-white/70"
+                className="w-full bg-transparent text-base font-medium text-gray-900 outline-none placeholder:text-gray-500"
               />
             </form>
           )}
