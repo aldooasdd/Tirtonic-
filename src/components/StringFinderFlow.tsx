@@ -348,7 +348,7 @@ export default function StringFinderFlow({ questions }: { questions: Question[] 
         <div className="mx-auto max-w-md">
           <button onClick={() => { setPhase("intro"); setHistory(null); }} className="mb-4 text-sm font-semibold text-gray-500 hover:text-gray-900">← Kembali</button>
           <h1 className="text-2xl font-extrabold text-gray-900">Detail Pelanggan & Raket</h1>
-          <p className="mt-2 text-sm text-gray-600">Masukkan nomor WhatsApp Anda. Kami akan menggunakannya untuk memberi kabar saat raket selesai dipasang senar dan menampilkan riwayat stringing Anda sebelumnya.</p>
+          <p className="mt-2 text-sm text-gray-600">Masukkan nomor WhatsApp Anda untuk menerima kabar saat raket siap diambil dan melihat riwayat stringing sebelumnya.</p>
 
           {/* Cek riwayat: input nomor sendiri → klik raket lama → isi form di bawah. */}
           <div className="mt-4 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
