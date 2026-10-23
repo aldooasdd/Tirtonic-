@@ -24,8 +24,9 @@ export default async function PreorderCatalog() {
         <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
           <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Exclusive Launch
         </span>
-        <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-gray-900 sm:text-3xl">Exclusive Launch</h1>
-        <p className="mt-1 text-sm text-gray-500">Pesan duluan, bayar DP (min {rupiah(100000)}), barang menyusul. Sisa dilunasi saat barang ready.</p>
+        <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-gray-900 sm:text-3xl">Tirtonic Exclusive Launch</h1>
+        <p className="mt-1 text-sm text-gray-500">Rilisan terbaru dan edisi terbatas. Amankan lebih dulu sebelum tiba di toko.</p>
+        <p className="mt-1 text-xs text-gray-400">Reservasi dengan down payment atau full payment · Bayar penuh dapat benefit eksklusif · Ambil di Jogja, Solo, Semarang atau dikirim</p>
       </div>
 
       {products.length === 0 ? (
