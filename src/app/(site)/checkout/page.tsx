@@ -17,6 +17,8 @@ export default function CheckoutPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [metode, setMetode] = useState<"pickup" | "kirim">("pickup");
+  const [cabang, setCabang] = useState("");
   const [provinsi, setProvinsi] = useState("");
   const [kota, setKota] = useState("");
   const kotaOptions = (wilayah as Record<string, string[]>)[provinsi] ?? [];
@@ -63,17 +65,20 @@ export default function CheckoutPage() {
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
+    if (metode === "pickup" && !cabang) { setError("Pilih cabang pengambilan dulu."); return; }
     const fd = new FormData(e.currentTarget);
+    const pickup = metode === "pickup";
+    const catatanRaw = String(fd.get("catatan") || "");
     setSubmitting(true);
     try {
       const res = await submitCheckout({
         nama: String(fd.get("nama") || ""),
-        email: String(fd.get("email") || ""),
+        email: "",
         telepon: String(fd.get("telepon") || ""),
-        alamat: String(fd.get("alamat") || ""),
-        kota: String(fd.get("kota") || ""),
-        provinsi: String(fd.get("provinsi") || ""),
-        catatan: String(fd.get("catatan") || ""),
+        alamat: pickup ? `AMBIL DI TOKO - Cabang ${cabang}` : String(fd.get("alamat") || ""),
+        kota: pickup ? cabang : String(fd.get("kota") || ""),
+        provinsi: pickup ? "-" : String(fd.get("provinsi") || ""),
+        catatan: pickup ? `[AMBIL DI TOKO - ${cabang}] ${catatanRaw}`.trim() : catatanRaw,
         kupon: coupon?.code,
         items: items.map((x) => ({ productId: x.productId, variantId: x.variantId, qty: x.qty })),
       });
@@ -99,47 +104,64 @@ export default function CheckoutPage() {
         <div className="space-y-4">
           <div className="rounded-2xl border bg-white p-5">
             <h2 className="mb-4 font-bold text-gray-900">Data Penerima</h2>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="sm:col-span-2">
-                <label className="label" htmlFor="nama">Nama lengkap *</label>
-                <input id="nama" name="nama" required className="field" autoComplete="name" />
+            <div className="space-y-3">
+              {/* Metode: ambil di toko / kirim */}
+              <div className="grid grid-cols-2 gap-2">
+                {([
+                  { key: "pickup" as const, title: "Pengambilan di Toko", sub: "Siap diambil di cabang" },
+                  { key: "kirim" as const, title: "Pengiriman ke Alamat", sub: "Diantar langsung ke tujuan Anda" },
+                ]).map((opt) => {
+                  const on = metode === opt.key;
+                  return (
+                    <button
+                      type="button"
+                      key={opt.key}
+                      onClick={() => setMetode(opt.key)}
+                      className={`rounded-xl border p-3 text-left transition ${on ? "border-primary bg-primary/5" : "border-gray-200 hover:border-gray-300"}`}
+                    >
+                      <span className="block text-sm font-bold text-gray-900">{opt.title}</span>
+                      <span className="block text-xs text-gray-500">{opt.sub}</span>
+                    </button>
+                  );
+                })}
               </div>
-              <div>
-                <label className="label" htmlFor="telepon">No. WhatsApp *</label>
-                <input id="telepon" name="telepon" required inputMode="tel" placeholder="08xxxxxxxxxx" className="field" autoComplete="tel" />
-              </div>
-              <div>
-                <label className="label" htmlFor="email">Email *</label>
-                <input id="email" name="email" type="email" required className="field" autoComplete="email" />
-              </div>
-              <div className="sm:col-span-2">
-                <label className="label" htmlFor="alamat">Alamat lengkap *</label>
-                <textarea id="alamat" name="alamat" required rows={2} className="field" placeholder="Jalan, nomor rumah, RT/RW, kecamatan" autoComplete="street-address" />
-              </div>
-              <div>
-                <label className="label" htmlFor="provinsi">Provinsi *</label>
-                <select id="provinsi" name="provinsi" required value={provinsi} onChange={(e) => { setProvinsi(e.target.value); setKota(""); }} className="field">
-                  <option value="" disabled>Pilih provinsi</option>
-                  {PROVINSI.map((p) => <option key={p} value={p}>{p}</option>)}
+
+              {metode === "pickup" && (
+                <select value={cabang} onChange={(e) => setCabang(e.target.value)} className="field">
+                  <option value="">Pilih cabang pengambilan</option>
+                  <option value="Jogja">Tirtonic Jogja</option>
+                  <option value="Semarang">Tirtonic Semarang</option>
+                  <option value="Solo">Tirtonic Solo</option>
                 </select>
-              </div>
-              <div>
-                <label className="label" htmlFor="kota">Kota / Kabupaten *</label>
-                <select id="kota" name="kota" required value={kota} onChange={(e) => setKota(e.target.value)} disabled={!provinsi} className="field disabled:bg-gray-100 disabled:text-gray-400">
-                  <option value="" disabled>{provinsi ? "Pilih kota / kabupaten" : "Pilih provinsi dulu"}</option>
-                  {kotaOptions.map((k) => <option key={k} value={k}>{k}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="label" htmlFor="catatan">Catatan (opsional)</label>
-                <input id="catatan" name="catatan" className="field" placeholder="mis. warna alternatif, patokan alamat" />
-              </div>
+              )}
+
+              <input name="nama" required placeholder="Nama lengkap" className="field" autoComplete="name" />
+              <input name="telepon" required inputMode="tel" placeholder="No. WhatsApp (08xxx)" className="field" autoComplete="tel" />
+
+              {metode === "kirim" && (
+                <>
+                  <textarea name="alamat" required rows={2} className="field" placeholder="Alamat lengkap" autoComplete="street-address" />
+                  <div className="grid grid-cols-2 gap-2">
+                    <select required value={provinsi} onChange={(e) => { setProvinsi(e.target.value); setKota(""); }} className="field">
+                      <option value="">Provinsi</option>
+                      {PROVINSI.map((p) => <option key={p} value={p}>{p}</option>)}
+                    </select>
+                    <select required value={kota} onChange={(e) => setKota(e.target.value)} disabled={!provinsi} className="field disabled:bg-gray-100 disabled:text-gray-400">
+                      <option value="">Kota/Kab.</option>
+                      {kotaOptions.map((k) => <option key={k} value={k}>{k}</option>)}
+                    </select>
+                  </div>
+                </>
+              )}
+              <textarea name="catatan" rows={2} className="field" placeholder="Catatan (opsional)" />
             </div>
           </div>
 
-          <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4 text-sm font-semibold text-primary">
-            🚚 Gratis ongkir ke seluruh Indonesia
-          </div>
+          {metode === "kirim" && (
+            <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4 text-sm font-semibold text-primary">
+              🚚 Gratis ongkir ke seluruh Indonesia
+            </div>
+          )}
         </div>
 
         <div className="md:sticky md:top-24 md:self-start">

@@ -96,9 +96,9 @@ export async function createOrder(input: CheckoutInput): Promise<CreateOrderResu
   const alamat = input.alamat?.trim();
   const kota = input.kota?.trim();
   const provinsi = input.provinsi?.trim();
-  if (!nama || !email || !telepon || !alamat || !kota || !provinsi)
+  if (!nama || !telepon || !alamat || !kota || !provinsi)
     return { ok: false, error: "Lengkapi data pengiriman dulu." };
-  if (!/^\S+@\S+\.\S+$/.test(email)) return { ok: false, error: "Email tidak valid." };
+  if (email && !/^\S+@\S+\.\S+$/.test(email)) return { ok: false, error: "Email tidak valid." };
 
   const resolved = await resolveLines(input.items);
   if (!resolved.ok) return { ok: false, error: resolved.error };
@@ -125,7 +125,7 @@ export async function createOrder(input: CheckoutInput): Promise<CreateOrderResu
     data: {
       invoice: genInvoice(),
       nama,
-      email,
+      email: email || "",
       telepon,
       alamat,
       kota,
