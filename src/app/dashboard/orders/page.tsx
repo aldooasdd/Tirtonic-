@@ -97,7 +97,7 @@ export default async function OrdersPage() {
               </div>
 
               <div className="mt-4 border-t pt-3">
-                <OrderRowActions id={o.id} status={o.status} kurir={o.kurir} />
+                <OrderRowActions id={o.id} status={o.status} kurir={o.kurir} pickup={/^AMBIL DI TOKO/i.test(o.alamat)} />
               </div>
             </div>
           ))}

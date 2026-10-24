@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { adminMarkPaid, adminMarkShipped, adminMarkDelivered, adminCancelOrder, adminDeleteOrder } from "@/app/dashboard/actions";
 
-export default function OrderRowActions({ id, status, kurir }: { id: string; status: string; kurir: string }) {
+export default function OrderRowActions({ id, status, kurir, pickup = false }: { id: string; status: string; kurir: string; pickup?: boolean }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [resi, setResi] = useState("");
@@ -28,6 +28,21 @@ export default function OrderRowActions({ id, status, kurir }: { id: string; sta
           className="rounded-md border px-3 py-1.5 text-xs font-medium text-gray-500 transition hover:border-red-400 hover:text-red-600 disabled:opacity-50"
         >
           Batalkan
+        </button>
+      </div>
+    );
+  }
+
+  // Ambil di toko: tidak ada pengiriman → langsung tandai Diterima (skip kurir/resi).
+  if (status === "PAID" && pickup) {
+    return (
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          onClick={() => run(() => adminMarkDelivered(id))}
+          disabled={pending}
+          className="rounded-md border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100 disabled:opacity-50"
+        >
+          Tandai Diterima
         </button>
       </div>
     );
