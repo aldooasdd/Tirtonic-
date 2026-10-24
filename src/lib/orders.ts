@@ -181,6 +181,11 @@ export async function markOrderPaid(orderId: string, info?: { metodeBayar?: stri
 
   const fresh = await prisma.order.findUnique({ where: { id: orderId }, include: { items: true } });
   if (fresh) await notifyN8N("paid", fresh);
+
+  // Ambil di toko → tidak ada pengiriman, langsung DELIVERED (tanpa klik admin).
+  if (/^AMBIL DI TOKO/i.test(order.alamat)) {
+    await prisma.order.update({ where: { id: orderId }, data: { status: "DELIVERED", deliveredAt: new Date() } });
+  }
   return true;
 }
 
