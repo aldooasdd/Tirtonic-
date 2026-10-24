@@ -33,6 +33,20 @@ export default function OrderRowActions({ id, status, kurir, pickup = false }: {
     );
   }
 
+  // Ambil di toko: tak ada pengiriman → tombol langsung Tandai Diterima (untuk order
+  // lama yang terlanjur "Lunas"; order baru auto-DELIVERED saat bayar).
+  if (status === "PAID" && pickup) {
+    return (
+      <button
+        onClick={() => run(() => adminMarkDelivered(id))}
+        disabled={pending}
+        className="rounded-md border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100 disabled:opacity-50"
+      >
+        Tandai Diterima
+      </button>
+    );
+  }
+
   if (status === "PAID") {
     return (
       <div className="flex flex-wrap items-center gap-2">

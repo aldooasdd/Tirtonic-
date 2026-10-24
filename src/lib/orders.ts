@@ -240,7 +240,7 @@ export async function autoDeliverShipped(): Promise<number> {
 
 export async function markOrderDelivered(orderId: string): Promise<boolean> {
   const order = await prisma.order.findUnique({ where: { id: orderId }, select: { status: true } });
-  if (!order || order.status !== "SHIPPED") return false; // hanya dari SHIPPED
+  if (!order || (order.status !== "SHIPPED" && order.status !== "PAID")) return false; // dari SHIPPED (kirim) / PAID (ambil di toko)
   await prisma.order.update({ where: { id: orderId }, data: { status: "DELIVERED", deliveredAt: new Date() } });
   return true;
 }
