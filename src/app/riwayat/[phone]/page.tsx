@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
+import { prisma, safeQuery } from "@/lib/prisma";
 import { normalizePhone, displayPhone } from "@/lib/string-finder/phone";
 import StringingBottomNav from "@/components/StringingBottomNav";
 import OrderHistory from "@/components/OrderHistory";
@@ -79,8 +79,9 @@ export default async function RiwayatPage({ params, searchParams }: { params: { 
   ];
 
   // Hadiah leaderboard yang belum ditukar (kalau ada) → kartu Redeem Reward.
+  // safeQuery: kalau tabel Reward belum di-push ke DB, jangan bikin dashboard crash.
   const reward = phone
-    ? await prisma.reward.findFirst({ where: { phone, redeemedAt: null }, orderBy: { createdAt: "desc" } })
+    ? await safeQuery(() => prisma.reward.findFirst({ where: { phone, redeemedAt: null }, orderBy: { createdAt: "desc" } }), null)
     : null;
 
   return (
