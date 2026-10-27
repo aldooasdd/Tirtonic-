@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { normalizePhone, displayPhone } from "@/lib/string-finder/phone";
 import StringingBottomNav from "@/components/StringingBottomNav";
 import OrderHistory from "@/components/OrderHistory";
+import RewardRedeem from "@/components/RewardRedeem";
+import { rewardToken } from "@/lib/pickup-token";
 
 export const dynamic = "force-dynamic";
 
@@ -76,6 +78,11 @@ export default async function RiwayatPage({ params, searchParams }: { params: { 
     { l: "Sedang proses", n: proses, c: "text-amber-600" },
   ];
 
+  // Hadiah leaderboard yang belum ditukar (kalau ada) → kartu Redeem Reward.
+  const reward = phone
+    ? await prisma.reward.findFirst({ where: { phone, redeemedAt: null }, orderBy: { createdAt: "desc" } })
+    : null;
+
   return (
     <div className="mx-auto min-h-screen max-w-md bg-gray-50 pb-24">
       {/* Header hijau */}
@@ -107,6 +114,12 @@ export default async function RiwayatPage({ params, searchParams }: { params: { 
           ))}
         </div>
       </div>
+
+      {reward && (
+        <div className="mt-4 px-4">
+          <RewardRedeem token={rewardToken(reward.id)} rank={reward.rank} prize={reward.prize} period={reward.period} />
+        </div>
+      )}
 
       {tab === "pesanan" ? (
         <div className="mt-4 px-4">

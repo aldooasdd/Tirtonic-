@@ -410,6 +410,25 @@ model SfOrder {
   @@index([createdAt])
 }
 
+// Hadiah leaderboard: 1 baris per pemenang (rank 1-3) per periode (YYYY-MM, Global).
+// Dibuat oleh cron saat periode berakhir → WA klaim. Ditukar sekali di toko manapun
+// (stringer scan QR di dashboard mereka). redeemedAt != null = sudah ditukar.
+model Reward {
+  id         String    @id @default(cuid())
+  phone      String
+  name       String?
+  period     String // "YYYY-MM"
+  rank       Int // 1,2,3
+  prize      String // teks hadiah
+  notifiedAt DateTime? // kapan WA klaim dikirim
+  redeemedAt DateTime? // kapan ditukar di toko (null = belum)
+  redeemedBy String? // role/cabang yang scan
+  createdAt  DateTime  @default(now())
+
+  @@unique([period, rank])
+  @@index([phone])
+}
+
 model SfPrintJob {
   id          String      @id @default(cuid())
   resultCode  String

@@ -3,9 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { requireSection, sessionBranchId } from "@/lib/auth";
+import { requireSection, sessionBranchId, currentRole } from "@/lib/auth";
 import { sendWa, salam, stringingRoomLink } from "@/lib/wa";
 import { normalizePhone } from "@/lib/string-finder/phone";
+import { verifyRewardToken } from "@/lib/pickup-token";
 
 const requireAuth = () => requireSection("stringing");
 
@@ -110,4 +111,17 @@ export async function deleteStringingOrder(id: string) {
   await assertBranch(id);
   await prisma.sfOrder.delete({ where: { id } });
   revalidatePath("/dashboard/stringing");
+}
+
+/** Tukar hadiah leaderboard. Token QR dari dashboard customer, di-scan stringer.
+ *  Idempoten: sekali tukar (redeemedAt). Halaman re-render baca redeemedAt. */
+export async function redeemReward(token: string): Promise<void> {
+  requireAuth();
+  const id = verifyRewardToken(token);
+  if (!id) return;
+  const r = await prisma.reward.findUnique({ where: { id } });
+  if (!r || r.redeemedAt) return; // sudah ditukar / tak dikenal → no-op
+  const by = currentRole()?.label ?? "Stringer";
+  await prisma.reward.update({ where: { id }, data: { redeemedAt: new Date(), redeemedBy: by } });
+  revalidatePath(`/dashboard/stringing/reward/${token}`);
 }
