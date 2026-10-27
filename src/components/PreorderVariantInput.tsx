@@ -48,10 +48,14 @@ export default function PreorderVariantInput({ defaultLabel = "" }: { defaultLab
 
           {rows.map((v, i) => (
             <div key={v.key} className="rounded-lg border bg-gray-50 p-3">
-              <div className="grid gap-2 sm:grid-cols-3">
+              <div className="grid gap-2 sm:grid-cols-4">
                 <div>
-                  <label className="label">{label.trim() || "Nilai"} *</label>
+                  <label className="label">Warna *</label>
                   <input name="v_warna" value={v.warna} onChange={(e) => set(i, "warna", e.target.value)} placeholder="mis. Hijau" className="field" />
+                </div>
+                <div>
+                  <label className="label">Ukuran / Size</label>
+                  <input name="v_ukuran" value={v.ukuran} onChange={(e) => set(i, "ukuran", e.target.value)} placeholder="mis. L / 42" className="field" />
                 </div>
                 <div>
                   <label className="label">Harga (Rp) *</label>
