@@ -7,9 +7,9 @@ import CountdownPeriode from "@/components/CountdownPeriode";
 
 // Hadiah per peringkat (urutan index = rank).
 const PRIZES: Record<number, { t: string; d: string; cls: string; tc: string }> = {
-  1: { t: "JUARA 1", d: "Gratis 2× Stringing Service + Overgrip + Voucher Rp 50.000", cls: "bg-amber-50", tc: "text-amber-600" },
-  2: { t: "JUARA 2", d: "Gratis 1× Stringing Service + Voucher Rp 50.000", cls: "bg-gray-50", tc: "text-gray-500" },
-  3: { t: "JUARA 3", d: "Voucher Rp 50.000", cls: "bg-orange-50", tc: "text-orange-600" },
+  1: { t: "Peringkat 1", d: "Gratis 2× Stringing Service + Overgrip + Voucher Rp 50.000", cls: "bg-amber-50", tc: "text-amber-600" },
+  2: { t: "Peringkat 2", d: "Gratis 1× Stringing Service + Voucher Rp 50.000", cls: "bg-gray-50", tc: "text-gray-500" },
+  3: { t: "Peringkat 3", d: "Voucher Rp 50.000", cls: "bg-orange-50", tc: "text-orange-600" },
 };
 
 export const dynamic = "force-dynamic";
