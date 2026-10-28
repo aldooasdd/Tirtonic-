@@ -9,8 +9,8 @@ const uniq = (xs: string[]) => [...new Set(xs)];
 
 // Tombol Reserve Now di detail PO → buka modal pilih varian + plan (DP / Lunas),
 // lalu lanjut ke halaman checkout sesuai pilihan.
-export default function ReserveModal({ productId, harga, dpBenefits, lunasBenefits, minDp = 100_000, variants = [], varianLabel }: {
-  productId: string; harga: number; dpBenefits: string[]; lunasBenefits: string[]; minDp?: number; variants?: Variant[]; varianLabel?: string | null;
+export default function ReserveModal({ productId, harga, dpBenefits, lunasBenefits, minDp = 100_000, variants = [], varianLabel, sizeChart }: {
+  productId: string; harga: number; dpBenefits: string[]; lunasBenefits: string[]; minDp?: number; variants?: Variant[]; varianLabel?: string | null; sizeChart?: string | null;
 }) {
   const router = useRouter();
   const hasVariants = variants.length > 0;
@@ -20,6 +20,7 @@ export default function ReserveModal({ productId, harga, dpBenefits, lunasBenefi
   const [plan, setPlan] = useState<"dp" | "lunas">("dp");
   const [dp, setDp] = useState(minDp || 0);
   const [err, setErr] = useState("");
+  const [chartOpen, setChartOpen] = useState(false);
   const warnaList = uniq(variants.map((v) => v.warna));
   const hasUkuran = variants.some((v) => v.ukuran);
   // Ukuran yang tersedia utk warna terpilih (sebelum warna dipilih: semua).
@@ -66,7 +67,14 @@ export default function ReserveModal({ productId, harga, dpBenefits, lunasBenefi
           </div>
           {hasUkuran && (
             <div>
-              <p className="text-sm font-semibold text-gray-700">Pilih Ukuran</p>
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-semibold text-gray-700">Pilih Ukuran</p>
+                {sizeChart && (
+                  <button type="button" onClick={() => setChartOpen(true)} className="text-xs font-semibold text-primary hover:underline">
+                    📏 Panduan Ukuran
+                  </button>
+                )}
+              </div>
               <div className="mt-1.5 flex flex-wrap gap-2">
                 {ukuranList.map((u) => {
                   const match = variants.find((v) => v.warna === warna && v.ukuran === u);
@@ -169,6 +177,16 @@ export default function ReserveModal({ productId, harga, dpBenefits, lunasBenefi
                 Reserve Now
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {chartOpen && sizeChart && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" onClick={() => setChartOpen(false)}>
+          <div className="absolute inset-0 bg-black/60" />
+          <div className="relative max-h-[90vh] max-w-lg overflow-auto rounded-2xl bg-white p-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={sizeChart} alt="Panduan ukuran" className="w-full rounded-lg" />
           </div>
         </div>
       )}

@@ -555,8 +555,9 @@ export async function createPreorderProduct(formData: FormData) {
   const bannersDesktop = await uploadNamedImages(formData, "bannersDesktop");
   const bannersMobile = await uploadNamedImages(formData, "bannersMobile");
   const bonusFoto = await uploadNamedImage(formData, "bonusFoto");
+  const sizeChart = await uploadNamedImage(formData, "sizeChart");
   await prisma.preorderProduct.create({
-    data: { nama, tagline, slogan, harga, deskripsi, estimasi, launchAt, isiBox, lunasBenefits, kuota, dpMin, showOnLanding, varianLabel, gambar, bannersDesktop, bannersMobile, bonusNama, bonusDeskripsi, bonusFoto, ...(variants.length ? { variants: { create: variants } } : {}) },
+    data: { nama, tagline, slogan, harga, deskripsi, estimasi, launchAt, isiBox, lunasBenefits, kuota, dpMin, showOnLanding, varianLabel, sizeChart, gambar, bannersDesktop, bannersMobile, bonusNama, bonusDeskripsi, bonusFoto, ...(variants.length ? { variants: { create: variants } } : {}) },
   });
   revalidatePreorder();
   redirect("/dashboard");
@@ -593,13 +594,14 @@ export async function updatePreorderProduct(id: string, formData: FormData) {
   const newBannersDesktop = await uploadNamedImages(formData, "bannersDesktop");
   const newBannersMobile = await uploadNamedImages(formData, "bannersMobile");
   const bonusFoto = (await uploadNamedImage(formData, "bonusFoto")) ?? cur.bonusFoto;
+  const sizeChart = (await uploadNamedImage(formData, "sizeChart")) ?? cur.sizeChart;
   // Varian: kalau admin centang "punya varian" → ganti seluruh set. Kalau tidak → biarkan.
   const newVariants = formData.get("hasVariants") ? await parsePreorderVariants(formData) : null;
   const varianLabel = ((formData.get("varianLabel") as string) || "").trim() || null;
   await prisma.preorderProduct.update({
     where: { id },
     data: {
-      nama, tagline, slogan, harga, deskripsi, estimasi, launchAt, isiBox, lunasBenefits, kuota, dpMin, showOnLanding, bonusNama, bonusDeskripsi, bonusFoto,
+      nama, tagline, slogan, harga, deskripsi, estimasi, launchAt, isiBox, lunasBenefits, kuota, dpMin, showOnLanding, bonusNama, bonusDeskripsi, bonusFoto, sizeChart,
       ...(newGambar.length ? { gambar: newGambar } : {}),
       ...(newBannersDesktop.length ? { bannersDesktop: newBannersDesktop } : {}),
       ...(newBannersMobile.length ? { bannersMobile: newBannersMobile } : {}),

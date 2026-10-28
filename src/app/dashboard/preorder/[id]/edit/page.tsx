@@ -97,6 +97,13 @@ export default async function EditPreorderPage({ params }: { params: { id: strin
           </div>
         </div>
 
+        <div>
+          <label className="label">Panduan ukuran / size chart</label>
+          <input name="sizeChart" type="file" accept="image/*" className="text-sm" />
+          <p className="mt-1 text-xs text-gray-400">Upload baru = ganti. Kosongkan = pakai yang lama.</p>
+          {imgPreview(p.sizeChart, "Size chart")}
+        </div>
+
         <p className="text-xs text-gray-400">Edit varian langsung di bawah (warna, ukuran, harga, stok, foto). Uncheck &quot;punya varian&quot; kalau mau biarkan varian apa adanya.</p>
         <PreorderVariantInput defaultLabel={p.varianLabel ?? ""} defaultVariants={p.variants} />
 

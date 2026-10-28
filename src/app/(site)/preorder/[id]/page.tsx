@@ -9,7 +9,7 @@ import { rupiah } from "@/lib/format";
 export const dynamic = "force-dynamic";
 
 export default async function PreorderDetail({ params }: { params: { id: string } }) {
-  const p = await safeQuery(() => prisma.preorderProduct.findUnique({ where: { id: params.id }, select: { id: true, nama: true, harga: true, gambar: true, deskripsi: true, estimasi: true, isiBox: true, lunasBenefits: true, dpMin: true, varianLabel: true, isActive: true, variants: { orderBy: { urutan: "asc" }, select: { id: true, warna: true, ukuran: true, harga: true, stok: true } } } }), null);
+  const p = await safeQuery(() => prisma.preorderProduct.findUnique({ where: { id: params.id }, select: { id: true, nama: true, harga: true, gambar: true, deskripsi: true, estimasi: true, isiBox: true, lunasBenefits: true, dpMin: true, varianLabel: true, sizeChart: true, isActive: true, variants: { orderBy: { urutan: "asc" }, select: { id: true, warna: true, ukuran: true, harga: true, stok: true } } } }), null);
   if (!p || !p.isActive) notFound();
 
   const dpBenefits = ["Slot reservasi aman", "Sisa dibayar setelah produk tiba"];
@@ -31,7 +31,7 @@ export default async function PreorderDetail({ params }: { params: { id: string 
           {p.estimasi && <p className="mt-1 text-sm text-gray-500">Estimasi: {p.estimasi}</p>}
           {p.deskripsi && <ClampText text={p.deskripsi} />}
 
-          <ReserveModal productId={p.id} harga={p.harga} minDp={p.dpMin} variants={variantData} varianLabel={p.varianLabel} dpBenefits={dpBenefits} lunasBenefits={lunasBenefits} />
+          <ReserveModal productId={p.id} harga={p.harga} minDp={p.dpMin} variants={variantData} varianLabel={p.varianLabel} sizeChart={p.sizeChart} dpBenefits={dpBenefits} lunasBenefits={lunasBenefits} />
         </div>
       </div>
 

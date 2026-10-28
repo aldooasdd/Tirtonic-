@@ -431,6 +431,11 @@ export default async function AdminDashboard() {
 
               <PreorderVariantInput />
               <div>
+                <label className="label">Panduan ukuran / size chart (opsional)</label>
+                <input name="sizeChart" type="file" accept="image/*" className="text-sm" />
+                <p className="mt-1 text-xs text-gray-400">Foto tabel ukuran. Muncul sebagai tombol &quot;Panduan Ukuran&quot; samping pilih ukuran.</p>
+              </div>
+              <div>
                 <label className="label">Foto produk (galeri halaman detail, bisa beberapa)</label>
                 <input name="gambar" type="file" accept="image/*" multiple className="text-sm" />
                 <p className="mt-1 text-xs text-gray-400">Foto produk biasa (persegi). Tampil di katalog & halaman detail.</p>

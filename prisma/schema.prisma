@@ -40,6 +40,7 @@ model PreorderProduct {
   dpMin          Int      @default(100000) // DP minimal. 0 = tanpa minimum (DP bebas)
   showOnLanding  Boolean  @default(true) // tampil di hero landing. false = cuma di halaman /preorder
   varianLabel    String?  // nama atribut varian bebas (mis. "Warna", "Ukuran", "Edisi")
+  sizeChart      String?  // foto panduan ukuran (size chart), tampil samping pilih ukuran
   deskripsi String?
   bonusNama      String? // bonus jika bayar penuh (lunas) di awal: nama
   bonusDeskripsi String? // bonus: deskripsi
