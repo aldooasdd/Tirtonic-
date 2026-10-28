@@ -2,21 +2,26 @@
 
 import { useState } from "react";
 
-// Input varian produk PO: UI sama seperti produk biasa, tanpa kolom Diskon.
-// Emit field array v_warna / v_ukuran / v_harga / v_stok / v_gambar (file) agar
-// server action memparsenya (lihat createPreorderProduct). Checkbox "punya varian"
-// → hidden input hasVariants biar server tahu produk ini pakai varian.
-type Row = { key: string; warna: string; ukuran: string; harga: string; stok: string };
+// Input varian produk PO: UI sama seperti produk biasa (editable per-baris), tanpa
+// kolom Diskon (PreorderVariant tak punya hargaDiskon). Emit field array
+// v_warna / v_ukuran / v_harga / v_stok / v_existingGambar (foto lama) / v_gambar (file)
+// — server align per index (lihat parsePreorderVariants). Checkbox "punya varian"
+// → hidden hasVariants. Saat edit, varian lama di-preload lewat defaultVariants.
+type Row = { key: string; warna: string; ukuran: string; harga: string; stok: string; gambar: string | null };
+type DefaultVariant = { warna: string; ukuran: string | null; harga: number; stok: number; gambar: string | null };
 let k = 0;
-const newRow = (): Row => ({ key: `v${k++}`, warna: "", ukuran: "", harga: "", stok: "" });
+const newRow = (): Row => ({ key: `v${k++}`, warna: "", ukuran: "", harga: "", stok: "", gambar: null });
 
-export default function PreorderVariantInput({ defaultLabel = "" }: { defaultLabel?: string }) {
-  const [has, setHas] = useState(false);
+export default function PreorderVariantInput({ defaultLabel = "", defaultVariants = [] }: { defaultLabel?: string; defaultVariants?: DefaultVariant[] }) {
+  const init: Row[] = defaultVariants.map((v) => ({
+    key: `v${k++}`, warna: v.warna, ukuran: v.ukuran ?? "", harga: String(v.harga), stok: String(v.stok), gambar: v.gambar,
+  }));
+  const [has, setHas] = useState(init.length > 0);
   const [label, setLabel] = useState(defaultLabel);
-  const [rows, setRows] = useState<Row[]>([newRow()]);
+  const [rows, setRows] = useState<Row[]>(init.length ? init : [newRow()]);
   const [bulk, setBulk] = useState("");
 
-  const set = (i: number, field: keyof Row, val: string) =>
+  const set = (i: number, field: keyof Row, val: string | null) =>
     setRows((prev) => prev.map((r, idx) => (idx === i ? { ...r, [field]: val } : r)));
   const applyBulk = () => {
     const v = bulk.replace(/\D/g, "");
@@ -27,7 +32,7 @@ export default function PreorderVariantInput({ defaultLabel = "" }: { defaultLab
     <div className="rounded-lg border border-gray-200 p-4">
       <label className="flex items-center gap-2 font-semibold text-gray-900">
         <input type="checkbox" checked={has} onChange={(e) => setHas(e.target.checked)} />
-        Produk punya varian
+        Produk punya varian (warna / ukuran)
       </label>
       {has && <input type="hidden" name="hasVariants" value="1" />}
 
@@ -67,6 +72,16 @@ export default function PreorderVariantInput({ defaultLabel = "" }: { defaultLab
                 </div>
               </div>
               <div className="mt-2 flex items-center gap-3">
+                {v.gambar ? (
+                  <span className="flex items-center gap-2">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img loading="lazy" decoding="async" src={v.gambar} alt="" className="h-12 w-12 rounded border object-contain" />
+                    <input type="hidden" name="v_existingGambar" value={v.gambar} />
+                    <button type="button" onClick={() => set(i, "gambar", null)} className="text-xs text-red-500 hover:underline">Hapus foto</button>
+                  </span>
+                ) : (
+                  <input type="hidden" name="v_existingGambar" value="" />
+                )}
                 <label className="text-xs text-gray-500">
                   Foto varian: <input name="v_gambar" type="file" accept="image/*" className="text-xs" />
                 </label>
@@ -82,7 +97,7 @@ export default function PreorderVariantInput({ defaultLabel = "" }: { defaultLab
           <button type="button" onClick={() => setRows((prev) => [...prev, newRow()])} className="rounded-full border px-4 py-2 text-sm font-semibold text-primary hover:border-primary">
             + Tambah varian
           </button>
-          <p className="text-xs text-gray-400">Satu baris = satu nilai varian. Tiap baris wajib ada nilai + harga.</p>
+          <p className="text-xs text-gray-400">Satu baris = satu kombinasi warna/ukuran. Tiap baris wajib ada warna + harga.</p>
         </div>
       )}
     </div>

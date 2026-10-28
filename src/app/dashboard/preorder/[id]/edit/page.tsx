@@ -97,13 +97,8 @@ export default async function EditPreorderPage({ params }: { params: { id: strin
           </div>
         </div>
 
-        {p.variants.length > 0 && (
-          <div className="rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-600">
-            Varian sekarang: {p.variants.map((v) => `${v.ukuran ? `${v.warna}/${v.ukuran}` : v.warna} (stok ${v.stok})`).join(", ")}
-          </div>
-        )}
-        <p className="text-xs text-gray-400">Centang &quot;punya varian&quot; di bawah untuk MENGGANTI seluruh varian. Biarkan tidak dicentang kalau tidak ingin mengubah varian.</p>
-        <PreorderVariantInput defaultLabel={p.varianLabel ?? ""} />
+        <p className="text-xs text-gray-400">Edit varian langsung di bawah (warna, ukuran, harga, stok, foto). Uncheck &quot;punya varian&quot; kalau mau biarkan varian apa adanya.</p>
+        <PreorderVariantInput defaultLabel={p.varianLabel ?? ""} defaultVariants={p.variants} />
 
         <button className="btn-green">Simpan Perubahan</button>
       </form>

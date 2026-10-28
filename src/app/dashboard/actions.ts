@@ -499,6 +499,7 @@ async function parsePreorderVariants(formData: FormData) {
   const ukuran = formData.getAll("v_ukuran").map(String);
   const harga = formData.getAll("v_harga").map(String);
   const stok = formData.getAll("v_stok").map(String);
+  const existing = formData.getAll("v_existingGambar").map(String);
   const files = formData.getAll("v_gambar");
   const out: { warna: string; ukuran: string | null; harga: number; stok: number; gambar: string | null; urutan: number }[] = [];
   for (let i = 0; i < warna.length; i++) {
@@ -506,7 +507,7 @@ async function parsePreorderVariants(formData: FormData) {
     const h = parseInt((harga[i] || "0").replace(/\D/g, ""), 10) || 0;
     if (!w || h <= 0) continue; // lewati baris belum lengkap
     const f = files[i];
-    let gambar: string | null = null;
+    let gambar: string | null = (existing[i] || "") || null; // pertahankan foto lama kalau tak diganti
     if (f instanceof File && f.size > 0) {
       if (!storageConfigured) throw new Error("Supabase Storage belum dikonfigurasi (cek .env).");
       gambar = await uploadFile(f, "products");
