@@ -10,7 +10,7 @@ export default async function PreorderCatalog() {
     () => prisma.preorderProduct.findMany({
       where: { isActive: true },
       orderBy: { createdAt: "desc" },
-      include: { _count: { select: { orders: { where: { status: { in: ["DP_PAID", "WAITING_LUNAS", "LUNAS", "SHIPPED"] } } } } } },
+      include: { variants: { select: { stok: true } }, _count: { select: { orders: { where: { status: { in: ["DP_PAID", "WAITING_LUNAS", "LUNAS", "SHIPPED"] } } } } } },
     }),
     []
   );
@@ -49,9 +49,13 @@ export default async function PreorderCatalog() {
                 {(() => { const d = daysLeft(p.launchAt); return d !== null && d > 0 ? (
                   <p className="mt-1.5 text-xs font-semibold text-gray-700">Tiba dalam {d} hari</p>
                 ) : null; })()}
-                {p.kuota !== null && (() => { const sisa = Math.max(0, p.kuota - p._count.orders); return (
-                  <p className="mt-0.5 text-xs font-medium text-amber-600">Kuota terbatas · Sisa {sisa} unit</p>
-                ); })()}
+                {(() => {
+                  // Total unit = jumlah stok semua varian (kalau ada), selain itu kuota produk.
+                  const total = p.variants.length ? p.variants.reduce((s, v) => s + v.stok, 0) : p.kuota;
+                  if (total === null) return null;
+                  const sisa = Math.max(0, total - p._count.orders);
+                  return <p className="mt-0.5 text-xs font-medium text-amber-600">Kuota terbatas · Sisa {sisa} unit</p>;
+                })()}
                 <span className="mt-2.5 block rounded-xl bg-primary px-3 py-2 text-center text-sm font-bold text-white transition group-hover:bg-primaryDark">Reserve Now</span>
               </div>
             </Link>
