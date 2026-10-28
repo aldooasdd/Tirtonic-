@@ -7,6 +7,7 @@ import { requireSection, sessionBranchId, currentRole } from "@/lib/auth";
 import { sendWa, salam, stringingRoomLink } from "@/lib/wa";
 import { normalizePhone } from "@/lib/string-finder/phone";
 import { verifyRewardToken } from "@/lib/pickup-token";
+import { completeStringing } from "@/lib/stringing";
 
 const requireAuth = () => requireSection("stringing");
 
@@ -49,27 +50,7 @@ export async function finishStringing(id: string) {
   requireAuth();
   await assertBranch(id);
   // Hanya dari "dikerjakan" — klik dobel tidak kirim WA lagi.
-  const { count } = await prisma.sfOrder.updateMany({
-    where: { id, status: "dikerjakan" },
-    data: { status: "selesai", finishedAt: new Date() },
-  });
-  if (!count) return;
-  const order = await prisma.sfOrder.findUniqueOrThrow({ where: { id }, include: { branch: true } });
-  // WA "senar siap diambil" ke customer. Kegagalan WA tak membatalkan penyelesaian.
-  const ok = await sendWa(
-    order.phone,
-    `Selamat ${salam()}, kak ${order.customerName ?? ""}`.trimEnd() + `
-
-Raket Anda dengan kode pesanan *${order.resultCode}* telah selesai dipasang dan siap diambil di ${order.branch.name}.
-
-Silakan tunjukkan kode pesanan saat pengambilan. Kami buka setiap hari pukul 09.00 – 21.00.
-
-Terima kasih telah mempercayakan raket Anda kepada Tirtonic. Selamat bermain!
-
-Salam hangat,
-${order.branch.name} 🎾`,
-  );
-  if (ok) await prisma.sfOrder.update({ where: { id }, data: { notifiedDone: new Date() } });
+  await completeStringing(id, { onlyIfStarted: true });
   revalidatePath("/dashboard/stringing");
 }
 
