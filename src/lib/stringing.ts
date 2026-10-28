@@ -14,18 +14,7 @@ export async function completeStringing(
   if (order.status === "selesai" || order.status === "batal") return { ok: false, reason: "already_done", resultCode: order.resultCode };
   if (opts.onlyIfStarted && order.status !== "dikerjakan") return { ok: false, reason: "not_started", resultCode: order.resultCode };
 
-  const now = new Date();
-  await prisma.sfOrder.update({
-    where: { id },
-    data: {
-      status: "selesai",
-      finishedAt: now,
-      startedAt: order.startedAt ?? now, // scan bisa langsung selesai walau belum di-"Mulai"
-      ...(order.stringerName ? {} : opts.stringerName ? { stringerName: opts.stringerName } : {}),
-    },
-  });
-
-  // WA "senar siap diambil" dikirim di background → respons cepat. Kegagalan WA tak membatalkan penyelesaian.
+  // Kirim WA dulu — baru tandai selesai kalau WA sukses kekirim.
   const msg =
     `Selamat ${salam()}, kak ${order.customerName ?? ""}`.trimEnd() + `
 
@@ -37,8 +26,19 @@ Terima kasih telah mempercayakan raket Anda kepada Tirtonic. Selamat bermain!
 
 Salam hangat,
 ${order.branch.name} 🎾`;
-  void sendWa(order.phone, msg)
-    .then((ok) => (ok ? prisma.sfOrder.update({ where: { id }, data: { notifiedDone: now } }) : null))
-    .catch(() => {}); // ponytail: fire-and-forget, container Railway persisten jadi promise selesai
+  const sent = await sendWa(order.phone, msg);
+  if (!sent) return { ok: false, reason: "wa_failed", resultCode: order.resultCode };
+
+  const now = new Date();
+  await prisma.sfOrder.update({
+    where: { id },
+    data: {
+      status: "selesai",
+      finishedAt: now,
+      startedAt: order.startedAt ?? now, // scan bisa langsung selesai walau belum di-"Mulai"
+      notifiedDone: now,
+      ...(order.stringerName ? {} : opts.stringerName ? { stringerName: opts.stringerName } : {}),
+    },
+  });
   return { ok: true, resultCode: order.resultCode };
 }
