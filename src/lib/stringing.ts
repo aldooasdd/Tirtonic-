@@ -25,9 +25,8 @@ export async function completeStringing(
     },
   });
 
-  // WA "senar siap diambil". Kegagalan WA tak membatalkan penyelesaian.
-  const ok = await sendWa(
-    order.phone,
+  // WA "senar siap diambil" dikirim di background → respons cepat. Kegagalan WA tak membatalkan penyelesaian.
+  const msg =
     `Selamat ${salam()}, kak ${order.customerName ?? ""}`.trimEnd() + `
 
 Raket Anda dengan kode pesanan *${order.resultCode}* telah selesai dipasang dan siap diambil di ${order.branch.name}.
@@ -37,8 +36,9 @@ Silakan tunjukkan kode pesanan saat pengambilan. Kami buka setiap hari pukul 09.
 Terima kasih telah mempercayakan raket Anda kepada Tirtonic. Selamat bermain!
 
 Salam hangat,
-${order.branch.name} 🎾`,
-  );
-  if (ok) await prisma.sfOrder.update({ where: { id }, data: { notifiedDone: now } });
+${order.branch.name} 🎾`;
+  void sendWa(order.phone, msg)
+    .then((ok) => (ok ? prisma.sfOrder.update({ where: { id }, data: { notifiedDone: now } }) : null))
+    .catch(() => {}); // ponytail: fire-and-forget, container Railway persisten jadi promise selesai
   return { ok: true, resultCode: order.resultCode };
 }
