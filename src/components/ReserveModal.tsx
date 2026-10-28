@@ -4,7 +4,8 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { rupiah } from "@/lib/format";
 
-type Variant = { id: string; nama: string; harga: number; stok: number };
+type Variant = { id: string; warna: string; ukuran: string | null; harga: number; stok: number };
+const uniq = (xs: string[]) => [...new Set(xs)];
 
 // Tombol Reserve Now di detail PO → buka modal pilih varian + plan (DP / Lunas),
 // lalu lanjut ke halaman checkout sesuai pilihan.
@@ -14,18 +15,26 @@ export default function ReserveModal({ productId, harga, dpBenefits, lunasBenefi
   const router = useRouter();
   const hasVariants = variants.length > 0;
   const [open, setOpen] = useState(false);
-  const [variantId, setVariantId] = useState("");
+  const [warna, setWarna] = useState("");
+  const [ukuran, setUkuran] = useState("");
   const [plan, setPlan] = useState<"dp" | "lunas">("dp");
   const [dp, setDp] = useState(minDp || 0);
   const [err, setErr] = useState("");
-  const selVar = variants.find((v) => v.id === variantId);
+  const warnaList = uniq(variants.map((v) => v.warna));
+  const hasUkuran = variants.some((v) => v.ukuran);
+  // Ukuran yang tersedia utk warna terpilih (sebelum warna dipilih: semua).
+  const ukuranList = uniq(variants.filter((v) => !warna || v.warna === warna).map((v) => v.ukuran ?? "")).filter(Boolean);
+  const selVar = variants.find((v) => v.warna === warna && (v.ukuran ?? "") === (hasUkuran ? ukuran : (v.ukuran ?? "")));
+  const variantId = selVar?.id ?? "";
   const hargaEff = hasVariants ? (selVar?.harga ?? harga) : harga;
   const benefits = plan === "lunas" ? lunasBenefits : dpBenefits;
   const bayar = plan === "lunas" ? hargaEff : Math.min(Math.max(dp, minDp), hargaEff);
   const kurang = Math.max(0, hargaEff - bayar);
 
+  const needPick = hasVariants && !variantId;
+
   function go() {
-    if (hasVariants && !variantId) return setErr("Pilih varian dulu.");
+    if (needPick) return setErr(hasUkuran ? "Pilih warna & ukuran dulu." : "Pilih varian dulu.");
     const q = new URLSearchParams();
     if (plan === "lunas") q.set("lunas", "1"); else q.set("dp", String(bayar));
     if (variantId) q.set("variant", variantId);
@@ -35,30 +44,54 @@ export default function ReserveModal({ productId, harga, dpBenefits, lunasBenefi
   return (
     <>
       {hasVariants && (
-        <div className="mt-6">
-          <p className="text-sm font-semibold text-gray-700">Pilih {varianLabel?.trim() || "varian"}</p>
-          <div className="mt-1.5 flex flex-wrap gap-2">
-            {variants.map((v) => {
-              const habis = v.stok <= 0;
-              const on = v.id === variantId;
-              return (
-                <button
-                  type="button" key={v.id} disabled={habis}
-                  onClick={() => { setVariantId(v.id); setErr(""); }}
-                  className={`rounded-xl border px-3 py-1.5 text-sm ${on ? "border-primary bg-primary/10 font-semibold text-primary" : "border-gray-300 text-gray-700"} ${habis ? "cursor-not-allowed opacity-40 line-through" : ""}`}
-                >
-                  {v.nama}{habis ? " (habis)" : ""}
-                </button>
-              );
-            })}
+        <div className="mt-6 space-y-4">
+          <div>
+            <p className="text-sm font-semibold text-gray-700">Pilih Warna</p>
+            <div className="mt-1.5 flex flex-wrap gap-2">
+              {warnaList.map((w) => {
+                // Warna habis kalau semua varian warna itu stok <= 0.
+                const habis = variants.filter((v) => v.warna === w).every((v) => v.stok <= 0);
+                const on = w === warna;
+                return (
+                  <button
+                    type="button" key={w} disabled={habis}
+                    onClick={() => { setWarna(w); setUkuran(""); setErr(""); }}
+                    className={`rounded-xl border px-3 py-1.5 text-sm ${on ? "border-primary bg-primary/10 font-semibold text-primary" : "border-gray-300 text-gray-700"} ${habis ? "cursor-not-allowed opacity-40 line-through" : ""}`}
+                  >
+                    {w}{habis ? " (habis)" : ""}
+                  </button>
+                );
+              })}
+            </div>
           </div>
-          {selVar && <p className="mt-1.5 text-xs text-gray-400">{rupiah(selVar.harga)} · stok {selVar.stok}</p>}
+          {hasUkuran && (
+            <div>
+              <p className="text-sm font-semibold text-gray-700">Pilih Ukuran</p>
+              <div className="mt-1.5 flex flex-wrap gap-2">
+                {ukuranList.map((u) => {
+                  const match = variants.find((v) => v.warna === warna && v.ukuran === u);
+                  const habis = !warna || !match || match.stok <= 0;
+                  const on = u === ukuran;
+                  return (
+                    <button
+                      type="button" key={u} disabled={habis}
+                      onClick={() => { setUkuran(u); setErr(""); }}
+                      className={`rounded-xl border px-3 py-1.5 text-sm ${on ? "border-primary bg-primary/10 font-semibold text-primary" : "border-gray-300 text-gray-700"} ${habis ? "cursor-not-allowed opacity-40 line-through" : ""}`}
+                    >
+                      {u}{habis && warna ? " (habis)" : ""}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          {selVar && <p className="text-xs text-gray-400">{rupiah(selVar.harga)} · stok {selVar.stok}</p>}
         </div>
       )}
 
       <button
         type="button"
-        onClick={() => { if (hasVariants && !variantId) { setErr("Pilih varian dulu."); return; } setErr(""); setOpen(true); }}
+        onClick={() => { if (needPick) { setErr(hasUkuran ? "Pilih warna & ukuran dulu." : "Pilih varian dulu."); return; } setErr(""); setOpen(true); }}
         className="glass-primary mt-4 block w-full rounded-full py-3 text-center text-sm font-bold text-white transition hover:brightness-110"
       >
         Reserve Now
