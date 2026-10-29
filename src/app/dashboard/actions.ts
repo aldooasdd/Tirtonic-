@@ -287,6 +287,7 @@ export async function applyEvent(formData: FormData) {
   const ids = formData.getAll("eventIds").map(String).filter(Boolean);
   const pct = Math.min(90, Math.max(1, toInt(formData.get("diskonPersen"))));
   const carousel = formData.get("eventCarousel") != null;
+  const eventNama = ((formData.get("eventNama") as string) || "").trim() || null;
   if (!ids.length || pct <= 0) redirect("/dashboard/promo");
   for (const id of ids) {
     const p = await prisma.product.findUnique({ where: { id }, select: { harga: true, variants: { select: { id: true, harga: true } } } });
@@ -298,7 +299,7 @@ export async function applyEvent(formData: FormData) {
       : null;
     await prisma.product.update({
       where: { id },
-      data: { diskonPersen: pct, eventAktif: true, eventCarousel: carousel, hargaDiskon: headline ? applyPct(headline.harga, pct) : applyPct(p.harga, pct) },
+      data: { diskonPersen: pct, eventAktif: true, eventCarousel: carousel, eventNama, hargaDiskon: headline ? applyPct(headline.harga, pct) : applyPct(p.harga, pct) },
     });
   }
   revalidatePublic();
@@ -311,7 +312,7 @@ export async function clearEvent(id: string) {
   const p = await prisma.product.findUnique({ where: { id }, select: { variants: { select: { id: true } } } });
   if (!p) return;
   for (const v of p.variants) await prisma.productVariant.update({ where: { id: v.id }, data: { hargaDiskon: null } });
-  await prisma.product.update({ where: { id }, data: { diskonPersen: 0, eventAktif: false, eventCarousel: false, hargaDiskon: null } });
+  await prisma.product.update({ where: { id }, data: { diskonPersen: 0, eventAktif: false, eventCarousel: false, eventNama: null, hargaDiskon: null } });
   revalidatePublic(id);
 }
 

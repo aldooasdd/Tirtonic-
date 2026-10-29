@@ -14,7 +14,7 @@ export default async function PromoPage() {
   const products = await safeQuery(
     () => prisma.product.findMany({
       orderBy: { nama: "asc" },
-      select: { id: true, nama: true, harga: true, hargaDiskon: true, gambar: true, kategori: true, brand: true, eventAktif: true, eventCarousel: true, diskonPersen: true },
+      select: { id: true, nama: true, harga: true, hargaDiskon: true, gambar: true, kategori: true, brand: true, eventAktif: true, eventCarousel: true, diskonPersen: true, eventNama: true },
     }),
     []
   );

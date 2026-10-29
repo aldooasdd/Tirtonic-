@@ -6,7 +6,7 @@ import { rupiah } from "@/lib/format";
 
 type P = {
   id: string; nama: string; harga: number; hargaDiskon: number | null; gambar: string[];
-  kategori: string; brand: string | null; eventAktif: boolean; eventCarousel: boolean; diskonPersen: number;
+  kategori: string; brand: string | null; eventAktif: boolean; eventCarousel: boolean; diskonPersen: number; eventNama: string | null;
 };
 
 export default function EventManager({ products }: { products: P[] }) {
@@ -33,7 +33,7 @@ export default function EventManager({ products }: { products: P[] }) {
                 <img src={p.gambar[0]} alt="" className="h-10 w-10 rounded object-cover" />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-semibold text-gray-900">{p.nama}</p>
-                  <p className="text-xs text-gray-500">-{p.diskonPersen}% → {p.hargaDiskon ? rupiah(p.hargaDiskon) : rupiah(p.harga)}{p.eventCarousel ? " · di carousel" : ""}</p>
+                  <p className="text-xs text-gray-500">{p.eventNama ? `${p.eventNama} · ` : ""}-{p.diskonPersen}% → {p.hargaDiskon ? rupiah(p.hargaDiskon) : rupiah(p.harga)}{p.eventCarousel ? " · di carousel" : ""}</p>
                 </div>
                 <form action={clearEvent.bind(null, p.id)}>
                   <button className="rounded-full border border-red-300 px-3 py-1 text-xs font-semibold text-red-600 hover:bg-red-50">Hapus</button>
@@ -45,6 +45,11 @@ export default function EventManager({ products }: { products: P[] }) {
       )}
 
       <form action={applyEvent} className="space-y-4">
+        <div>
+          <label className="label">Nama promo / event</label>
+          <input name="eventNama" placeholder="mis. Promo Akhir Tahun" className="field" />
+          <p className="mt-1 text-xs text-gray-400">Jadi judul carousel di landing.</p>
+        </div>
         <div className="flex flex-wrap gap-2">
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Cari produk…" className="field flex-1 min-w-[180px]" />
           <select value={kat} onChange={(e) => setKat(e.target.value)} className="field w-auto">

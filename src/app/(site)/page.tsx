@@ -220,13 +220,13 @@ function NewArrival({ products }: { products: ProductCardData[] }) {
   );
 }
 
-function EventPromo({ products }: { products: ProductCardData[] }) {
+function EventPromo({ products, title }: { products: ProductCardData[]; title?: string | null }) {
   if (products.length === 0) return null;
   return (
     <section className="mx-auto max-w-site px-4 lg:px-6 py-2">
       <div className="mb-1.5 flex items-center justify-between gap-3">
         <h2 className="flex items-center gap-2 text-xl font-extrabold text-amber-600">
-          🔥 Lagi Event
+          🔥 {title?.trim() || "Lagi Event"}
         </h2>
         <Link href="/shop?event=1" className="text-sm font-semibold text-amber-600 hover:underline">
           View All
@@ -426,7 +426,7 @@ export default async function HomePage() {
         </p>
       </div>
       <PreorderBanners products={preorders} />
-      <EventPromo products={eventCards} />
+      <EventPromo products={eventCards} title={eventItems[0]?.eventNama} />
       <ForYou products={forYou} />
       <BrandPopular brands={brands.map((b) => ({ id: b.id, nama: b.nama, foto: b.foto }))} />
       <BestDeal products={bestDeals} />
