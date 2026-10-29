@@ -64,6 +64,17 @@ export default function ShopFilters({ brands }: { brands: string[] }) {
 
   return (
     <div className="border-t">
+      <div className="border-b py-4">
+        <button
+          onClick={() => setParam("event", "1")}
+          className={`w-full rounded-full border px-4 py-2 text-sm font-bold transition ${
+            cur("event") ? "border-amber-500 bg-amber-500 text-white" : "border-amber-400 text-amber-600 hover:bg-amber-50"
+          }`}
+        >
+          🔥 Promo / Event
+        </button>
+      </div>
+
       <Section title="Brand">
         {brands.length === 0 && <p className="text-xs text-gray-400">Belum ada brand.</p>}
         {brands.map((b) => (

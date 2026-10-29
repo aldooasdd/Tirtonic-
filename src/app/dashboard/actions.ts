@@ -280,6 +280,41 @@ export async function setStatus(id: string, status: "READY" | "SOLD") {
   revalidatePublic(id);
 }
 
+/** Terapkan event/promo ke produk terpilih: set diskon %, flag event, + opsi carousel landing.
+ *  Diskon dipakai lewat field hargaDiskon/diskonPersen yang sudah ada (card & checkout otomatis ikut). */
+export async function applyEvent(formData: FormData) {
+  requireSection("produk");
+  const ids = formData.getAll("eventIds").map(String).filter(Boolean);
+  const pct = Math.min(90, Math.max(1, toInt(formData.get("diskonPersen"))));
+  const carousel = formData.get("eventCarousel") != null;
+  if (!ids.length || pct <= 0) redirect("/dashboard/promo");
+  for (const id of ids) {
+    const p = await prisma.product.findUnique({ where: { id }, select: { harga: true, variants: { select: { id: true, harga: true } } } });
+    if (!p) continue;
+    // ponytail: event menimpa diskon manual produk; hapus event mengembalikan ke non-diskon.
+    for (const v of p.variants) await prisma.productVariant.update({ where: { id: v.id }, data: { hargaDiskon: applyPct(v.harga, pct) } });
+    const headline = p.variants.length
+      ? p.variants.reduce((a, b) => (applyPct(b.harga, pct)! < applyPct(a.harga, pct)! ? b : a))
+      : null;
+    await prisma.product.update({
+      where: { id },
+      data: { diskonPersen: pct, eventAktif: true, eventCarousel: carousel, hargaDiskon: headline ? applyPct(headline.harga, pct) : applyPct(p.harga, pct) },
+    });
+  }
+  revalidatePublic();
+  redirect("/dashboard/promo");
+}
+
+/** Keluarkan produk dari event: balikin harga normal (diskon dicabut). */
+export async function clearEvent(id: string) {
+  requireSection("produk");
+  const p = await prisma.product.findUnique({ where: { id }, select: { variants: { select: { id: true } } } });
+  if (!p) return;
+  for (const v of p.variants) await prisma.productVariant.update({ where: { id: v.id }, data: { hargaDiskon: null } });
+  await prisma.product.update({ where: { id }, data: { diskonPersen: 0, eventAktif: false, eventCarousel: false, hargaDiskon: null } });
+  revalidatePublic(id);
+}
+
 export async function createHeroSlide(formData: FormData) {
   requireSection("hero");
   const file = formData.get("gambar");

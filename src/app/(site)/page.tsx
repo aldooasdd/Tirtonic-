@@ -220,6 +220,29 @@ function NewArrival({ products }: { products: ProductCardData[] }) {
   );
 }
 
+function EventPromo({ products }: { products: ProductCardData[] }) {
+  if (products.length === 0) return null;
+  return (
+    <section className="mx-auto max-w-site px-4 lg:px-6 py-2">
+      <div className="mb-1.5 flex items-center justify-between gap-3">
+        <h2 className="flex items-center gap-2 text-xl font-extrabold text-amber-600">
+          🔥 Lagi Event
+        </h2>
+        <Link href="/shop?event=1" className="text-sm font-semibold text-amber-600 hover:underline">
+          View All
+        </Link>
+      </div>
+      <div className="snap-x-carousel flex gap-4 overflow-x-auto pb-2">
+        {products.map((p) => (
+          <div key={p.id} className="snap-item w-[200px] shrink-0 sm:w-[220px]">
+            <ProductCard p={p} thinPrice />
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function BestDeal({ products }: { products: ProductCardData[] }) {
   if (products.length === 0) return null;
   return (
@@ -353,7 +376,7 @@ function GlassFilter() {
 }
 
 export default async function HomePage() {
-  const [stores, articles, slides, latest, deals, popular, brands, sfBranches, sfActive, preorders] = await Promise.all([
+  const [stores, articles, slides, latest, deals, eventItems, popular, brands, sfBranches, sfActive, preorders] = await Promise.all([
     safeQuery(() => prisma.store.findMany({ orderBy: [{ urutan: "asc" }, { nama: "asc" }] }), []),
     safeQuery(() => prisma.article.findMany({ orderBy: { tanggal: "desc" }, take: 8 }), []),
     safeQuery(
@@ -362,6 +385,7 @@ export default async function HomePage() {
     ),
     safeQuery(() => prisma.product.findMany({ orderBy: { createdAt: "desc" }, take: 12, include: { _count: { select: { variants: true } } } }), []),
     safeQuery(() => prisma.product.findMany({ where: { hargaDiskon: { not: null } }, orderBy: { updatedAt: "desc" }, take: 16, include: { _count: { select: { variants: true } } } }), []),
+    safeQuery(() => prisma.product.findMany({ where: { eventCarousel: true, status: "READY" }, orderBy: { updatedAt: "desc" }, take: 16, include: { _count: { select: { variants: true } } } }), []),
     safeQuery(() => prisma.product.findMany({ where: { status: "READY", views: { gt: 0 } }, orderBy: { views: "desc" }, take: 12, include: { _count: { select: { variants: true } } } }), []),
     safeQuery(() => prisma.popularBrand.findMany({ orderBy: [{ urutan: "asc" }, { nama: "asc" }] }), []),
     safeQuery(() => prisma.sfBranch.findMany({ where: { isActive: true, slug: { not: "tirtonic" } }, orderBy: { name: "asc" }, select: { id: true, name: true } }), []),
@@ -373,6 +397,7 @@ export default async function HomePage() {
   const forYou = popular.map(toCard);
   // only keep real discounts (diskon < harga), cap at 12
   const bestDeals = deals.filter((p) => p.hargaDiskon != null && p.hargaDiskon < p.harga).slice(0, 12).map(toCard);
+  const eventCards = eventItems.map(toCard);
   const storeItems = stores.map((s) => ({
     id: s.id,
     nama: s.nama,
@@ -401,6 +426,7 @@ export default async function HomePage() {
         </p>
       </div>
       <PreorderBanners products={preorders} />
+      <EventPromo products={eventCards} />
       <ForYou products={forYou} />
       <BrandPopular brands={brands.map((b) => ({ id: b.id, nama: b.nama, foto: b.foto }))} />
       <BestDeal products={bestDeals} />

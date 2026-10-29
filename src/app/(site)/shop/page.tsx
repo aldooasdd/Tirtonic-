@@ -36,7 +36,7 @@ const getShopBrands = unstable_cache(
   { revalidate: 300, tags: ["products"] }
 );
 
-type SP = { sort?: string; size?: string; brand?: string; type?: string; q?: string; price?: string; page?: string; deal?: string };
+type SP = { sort?: string; size?: string; brand?: string; type?: string; q?: string; price?: string; page?: string; deal?: string; event?: string };
 
 function orderBy(sort?: string): Prisma.ProductOrderByWithRelationInput {
   switch (sort) {
@@ -58,6 +58,7 @@ export default async function ShopPage({ searchParams }: { searchParams: SP }) {
   if (searchParams.size) where.ukuran = { has: searchParams.size };
   if (searchParams.q) where.nama = { contains: searchParams.q, mode: "insensitive" };
   if (searchParams.deal) where.hargaDiskon = { not: null }; // hanya barang diskon (Best Deal)
+  if (searchParams.event) where.eventAktif = true; // hanya barang yang lagi event/promo
   if (searchParams.price) {
     const [min, max] = searchParams.price.split("-").map((n) => (n ? parseInt(n, 10) : undefined));
     where.harga = { gte: min ?? 0, ...(max ? { lte: max } : {}) };
