@@ -174,7 +174,7 @@ export default async function RiwayatPage({ params, searchParams }: { params: { 
 
           {/* Tombol aksi — Fase 2 aktifkan Tukar Poin & Voucher */}
           <div className="relative z-10 grid grid-cols-3 gap-2">
-            <a href="#new-order" className="flex items-center justify-center gap-1.5 rounded-xl bg-white px-2.5 py-2 text-xs font-bold text-emerald-900 shadow-sm transition active:scale-95" title="Segera (Fase 2)">Tukar Poin</a>
+            <Link href={`/riwayat/${encodeURIComponent(phone ?? "")}/tukar`} className="flex items-center justify-center gap-1.5 rounded-xl bg-white px-2.5 py-2 text-xs font-bold text-emerald-900 shadow-sm transition active:scale-95">Tukar Poin</Link>
             <a href="#reward" className="flex items-center justify-center gap-1.5 rounded-xl border border-white/20 bg-white/15 px-2.5 py-2 text-xs font-medium text-white backdrop-blur-md transition active:scale-95">Redem Reward</a>
             <a href="/shop" className="flex items-center justify-center gap-1.5 rounded-xl border border-white/20 bg-white/15 px-2.5 py-2 text-xs font-medium text-white backdrop-blur-md transition active:scale-95">Voucher Belanja</a>
           </div>

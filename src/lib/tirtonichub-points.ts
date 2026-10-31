@@ -32,9 +32,10 @@ const BENEFIT: Record<string, string> = {
 export type AcePoints = {
   tier: string;
   tierLabel: string;
-  balance: number;
+  balance: number; // saldo tersedia (earned + referral − terpakai)
   rp: number;
   referral: number;
+  redeemed: number; // Ace sudah dipakai (redemption status "used")
   nextTier: string | null;
   nextTierLabel: string | null;
   pct: number;
@@ -48,6 +49,7 @@ const DEFAULT: AcePoints = {
   balance: 0,
   rp: 0,
   referral: 0,
+  redeemed: 0,
   nextTier: "Signature",
   nextTierLabel: "Tirtonic Signature",
   pct: 0,
@@ -130,7 +132,11 @@ export async function fetchAcePoints(phone: string | null): Promise<AcePoints> {
     }
   }
 
-  const balance = self.points + referral;
+  // Poin terpakai (redemption yang sudah dikonfirmasi kasir).
+  const redeemed = (await prisma.pointRedemption
+    .aggregate({ where: { phone, status: "used" }, _sum: { points: true } })
+    .catch(() => null))?._sum.points ?? 0;
+  const balance = Math.max(0, self.points + referral - redeemed);
 
   // Tier tampil: tier belanja, dinaikkan flag coach kalau rate lebih bagus.
   let cur: { name: string; label: string; rpPerAce: number } = tierFor(self.spend12mo);
@@ -144,6 +150,7 @@ export async function fetchAcePoints(phone: string | null): Promise<AcePoints> {
     balance,
     rp: balance * ACE_VALUE,
     referral,
+    redeemed,
     nextTier: next?.name ?? null,
     nextTierLabel: next?.label ?? null,
     pct: next ? Math.max(0, Math.min(100, Math.round((self.spend12mo / next.qualify) * 100))) : 100,

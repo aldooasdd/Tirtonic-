@@ -30,3 +30,5 @@ export const returnToken = (claimId: string) => make("return", claimId);
 export const verifyReturnToken = (token: string) => verify("return", token);
 export const rewardToken = (rewardId: string) => make("reward", rewardId);
 export const verifyRewardToken = (token: string) => verify("reward", token);
+export const redeemToken = (redemptionId: string) => make("redeem", redemptionId);
+export const verifyRedeemToken = (token: string) => verify("redeem", token);

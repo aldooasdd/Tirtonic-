@@ -458,6 +458,24 @@ model Member {
   @@index([referredBy])
 }
 
+// Penukaran Ace Points jadi potongan (tanpa saldo tersimpan). Pemenang/pembeli
+// generate QR → kasir scan konfirmasi → status "used" → poin baru dipotong.
+// Saldo tersedia = earned (invoice+online) − Σ points yang status "used".
+model PointRedemption {
+  id        String    @id @default(cuid())
+  phone     String // 62xxxx
+  points    Int // Ace dipakai
+  rupiah    Int // nilai potongan = points × 1000
+  kind      String // "kasir" | "stringing"
+  note      String? // keterangan ditampilkan ke kasir
+  status    String    @default("pending") // pending | used
+  usedAt    DateTime?
+  usedBy    String? // role/cabang yang scan
+  createdAt DateTime  @default(now())
+
+  @@index([phone])
+}
+
 model SfPrintJob {
   id          String      @id @default(cuid())
   resultCode  String
