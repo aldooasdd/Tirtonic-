@@ -43,14 +43,14 @@ export default async function VoucherPage({ params }: { params: { phone: string 
               <p className="mt-1 text-2xl font-extrabold">Poin Kamu: {pts.balance.toLocaleString("id-ID")} PTS</p>
               <p className="mt-0.5 text-xs text-emerald-100/80">Tukar poin jadi potongan belanja raket, apparel &amp; senar.</p>
             </div>
-            <Link href={`/riwayat/${encodeURIComponent(phone ?? "")}/tukar`} className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/15 text-xl backdrop-blur-md">⭐</Link>
+            <Link href={`/riwayat/${encodeURIComponent(phone ?? "")}/tukar`} className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/15 text-xs font-bold text-white backdrop-blur-md">Tukar</Link>
           </div>
         </div>
 
         {/* Voucher siap pakai (kupon aktif) */}
         <section className="space-y-3">
           <div className="flex items-center justify-between px-1">
-            <h3 className="text-sm font-bold tracking-tight text-slate-900">🎟️ Voucher Kamu</h3>
+            <h3 className="text-sm font-bold tracking-tight text-slate-900">Voucher Kamu</h3>
             <span className="text-[11px] font-medium text-slate-400">{vouchers.length} Aktif</span>
           </div>
           {vouchers.length === 0 ? (
@@ -59,8 +59,8 @@ export default async function VoucherPage({ params }: { params: { phone: string 
             vouchers.map((v) => (
               <div key={v.id} className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm">
                 <div className="flex items-center gap-3 p-4">
-                  <div className="flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
-                    <span className="text-xl">🎟️</span>
+                  <div className="flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-2xl bg-emerald-50 text-xs font-extrabold uppercase text-emerald-700">
+                    Voucher
                   </div>
                   <div className="min-w-0 flex-1">
                     <span className="inline-block rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">{v.label}</span>
@@ -79,7 +79,7 @@ export default async function VoucherPage({ params }: { params: { phone: string 
 
         {/* Panduan */}
         <section className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm">
-          <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-emerald-800">ℹ️ Panduan Penggunaan Voucher</div>
+          <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-emerald-800">Panduan Penggunaan Voucher</div>
           <ol className="space-y-2.5 text-xs leading-snug text-slate-600">
             <li className="flex gap-2.5"><span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-[11px] font-bold text-emerald-700">1</span><span><strong className="text-slate-800">Belanja di aplikasi/web:</strong> masukkan kode voucher di halaman checkout sebelum pembayaran.</span></li>
             <li className="flex gap-2.5"><span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-[11px] font-bold text-emerald-700">2</span><span><strong className="text-slate-800">Belanja di Pro Shop:</strong> tunjukkan kode voucher ke kasir saat transaksi.</span></li>
