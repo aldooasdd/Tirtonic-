@@ -15,11 +15,11 @@ const RP_PER_REFERRAL_ACE = 50_000; // coach 2% × (Rp1.000/Ace) = belanja / 50.
 
 // Tier berbasis belanja 12 bln. rpPerAce = rupiah belanja untuk 1 Ace. (mirror konfig hub)
 const TIERS = [
-  { name: "Prive", label: "Tirtonic Privé", qualify: 50_000_000, rpPerAce: 40_000 },
-  { name: "Signature", label: "Tirtonic Signature", qualify: 15_000_000, rpPerAce: 65_000 },
-  { name: "White", label: "Tirtonic White", qualify: 0, rpPerAce: 100_000 },
+  { name: "Prive", label: "Tirtonic Privé Card", qualify: 50_000_000, rpPerAce: 40_000 },
+  { name: "Signature", label: "Tirtonic Signature Card", qualify: 15_000_000, rpPerAce: 65_000 },
+  { name: "White", label: "Tirtonic White Card", qualify: 0, rpPerAce: 100_000 },
 ] as const;
-const GREEN = { name: "Green", label: "Tirtonic Green (Coach)", rpPerAce: 50_000 };
+const GREEN = { name: "Green", label: "Tirtonic Green Card", rpPerAce: 50_000 };
 const tierFor = (spend12mo: number) => TIERS.find((t) => spend12mo >= t.qualify) ?? TIERS[TIERS.length - 1];
 
 const BENEFIT: Record<string, string> = {
@@ -45,13 +45,13 @@ export type AcePoints = {
 
 const DEFAULT: AcePoints = {
   tier: "White",
-  tierLabel: "Tirtonic White",
+  tierLabel: "Tirtonic White Card",
   balance: 0,
   rp: 0,
   referral: 0,
   redeemed: 0,
   nextTier: "Signature",
-  nextTierLabel: "Tirtonic Signature",
+  nextTierLabel: "Tirtonic Signature Card",
   pct: 0,
   spendToNext: 15_000_000,
   nextBenefit: BENEFIT.Signature,
