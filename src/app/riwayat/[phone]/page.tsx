@@ -65,6 +65,19 @@ export default async function RiwayatPage({ params, searchParams }: { params: { 
   // Ace Points: tier + saldo dihitung di Tirtonichub (per-tier, belanja 12 bln, sejak 1 Nov 2026).
   const pts = await fetchAcePoints(phone);
 
+  // Warna kartu per tier (dokumen Member Card). dark = kartu gelap → teks putih.
+  const CARD: Record<string, { bg: string; dark: boolean }> = {
+    White: { bg: "linear-gradient(135deg,#cbd5e1 0%,#94a3b8 55%,#e2e8f0 100%)", dark: false },
+    Signature: { bg: "linear-gradient(135deg,#6b7280 0%,#4b5563 55%,#9ca3af 100%)", dark: true },
+    Prive: { bg: "linear-gradient(135deg,#18181b 0%,#000000 60%,#27272a 100%)", dark: true },
+    Green: { bg: "linear-gradient(135deg,#004328 0%,#005a36 45%,#006D40 100%)", dark: true },
+  };
+  const card = CARD[pts.tier] ?? CARD.White;
+  const d = card.dark;
+  const ink = d ? "text-white" : "text-slate-900";
+  const inkSub = d ? "text-white/80" : "text-slate-600";
+  const inkFaint = d ? "text-white/60" : "text-slate-500";
+
   // Jumlah stringing per bulan — 6 bulan terakhir (termasuk bulan ini).
   const now = new Date();
   const months = Array.from({ length: 6 }, (_, i) => {
@@ -128,8 +141,8 @@ export default async function RiwayatPage({ params, searchParams }: { params: { 
 
       <main className="relative z-10 space-y-4 px-5 pt-4">
         {/* ======= Kartu Tirtonic Ace (loyalty) ======= */}
-        <div className="relative overflow-hidden rounded-3xl border border-emerald-600/30 p-5 text-white shadow-[0_24px_48px_-12px_rgba(13,92,58,0.4)] bg-[linear-gradient(135deg,#004328_0%,#005a36_45%,#006D40_100%)]">
-          <div className="pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full bg-emerald-300/20 blur-2xl" />
+        <div className={`relative overflow-hidden rounded-3xl border p-5 shadow-[0_24px_48px_-12px_rgba(13,92,58,0.4)] ${ink} ${d ? "border-white/15" : "border-slate-300"}`} style={{ background: card.bg }}>
+          <div className={`pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full blur-2xl ${d ? "bg-white/10" : "bg-white/40"}`} />
           <div className="relative z-10 mb-4 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <div className="h-6 w-8 rounded-md border border-amber-300/40 bg-gradient-to-br from-amber-200/90 via-amber-300/70 to-yellow-500/80 p-0.5 shadow-sm">
@@ -139,44 +152,43 @@ export default async function RiwayatPage({ params, searchParams }: { params: { 
                 </div>
               </div>
               <div>
-                <span className="block text-[10px] font-bold uppercase leading-none tracking-widest text-emerald-200">Tirtonic Ace</span>
-                <span className="text-[11px] font-medium text-emerald-100/90">{pts.tierLabel}</span>
+                <span className={`block text-[10px] font-bold uppercase leading-none tracking-widest ${inkFaint}`}>Tirtonic Ace</span>
+                <span className={`text-lg font-extrabold leading-tight tracking-tight ${ink}`}>{pts.tierLabel}</span>
               </div>
             </div>
-            <span className="rounded-full border border-white/15 bg-white/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-200/80">Pass ID</span>
           </div>
 
           <div className="relative z-10 mb-3.5 flex items-baseline justify-between">
             <div>
-              <div className="text-[10px] font-semibold uppercase tracking-wider text-emerald-200/80">Saldo Ace Points</div>
+              <div className={`text-[10px] font-semibold uppercase tracking-wider ${inkFaint}`}>Saldo Ace Points</div>
               <div className="mt-0.5 flex items-baseline gap-2">
-                <span className="font-mono text-3xl font-extrabold tracking-tight text-white">{pts.balance.toLocaleString("id-ID")}</span>
-                <span className="text-xs font-bold tracking-wide text-emerald-200">PTS</span>
+                <span className={`font-mono text-3xl font-extrabold tracking-tight ${ink}`}>{pts.balance.toLocaleString("id-ID")}</span>
+                <span className={`text-xs font-bold tracking-wide ${inkSub}`}>PTS</span>
               </div>
             </div>
-            <span className="text-[11px] font-medium text-emerald-100">Setara {rupiah(pts.rp)}</span>
+            <span className={`text-[11px] font-medium ${inkSub}`}>Setara {rupiah(pts.rp)}</span>
           </div>
 
           {/* Tier progress */}
-          <div className="relative z-10 mb-4 rounded-2xl border border-white/10 bg-black/20 p-3 backdrop-blur-md">
-            <div className="mb-1.5 flex items-center justify-between text-[11px] text-emerald-100">
+          <div className={`relative z-10 mb-4 rounded-2xl border p-3 backdrop-blur-md ${d ? "border-white/10 bg-black/20" : "border-slate-300/70 bg-white/40"}`}>
+            <div className={`mb-1.5 flex items-center justify-between text-[11px] ${inkSub}`}>
               <span className="font-medium">{pts.nextTier ? `Menuju ${pts.nextTierLabel}` : "Tier tertinggi tercapai"}</span>
-              <span className="font-mono font-bold text-white">{pts.pct}%</span>
+              <span className={`font-mono font-bold ${ink}`}>{pts.pct}%</span>
             </div>
-            <div className="h-2 w-full overflow-hidden rounded-full bg-black/25 p-0.5">
-              <div className="h-full rounded-full bg-gradient-to-r from-emerald-300 via-teal-200 to-emerald-200 shadow-[0_0_10px_rgba(255,255,255,0.5)]" style={{ width: `${pts.pct}%` }} />
+            <div className={`h-2 w-full overflow-hidden rounded-full p-0.5 ${d ? "bg-black/25" : "bg-slate-300/60"}`}>
+              <div className="h-full rounded-full bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-300 shadow-[0_0_10px_rgba(16,185,129,0.5)]" style={{ width: `${pts.pct}%` }} />
             </div>
-            <div className="mt-1.5 flex items-center justify-between text-[10px] text-emerald-200/80">
+            <div className={`mt-1.5 flex items-center justify-between text-[10px] ${inkFaint}`}>
               <span>{pts.nextTier ? `Belanja ${rupiah(pts.spendToNext)} lagi` : "Benefit penuh aktif"}</span>
               {pts.nextBenefit && <span>Benefit: {pts.nextBenefit}</span>}
             </div>
           </div>
 
-          {/* Tombol aksi — Fase 2 aktifkan Tukar Poin & Voucher */}
+          {/* Tombol aksi */}
           <div className="relative z-10 grid grid-cols-3 gap-2">
-            <Link href={`/riwayat/${encodeURIComponent(phone ?? "")}/tukar`} className="flex items-center justify-center gap-1.5 rounded-xl bg-white px-2.5 py-2 text-xs font-bold text-emerald-900 shadow-sm transition active:scale-95">Tukar Poin</Link>
-            <a href="#reward" className="flex items-center justify-center gap-1.5 rounded-xl border border-white/20 bg-white/15 px-2.5 py-2 text-xs font-medium text-white backdrop-blur-md transition active:scale-95">Redem Reward</a>
-            <Link href={`/riwayat/${encodeURIComponent(phone ?? "")}/voucher`} className="flex items-center justify-center gap-1.5 rounded-xl border border-white/20 bg-white/15 px-2.5 py-2 text-xs font-medium text-white backdrop-blur-md transition active:scale-95">Voucher Belanja</Link>
+            <Link href={`/riwayat/${encodeURIComponent(phone ?? "")}/tukar`} className={`flex items-center justify-center gap-1.5 rounded-xl px-2.5 py-2 text-xs font-bold shadow-sm transition active:scale-95 ${d ? "bg-white text-emerald-900" : "bg-slate-900 text-white"}`}>Tukar Poin</Link>
+            <a href="#reward" className={`flex items-center justify-center gap-1.5 rounded-xl border px-2.5 py-2 text-xs font-medium backdrop-blur-md transition active:scale-95 ${d ? "border-white/20 bg-white/15 text-white" : "border-slate-400/50 bg-white/60 text-slate-800"}`}>Redem Reward</a>
+            <Link href={`/riwayat/${encodeURIComponent(phone ?? "")}/voucher`} className={`flex items-center justify-center gap-1.5 rounded-xl border px-2.5 py-2 text-xs font-medium backdrop-blur-md transition active:scale-95 ${d ? "border-white/20 bg-white/15 text-white" : "border-slate-400/50 bg-white/60 text-slate-800"}`}>Voucher Belanja</Link>
           </div>
         </div>
 
