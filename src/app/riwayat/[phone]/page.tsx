@@ -2,8 +2,7 @@ import Link from "next/link";
 import { prisma, safeQuery } from "@/lib/prisma";
 import { normalizePhone, displayPhone } from "@/lib/string-finder/phone";
 import { salam } from "@/lib/wa";
-import { acePoints } from "@/lib/points";
-import { fetchInvoicePoints } from "@/lib/tirtonichub-points";
+import { fetchAcePoints } from "@/lib/tirtonichub-points";
 import StringingBottomNav from "@/components/StringingBottomNav";
 import OrderHistory from "@/components/OrderHistory";
 import RewardRedeem from "@/components/RewardRedeem";
@@ -65,9 +64,8 @@ export default async function RiwayatPage({ params, searchParams }: { params: { 
   const selesai = orders.filter((o) => o.status === "selesai").length;
   const proses = orders.filter((o) => o.status === "antri" || o.status === "dikerjakan").length;
 
-  // Ace Points: dari invoice Tirtonichub (Σ grandTotal ÷ 1000, sejak 1 Nov 2026). redeemed = 0 (Fase 3).
-  const invoicePoints = await fetchInvoicePoints(phone);
-  const pts = acePoints(invoicePoints);
+  // Ace Points: tier + saldo dihitung di Tirtonichub (per-tier, belanja 12 bln, sejak 1 Nov 2026).
+  const pts = await fetchAcePoints(phone);
 
   // Jumlah stringing per bulan — 6 bulan terakhir (termasuk bulan ini).
   const now = new Date();
@@ -144,7 +142,7 @@ export default async function RiwayatPage({ params, searchParams }: { params: { 
               </div>
               <div>
                 <span className="block text-[10px] font-bold uppercase leading-none tracking-widest text-emerald-200">Tirtonic Ace</span>
-                <span className="text-[11px] font-medium text-emerald-100/90">{pts.tier}</span>
+                <span className="text-[11px] font-medium text-emerald-100/90">{pts.tierLabel}</span>
               </div>
             </div>
             <span className="rounded-full border border-white/15 bg-white/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-200/80">Pass ID</span>
@@ -164,14 +162,14 @@ export default async function RiwayatPage({ params, searchParams }: { params: { 
           {/* Tier progress */}
           <div className="relative z-10 mb-4 rounded-2xl border border-white/10 bg-black/20 p-3 backdrop-blur-md">
             <div className="mb-1.5 flex items-center justify-between text-[11px] text-emerald-100">
-              <span className="font-medium">{pts.nextTier ? `Menuju ${pts.nextTier}` : "Tier tertinggi tercapai"}</span>
+              <span className="font-medium">{pts.nextTier ? `Menuju ${pts.nextTierLabel}` : "Tier tertinggi tercapai"}</span>
               <span className="font-mono font-bold text-white">{pts.pct}%</span>
             </div>
             <div className="h-2 w-full overflow-hidden rounded-full bg-black/25 p-0.5">
               <div className="h-full rounded-full bg-gradient-to-r from-emerald-300 via-teal-200 to-emerald-200 shadow-[0_0_10px_rgba(255,255,255,0.5)]" style={{ width: `${pts.pct}%` }} />
             </div>
             <div className="mt-1.5 flex items-center justify-between text-[10px] text-emerald-200/80">
-              <span>{pts.nextTier ? `Butuh ${pts.toNext} pts lagi` : "Benefit penuh aktif"}</span>
+              <span>{pts.nextTier ? `Belanja ${rupiah(pts.spendToNext)} lagi` : "Benefit penuh aktif"}</span>
               {pts.nextBenefit && <span>Benefit: {pts.nextBenefit}</span>}
             </div>
           </div>
