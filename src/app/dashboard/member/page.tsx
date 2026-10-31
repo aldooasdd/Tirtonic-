@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { isAuthed, can } from "@/lib/auth";
 import { prisma, safeQuery } from "@/lib/prisma";
 import { displayPhone } from "@/lib/string-finder/phone";
-import { saveMember, deleteMember } from "./actions";
+import { saveMember, deleteMember, importMembers } from "./actions";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Member Loyalty — Tirtonic" };
@@ -22,11 +22,18 @@ export default async function MemberPage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6 p-4 pb-20">
-      <div>
-        <h1 className="text-xl font-extrabold text-gray-900">Member Loyalty</h1>
-        <p className="mt-0.5 text-sm text-gray-500">
-          Kelola coach (Green), undangan Privé, kode referral, dan ultah. Tier &amp; poin dari belanja dihitung otomatis dari invoice.
-        </p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-extrabold text-gray-900">Member Loyalty</h1>
+          <p className="mt-0.5 text-sm text-gray-500">
+            Kelola coach (Green), kode referral, dan ultah. Tier &amp; poin dari belanja dihitung otomatis dari transaksi.
+          </p>
+        </div>
+        <form action={importMembers}>
+          <button type="submit" className="shrink-0 rounded-xl border border-primary px-3 py-2 text-xs font-bold text-primary active:scale-95">
+            Impor dari transaksi
+          </button>
+        </form>
       </div>
 
       {/* Form tambah/ubah member */}
