@@ -5,8 +5,6 @@ import { salam } from "@/lib/wa";
 import { fetchAcePoints } from "@/lib/tirtonichub-points";
 import StringingBottomNav from "@/components/StringingBottomNav";
 import OrderHistory from "@/components/OrderHistory";
-import ClaimReward from "@/components/ClaimReward";
-import { rewardToken } from "@/lib/pickup-token";
 
 export const dynamic = "force-dynamic";
 
@@ -184,9 +182,14 @@ export default async function RiwayatPage({ params, searchParams }: { params: { 
 
         {/* Reward leaderboard (kalau ada) */}
         {reward && (
-          <div id="reward">
-            <ClaimReward token={rewardToken(reward.id)} rank={reward.rank} prize={reward.prize} period={reward.period} phone={reward.phone} />
-          </div>
+          <Link href={`/riwayat/${encodeURIComponent(phone ?? "")}/reward`} id="reward" className="flex items-center gap-3.5 rounded-3xl border border-amber-200 bg-gradient-to-br from-amber-50 to-white p-5 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.05)] transition active:scale-[0.99]">
+            <span className="text-2xl">🏆</span>
+            <div className="min-w-0 flex-1">
+              <p className="font-bold text-gray-900">Kamu Peringkat {reward.rank}!</p>
+              <p className="truncate text-sm text-gray-600">{reward.redeemedAt ? "Hadiah sudah diklaim" : "Klaim hadiahmu — ketuk di sini"}</p>
+            </div>
+            <span className="text-lg text-slate-400">›</span>
+          </Link>
         )}
 
         {tab === "pesanan" ? (

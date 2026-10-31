@@ -12,8 +12,8 @@ const eq = (a: string, b: string) => {
   return ba.length === bb.length && crypto.timingSafeEqual(ba, bb);
 };
 
-// Item hadiah = teks prize dipisah " + ".
-export const prizeItems = (prize: string) => prize.split(" + ").map((s) => s.trim()).filter(Boolean);
+// Item hadiah = teks prize dipisah " + ". (lokal: file "use server" hanya boleh export async)
+const prizeItems = (prize: string) => prize.split(" + ").map((s) => s.trim()).filter(Boolean);
 
 async function load(token: string) {
   const id = verifyRewardToken(token);
