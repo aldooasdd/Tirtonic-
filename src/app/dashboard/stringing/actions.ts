@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireSection, sessionBranchId, currentRole } from "@/lib/auth";
-import { sendWa, salam, stringingRoomLink } from "@/lib/wa";
+import { sendWa, salam } from "@/lib/wa";
 import { normalizePhone } from "@/lib/string-finder/phone";
 import { verifyRewardToken } from "@/lib/pickup-token";
 import { completeStringing } from "@/lib/stringing";
@@ -38,7 +38,7 @@ export async function startStringing(id: string, formData: FormData) {
 
 Raket Anda dengan kode pesanan *${order.resultCode}* saat ini sedang dikerjakan oleh stringer kami, ${stringerName}.
 
-Progres dapat dipantau di ${stringingRoomLink()}. Kami akan segera mengabari Anda setelah raket siap diambil.
+Kami akan segera mengabari Anda setelah raket siap diambil.
 
 Salam hangat,
 ${order.branch.name} 🎾`,

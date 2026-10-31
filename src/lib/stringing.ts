@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { sendWa, salam } from "@/lib/wa";
 
+const siteUrl = () => (process.env.NEXT_PUBLIC_SITE_URL || "https://tirtonic.com").replace(/\/$/, "");
+
 export type CompleteResult = { ok: boolean; resultCode?: string; reason?: string };
 
 /** Inti "tandai selesai stringing": set status selesai + kirim WA siap-ambil.
@@ -21,6 +23,11 @@ export async function completeStringing(
 Raket Anda dengan kode pesanan *${order.resultCode}* telah selesai dipasang dan siap diambil di ${order.branch.name}.
 
 Silakan tunjukkan kode pesanan saat pengambilan. Kami buka setiap hari pukul 09.00 – 21.00.
+
+Riwayat stringing Anda, termasuk jenis senar dan tension yang dipakai, dapat dilihat kapan saja melalui:
+${siteUrl()}/riwayat/${order.phone}
+
+Atau masuk di tirtonic.com menggunakan nomor WhatsApp Anda.
 
 Terima kasih telah mempercayakan raket Anda kepada Tirtonic. Selamat bermain!
 
