@@ -186,7 +186,7 @@ export default async function RiwayatPage({ params, searchParams }: { params: { 
 
           {/* Tombol aksi */}
           <div className="relative z-10 grid grid-cols-3 gap-2">
-            <Link href={`/riwayat/${encodeURIComponent(phone ?? "")}/tukar`} className={`flex items-center justify-center gap-1.5 rounded-xl px-2.5 py-2 text-xs font-bold shadow-sm transition active:scale-95 ${d ? "bg-white text-emerald-900" : "bg-slate-900 text-white"}`}>Tukar Poin</Link>
+            <Link href={`/riwayat/${encodeURIComponent(phone ?? "")}/tukar`} className={`flex items-center justify-center gap-1.5 rounded-xl border px-2.5 py-2 text-xs font-medium backdrop-blur-md transition active:scale-95 ${d ? "border-white/20 bg-white/15 text-white" : "border-slate-400/50 bg-white/60 text-slate-800"}`}>Tukar Poin</Link>
             <a href="#reward" className={`flex items-center justify-center gap-1.5 rounded-xl border px-2.5 py-2 text-xs font-medium backdrop-blur-md transition active:scale-95 ${d ? "border-white/20 bg-white/15 text-white" : "border-slate-400/50 bg-white/60 text-slate-800"}`}>Redem Reward</a>
             <Link href={`/riwayat/${encodeURIComponent(phone ?? "")}/voucher`} className={`flex items-center justify-center gap-1.5 rounded-xl border px-2.5 py-2 text-xs font-medium backdrop-blur-md transition active:scale-95 ${d ? "border-white/20 bg-white/15 text-white" : "border-slate-400/50 bg-white/60 text-slate-800"}`}>Voucher Belanja</Link>
           </div>
