@@ -39,7 +39,10 @@ export default async function RewardRedeemPage({ params }: { params: { token: st
             <span className="inline-flex rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-bold uppercase text-primary">Peringkat {reward.rank} · {reward.period}</span>
             <h1 className="mt-2 text-lg font-bold text-gray-900">{reward.name ?? "Pemenang"}</h1>
             <p className="mt-0.5 text-sm text-gray-500">{reward.phone}</p>
-            <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">{reward.prize}</p>
+            <div className="mt-3 space-y-1 rounded-lg bg-amber-50 px-3 py-2 text-left text-sm text-amber-800">
+              {(reward.claimItems ?? reward.prize).split(" + ").map((it) => <div key={it}>✓ {it.trim()}</div>)}
+            </div>
+            {!reward.claimItems && <p className="mt-2 text-xs text-amber-600">Pemenang belum memilih item lewat OTP — ini seluruh hadiah.</p>}
             <form action={redeemReward.bind(null, params.token)} className="mt-5">
               <button className="w-full rounded-full bg-primary py-3 font-bold text-white hover:bg-primaryDark">Tandai hadiah ditukar</button>
             </form>

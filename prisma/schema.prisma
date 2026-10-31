@@ -429,6 +429,13 @@ model Reward {
   redeemedBy String? // role/cabang yang scan
   createdAt  DateTime  @default(now())
 
+  // Klaim via OTP WA: pemenang verifikasi OTP, pilih item hadiah, baru QR muncul.
+  claimOtpHash  String? // sha256(secret + kode OTP)
+  claimOtpExp   DateTime? // kadaluarsa OTP
+  claimOtpTries Int       @default(0) // percobaan salah; dikunci setelah 5
+  claimVerified DateTime? // kapan OTP terverifikasi (izin pilih item)
+  claimItems    String? // item hadiah terpilih, dipisah " + "
+
   @@unique([period, rank])
   @@index([phone])
 }

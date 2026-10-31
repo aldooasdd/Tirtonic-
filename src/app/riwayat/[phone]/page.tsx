@@ -5,7 +5,7 @@ import { salam } from "@/lib/wa";
 import { fetchAcePoints } from "@/lib/tirtonichub-points";
 import StringingBottomNav from "@/components/StringingBottomNav";
 import OrderHistory from "@/components/OrderHistory";
-import RewardRedeem from "@/components/RewardRedeem";
+import ClaimReward from "@/components/ClaimReward";
 import { rewardToken } from "@/lib/pickup-token";
 
 export const dynamic = "force-dynamic";
@@ -185,7 +185,7 @@ export default async function RiwayatPage({ params, searchParams }: { params: { 
         {/* Reward leaderboard (kalau ada) */}
         {reward && (
           <div id="reward">
-            <RewardRedeem token={rewardToken(reward.id)} rank={reward.rank} prize={reward.prize} period={reward.period} />
+            <ClaimReward token={rewardToken(reward.id)} rank={reward.rank} prize={reward.prize} period={reward.period} phone={reward.phone} />
           </div>
         )}
 
