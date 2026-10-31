@@ -1,10 +1,9 @@
-// Ace Points — sistem poin loyalty customer (Fase 1: derived dari jumlah stringing).
-// Balance = (jumlah stringing non-batal × PT_PER_STRING) − poin terpakai.
-// Fase 2: poin terpakai dari tabel PointRedemption (sekarang selalu 0).
+// Ace Points — sistem poin loyalty customer.
+// Fase 2: poin EARNED dari invoice Tirtonichub (Σ grandTotal ÷ 1000, sejak 1 Nov 2026 WIB).
+// Balance = earned − poin terpakai (redeemed; Fase 3 pakai tabel PointRedemption, kini 0).
 // ponytail: tier & rate statis di sini; pindah ke config kalau perlu diubah admin.
 
-export const PT_PER_STRING = 50;
-export const RP_PER_PT = 100; // 1 poin = Rp100 (1.450 pts = Rp145.000, ikut mockup)
+export const RP_PER_PT = 100; // nilai tukar poin (provisional, redeem rule Fase 3)
 
 const TIERS = [
   { name: "Signature Tier", min: 0, benefit: "Akses antrean prioritas" },
@@ -24,8 +23,8 @@ export type AcePoints = {
   toNext: number; // poin lagi menuju tier berikutnya
 };
 
-export function acePoints(stringCount: number, redeemed = 0): AcePoints {
-  const earned = Math.max(0, stringCount) * PT_PER_STRING;
+export function acePoints(earnedPoints: number, redeemed = 0): AcePoints {
+  const earned = Math.max(0, Math.floor(earnedPoints));
   const balance = Math.max(0, earned - redeemed);
   let i = 0;
   for (let k = 0; k < TIERS.length; k++) if (balance >= TIERS[k].min) i = k;
@@ -44,5 +43,4 @@ export function acePoints(stringCount: number, redeemed = 0): AcePoints {
   };
 }
 
-// demo self-check (ponytail): jalankan `node --import tsx src/lib/points.ts` tak perlu; cek manual logika tier.
-// 29 stringing → 1450 pts → Deuce Black belum (min 2000), tier Pro (min 500), toNext 550, pct 63%.
+// cek manual logika tier: 1450 poin → tier Pro (min 500), nextTier Deuce Black (2000), toNext 550, pct 63%.

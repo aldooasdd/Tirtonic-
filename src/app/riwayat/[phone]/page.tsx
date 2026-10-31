@@ -2,7 +2,8 @@ import Link from "next/link";
 import { prisma, safeQuery } from "@/lib/prisma";
 import { normalizePhone, displayPhone } from "@/lib/string-finder/phone";
 import { salam } from "@/lib/wa";
-import { acePoints, PT_PER_STRING } from "@/lib/points";
+import { acePoints } from "@/lib/points";
+import { fetchInvoicePoints } from "@/lib/tirtonichub-points";
 import StringingBottomNav from "@/components/StringingBottomNav";
 import OrderHistory from "@/components/OrderHistory";
 import RewardRedeem from "@/components/RewardRedeem";
@@ -64,9 +65,9 @@ export default async function RiwayatPage({ params, searchParams }: { params: { 
   const selesai = orders.filter((o) => o.status === "selesai").length;
   const proses = orders.filter((o) => o.status === "antri" || o.status === "dikerjakan").length;
 
-  // Ace Points: jumlah stringing non-batal (lifetime) × poin. redeemed = 0 (Fase 2).
-  const stringCount = phone ? await prisma.sfOrder.count({ where: { phone, status: { not: "batal" } } }) : 0;
-  const pts = acePoints(stringCount);
+  // Ace Points: dari invoice Tirtonichub (Σ grandTotal ÷ 1000, sejak 1 Nov 2026). redeemed = 0 (Fase 3).
+  const invoicePoints = await fetchInvoicePoints(phone);
+  const pts = acePoints(invoicePoints);
 
   // Jumlah stringing per bulan — 6 bulan terakhir (termasuk bulan ini).
   const now = new Date();
@@ -233,7 +234,7 @@ export default async function RiwayatPage({ params, searchParams }: { params: { 
                 <div>
                   <div className="flex items-center gap-2">
                     <div className="text-sm font-bold tracking-tight text-slate-900">Buat Antrean Stringing Baru</div>
-                    <span className="rounded-full border border-emerald-200 bg-emerald-100 px-2 py-0.5 text-[9px] font-extrabold uppercase text-emerald-800">+{PT_PER_STRING} Poin</span>
+                    <span className="rounded-full border border-emerald-200 bg-emerald-100 px-2 py-0.5 text-[9px] font-extrabold uppercase text-emerald-800">+ Poin</span>
                   </div>
                   <div className="mt-0.5 text-[11px] text-slate-500">Estimasi 1-2 jam • Bonus Ace Poin langsung masuk</div>
                 </div>
