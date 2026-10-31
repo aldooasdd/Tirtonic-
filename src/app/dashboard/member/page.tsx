@@ -56,9 +56,6 @@ export default async function MemberPage() {
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
               <input type="checkbox" name="isCoach" className="h-4 w-4 rounded border-gray-300 text-primary" /> Coach (Green)
             </label>
-            <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-              <input type="checkbox" name="invitedPrive" className="h-4 w-4 rounded border-gray-300 text-primary" /> Undangan Privé
-            </label>
           </div>
         </div>
         <button type="submit" className="rounded-xl bg-primary px-5 py-2 text-sm font-bold text-white shadow-sm active:scale-95">
