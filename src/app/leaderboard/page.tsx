@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { wibNow, wibMonthRange, wibMonthLabel } from "@/lib/wib";
 import StringingBottomNav from "@/components/StringingBottomNav";
 import MyRank from "@/components/MyRank";
 import CountdownPeriode from "@/components/CountdownPeriode";
@@ -60,10 +61,8 @@ function PodiumSlot({ row, rank }: { row: Row; rank: number }) {
 export default async function LeaderboardPage({ searchParams }: { searchParams: { loc?: string; ym?: string } }) {
   const loc = searchParams.loc && LOCS.has(searchParams.loc) ? searchParams.loc : "global";
 
-  // Bulan yang dilihat: dari ?ym=YYYY-MM, default bulan ini. Tidak boleh ke masa depan.
-  const real = new Date();
-  const curY = real.getFullYear();
-  const curM = real.getMonth();
+  // Bulan yang dilihat: dari ?ym=YYYY-MM, default bulan ini (WIB). Tidak boleh ke masa depan.
+  const { y: curY, m: curM } = wibNow();
   let y = curY, m = curM;
   const ymMatch = searchParams.ym?.match(/^(\d{4})-(\d{2})$/);
   if (ymMatch) {
@@ -71,13 +70,12 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
     const mi = Number(ymMatch[2]) - 1;
     if (mi >= 0 && mi <= 11 && (yy < curY || (yy === curY && mi <= curM))) { y = yy; m = mi; }
   }
-  const start = new Date(y, m, 1);
-  const end = new Date(y, m + 1, 1);
-  const bulanShort = start.toLocaleDateString("id-ID", { month: "short", year: "numeric" });
+  const { start, end } = wibMonthRange(y, m);
+  const bulanShort = wibMonthLabel(y, m, { month: "short", year: "numeric" });
 
   // Countdown periode (hanya bulan berjalan).
   const isCurrent = y === curY && m === curM;
-  const msLeft = end.getTime() - real.getTime();
+  const msLeft = end.getTime() - Date.now();
   const ymViewed = `${y}-${String(m + 1).padStart(2, "0")}`;
 
   // URL ke leaderboard dgn lokasi + bulan tertentu (ym dihilangkan kalau bulan ini).

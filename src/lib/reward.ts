@@ -1,6 +1,7 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
 import { sendWa } from "@/lib/wa";
+import { wibNow, wibMonthRange, wibMonthLabel } from "@/lib/wib";
 
 // Hadiah per peringkat Global (samakan dgn tabel PRIZES di halaman leaderboard).
 const PRIZE: Record<number, string> = {
@@ -35,11 +36,13 @@ async function top3Global(start: Date, end: Date) {
 /** Cron (jalan tiap awal bulan): tutup periode bulan lalu → buat Reward top 3 Global + WA klaim.
  *  Idempoten: upsert per (period, rank); WA cuma dikirim sekali (notifiedAt null). */
 export async function runLeaderboardReward(): Promise<{ winners: number; notified: number }> {
-  const now = new Date();
-  const start = new Date(now.getFullYear(), now.getMonth() - 1, 1); // awal bulan lalu
-  const end = new Date(now.getFullYear(), now.getMonth(), 1); // awal bulan ini
-  const period = `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, "0")}`;
-  const monthLabel = start.toLocaleDateString("id-ID", { month: "long", year: "numeric" });
+  // Bulan lalu menurut WIB (cron jalan awal bulan 07:05 WIB).
+  const { y, m } = wibNow();
+  const py = m === 0 ? y - 1 : y;
+  const pm = m === 0 ? 11 : m - 1;
+  const { start, end } = wibMonthRange(py, pm);
+  const period = `${py}-${String(pm + 1).padStart(2, "0")}`;
+  const monthLabel = wibMonthLabel(py, pm);
 
   const winners = await top3Global(start, end);
   let notified = 0;
