@@ -306,15 +306,22 @@ export default async function RiwayatPage({ params, searchParams }: { params: { 
                     </div>
 
                     {tension && (
-                      <div className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-slate-50/80 p-3.5">
-                        <div className="max-w-[62%] space-y-0.5">
+                      <div className="rounded-2xl border border-slate-200/80 bg-slate-50/80 p-3.5">
+                        <div className="mb-2 flex items-center justify-between">
                           <span className="inline-block rounded-md border border-emerald-200 bg-emerald-100/70 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-emerald-800">{s.hybrid ? "Hybrid" : "Full Bed"}</span>
-                          <p className="mt-1 truncate text-xs font-bold text-slate-900" title={s.main ?? ""}>{s.main ?? "—"}</p>
-                          {s.hybrid && <p className="truncate text-[11px] text-slate-500">Cross: {s.cross ?? "—"}</p>}
+                          <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Tension</span>
                         </div>
-                        <div className="border-l border-slate-200 pl-3 text-right">
-                          <span className="block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Tension</span>
-                          <div className="mt-1 font-mono text-base font-extrabold leading-none tracking-tight text-slate-900">{tension} <span className="text-xs font-normal text-slate-500">lbs</span></div>
+                        <div className="space-y-1.5">
+                          <div className="flex items-center justify-between gap-3">
+                            <p className="min-w-0 flex-1 truncate text-xs text-slate-900" title={s.main ?? ""}><strong className="font-bold">Main :</strong> {s.main ?? "—"}</p>
+                            <span className="shrink-0 font-mono text-sm font-extrabold tracking-tight text-slate-900">{o.tensionLbs ?? "—"}<span className="text-[10px] font-normal text-slate-500"> lbs</span></span>
+                          </div>
+                          {s.hybrid && (
+                            <div className="flex items-center justify-between gap-3">
+                              <p className="min-w-0 flex-1 truncate text-xs text-slate-900" title={s.cross ?? ""}><strong className="font-bold">Cross :</strong> {s.cross ?? "—"}</p>
+                              <span className="shrink-0 font-mono text-sm font-extrabold tracking-tight text-slate-900">{o.tensionCrossLbs ?? o.tensionLbs ?? "—"}<span className="text-[10px] font-normal text-slate-500"> lbs</span></span>
+                            </div>
+                          )}
                         </div>
                       </div>
                     )}
