@@ -9,13 +9,11 @@ import VoucherCheck from "@/components/VoucherCheck";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Voucher Belanja — Tirtonic", robots: { index: false } };
 
-const discLabel = (type: string, value: number) => (type === "amount" ? `Potongan Rp ${value.toLocaleString("id-ID")}` : `Diskon ${value}%`);
-
 export default async function VoucherPage({ params }: { params: { phone: string } }) {
   const phone = normalizePhone(decodeURIComponent(params.phone));
-  const [pts, coupons] = await Promise.all([
+  const [pts, vouchers] = await Promise.all([
     fetchAcePoints(phone),
-    safeQuery(() => prisma.coupon.findMany({ where: { active: true }, orderBy: { createdAt: "desc" } }), []),
+    safeQuery(() => prisma.memberVoucher.findMany({ where: { phone: phone ?? "__none__", status: "active" }, orderBy: { createdAt: "desc" } }), []),
   ]);
   const greeting = `Selamat ${salam()}`;
 
@@ -34,7 +32,7 @@ export default async function VoucherPage({ params }: { params: { phone: string 
 
       <main className="relative z-10 space-y-5 px-5 pt-4">
         {/* Input kode promo */}
-        <VoucherCheck />
+        <VoucherCheck phone={phone ?? ""} />
 
         {/* Kartu poin */}
         <div className="relative overflow-hidden rounded-3xl p-5 text-white shadow-[0_24px_48px_-12px_rgba(13,92,58,0.4)] bg-[linear-gradient(135deg,#004328_0%,#005a36_45%,#006D40_100%)]">
@@ -52,22 +50,22 @@ export default async function VoucherPage({ params }: { params: { phone: string 
         {/* Voucher siap pakai (kupon aktif) */}
         <section className="space-y-3">
           <div className="flex items-center justify-between px-1">
-            <h3 className="text-sm font-bold tracking-tight text-slate-900">🎟️ Voucher Siap Pakai</h3>
-            <span className="text-[11px] font-medium text-slate-400">{coupons.length} Aktif</span>
+            <h3 className="text-sm font-bold tracking-tight text-slate-900">🎟️ Voucher Kamu</h3>
+            <span className="text-[11px] font-medium text-slate-400">{vouchers.length} Aktif</span>
           </div>
-          {coupons.length === 0 ? (
-            <p className="rounded-3xl border border-slate-200/80 bg-white p-6 text-center text-sm text-slate-400 shadow-sm">Belum ada voucher aktif.</p>
+          {vouchers.length === 0 ? (
+            <p className="rounded-3xl border border-slate-200/80 bg-white p-6 text-center text-sm text-slate-400 shadow-sm">Belum punya voucher. Menang leaderboard atau klaim kode promo di atas untuk dapat voucher.</p>
           ) : (
-            coupons.map((c) => (
-              <div key={c.id} className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm">
+            vouchers.map((v) => (
+              <div key={v.id} className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm">
                 <div className="flex items-center gap-3 p-4">
                   <div className="flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
                     <span className="text-xl">🎟️</span>
                   </div>
                   <div className="min-w-0 flex-1">
-                    <span className="inline-block rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">{discLabel(c.type, c.value)}</span>
-                    <p className="mt-1 truncate font-bold text-slate-900">Kode {c.code}</p>
-                    <p className="text-[11px] text-slate-500">{c.productIds.length || c.categories.length ? "Produk tertentu" : "Semua produk"}</p>
+                    <span className="inline-block rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">{v.label}</span>
+                    <p className="mt-1 truncate font-bold text-slate-900">Kode {v.code}</p>
+                    <p className="text-[11px] text-slate-500">{v.source === "reward" ? "Hadiah leaderboard" : "Kode promo"}</p>
                   </div>
                 </div>
                 <div className="flex items-center justify-between border-t border-dashed border-slate-200 px-4 py-2.5">

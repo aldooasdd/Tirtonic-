@@ -476,6 +476,24 @@ model PointRedemption {
   @@index([phone])
 }
 
+// Voucher milik 1 member (bukan kupon global). Sumber: klaim kode promo (promo)
+// atau hadiah leaderboard yang dikonfirmasi (reward). Dipakai di checkout/kasir.
+model MemberVoucher {
+  id        String    @id @default(cuid())
+  phone     String // 62xxxx
+  code      String // kode dipakai di checkout/kasir
+  label     String // mis. "Potongan Rp 50.000"
+  type      String    @default("amount") // percent | amount
+  value     Int
+  source    String // promo | reward
+  status    String    @default("active") // active | used
+  usedAt    DateTime?
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([phone, status])
+}
+
 model SfPrintJob {
   id          String      @id @default(cuid())
   resultCode  String

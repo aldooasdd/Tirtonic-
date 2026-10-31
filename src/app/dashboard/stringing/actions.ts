@@ -104,5 +104,18 @@ export async function redeemReward(token: string): Promise<void> {
   if (!r || r.redeemedAt) return; // sudah ditukar / tak dikenal → no-op
   const by = currentRole()?.label ?? "Stringer";
   await prisma.reward.update({ where: { id }, data: { redeemedAt: new Date(), redeemedBy: by } });
+
+  // Terbitkan voucher milik pemenang untuk tiap item "Voucher Rp X" yang diklaim.
+  const itemsText = r.claimItems ?? r.prize;
+  for (const it of itemsText.split(" + ").map((s) => s.trim())) {
+    const m = it.match(/voucher.*?rp\s*([\d.]+)/i);
+    if (!m) continue;
+    const val = parseInt(m[1].replace(/\./g, ""), 10);
+    if (val > 0) {
+      await prisma.memberVoucher.create({
+        data: { phone: r.phone, code: `RWD-${id.slice(-5).toUpperCase()}`, label: `Potongan Rp ${val.toLocaleString("id-ID")}`, type: "amount", value: val, source: "reward" },
+      });
+    }
+  }
   revalidatePath(`/dashboard/stringing/reward/${token}`);
 }

@@ -1,18 +1,22 @@
 "use client";
 
 import { useState } from "react";
-import { checkCoupon } from "@/app/riwayat/voucher-actions";
+import { useRouter } from "next/navigation";
+import { claimVoucher } from "@/app/riwayat/voucher-actions";
 
-// Input kode promo → cek validitas (reuse Coupon). Hasil tampil di bawah input.
-export default function VoucherCheck() {
+// Input kode promo → klaim jadi voucher milik member (lalu refresh daftar).
+export default function VoucherCheck({ phone }: { phone: string }) {
+  const router = useRouter();
   const [code, setCode] = useState("");
   const [res, setRes] = useState<{ ok: boolean; desc?: string; error?: string } | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const check = async () => {
+  const claim = async () => {
     setBusy(true);
-    setRes(await checkCoupon(code));
+    const r = await claimVoucher(phone, code);
     setBusy(false);
+    setRes(r);
+    if (r.ok) { setCode(""); router.refresh(); }
   };
 
   return (
@@ -23,7 +27,7 @@ export default function VoucherCheck() {
           placeholder="MASUKKAN KODE PROMO…"
           className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm font-semibold tracking-wide text-slate-800 outline-none placeholder:font-normal placeholder:tracking-normal placeholder:text-slate-400"
         />
-        <button onClick={check} disabled={busy || !code.trim()} className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50">
+        <button onClick={claim} disabled={busy || !code.trim()} className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50">
           {busy ? "…" : "Klaim"}
         </button>
       </div>
