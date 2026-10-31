@@ -50,7 +50,8 @@ function getOrders(branchId: string | null) {
   return prisma.sfOrder.findMany({
     where: branchId ? { branchId } : undefined,
     orderBy: [{ status: "asc" }, { createdAt: "desc" }],
-    take: 300,
+    // ponytail: tanpa limit — tampilkan semua. Kalau data makin ribuan & egress/CPU
+    // Vercel berat, ganti ke pagination di sini.
     include: { branch: { select: { name: true } }, result: { select: { condition: true } } },
   });
 }
