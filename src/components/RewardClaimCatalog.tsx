@@ -99,7 +99,7 @@ export default function RewardClaimCatalog({ token, rank, items, phone, expired 
 
       {/* Popup liquid glass: OTP → QR */}
       {phase !== "closed" && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center" role="dialog" aria-modal="true">
+        <div className="fixed inset-0 z-50 flex items-center justify-center" role="dialog" aria-modal="true">
           <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-md" onClick={close} />
           <div className="relative z-10 m-3 w-full max-w-sm overflow-hidden rounded-[28px] border border-white/50 bg-white/70 shadow-[0_20px_60px_-10px_rgba(0,0,0,0.4)] backdrop-blur-2xl backdrop-saturate-150">
             <div className="pointer-events-none absolute -top-16 left-1/2 h-40 w-40 -translate-x-1/2 rounded-full bg-white/50 blur-3xl" />
