@@ -38,29 +38,6 @@ export async function saveMember(formData: FormData) {
   revalidatePath(`/riwayat/${phone}`);
 }
 
-// Daftarkan semua orang yang pernah stringing (SfOrder) atau belanja web (Order) jadi Member.
-// Tak menimpa member yang sudah ada (flag coach/referral tetap). Poin tetap dari transaksi.
-export async function importMembers() {
-  requireSection("member");
-  const [sf, ord] = await Promise.all([
-    prisma.sfOrder.findMany({ select: { phone: true, customerName: true }, orderBy: { createdAt: "asc" } }),
-    prisma.order.findMany({ select: { telepon: true, nama: true }, orderBy: { createdAt: "asc" } }),
-  ]);
-  const map = new Map<string, string | null>(); // phone 62xxxx → nama (yang pertama ketemu)
-  for (const o of sf) {
-    const p = normalizePhone(o.phone || "");
-    if (p && !map.has(p)) map.set(p, o.customerName || null);
-  }
-  for (const o of ord) {
-    const p = normalizePhone(o.telepon || "");
-    if (p && !map.has(p)) map.set(p, o.nama || null);
-  }
-  const existing = new Set((await prisma.member.findMany({ select: { phone: true } })).map((m) => m.phone));
-  const toCreate = [...map].filter(([p]) => !existing.has(p)).map(([phone, name]) => ({ phone, name }));
-  if (toCreate.length) await prisma.member.createMany({ data: toCreate, skipDuplicates: true });
-  revalidatePath("/dashboard/member");
-}
-
 export async function deleteMember(formData: FormData) {
   requireSection("member");
   const phone = (formData.get("phone") as string) || "";
