@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { prisma, safeQuery } from "@/lib/prisma";
 import { normalizePhone, displayPhone } from "@/lib/string-finder/phone";
+import { salam } from "@/lib/wa";
+import { acePoints, PT_PER_STRING } from "@/lib/points";
 import StringingBottomNav from "@/components/StringingBottomNav";
 import OrderHistory from "@/components/OrderHistory";
 import RewardRedeem from "@/components/RewardRedeem";
@@ -10,22 +12,24 @@ export const dynamic = "force-dynamic";
 
 const STATUS_LABEL: Record<string, string> = { antri: "Antri", dikerjakan: "Dikerjakan", selesai: "Selesai", batal: "Batal" };
 const badge = (s: string) =>
-  s === "selesai" ? "bg-green-100 text-green-700"
-  : s === "dikerjakan" ? "bg-blue-100 text-blue-700"
-  : s === "antri" ? "bg-amber-100 text-amber-700"
-  : s === "batal" ? "bg-red-100 text-red-600"
-  : "bg-gray-100 text-gray-600";
+  s === "selesai" ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+  : s === "dikerjakan" ? "bg-blue-50 text-blue-700 border-blue-200"
+  : s === "antri" ? "bg-amber-50 text-amber-700 border-amber-200"
+  : s === "batal" ? "bg-red-50 text-red-600 border-red-200"
+  : "bg-slate-100 text-slate-600 border-slate-200";
+
+const rupiah = (n: number) => "Rp " + n.toLocaleString("id-ID");
 
 // Usia senar dari waktu string. 0-2 bln hijau, 2-3 bln kuning, >3 bln merah (habis).
 function stringAge(createdAt: Date) {
   const days = Math.max(0, Math.floor((Date.now() - new Date(createdAt).getTime()) / 86400000));
-  const filled = Math.min(10, Math.max(1, Math.round((Math.min(1, days / 90)) * 10)));
+  const filled = Math.min(8, Math.max(1, Math.round((Math.min(1, days / 90)) * 8)));
   const label = days < 60 ? `${days} hari` : `${Math.round(days / 30)} bulan`;
   const { text, bar, fg } =
     days >= 90 ? { text: "Disarankan ganti senar", bar: "bg-red-500", fg: "text-red-600" }
     : days >= 60 ? { text: "Mendekati waktu ganti", bar: "bg-amber-400", fg: "text-amber-600" }
-    : { text: "Kondisi optimal", bar: "bg-emerald-500", fg: "text-emerald-600" };
-  return { filled, label, text, bar, fg };
+    : { text: "Kondisi optimal", bar: "bg-emerald-600", fg: "text-emerald-700" };
+  return { filled, label, text, bar, fg, days };
 }
 
 // Buang token jenis raket lama (Power/Spin/Control, bisa "Spin + Control") dari label tersimpan.
@@ -60,6 +64,10 @@ export default async function RiwayatPage({ params, searchParams }: { params: { 
   const selesai = orders.filter((o) => o.status === "selesai").length;
   const proses = orders.filter((o) => o.status === "antri" || o.status === "dikerjakan").length;
 
+  // Ace Points: jumlah stringing non-batal (lifetime) × poin. redeemed = 0 (Fase 2).
+  const stringCount = phone ? await prisma.sfOrder.count({ where: { phone, status: { not: "batal" } } }) : 0;
+  const pts = acePoints(stringCount);
+
   // Jumlah stringing per bulan — 6 bulan terakhir (termasuk bulan ini).
   const now = new Date();
   const months = Array.from({ length: 6 }, (_, i) => {
@@ -72,171 +80,263 @@ export default async function RiwayatPage({ params, searchParams }: { params: { 
     if (b) b.n++;
   }
   const maxN = Math.max(1, ...months.map((x) => x.n));
-
-  const cards = [
-    { l: "Selesai", n: selesai, c: "text-emerald-600" },
-    { l: "Sedang proses", n: proses, c: "text-amber-600" },
-  ];
+  const totalThisWindow = months.reduce((a, b) => a + b.n, 0);
 
   // Hadiah leaderboard yang belum ditukar (kalau ada) → kartu Redeem Reward.
-  // safeQuery: kalau tabel Reward belum di-push ke DB, jangan bikin dashboard crash.
   const reward = phone
     ? await safeQuery(() => prisma.reward.findFirst({ where: { phone, redeemedAt: null }, orderBy: { createdAt: "desc" } }), null)
     : null;
 
+  const initial = (name ?? "T").trim().charAt(0).toUpperCase() || "T";
+  const greeting = `Selamat ${salam()}`;
+
   return (
-    <div className="mx-auto min-h-screen max-w-md bg-gray-50 pb-24">
-      {/* Header hijau */}
-      <header className="rounded-b-[1.25rem] bg-gradient-to-br from-primaryDark to-primary px-5 pb-10 pt-10 text-white">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img loading="lazy" decoding="async" src="/logo.png" alt="Tirtonic" className="h-11 w-11 object-contain" />
-            <div>
-              <p className="text-base font-bold leading-tight">{name ?? "Halo!"}</p>
-              <p className="text-xs text-white/70">{phone ? displayPhone(phone) : "Nomor tidak valid"}</p>
+    <div className="mx-auto min-h-screen max-w-md bg-[#F8FAFC] pb-28 font-sans text-slate-800 antialiased">
+      {/* ======= Header: profil + switch (switch tepat di bawah header, ikut layar stringing) ======= */}
+      <header className="relative z-10 px-5 pb-1 pt-10">
+        <div className="mb-5 flex items-center gap-3.5">
+          <div className="relative h-11 w-11 flex-shrink-0 rounded-2xl bg-gradient-to-tr from-emerald-700 via-emerald-500 to-teal-300 p-[1.5px] shadow-sm">
+            <div className="flex h-full w-full items-center justify-center rounded-[14px] bg-emerald-50">
+              <span className="text-lg font-extrabold tracking-tight text-emerald-800">{initial}</span>
+            </div>
+            <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-emerald-500" />
+          </div>
+          <div className="flex flex-col justify-center">
+            <span className="text-[11px] font-semibold uppercase leading-none tracking-wider text-slate-400">{greeting}</span>
+            <h1 className="text-xl font-bold leading-tight tracking-tight text-slate-900">{name ?? "Halo!"}</h1>
+            <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-slate-500">
+              <span className="font-mono tracking-tight">{phone ? displayPhone(phone) : "Nomor tidak valid"}</span>
+              <span className="text-slate-300">•</span>
+              <span className="font-medium text-emerald-700">Tirtonic Member</span>
             </div>
           </div>
-          <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">Dashboard User Tirtonic</span>
         </div>
+
+        {/* Segmented switch */}
+        <nav className="flex items-center rounded-2xl bg-slate-200/70 p-1 backdrop-blur-xl">
+          {([["stringing", "Stringing"], ["pesanan", "Pesanan Toko"]] as const).map(([k, l]) => {
+            const activeTab = tab === k;
+            return (
+              <Link
+                key={k}
+                href={k === "stringing" ? `/riwayat/${encodeURIComponent(phone ?? "")}` : `/riwayat/${encodeURIComponent(phone ?? "")}?tab=pesanan`}
+                className={`flex-1 rounded-[12px] px-3 py-2 text-center text-xs font-semibold tracking-tight transition ${activeTab ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:bg-white/40 hover:text-slate-900"}`}
+              >
+                {l}
+              </Link>
+            );
+          })}
+        </nav>
       </header>
 
-      {/* Tab Stringing | Pesanan */}
-      <div className="-mt-5 px-4">
-        <div className="flex gap-1 rounded-full border border-gray-100 bg-white/90 p-1 shadow-sm backdrop-blur">
-          {([["stringing", "Stringing"], ["pesanan", "Pesanan"]] as const).map(([k, l]) => (
-            <Link
-              key={k}
-              href={k === "stringing" ? `/riwayat/${encodeURIComponent(phone ?? "")}` : `/riwayat/${encodeURIComponent(phone ?? "")}?tab=pesanan`}
-              className={`flex-1 rounded-full py-2 text-center text-sm font-semibold transition ${tab === k ? "bg-primary text-white shadow-sm" : "text-gray-500"}`}
-            >
-              {l}
-            </Link>
-          ))}
-        </div>
-      </div>
-
-      {reward && (
-        <div className="mt-4 px-4">
-          <RewardRedeem token={rewardToken(reward.id)} rank={reward.rank} prize={reward.prize} period={reward.period} />
-        </div>
-      )}
-
-      {tab === "pesanan" ? (
-        <div className="mt-4 px-4">
-          <OrderHistory phone={phone ?? ""} />
-        </div>
-      ) : orders.length === 0 ? (
-        <div className="px-4">
-          <p className="glass-card mt-4 rounded-2xl p-8 text-center text-sm text-gray-400">
-            {phone ? "Belum ada riwayat stringing untuk nomor ini." : "Nomor WhatsApp pada tautan ini tidak valid."}
-          </p>
-        </div>
-      ) : (
-        <>
-          {/* Stat cards (geser) */}
-          <div className="mt-4 px-4">
-            <div className="flex gap-3 overflow-x-auto pb-1">
-              {cards.map((c) => (
-                <div key={c.l} className="glass-card min-w-[8.5rem] flex-1 rounded-2xl p-4">
-                  <p className="text-xs text-gray-500">{c.l}</p>
-                  <p className={`mt-1 text-2xl font-extrabold ${c.c}`}>{c.n}</p>
+      <main className="relative z-10 space-y-4 px-5 pt-4">
+        {/* ======= Kartu Tirtonic Ace (loyalty) ======= */}
+        <div className="relative overflow-hidden rounded-3xl border border-emerald-600/30 p-5 text-white shadow-[0_24px_48px_-12px_rgba(13,92,58,0.4)] bg-[linear-gradient(135deg,#004328_0%,#005a36_45%,#006D40_100%)]">
+          <div className="pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full bg-emerald-300/20 blur-2xl" />
+          <div className="relative z-10 mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="h-6 w-8 rounded-md border border-amber-300/40 bg-gradient-to-br from-amber-200/90 via-amber-300/70 to-yellow-500/80 p-0.5 shadow-sm">
+                <div className="grid h-full w-full grid-cols-2 gap-0.5 rounded-[3px] border border-black/20 p-0.5">
+                  <div className="border-r border-black/20" />
+                  <div />
                 </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Stringing per bulan (6 bulan terakhir) */}
-          <div className="mt-4 px-4">
-            <div className="glass-card rounded-2xl p-5">
-              <h2 className="font-bold text-gray-900">Stringing per bulan</h2>
-              <div className="mt-5 flex items-end gap-2">
-                {months.map((mo, i) => (
-                  <div key={i} className="flex flex-1 flex-col items-center">
-                    <div className="flex h-32 w-full items-end justify-center">
-                      <div
-                        className="relative w-7 rounded-t-md bg-primary/30"
-                        style={{ height: `${Math.max(3, Math.round((mo.n / maxN) * 100))}%` }}
-                      >
-                        {mo.n > 0 && (
-                          <span className="absolute inset-x-0 -top-5 text-center text-[11px] font-bold text-gray-600">{mo.n}</span>
-                        )}
-                      </div>
-                    </div>
-                    <span className="mt-1.5 text-[11px] text-gray-400">{mo.label}</span>
-                  </div>
-                ))}
+              </div>
+              <div>
+                <span className="block text-[10px] font-bold uppercase leading-none tracking-widest text-emerald-200">Tirtonic Ace</span>
+                <span className="text-[11px] font-medium text-emerald-100/90">{pts.tier}</span>
               </div>
             </div>
+            <span className="rounded-full border border-white/15 bg-white/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-200/80">Pass ID</span>
           </div>
 
-          {/* Semua stringing */}
-          <div className="mt-5 space-y-3 px-4">
-            <h2 className="font-bold text-gray-900">Semua stringing</h2>
-            {orders.map((o) => {
-              const age = stringAge(o.createdAt);
-              const s = parseStrings(o.chosenString);
-              return (
-                <div key={o.resultCode} className="glass-card rounded-2xl p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <p className="font-bold leading-tight text-gray-900">
-                      {(() => {
-                        const r = cleanRacket(o.racket) || o.chosenString || "Stringing";
-                        const hm = r.match(/^(.*?)\s*·\s*(\d{2,3}\s*in²)$/);
-                        return hm ? <>{hm[1]} <span className="text-xs font-medium text-gray-500">· {hm[2]}</span></> : r;
-                      })()}
-                    </p>
-                    <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold ${badge(o.status)}`}>{STATUS_LABEL[o.status] ?? o.status}</span>
-                  </div>
-                  <p className="mt-1 text-xs text-gray-500">
-                    {new Date(o.createdAt).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}
-                    {o.branch?.name ? ` · ${o.branch.name}` : ""}
-                    {o.stringerName ? ` · oleh ${o.stringerName}` : ""}
-                  </p>
-                  {o.tensionLbs != null && (
-                    <div className="mt-3 space-y-1.5 text-sm">
-                      {s.hybrid ? (
-                        <>
-                          <div className="flex items-baseline gap-3">
-                            <span className="w-16 shrink-0 text-xs font-medium tracking-wide text-gray-400">MAIN</span>
-                            <span className="min-w-0 flex-1 truncate text-gray-900">{s.main ?? "—"}</span>
-                            <span className="shrink-0 font-semibold text-gray-900">{o.tensionLbs} lbs</span>
-                          </div>
-                          <div className="flex items-baseline gap-3">
-                            <span className="w-16 shrink-0 text-xs font-medium tracking-wide text-gray-400">CROSS</span>
-                            <span className="min-w-0 flex-1 truncate text-gray-900">{s.cross ?? "—"}</span>
-                            <span className="shrink-0 font-semibold text-gray-900">{o.tensionCrossLbs ?? o.tensionLbs} lbs</span>
-                          </div>
-                        </>
-                      ) : (
-                        <div className="flex items-baseline gap-3">
-                          <span className="w-16 shrink-0 text-xs font-medium tracking-wide text-gray-400">FULL BED</span>
-                          <span className="min-w-0 flex-1 truncate text-gray-900">{s.main ?? "—"}</span>
-                          <span className="shrink-0 font-semibold text-gray-900">
-                            {o.tensionLbs}{o.tensionCrossLbs && o.tensionCrossLbs !== o.tensionLbs ? ` / ${o.tensionCrossLbs}` : ""} lbs
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  {/* Usia senar: habis di 3 bulan (90 hari) -> bar penuh merah */}
-                  <div className="mt-3 border-t border-gray-100 pt-3">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-gray-500">Usia senar: <span className="font-semibold text-gray-700">{age.label}</span></span>
-                      <span className={`font-semibold ${age.fg}`}>{age.text}</span>
-                    </div>
-                    <div className="mt-1.5 flex gap-1">
-                      {Array.from({ length: 10 }, (_, i) => (
-                        <div key={i} className={`h-2 flex-1 rounded-full ${i < age.filled ? `${age.bar} animate-pulse` : "bg-gray-200"}`} />
-                      ))}
-                    </div>
+          <div className="relative z-10 mb-3.5 flex items-baseline justify-between">
+            <div>
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-emerald-200/80">Saldo Ace Points</div>
+              <div className="mt-0.5 flex items-baseline gap-2">
+                <span className="font-mono text-3xl font-extrabold tracking-tight text-white">{pts.balance.toLocaleString("id-ID")}</span>
+                <span className="text-xs font-bold tracking-wide text-emerald-200">PTS</span>
+              </div>
+            </div>
+            <span className="text-[11px] font-medium text-emerald-100">Setara {rupiah(pts.rp)}</span>
+          </div>
+
+          {/* Tier progress */}
+          <div className="relative z-10 mb-4 rounded-2xl border border-white/10 bg-black/20 p-3 backdrop-blur-md">
+            <div className="mb-1.5 flex items-center justify-between text-[11px] text-emerald-100">
+              <span className="font-medium">{pts.nextTier ? `Menuju ${pts.nextTier}` : "Tier tertinggi tercapai"}</span>
+              <span className="font-mono font-bold text-white">{pts.pct}%</span>
+            </div>
+            <div className="h-2 w-full overflow-hidden rounded-full bg-black/25 p-0.5">
+              <div className="h-full rounded-full bg-gradient-to-r from-emerald-300 via-teal-200 to-emerald-200 shadow-[0_0_10px_rgba(255,255,255,0.5)]" style={{ width: `${pts.pct}%` }} />
+            </div>
+            <div className="mt-1.5 flex items-center justify-between text-[10px] text-emerald-200/80">
+              <span>{pts.nextTier ? `Butuh ${pts.toNext} pts lagi` : "Benefit penuh aktif"}</span>
+              {pts.nextBenefit && <span>Benefit: {pts.nextBenefit}</span>}
+            </div>
+          </div>
+
+          {/* Tombol aksi — Fase 2 aktifkan Tukar Poin & Voucher */}
+          <div className="relative z-10 grid grid-cols-3 gap-2">
+            <a href="#new-order" className="flex items-center justify-center gap-1.5 rounded-xl bg-white px-2.5 py-2 text-xs font-bold text-emerald-900 shadow-sm transition active:scale-95" title="Segera (Fase 2)">Tukar Poin</a>
+            <a href="#reward" className="flex items-center justify-center gap-1.5 rounded-xl border border-white/20 bg-white/15 px-2.5 py-2 text-xs font-medium text-white backdrop-blur-md transition active:scale-95">Redem Reward</a>
+            <a href="/shop" className="flex items-center justify-center gap-1.5 rounded-xl border border-white/20 bg-white/15 px-2.5 py-2 text-xs font-medium text-white backdrop-blur-md transition active:scale-95">Voucher Belanja</a>
+          </div>
+        </div>
+
+        {/* Reward leaderboard (kalau ada) */}
+        {reward && (
+          <div id="reward">
+            <RewardRedeem token={rewardToken(reward.id)} rank={reward.rank} prize={reward.prize} period={reward.period} />
+          </div>
+        )}
+
+        {tab === "pesanan" ? (
+          <OrderHistory phone={phone ?? ""} />
+        ) : orders.length === 0 ? (
+          <p className="rounded-3xl border border-slate-200/80 bg-white p-8 text-center text-sm text-slate-400 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.05)]">
+            {phone ? "Belum ada riwayat stringing untuk nomor ini." : "Nomor WhatsApp pada tautan ini tidak valid."}
+          </p>
+        ) : (
+          <>
+            {/* Stat cards */}
+            <section className="grid grid-cols-2 gap-3">
+              <article className="flex flex-col justify-between rounded-3xl border border-slate-200/80 bg-white p-4 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.05)]">
+                <div className="mb-3 flex items-center justify-between">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Selesai</span>
+                  <div className="flex h-7 w-7 items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 text-xs font-bold text-emerald-700">✓</div>
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <span className="font-mono text-3xl font-extrabold tracking-tight text-slate-900">{selesai}</span>
+                  <span className="text-xs font-medium text-slate-500">raket</span>
+                </div>
+              </article>
+              <article className="flex flex-col justify-between rounded-3xl border border-slate-200/80 bg-white p-4 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.05)]">
+                <div className="mb-3 flex items-center justify-between">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Sedang Proses</span>
+                  <div className="flex h-7 w-7 items-center justify-center rounded-xl border border-slate-200 bg-slate-100">
+                    <span className="h-2 w-2 rounded-full bg-slate-400" />
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        </>
-      )}
+                <div className="flex items-baseline gap-2">
+                  <span className={`font-mono text-3xl font-extrabold tracking-tight ${proses ? "text-slate-900" : "text-slate-400"}`}>{proses}</span>
+                  <span className="text-xs font-medium text-slate-400">raket</span>
+                </div>
+                <p className="mt-2 text-[11px] font-medium text-slate-500">{proses ? "Sedang dikerjakan" : "Antrean senggang"}</p>
+              </article>
+            </section>
+
+            {/* CTA antrean baru */}
+            <a id="new-order" href="https://tirtonic.com/#stringing-room" className="relative flex items-center justify-between overflow-hidden rounded-3xl border border-slate-200/90 bg-white p-4 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.05)] transition active:scale-[0.99]">
+              <span className="absolute inset-y-0 left-0 w-1.5 bg-emerald-600" />
+              <div className="flex items-center gap-3.5 pl-1">
+                <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl border border-emerald-200 bg-emerald-50 text-xl font-bold text-emerald-700 shadow-sm">+</div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <div className="text-sm font-bold tracking-tight text-slate-900">Buat Antrean Stringing Baru</div>
+                    <span className="rounded-full border border-emerald-200 bg-emerald-100 px-2 py-0.5 text-[9px] font-extrabold uppercase text-emerald-800">+{PT_PER_STRING} Poin</span>
+                  </div>
+                  <div className="mt-0.5 text-[11px] text-slate-500">Estimasi 1-2 jam • Bonus Ace Poin langsung masuk</div>
+                </div>
+              </div>
+              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-100 text-slate-600">
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" /></svg>
+              </div>
+            </a>
+
+            {/* Grafik per bulan */}
+            <section className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.05)]">
+              <div className="mb-5 flex items-center justify-between">
+                <div>
+                  <h2 className="text-sm font-bold tracking-tight text-slate-900">Stringing per bulan</h2>
+                  <p className="mt-0.5 text-[11px] text-slate-500">Aktivitas restringing 6 bulan terakhir</p>
+                </div>
+                <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-800">Total {totalThisWindow} Raket</span>
+              </div>
+              <div className="flex h-32 items-end justify-between gap-3 border-b border-slate-200 px-2 pt-2">
+                {months.map((mo, i) => {
+                  const top = mo.n === maxN && mo.n > 0;
+                  const h = mo.n > 0 ? Math.max(12, Math.round((mo.n / maxN) * 80)) : 6;
+                  return (
+                    <div key={i} className="relative flex flex-1 flex-col items-center gap-2">
+                      {mo.n > 0 && (
+                        <div className="absolute -top-1 left-1/2 -translate-x-1/2 rounded-full bg-slate-900 px-2 py-0.5 font-mono text-[10px] font-bold text-white shadow-sm">{mo.n}</div>
+                      )}
+                      <div className="flex h-20 w-full items-end justify-center">
+                        <div className={`w-7 rounded-t-lg ${top ? "bg-gradient-to-t from-emerald-700 via-emerald-600 to-emerald-500 shadow-md" : mo.n > 0 ? "bg-emerald-500/40" : "bg-slate-100"}`} style={{ height: `${h}px` }} />
+                      </div>
+                      <span className={`text-[11px] font-medium ${top ? "font-bold text-slate-900" : "text-slate-400"}`}>{mo.label}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+
+            {/* Semua stringing */}
+            <section className="space-y-3">
+              <div className="flex items-center justify-between px-1 pt-2">
+                <h2 className="text-xs font-bold uppercase tracking-widest text-slate-500">Semua stringing</h2>
+              </div>
+              {orders.map((o) => {
+                const age = stringAge(o.createdAt);
+                const s = parseStrings(o.chosenString);
+                const r = cleanRacket(o.racket) || o.chosenString || "Stringing";
+                const hm = r.match(/^(.*?)\s*·\s*(\d{2,3}\s*in²)$/);
+                const tension = o.tensionLbs != null
+                  ? `${o.tensionLbs}${o.tensionCrossLbs && o.tensionCrossLbs !== o.tensionLbs ? ` / ${o.tensionCrossLbs}` : ""}`
+                  : null;
+                return (
+                  <article key={o.resultCode} className="space-y-3.5 rounded-3xl border border-slate-200/80 bg-white p-5 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.05)]">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <h3 className="text-base font-extrabold leading-tight text-slate-900">{hm ? hm[1] : r}</h3>
+                        {hm && <p className="mt-0.5 text-xs font-medium text-slate-500">{hm[2]}</p>}
+                      </div>
+                      <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-bold ${badge(o.status)}`}>
+                        {o.status === "dikerjakan" && <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-blue-500" />}
+                        {STATUS_LABEL[o.status] ?? o.status}
+                      </span>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-1.5 border-b border-slate-100 pb-2 text-[11px] font-medium text-slate-500">
+                      <span>{new Date(o.createdAt).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</span>
+                      {o.branch?.name && <><span className="text-slate-300">•</span><span>{o.branch.name}</span></>}
+                      {o.stringerName && <><span className="text-slate-300">•</span><span>Stringer: <strong className="text-slate-800">{o.stringerName}</strong></span></>}
+                    </div>
+
+                    {tension && (
+                      <div className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-slate-50/80 p-3.5">
+                        <div className="max-w-[62%] space-y-0.5">
+                          <span className="inline-block rounded-md border border-emerald-200 bg-emerald-100/70 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-emerald-800">{s.hybrid ? "Hybrid" : "Full Bed"}</span>
+                          <p className="mt-1 truncate text-xs font-bold text-slate-900" title={s.main ?? ""}>{s.main ?? "—"}</p>
+                          {s.hybrid && <p className="truncate text-[11px] text-slate-500">Cross: {s.cross ?? "—"}</p>}
+                        </div>
+                        <div className="border-l border-slate-200 pl-3 text-right">
+                          <span className="block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Tension</span>
+                          <div className="mt-1 font-mono text-base font-extrabold leading-none tracking-tight text-slate-900">{tension} <span className="text-xs font-normal text-slate-500">lbs</span></div>
+                        </div>
+                      </div>
+                    )}
+
+                    <div>
+                      <div className="mb-2 flex items-center justify-between text-xs">
+                        <span className="text-slate-500">Usia senar: <strong className="font-bold text-slate-900">{age.label}</strong></span>
+                        <span className={`flex items-center gap-1.5 text-[11px] font-semibold ${age.fg}`}>
+                          <span className={`h-1.5 w-1.5 rounded-full ${age.bar}`} />{age.text}
+                        </span>
+                      </div>
+                      <div className="grid h-2 grid-cols-8 gap-1.5">
+                        {Array.from({ length: 8 }, (_, i) => (
+                          <div key={i} className={`h-full rounded-full ${i < age.filled ? age.bar : "bg-slate-200"}`} />
+                        ))}
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+            </section>
+          </>
+        )}
+      </main>
 
       <StringingBottomNav active="home" phone={phone} />
     </div>
