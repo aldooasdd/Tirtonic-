@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { isAuthed, can } from "@/lib/auth";
 import { prisma, safeQuery } from "@/lib/prisma";
@@ -9,7 +10,7 @@ export const metadata = { title: "Member Loyalty — Tirtonic" };
 
 const fmtDate = (d: Date | null) => (d ? new Date(d).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) : "—");
 
-export default async function MemberPage() {
+export default async function MemberPage({ searchParams }: { searchParams: { filter?: string } }) {
   if (!isAuthed()) redirect("/dashboard/login");
   if (!can("member")) redirect("/dashboard");
 
@@ -17,6 +18,10 @@ export default async function MemberPage() {
   // Hitung jumlah murid per kode coach.
   const refCount = new Map<string, number>();
   for (const m of members) if (m.referredBy) refCount.set(m.referredBy, (refCount.get(m.referredBy) ?? 0) + 1);
+
+  const onlyCoach = searchParams.filter === "coach";
+  const shown = onlyCoach ? members.filter((m) => m.isCoach) : members;
+  const coachCount = members.filter((m) => m.isCoach).length;
 
   const field = "w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none";
 
@@ -72,14 +77,22 @@ export default async function MemberPage() {
 
       {/* Daftar member */}
       <div className="overflow-hidden rounded-2xl border bg-white shadow-sm">
-        <div className="border-b px-4 py-3 text-xs font-bold uppercase tracking-wider text-gray-500">
-          {members.length} Member
+        <div className="flex items-center justify-between gap-2 border-b px-4 py-3">
+          <span className="text-xs font-bold uppercase tracking-wider text-gray-500">{shown.length} Member</span>
+          <div className="flex items-center gap-1 rounded-lg bg-gray-100 p-0.5 text-xs font-semibold">
+            <Link href="/dashboard/member" className={`rounded-md px-2.5 py-1 ${!onlyCoach ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"}`}>
+              Semua {members.length}
+            </Link>
+            <Link href="/dashboard/member?filter=coach" className={`rounded-md px-2.5 py-1 ${onlyCoach ? "bg-white text-emerald-700 shadow-sm" : "text-gray-500"}`}>
+              Coach {coachCount}
+            </Link>
+          </div>
         </div>
-        {members.length === 0 ? (
-          <p className="p-6 text-center text-sm text-gray-400">Belum ada member khusus. Member biasa tetap dapat poin dari belanja tanpa didaftar di sini.</p>
+        {shown.length === 0 ? (
+          <p className="p-6 text-center text-sm text-gray-400">{onlyCoach ? "Belum ada coach." : "Belum ada member khusus. Member biasa tetap dapat poin dari belanja tanpa didaftar di sini."}</p>
         ) : (
           <ul className="divide-y">
-            {members.map((m) => (
+            {shown.map((m) => (
               <li key={m.phone} className="flex items-start justify-between gap-3 px-4 py-3">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
