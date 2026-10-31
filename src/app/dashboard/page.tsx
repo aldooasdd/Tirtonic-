@@ -87,6 +87,11 @@ export default async function AdminDashboard() {
                 Event
               </Link>
             )}
+            {can("member") && (
+              <Link href="/dashboard/member" className="text-sm font-medium text-gray-500 hover:text-primary">
+                Member
+              </Link>
+            )}
             {can("produk") && (
               <Link href="/dashboard/promo" className="text-sm font-medium text-gray-500 hover:text-primary">
                 Promo

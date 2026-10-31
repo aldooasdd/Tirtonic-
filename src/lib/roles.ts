@@ -1,7 +1,7 @@
 import "server-only";
 
 // Bagian-bagian dashboard yang bisa dibatasi per role.
-export const SECTIONS = ["produk", "kupon", "artikel", "hero", "store", "brand", "sponsor", "pesanan", "stringing", "trafik", "event"] as const;
+export const SECTIONS = ["produk", "kupon", "artikel", "hero", "store", "brand", "sponsor", "pesanan", "stringing", "trafik", "event", "member"] as const;
 export type Section = (typeof SECTIONS)[number];
 
 // password = default kalau env ROLE_<KEY>_PASSWORD tidak di-set.
@@ -11,7 +11,7 @@ export type Role = { key: string; label: string; sections: readonly Section[] | 
 // semua bagian. Ganti/amankan password lewat env ROLE_<KEY>_PASSWORD di Vercel.
 export const ROLES: Record<string, Role> = {
   bos: { key: "bos", label: "Bos", sections: "all" },
-  admin: { key: "admin", label: "Admin", sections: ["produk", "kupon", "pesanan", "stringing", "event"], password: "admin123" },
+  admin: { key: "admin", label: "Admin", sections: ["produk", "kupon", "pesanan", "stringing", "event", "member"], password: "admin123" },
   marketing: { key: "marketing", label: "Marketing", sections: ["trafik", "artikel", "hero", "store", "brand", "sponsor", "event"], password: "marketing123" },
   stringer: { key: "stringer", label: "Stringer", sections: ["stringing"], password: "stringer123" },
 };

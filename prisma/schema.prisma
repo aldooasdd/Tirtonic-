@@ -433,6 +433,24 @@ model Reward {
   @@index([phone])
 }
 
+// Keanggotaan loyalty (Ace Points). Dikelola admin di /dashboard/member.
+// Earning/tier dasar dihitung dari invoice Tirtonichub; di sini cuma flag yang
+// tak bisa disimpulkan dari belanja: coach (Green), undangan Privé, perujuk, ultah.
+// phone = 62xxxx (dinormalkan). coachCode = kode referral coach (Green).
+// referredBy = coachCode perujuk member ini (murid → coach).
+model Member {
+  phone        String    @id
+  name         String?
+  isCoach      Boolean   @default(false)
+  coachCode    String?   @unique
+  invitedPrive Boolean   @default(false)
+  referredBy   String?
+  birthday     DateTime?
+  createdAt    DateTime  @default(now())
+
+  @@index([referredBy])
+}
+
 model SfPrintJob {
   id          String      @id @default(cuid())
   resultCode  String
