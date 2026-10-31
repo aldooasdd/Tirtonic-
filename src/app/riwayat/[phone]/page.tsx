@@ -141,6 +141,9 @@ export default async function RiwayatPage({ params, searchParams }: { params: { 
 
       <main className="relative z-10 space-y-4 px-5 pt-4">
         {/* ======= Kartu Tirtonic Ace (loyalty) ======= */}
+        <div className="relative">
+        {/* kartu tumpuk di belakang (efek stack) */}
+        <div className={`absolute inset-x-5 -top-2.5 h-16 rounded-3xl opacity-50 shadow-[0_12px_24px_-8px_rgba(0,0,0,0.3)] ${d ? "border border-white/10" : "border border-slate-300"}`} style={{ background: card.bg }} />
         <div className={`relative overflow-hidden rounded-3xl border p-5 shadow-[0_24px_48px_-12px_rgba(13,92,58,0.4)] ${ink} ${d ? "border-white/15" : "border-slate-300"}`} style={{ background: card.bg }}>
           <div className={`pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full blur-2xl ${d ? "bg-white/10" : "bg-white/40"}`} />
           <div className="relative z-10 mb-4 flex items-center justify-between">
@@ -190,6 +193,7 @@ export default async function RiwayatPage({ params, searchParams }: { params: { 
             <a href="#reward" className={`flex items-center justify-center gap-1.5 rounded-xl border px-2.5 py-2 text-xs font-medium backdrop-blur-md transition active:scale-95 ${d ? "border-white/20 bg-white/15 text-white" : "border-slate-400/50 bg-white/60 text-slate-800"}`}>Redem Reward</a>
             <Link href={`/riwayat/${encodeURIComponent(phone ?? "")}/voucher`} className={`flex items-center justify-center gap-1.5 rounded-xl border px-2.5 py-2 text-xs font-medium backdrop-blur-md transition active:scale-95 ${d ? "border-white/20 bg-white/15 text-white" : "border-slate-400/50 bg-white/60 text-slate-800"}`}>Voucher Belanja</Link>
           </div>
+        </div>
         </div>
 
         {/* Reward leaderboard (kalau ada) */}
