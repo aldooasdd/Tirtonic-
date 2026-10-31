@@ -34,23 +34,39 @@ export default function RewardScanBox() {
     let stop = false;
     // @ts-expect-error BarcodeDetector belum ada di lib TS
     const Det = typeof window !== "undefined" ? window.BarcodeDetector : undefined;
-    if (!Det) { setErr("Browser ini tak dukung scan kamera. Pakai scanner/ketik manual, atau buka QR lewat kamera HP."); setCam(false); return; }
-    const detector = new Det({ formats: ["qr_code"] });
+    const detector = Det ? new Det({ formats: ["qr_code"] }) : null;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let jsQR: any = null;
+    const canvas = typeof document !== "undefined" ? document.createElement("canvas") : null;
+    const ctx = canvas?.getContext("2d", { willReadFrequently: true }) ?? null;
+
+    const hit = (raw: string) => { stopCam(); go(raw); };
+
     (async () => {
       try {
+        if (!detector) jsQR = (await import("jsqr")).default; // fallback iOS/Safari
         const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
         streamRef.current = stream;
         const v = videoRef.current;
         if (v) { v.srcObject = stream; await v.play(); }
         const tick = async () => {
-          if (stop || !videoRef.current) return;
+          const v = videoRef.current;
+          if (stop || !v || !v.videoWidth) { if (!stop) setTimeout(tick, 150); return; }
           try {
-            const codes = await detector.detect(videoRef.current);
-            if (codes[0]?.rawValue) { stopCam(); go(codes[0].rawValue); return; }
+            if (detector) {
+              const codes = await detector.detect(v);
+              if (codes[0]?.rawValue) return hit(codes[0].rawValue);
+            } else if (jsQR && ctx && canvas) {
+              canvas.width = v.videoWidth; canvas.height = v.videoHeight;
+              ctx.drawImage(v, 0, 0, canvas.width, canvas.height);
+              const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+              const r = jsQR(img.data, canvas.width, canvas.height);
+              if (r?.data) return hit(r.data);
+            }
           } catch { /* frame gagal, lanjut */ }
-          requestAnimationFrame(tick);
+          if (!stop) setTimeout(tick, 150);
         };
-        requestAnimationFrame(tick);
+        setTimeout(tick, 150);
       } catch {
         setErr("Tak bisa akses kamera. Izinkan kamera atau pakai ketik manual.");
         setCam(false);
