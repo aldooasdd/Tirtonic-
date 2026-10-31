@@ -68,7 +68,7 @@ export default async function RiwayatPage({ params, searchParams }: { params: { 
   // Warna kartu per tier (dokumen Member Card). dark = kartu gelap → teks putih.
   const CARD: Record<string, { bg: string; dark: boolean }> = {
     White: { bg: "linear-gradient(135deg,#cbd5e1 0%,#94a3b8 55%,#e2e8f0 100%)", dark: false },
-    Signature: { bg: "linear-gradient(135deg,#6b7280 0%,#4b5563 55%,#9ca3af 100%)", dark: true },
+    Signature: { bg: "linear-gradient(135deg,#a67c00 0%,#7a5a0f 55%,#caa53d 100%)", dark: true },
     Prive: { bg: "linear-gradient(135deg,#18181b 0%,#000000 60%,#27272a 100%)", dark: true },
     Green: { bg: "linear-gradient(135deg,#004328 0%,#005a36 45%,#006D40 100%)", dark: true },
   };
