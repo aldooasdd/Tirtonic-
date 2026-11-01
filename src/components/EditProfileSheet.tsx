@@ -43,8 +43,8 @@ export default function EditProfileSheet({ phone, name, birthdayISO, waDisplay, 
 
       {/* Sheet */}
       <div className={`fixed inset-0 z-[60] ${open ? "" : "pointer-events-none"}`}>
-        <div onClick={close} className={`absolute inset-0 bg-black/30 backdrop-blur-sm transition-opacity duration-300 ${open ? "opacity-100" : "opacity-0"}`} />
-        <div className={`absolute inset-x-0 bottom-0 mx-auto max-w-md rounded-t-3xl border border-white/40 bg-white/80 shadow-[0_-16px_48px_-12px_rgba(0,0,0,0.25)] backdrop-blur-2xl transition-transform duration-300 ${open ? "translate-y-0" : "translate-y-full"}`}>
+        <div onClick={close} className={`absolute inset-0 bg-black/50 backdrop-blur-md transition-opacity duration-300 ${open ? "opacity-100" : "opacity-0"}`} />
+        <div className={`absolute inset-x-0 bottom-0 mx-auto max-w-md rounded-t-3xl border border-white/50 bg-white/95 shadow-[0_-16px_48px_-12px_rgba(0,0,0,0.3)] backdrop-blur-2xl transition-transform duration-300 ${open ? "translate-y-0" : "translate-y-full"}`}>
           <div className="flex items-center justify-between px-5 pb-3 pt-3">
             <button onClick={close} className="text-sm font-medium text-slate-500">Batal</button>
             <span className="mx-auto h-1 w-10 -translate-y-1 rounded-full bg-slate-300" />

@@ -269,24 +269,6 @@ export default async function RiwayatPage({ params, searchParams }: { params: { 
               </article>
             </section>
 
-            {/* CTA antrean baru */}
-            <a id="new-order" href="https://tirtonic.com/#stringing-room" className="relative flex items-center justify-between overflow-hidden rounded-3xl border border-slate-200/90 bg-white p-4 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.05)] transition active:scale-[0.99]">
-              <span className="absolute inset-y-0 left-0 w-1.5 bg-emerald-600" />
-              <div className="flex items-center gap-3.5 pl-1">
-                <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl border border-emerald-200 bg-emerald-50 text-xl font-bold text-emerald-700 shadow-sm">+</div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <div className="text-sm font-bold tracking-tight text-slate-900">Buat Antrean Stringing Baru</div>
-                    <span className="rounded-full border border-emerald-200 bg-emerald-100 px-2 py-0.5 text-[9px] font-extrabold uppercase text-emerald-800">+ Poin</span>
-                  </div>
-                  <div className="mt-0.5 text-[11px] text-slate-500">Estimasi 1-2 jam • Bonus Ace Poin langsung masuk</div>
-                </div>
-              </div>
-              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-100 text-slate-600">
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" /></svg>
-              </div>
-            </a>
-
             {/* Grafik per bulan */}
             <section className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.05)]">
               <div className="mb-5 flex items-center justify-between">
