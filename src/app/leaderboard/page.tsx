@@ -26,7 +26,16 @@ const rankStyle = (r: number) =>
   : r === 3 ? "bg-orange-400 text-white"
   : "bg-gray-100 text-gray-500";
 
-type Row = { phone: string; name: string | null; n: number; last: number };
+type Row = { phone: string; name: string | null; n: number; last: number; photo: string | null };
+
+// Avatar: foto profil member kalau ada, selain itu logo.
+function Avatar({ photo, cls }: { photo: string | null; cls: string }) {
+  // eslint-disable-next-line @next/next/no-img-element
+  return photo
+    ? <img loading="lazy" decoding="async" src={photo} alt="" className={`${cls} rounded-full object-cover`} />
+    // eslint-disable-next-line @next/next/no-img-element
+    : <img loading="lazy" decoding="async" src="/logo.png" alt="" className={`${cls} object-contain`} />;
+}
 
 function Medal({ className = "" }: { className?: string }) {
   return (
@@ -43,9 +52,8 @@ function PodiumSlot({ row, rank }: { row: Row; rank: number }) {
   return (
     <div className="flex flex-1 flex-col items-center">
       <div className="relative">
-        <div className={`flex items-center justify-center rounded-full bg-primary/5 ring-4 ${ring} ${big ? "h-20 w-20" : "h-16 w-16"}`}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img loading="lazy" decoding="async" src="/logo.png" alt="" className={big ? "h-12 w-12 object-contain" : "h-10 w-10 object-contain"} />
+        <div className={`flex items-center justify-center overflow-hidden rounded-full bg-primary/5 ring-4 ${ring} ${big ? "h-20 w-20" : "h-16 w-16"}`}>
+          <Avatar photo={row.photo} cls={row.photo ? (big ? "h-full w-full" : "h-full w-full") : (big ? "h-12 w-12" : "h-10 w-10")} />
         </div>
         <span className={`absolute -top-1.5 right-0 flex h-6 w-6 items-center justify-center rounded-full text-xs font-extrabold ring-2 ring-gray-50 ${rankStyle(rank)}`}>{rank}</span>
       </div>
@@ -106,9 +114,23 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
   }
   // Seri (skor sama): yang lebih dulu mencapai skor (last lebih awal) menang.
   const rows: Row[] = [...map.entries()]
-    .map(([phone, v]) => ({ phone, name: cap(v.name), n: v.n, last: v.last }))
+    .map(([phone, v]) => ({ phone, name: cap(v.name), n: v.n, last: v.last, photo: null as string | null }))
     .sort((a, b) => b.n - a.n || a.last - b.last)
     .slice(0, 10);
+
+  // Pakai nama + foto profil dari dashboard member (kalau sudah diisi), override data nota.
+  if (rows.length) {
+    const members = await prisma.member.findMany({
+      where: { phone: { in: rows.map((r) => r.phone) } },
+      select: { phone: true, name: true, photo: true },
+    });
+    const mem = new Map(members.map((m) => [m.phone, m]));
+    for (const r of rows) {
+      const m = mem.get(r.phone);
+      if (m?.name) r.name = cap(m.name);
+      if (m?.photo) r.photo = m.photo;
+    }
+  }
 
   const top3 = rows.slice(0, 3);
   const rest = rows.slice(3);
@@ -217,9 +239,8 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
                       className="glass-card flex items-center gap-3 rounded-2xl p-3"
                     >
                       <span className="w-5 shrink-0 text-center text-sm font-bold text-gray-400">{i + 4}</span>
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/5">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img loading="lazy" decoding="async" src="/logo.png" alt="" className="h-6 w-6 object-contain" />
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/5">
+                        <Avatar photo={r.photo} cls={r.photo ? "h-full w-full" : "h-6 w-6"} />
                       </div>
                       <p className="min-w-0 flex-1 truncate font-semibold text-gray-900">{nama}</p>
                       <span className="shrink-0 rounded-full border border-gray-200 px-3 py-0.5 text-sm font-bold text-gray-800">{r.n} stringing</span>
