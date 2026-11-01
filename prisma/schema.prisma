@@ -494,6 +494,13 @@ model MemberVoucher {
   @@index([phone, status])
 }
 
+// Salinan nota offline dari hub per nomor. Dipakai saat PC hub mati.
+model PointsCache {
+  phone     String   @id // 62xxxx
+  rows      Json // [{ t, amount }]
+  updatedAt DateTime @updatedAt
+}
+
 model SfPrintJob {
   id          String      @id @default(cuid())
   resultCode  String

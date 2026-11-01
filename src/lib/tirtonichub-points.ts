@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 // otomatis "member"; tier dari belanja 12 bln berjalan (akumulasi), mulai 1 Nov 2026 WIB.
 // 1 Ace = Rp1.000. Poin/transaksi = floor(nilai / rupiah-per-Ace tier saat itu).
 // Flag coach (Member.isCoach) → rate Green; + referral 2% belanja murid.
-// Env hub: TIRTONICHUB_POINTS_URL + POINTS_API_SECRET (offline). Hub mati → hitung online saja.
+// Env hub: TIRTONICHUB_POINTS_URL + POINTS_API_SECRET (offline). Hub mati → pakai salinan terakhir (PointsCache).
 
 const ACE_VALUE = 1000;
 const YEAR_MS = 365 * 24 * 60 * 60 * 1000;
@@ -66,22 +66,34 @@ type Row = { t: number; amount: number };
 // Poin HANYA dari Rekap Penjualan Tirtonichub (nota offline hub), per keputusan owner.
 // Transaksi tirtonic.com (Order online & stringing) TIDAK dihitung.
 async function rowsFor(phone: string, base?: string, secret?: string): Promise<Row[]> {
-  const out: Row[] = [];
-  if (base && secret) {
-    try {
-      const u = new URL(base);
-      u.searchParams.set("phone", phone);
-      u.searchParams.set("raw", "1");
-      const res = await fetch(u, { headers: { "x-points-secret": secret }, cache: "no-store" });
-      if (res.ok) {
-        const j = (await res.json()) as { rows?: { soldAt: string; grandTotal: number }[] };
-        for (const r of j.rows ?? []) out.push({ t: new Date(r.soldAt).getTime(), amount: r.grandTotal });
-      }
-    } catch {
-      /* hub mati → tanpa data */
-    }
+  const rows = (await hubRows(phone, base, secret)) ?? (await cachedRows(phone));
+  return rows.sort((a, b) => a.t - b.t);
+}
+
+// null = hub tak bisa dihubungi (beda dgn nomor tanpa nota). Sukses → salinan disimpan.
+async function hubRows(phone: string, base?: string, secret?: string): Promise<Row[] | null> {
+  if (!base || !secret) return null;
+  try {
+    const u = new URL(base);
+    u.searchParams.set("phone", phone);
+    u.searchParams.set("raw", "1");
+    const res = await fetch(u, { headers: { "x-points-secret": secret }, cache: "no-store", signal: AbortSignal.timeout(5000) });
+    if (!res.ok) return null;
+    const j = (await res.json()) as { rows?: { soldAt: string; grandTotal: number }[] };
+    const rows = (j.rows ?? []).map((r) => ({ t: new Date(r.soldAt).getTime(), amount: r.grandTotal }));
+    await prisma.pointsCache
+      .upsert({ where: { phone }, create: { phone, rows }, update: { rows } })
+      .catch(() => null);
+    return rows;
+  } catch {
+    return null;
   }
-  return out.sort((a, b) => a.t - b.t);
+}
+
+// PC hub mati → pakai nota terakhir yang berhasil diambil, biar poin tak jadi 0.
+async function cachedRows(phone: string): Promise<Row[]> {
+  const c = await prisma.pointsCache.findUnique({ where: { phone } }).catch(() => null);
+  return (c?.rows as Row[] | undefined) ?? [];
 }
 
 // Hitung poin + belanja dari baris transaksi. tier tiap baris dari belanja 12 bln sampai baris itu.
