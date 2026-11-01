@@ -165,16 +165,6 @@ export default function TierBenefits({ tier, spend12mo, balance, isCoach, coachC
             </span>
           </div>
 
-          {/* tengah: saldo */}
-          <div className="relative z-10">
-            <div className={`text-[10px] font-semibold uppercase tracking-wider ${cFaint}`}>Saldo Ace Points</div>
-            <div className="mt-0.5 flex items-baseline gap-2">
-              <span className={`font-mono text-3xl font-extrabold tracking-tight ${cInk}`}>{balance.toLocaleString("id-ID")}</span>
-              <span className={`text-xs font-bold tracking-wide ${cSub}`}>PTS</span>
-            </div>
-            <div className={`mt-0.5 text-[11px] font-medium ${cSub}`}>Setara {rupiah(balance * 1000)}</div>
-          </div>
-
           {/* bawah: Club Member ID */}
           <div className="relative z-10">
             <div className={`text-[10px] font-semibold uppercase tracking-wider ${cFaint}`}>Club Member ID</div>
