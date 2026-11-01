@@ -141,11 +141,9 @@ export default async function RiwayatPage({ params, searchParams }: { params: { 
 
       <main className="relative z-10 space-y-4 px-5 pt-4">
         {/* ======= Kartu Tirtonic Ace (loyalty) ======= */}
-        <div className="relative">
-        <div className={`relative overflow-hidden rounded-3xl border p-5 shadow-[0_24px_48px_-12px_rgba(13,92,58,0.4)] ${ink} ${d ? "border-white/15" : "border-slate-300"}`} style={{ background: card.bg }}>
+        <Link href={`/riwayat/${encodeURIComponent(phone ?? "")}/tier`} className={`relative block overflow-hidden rounded-3xl border p-5 shadow-[0_24px_48px_-12px_rgba(13,92,58,0.4)] ${ink} ${d ? "border-white/15" : "border-slate-300"}`} style={{ background: card.bg }}>
           <div className={`pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full blur-2xl ${d ? "bg-white/10" : "bg-white/40"}`} />
-          <Link href={`/riwayat/${encodeURIComponent(phone ?? "")}/tier`} className="relative z-10 block">
-          <div className="mb-4 flex items-center justify-between">
+          <div className="relative z-10 mb-4 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <div className="h-6 w-8 rounded-md border border-amber-300/40 bg-gradient-to-br from-amber-200/90 via-amber-300/70 to-yellow-500/80 p-0.5 shadow-sm">
                 <div className="grid h-full w-full grid-cols-2 gap-0.5 rounded-[3px] border border-black/20 p-0.5">
@@ -161,7 +159,7 @@ export default async function RiwayatPage({ params, searchParams }: { params: { 
             <span className={`flex items-center gap-1 text-[11px] font-medium ${inkSub}`}>Manfaat tier<span aria-hidden>›</span></span>
           </div>
 
-          <div className="mb-3.5 flex items-baseline justify-between">
+          <div className="relative z-10 flex items-baseline justify-between">
             <div>
               <div className={`text-[10px] font-semibold uppercase tracking-wider ${inkFaint}`}>Saldo Ace Points</div>
               <div className="mt-0.5 flex items-baseline gap-2">
@@ -171,30 +169,28 @@ export default async function RiwayatPage({ params, searchParams }: { params: { 
             </div>
             <span className={`text-[11px] font-medium ${inkSub}`}>Setara {rupiah(pts.rp)}</span>
           </div>
+        </Link>
 
-          {/* Tier progress */}
-          <div className={`relative z-10 mb-4 rounded-2xl border p-3 backdrop-blur-md ${d ? "border-white/10 bg-black/20" : "border-slate-300/70 bg-white/40"}`}>
-            <div className={`mb-1.5 flex items-center justify-between text-[11px] ${inkSub}`}>
-              <span className="font-medium">{pts.nextTier ? `Menuju ${pts.nextTierLabel}` : "Tier tertinggi tercapai"}</span>
-              <span className={`font-mono font-bold ${ink}`}>{pts.pct}%</span>
-            </div>
-            <div className={`h-2 w-full overflow-hidden rounded-full p-0.5 ${d ? "bg-black/25" : "bg-slate-300/60"}`}>
-              <div className="h-full rounded-full bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-300 shadow-[0_0_10px_rgba(16,185,129,0.5)]" style={{ width: `${pts.pct}%` }} />
-            </div>
-            <div className={`mt-1.5 flex items-center justify-between text-[10px] ${inkFaint}`}>
-              <span>{pts.nextTier ? `Belanja ${rupiah(pts.spendToNext)} lagi` : "Benefit penuh aktif"}</span>
-              {pts.nextBenefit && <span>Benefit: {pts.nextBenefit}</span>}
-            </div>
+        {/* Tier progress — di bawah card */}
+        <Link href={`/riwayat/${encodeURIComponent(phone ?? "")}/tier`} className="block rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="mb-1.5 flex items-center justify-between text-[11px] text-slate-600">
+            <span className="font-medium">{pts.nextTier ? `Menuju ${pts.nextTierLabel}` : "Tier tertinggi tercapai"}</span>
+            <span className="font-mono font-bold text-slate-900">{pts.pct}%</span>
           </div>
-          </Link>
+          <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200">
+            <div className="h-full rounded-full bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-300" style={{ width: `${pts.pct}%` }} />
+          </div>
+          <div className="mt-1.5 flex items-center justify-between text-[10px] text-slate-400">
+            <span>{pts.nextTier ? `Belanja ${rupiah(pts.spendToNext)} lagi` : "Benefit penuh aktif"}</span>
+            {pts.nextBenefit && <span>Benefit: {pts.nextBenefit}</span>}
+          </div>
+        </Link>
 
-          {/* Tombol aksi */}
-          <div className="relative z-10 grid grid-cols-3 gap-2">
-            <Link href={`/riwayat/${encodeURIComponent(phone ?? "")}/tukar`} className={`flex items-center justify-center gap-1.5 rounded-xl border px-2.5 py-2 text-xs font-medium backdrop-blur-md transition active:scale-95 ${d ? "border-white/20 bg-white/15 text-white" : "border-slate-400/50 bg-white/60 text-slate-800"}`}>Tukar Poin</Link>
-            <a href="#reward" className={`flex items-center justify-center gap-1.5 rounded-xl border px-2.5 py-2 text-xs font-medium backdrop-blur-md transition active:scale-95 ${d ? "border-white/20 bg-white/15 text-white" : "border-slate-400/50 bg-white/60 text-slate-800"}`}>Redem Reward</a>
-            <Link href={`/riwayat/${encodeURIComponent(phone ?? "")}/voucher`} className={`flex items-center justify-center gap-1.5 rounded-xl border px-2.5 py-2 text-xs font-medium backdrop-blur-md transition active:scale-95 ${d ? "border-white/20 bg-white/15 text-white" : "border-slate-400/50 bg-white/60 text-slate-800"}`}>Voucher Belanja</Link>
-          </div>
-        </div>
+        {/* Tombol aksi — di bawah card */}
+        <div className="grid grid-cols-3 gap-2">
+          <Link href={`/riwayat/${encodeURIComponent(phone ?? "")}/tukar`} className="flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2.5 py-2 text-xs font-medium text-slate-700 shadow-sm transition active:scale-95">Tukar Poin</Link>
+          <a href="#reward" className="flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2.5 py-2 text-xs font-medium text-slate-700 shadow-sm transition active:scale-95">Redem Reward</a>
+          <Link href={`/riwayat/${encodeURIComponent(phone ?? "")}/voucher`} className="flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2.5 py-2 text-xs font-medium text-slate-700 shadow-sm transition active:scale-95">Voucher Belanja</Link>
         </div>
 
         {/* Reward leaderboard (kalau ada) */}
