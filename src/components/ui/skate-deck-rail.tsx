@@ -50,7 +50,7 @@ export interface SkateDeckRailProps extends React.ComponentProps<"section"> {
   labels?: SkateDeckRailLabels;
 }
 
-const DECK_ASPECT = 0.238;
+const DECK_ASPECT = 0.5; // raket lebih lebar dari papan skate (foto ~0.667)
 const PERSPECTIVE = 900;
 const LIFT_Z = 40;
 const LIFT_SCALE = 0.05;
