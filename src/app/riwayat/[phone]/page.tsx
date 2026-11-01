@@ -179,7 +179,7 @@ export default async function RiwayatPage({ params, searchParams }: { params: { 
 
           <div className="relative z-10">
             <div className={`text-[10px] font-semibold uppercase tracking-wider ${inkFaint}`}>Club Member ID</div>
-            <div className={`mt-0.5 font-mono text-sm font-semibold tracking-wider ${ink}`}>ACE.{phone ? displayPhone(phone) : "—"}</div>
+            <div className={`mt-0.5 font-mono text-sm font-semibold tracking-wider ${ink}`}>{phone ? displayPhone(phone) : "—"}</div>
           </div>
         </Link>
 
