@@ -5,6 +5,7 @@ import { salam } from "@/lib/wa";
 import { fetchAcePoints } from "@/lib/tirtonichub-points";
 import StringingBottomNav from "@/components/StringingBottomNav";
 import OrderHistory from "@/components/OrderHistory";
+import EditProfileSheet from "@/components/EditProfileSheet";
 
 export const dynamic = "force-dynamic";
 
@@ -65,6 +66,12 @@ export default async function RiwayatPage({ params, searchParams }: { params: { 
   // Ace Points: tier + saldo dihitung di Tirtonichub (per-tier, belanja 12 bln, sejak 1 Nov 2026).
   const pts = await fetchAcePoints(phone);
 
+  // Profil member (nama + ultah) untuk edit profil + centang "profil lengkap".
+  const member = phone ? await safeQuery(() => prisma.member.findUnique({ where: { phone }, select: { name: true, birthday: true } }), null) : null;
+  const displayName = member?.name ?? name;
+  const birthdayISO = member?.birthday ? member.birthday.toISOString().slice(0, 10) : null;
+  const profileComplete = !!(member?.name && member?.birthday);
+
   // Warna kartu per tier (dokumen Member Card). dark = kartu gelap → teks putih.
   const CARD: Record<string, { bg: string; dark: boolean }> = {
     White: { bg: "linear-gradient(135deg,#cbd5e1 0%,#94a3b8 55%,#e2e8f0 100%)", dark: false },
@@ -97,7 +104,7 @@ export default async function RiwayatPage({ params, searchParams }: { params: { 
     ? await safeQuery(() => prisma.reward.findFirst({ where: { phone, redeemedAt: null }, orderBy: { createdAt: "desc" } }), null)
     : null;
 
-  const initial = (name ?? "T").trim().charAt(0).toUpperCase() || "T";
+  const initial = (displayName ?? "T").trim().charAt(0).toUpperCase() || "T";
   const greeting = `Selamat ${salam()}`;
 
   return (
@@ -113,7 +120,13 @@ export default async function RiwayatPage({ params, searchParams }: { params: { 
           </div>
           <div className="flex flex-col justify-center">
             <span className="text-[11px] font-semibold uppercase leading-none tracking-wider text-slate-400">{greeting}</span>
-            <h1 className="text-xl font-bold leading-tight tracking-tight text-slate-900">{name ?? "Halo!"}</h1>
+            <h1 className="flex items-center gap-1.5 text-xl font-bold leading-tight tracking-tight text-slate-900">
+              <span>{displayName ?? "Halo!"}</span>
+              {profileComplete && (
+                <svg width="18" height="18" viewBox="0 0 24 24" className="shrink-0" aria-label="Profil lengkap"><circle cx="12" cy="12" r="11" fill="#3b82f6" /><path d="M7 12.5l3.2 3L17 8.5" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+              )}
+              <EditProfileSheet phone={phone ?? ""} name={member?.name ?? ""} birthdayISO={birthdayISO} waDisplay={phone ? displayPhone(phone) : ""} tierLabel={pts.tierLabel} />
+            </h1>
             <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-slate-500">
               <span className="font-mono tracking-tight">{phone ? displayPhone(phone) : "Nomor tidak valid"}</span>
               <span className="text-slate-300">•</span>
