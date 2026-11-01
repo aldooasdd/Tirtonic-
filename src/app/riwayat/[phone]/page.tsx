@@ -169,6 +169,11 @@ export default async function RiwayatPage({ params, searchParams }: { params: { 
             </div>
             <span className={`text-[11px] font-medium ${inkSub}`}>Setara {rupiah(pts.rp)}</span>
           </div>
+
+          <div className="relative z-10 mt-4">
+            <div className={`text-[10px] font-semibold uppercase tracking-wider ${inkFaint}`}>Club Member ID</div>
+            <div className={`mt-0.5 font-mono text-sm font-semibold tracking-wider ${ink}`}>ACE.{phone ? displayPhone(phone) : "—"}</div>
+          </div>
         </Link>
 
         {/* Tier progress — di bawah card */}
