@@ -125,13 +125,15 @@ export default async function RiwayatPage({ params, searchParams }: { params: { 
               {profileComplete && (
                 <svg width="18" height="18" viewBox="0 0 24 24" className="shrink-0" aria-label="Profil lengkap"><circle cx="12" cy="12" r="11" fill="#3b82f6" /><path d="M7 12.5l3.2 3L17 8.5" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
               )}
-              <EditProfileSheet phone={phone ?? ""} name={member?.name ?? ""} birthdayISO={birthdayISO} waDisplay={phone ? displayPhone(phone) : ""} tierLabel={pts.tierLabel} />
             </h1>
             <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-slate-500">
               <span className="font-mono tracking-tight">{phone ? displayPhone(phone) : "Nomor tidak valid"}</span>
               <span className="text-slate-300">•</span>
               <span className="font-medium text-emerald-700">Tirtonic Member</span>
             </div>
+          </div>
+          <div className="ml-auto self-start">
+            <EditProfileSheet phone={phone ?? ""} name={member?.name ?? ""} birthdayISO={birthdayISO} waDisplay={phone ? displayPhone(phone) : ""} tierLabel={pts.tierLabel} />
           </div>
         </div>
 
