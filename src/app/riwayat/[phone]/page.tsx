@@ -146,7 +146,8 @@ export default async function RiwayatPage({ params, searchParams }: { params: { 
         <div className={`absolute inset-x-5 -top-2.5 h-16 rounded-3xl opacity-50 shadow-[0_12px_24px_-8px_rgba(0,0,0,0.3)] ${d ? "border border-white/10" : "border border-slate-300"}`} style={{ background: card.bg }} />
         <div className={`relative overflow-hidden rounded-3xl border p-5 shadow-[0_24px_48px_-12px_rgba(13,92,58,0.4)] ${ink} ${d ? "border-white/15" : "border-slate-300"}`} style={{ background: card.bg }}>
           <div className={`pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full blur-2xl ${d ? "bg-white/10" : "bg-white/40"}`} />
-          <div className="relative z-10 mb-4 flex items-center justify-between">
+          <Link href={`/riwayat/${encodeURIComponent(phone ?? "")}/tier`} className="relative z-10 block">
+          <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <div className="h-6 w-8 rounded-md border border-amber-300/40 bg-gradient-to-br from-amber-200/90 via-amber-300/70 to-yellow-500/80 p-0.5 shadow-sm">
                 <div className="grid h-full w-full grid-cols-2 gap-0.5 rounded-[3px] border border-black/20 p-0.5">
@@ -159,9 +160,10 @@ export default async function RiwayatPage({ params, searchParams }: { params: { 
                 <span className={`text-lg font-extrabold leading-tight tracking-tight ${ink}`}>{pts.tierLabel}</span>
               </div>
             </div>
+            <span className={`flex items-center gap-1 text-[11px] font-medium ${inkSub}`}>Manfaat tier<span aria-hidden>›</span></span>
           </div>
 
-          <div className="relative z-10 mb-3.5 flex items-baseline justify-between">
+          <div className="mb-3.5 flex items-baseline justify-between">
             <div>
               <div className={`text-[10px] font-semibold uppercase tracking-wider ${inkFaint}`}>Saldo Ace Points</div>
               <div className="mt-0.5 flex items-baseline gap-2">
@@ -186,6 +188,7 @@ export default async function RiwayatPage({ params, searchParams }: { params: { 
               {pts.nextBenefit && <span>Benefit: {pts.nextBenefit}</span>}
             </div>
           </div>
+          </Link>
 
           {/* Tombol aksi */}
           <div className="relative z-10 grid grid-cols-3 gap-2">

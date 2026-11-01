@@ -15,8 +15,8 @@ const RP_PER_REFERRAL_ACE = 50_000; // coach 2% × (Rp1.000/Ace) = belanja / 50.
 
 // Tier berbasis belanja 12 bln. rpPerAce = rupiah belanja untuk 1 Ace. (mirror konfig hub)
 const TIERS = [
-  { name: "Prive", label: "Tirtonic Privé Card", qualify: 50_000_000, rpPerAce: 40_000 },
-  { name: "Signature", label: "Tirtonic Signature Card", qualify: 15_000_000, rpPerAce: 65_000 },
+  { name: "Prive", label: "Tirtonic Privé Card", qualify: 100_000_000, rpPerAce: 40_000 },
+  { name: "Signature", label: "Tirtonic Signature Card", qualify: 30_000_000, rpPerAce: 65_000 },
   { name: "White", label: "Tirtonic White Card", qualify: 0, rpPerAce: 100_000 },
 ] as const;
 const GREEN = { name: "Green", label: "Tirtonic Green Card", rpPerAce: 50_000 };
@@ -41,6 +41,8 @@ export type AcePoints = {
   pct: number;
   spendToNext: number;
   nextBenefit: string | null;
+  spend12mo: number; // belanja 12 bln berjalan (buat progress tiap tier)
+  isCoach: boolean;
 };
 
 const DEFAULT: AcePoints = {
@@ -53,8 +55,10 @@ const DEFAULT: AcePoints = {
   nextTier: "Signature",
   nextTierLabel: "Tirtonic Signature Card",
   pct: 0,
-  spendToNext: 15_000_000,
+  spendToNext: 30_000_000,
   nextBenefit: BENEFIT.Signature,
+  spend12mo: 0,
+  isCoach: false,
 };
 
 type Row = { t: number; amount: number };
@@ -142,5 +146,7 @@ export async function fetchAcePoints(phone: string | null): Promise<AcePoints> {
     pct: next ? Math.max(0, Math.min(100, Math.round((self.spend12mo / next.qualify) * 100))) : 100,
     spendToNext: next ? Math.max(0, next.qualify - self.spend12mo) : 0,
     nextBenefit: next ? BENEFIT[next.name] ?? null : null,
+    spend12mo: self.spend12mo,
+    isCoach: !!member?.isCoach,
   };
 }
