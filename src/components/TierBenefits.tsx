@@ -17,7 +17,7 @@ type T = {
   qualifyText: string; qualify: number | null; benefits: Ben[]; footer: string;
 };
 
-// gradient + benefit per tier (persis mockup).
+// gradient + benefit per tier (persis mockup). Green (coach) di akhir, sesudah Black Card.
 const TIERS: T[] = [
   {
     key: "White", tab: "White", pass: "WHITE PASS", passColor: "#004328", full: "Tirtonic White", level: "Level 1 • Entry Level",
@@ -29,19 +29,6 @@ const TIERS: T[] = [
       { icon: "cake", title: "Voucher Ulang Tahun", desc: "Voucher diskon khusus di bulan hari ulang tahun member." },
     ],
     footer: "Standard Member Privilege — track record riwayat stringing digital, garansi raket resmi, akses matchmaking komunitas Tirtonic Ace.",
-  },
-  {
-    key: "Green", tab: "Green", pass: "GREEN PASS", passColor: "#ffffff", full: "Tirtonic Green", level: "Khusus Pelatih • Coach Level",
-    grad: "linear-gradient(135deg,#1b5e39 0%,#0d5c3a 55%,#04331c 100%)", light: true,
-    qualifyText: "Kartu khusus pelatih tenis. Verifikasi sertifikasi / profil pelatih aktif melalui tim kurasi resmi Tirtonic.",
-    qualify: null,
-    benefits: [
-      { icon: "currency_exchange", title: "Poin Belanja Ekstra & Murid", desc: "Nilai Kembali 2% (Rp50.000 = 1 Ace) + 2% dari belanja murid referral otomatis ke saldo pelatih." },
-      { icon: "share", title: "Kode Referral Khusus Murid", desc: "Bagikan kode unik: diskon senar murid + poin pasif setiap mereka checkout." },
-      { icon: "cake", title: "Voucher Ulang Tahun & Merchandise", desc: "Voucher ulang tahun senilai Rp150.000 + paket merchandise pelatih eksklusif." },
-      { icon: "stadium", title: "Akses Event & Tennis Demo Day", desc: "Tiket VIP demo clinic raket terbaru + alokasi raket uji coba untuk sesi latih tanding murid." },
-    ],
-    footer: "Benefit Dasar Semua Member — akses histori stringing & riwayat tensi raket, notifikasi jadwal turnamen komunitas Tirtonic.",
   },
   {
     key: "Signature", tab: "Signature", pass: "SIGNATURE", passColor: "#4a3708", full: "Tirtonic Signature", level: "Level 3 • Eksklusif",
@@ -71,6 +58,19 @@ const TIERS: T[] = [
       { icon: "bolt", title: "Express 30-Menit Restring Kilat", desc: "Garansi pengerjaan senar instan dalam 30 menit saat turnamen tanpa biaya surcharge." },
     ],
     footer: "Termasuk seluruh benefit dasar — poin tak kedaluwarsa selama aktif, gratis konsultasi tensi senar, welcome voucher.",
+  },
+  {
+    key: "Green", tab: "Green", pass: "GREEN PASS", passColor: "#ffffff", full: "Tirtonic Green", level: "Khusus Pelatih • Coach Level",
+    grad: "linear-gradient(135deg,#1b5e39 0%,#0d5c3a 55%,#04331c 100%)", light: true,
+    qualifyText: "Kartu khusus pelatih tenis. Verifikasi sertifikasi / profil pelatih aktif melalui tim kurasi resmi Tirtonic.",
+    qualify: null,
+    benefits: [
+      { icon: "currency_exchange", title: "Poin Belanja Ekstra & Murid", desc: "Nilai Kembali 2% (Rp50.000 = 1 Ace) + 2% dari belanja murid referral otomatis ke saldo pelatih." },
+      { icon: "share", title: "Kode Referral Khusus Murid", desc: "Bagikan kode unik: diskon senar murid + poin pasif setiap mereka checkout." },
+      { icon: "cake", title: "Voucher Ulang Tahun & Merchandise", desc: "Voucher ulang tahun senilai Rp150.000 + paket merchandise pelatih eksklusif." },
+      { icon: "stadium", title: "Akses Event & Tennis Demo Day", desc: "Tiket VIP demo clinic raket terbaru + alokasi raket uji coba untuk sesi latih tanding murid." },
+    ],
+    footer: "Benefit Dasar Semua Member — akses histori stringing & riwayat tensi raket, notifikasi jadwal turnamen komunitas Tirtonic.",
   },
 ];
 
