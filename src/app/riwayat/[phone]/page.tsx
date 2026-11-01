@@ -163,23 +163,26 @@ export default async function RiwayatPage({ params, searchParams }: { params: { 
                 <span className={`text-lg font-extrabold leading-tight tracking-tight ${ink}`}>{pts.tierLabel.replace(/^Tirtonic /, "")} Pass</span>
               </div>
             </div>
-            <span className={`flex items-center gap-1 text-[11px] font-medium ${inkSub}`}>Manfaat tier<span aria-hidden>›</span></span>
-          </div>
-
-          <div className="relative z-10 flex items-baseline justify-between">
-            <div>
-              <div className={`text-[10px] font-semibold uppercase tracking-wider ${inkFaint}`}>Saldo Ace Points</div>
-              <div className="mt-0.5 flex items-baseline gap-2">
-                <span className={`font-mono text-3xl font-extrabold tracking-tight ${ink}`}>{pts.balance.toLocaleString("id-ID")}</span>
-                <span className={`text-xs font-bold tracking-wide ${inkSub}`}>PTS</span>
-              </div>
-            </div>
-            <span className={`text-[11px] font-medium ${inkSub}`}>Setara {rupiah(pts.rp)}</span>
+            <span className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold ${d ? "bg-white/20 text-white" : "bg-[#7afbb1] text-[#007444]"}`}>
+              <span className={`h-1.5 w-1.5 rounded-full animate-pulse ${d ? "bg-white" : "bg-[#006d40]"}`} />ACTIVE
+            </span>
           </div>
 
           <div className="relative z-10">
-            <div className={`text-[10px] font-semibold uppercase tracking-wider ${inkFaint}`}>Club Member ID</div>
-            <div className={`mt-0.5 font-mono text-sm font-semibold tracking-wider ${ink}`}>{phone ? displayPhone(phone) : "—"}</div>
+            <div className={`text-[10px] font-semibold uppercase tracking-wider ${inkFaint}`}>Saldo Ace Points</div>
+            <div className="mt-0.5 flex items-baseline gap-2">
+              <span className={`font-mono text-3xl font-extrabold tracking-tight ${ink}`}>{pts.balance.toLocaleString("id-ID")}</span>
+              <span className={`text-xs font-bold tracking-wide ${inkSub}`}>PTS</span>
+            </div>
+            <div className={`mt-0.5 text-[11px] font-medium ${inkSub}`}>Setara {rupiah(pts.rp)}</div>
+          </div>
+
+          <div className="relative z-10 flex items-end justify-between">
+            <div>
+              <div className={`text-[10px] font-semibold uppercase tracking-wider ${inkFaint}`}>Club Member ID</div>
+              <div className={`mt-0.5 font-mono text-sm font-semibold tracking-wider ${ink}`}>{phone ? displayPhone(phone) : "—"}</div>
+            </div>
+            <span className={`flex items-center gap-1 text-[11px] font-medium ${inkSub}`}>Manfaat tier<span aria-hidden>›</span></span>
           </div>
         </Link>
 
