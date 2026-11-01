@@ -52,6 +52,9 @@ export async function finishStringing(id: string) {
   // Hanya dari "dikerjakan" — klik dobel tidak kirim WA lagi.
   await completeStringing(id, { onlyIfStarted: true });
   revalidatePath("/dashboard/stringing");
+  // redirect → render ulang halaman dari server (hindari frame transien di client
+  // yang sempat menampilkan order lain seolah ikut "selesai"). DB cuma 1 order berubah.
+  redirect("/dashboard/stringing");
 }
 
 // Edit detail pesanan (senar, tarikan, raket, nama, WA). Tarikan selalu disimpan lbs.
