@@ -137,7 +137,7 @@ export default function TierBenefits({ tier, spend12mo, balance, isCoach, coachC
       <div className="flex flex-col items-center">
         <div className={`relative flex aspect-[1.586/1] w-full max-w-sm flex-col justify-between overflow-hidden rounded-2xl border p-5 shadow-xl ${W ? "border-white/15" : "border-slate-300"}`} style={{ background: dc.grad }}>
           <div className={`pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full blur-2xl ${W ? "bg-white/10" : "bg-white/40"}`} />
-          <svg className={`pointer-events-none absolute inset-0 h-full w-full ${W ? "opacity-[0.12]" : "opacity-[0.07]"}`} fill="none" viewBox="0 0 320 200" stroke="currentColor" aria-hidden>
+          <svg className={`pointer-events-none absolute inset-0 h-full w-full ${W ? "text-white opacity-[0.14]" : "text-[#1a1b22] opacity-[0.07]"}`} fill="none" viewBox="0 0 320 200" stroke="currentColor" aria-hidden>
             <rect x="20" y="16" width="280" height="168" strokeWidth="2" />
             <line x1="160" x2="160" y1="16" y2="184" strokeWidth="2" />
             <line x1="56" x2="56" y1="16" y2="184" strokeWidth="1.5" />
