@@ -141,9 +141,9 @@ export default async function RiwayatPage({ params, searchParams }: { params: { 
 
       <main className="relative z-10 space-y-4 px-5 pt-4">
         {/* ======= Kartu Tirtonic Ace (loyalty) ======= */}
-        <Link href={`/riwayat/${encodeURIComponent(phone ?? "")}/tier`} className={`relative block overflow-hidden rounded-3xl border p-5 shadow-[0_24px_48px_-12px_rgba(13,92,58,0.4)] ${ink} ${d ? "border-white/15" : "border-slate-300"}`} style={{ background: card.bg }}>
+        <Link href={`/riwayat/${encodeURIComponent(phone ?? "")}/tier`} className={`relative flex aspect-[1.586/1] flex-col justify-between overflow-hidden rounded-3xl border p-5 shadow-[0_24px_48px_-12px_rgba(13,92,58,0.4)] ${ink} ${d ? "border-white/15" : "border-slate-300"}`} style={{ background: card.bg }}>
           <div className={`pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full blur-2xl ${d ? "bg-white/10" : "bg-white/40"}`} />
-          <div className="relative z-10 mb-4 flex items-center justify-between">
+          <div className="relative z-10 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <div className="h-6 w-8 rounded-md border border-amber-300/40 bg-gradient-to-br from-amber-200/90 via-amber-300/70 to-yellow-500/80 p-0.5 shadow-sm">
                 <div className="grid h-full w-full grid-cols-2 gap-0.5 rounded-[3px] border border-black/20 p-0.5">
@@ -170,7 +170,7 @@ export default async function RiwayatPage({ params, searchParams }: { params: { 
             <span className={`text-[11px] font-medium ${inkSub}`}>Setara {rupiah(pts.rp)}</span>
           </div>
 
-          <div className="relative z-10 mt-4">
+          <div className="relative z-10">
             <div className={`text-[10px] font-semibold uppercase tracking-wider ${inkFaint}`}>Club Member ID</div>
             <div className={`mt-0.5 font-mono text-sm font-semibold tracking-wider ${ink}`}>ACE.{phone ? displayPhone(phone) : "—"}</div>
           </div>
