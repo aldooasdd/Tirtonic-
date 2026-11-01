@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { saveProfile } from "@/app/riwayat/profile-actions";
 
@@ -16,6 +17,8 @@ export default function EditProfileSheet({ phone, name, birthdayISO, waDisplay, 
   const [tgl, setTgl] = useState(birthdayISO ?? "");
   const [foto, setFoto] = useState<string>(photo ?? "");
   const [msg, setMsg] = useState("");
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
   const lockedBirthday = !!birthdayISO;
 
   // Kompres foto di klien: center-crop kotak, resize 256px, jpeg 0.7 (~15-30KB).
@@ -68,8 +71,9 @@ export default function EditProfileSheet({ phone, name, birthdayISO, waDisplay, 
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
       </button>
 
-      {/* Sheet */}
-      <div className={`fixed inset-0 z-[60] ${open ? "" : "pointer-events-none"}`}>
+      {/* Sheet — portal ke body biar lepas dari stacking context header (z-10) & bawah nav (z-20) */}
+      {mounted && createPortal(
+      <div className={`fixed inset-0 z-[100] ${open ? "" : "pointer-events-none"}`}>
         <div onClick={close} className={`absolute inset-0 bg-black/50 backdrop-blur-md transition-opacity duration-300 ${open ? "opacity-100" : "opacity-0"}`} />
         <div className={`absolute inset-x-0 bottom-0 mx-auto max-w-md rounded-t-3xl border border-white/50 bg-white/95 shadow-[0_-16px_48px_-12px_rgba(0,0,0,0.3)] backdrop-blur-2xl transition-transform duration-300 ${open ? "translate-y-0" : "translate-y-full"}`}>
           <div className="flex items-center justify-between px-5 pb-3 pt-3">
@@ -157,7 +161,8 @@ export default function EditProfileSheet({ phone, name, birthdayISO, waDisplay, 
             </button>
           </div>
         </div>
-      </div>
+      </div>,
+      document.body)}
     </>
   );
 }
