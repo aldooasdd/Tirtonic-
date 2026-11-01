@@ -59,13 +59,8 @@ const DEFAULT: AcePoints = {
 
 type Row = { t: number; amount: number };
 
-// Nomor bisa tersimpan beda bentuk di Order.telepon (62.., 0.., 8..) — cari semua varian.
-function phoneVariants(phone: string): string[] {
-  const rest = phone.startsWith("62") ? phone.slice(2) : phone;
-  return Array.from(new Set([phone, "0" + rest, rest, "+" + phone]));
-}
-
-// Transaksi gabungan (offline hub + online Order), urut waktu naik.
+// Poin HANYA dari Rekap Penjualan Tirtonichub (nota offline hub), per keputusan owner.
+// Transaksi tirtonic.com (Order online & stringing) TIDAK dihitung.
 async function rowsFor(phone: string, base?: string, secret?: string): Promise<Row[]> {
   const out: Row[] = [];
   if (base && secret) {
@@ -79,18 +74,9 @@ async function rowsFor(phone: string, base?: string, secret?: string): Promise<R
         for (const r of j.rows ?? []) out.push({ t: new Date(r.soldAt).getTime(), amount: r.grandTotal });
       }
     } catch {
-      /* hub mati → online saja */
+      /* hub mati → tanpa data */
     }
   }
-  // Online: Order dibayar sejak loyalty mulai, belum dibatalkan. Basis poin = produk net (tanpa ongkir).
-  const orders = await prisma.order
-    .findMany({
-      where: { telepon: { in: phoneVariants(phone) }, status: { not: "CANCELLED" }, paidAt: { not: null, gte: SINCE } },
-      select: { paidAt: true, subtotal: true, diskon: true },
-    })
-    .catch(() => [] as { paidAt: Date | null; subtotal: number; diskon: number }[]);
-  for (const o of orders) if (o.paidAt) out.push({ t: new Date(o.paidAt).getTime(), amount: Math.max(0, o.subtotal - o.diskon) });
-
   return out.sort((a, b) => a.t - b.t);
 }
 
