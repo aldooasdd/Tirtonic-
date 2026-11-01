@@ -56,7 +56,7 @@ const TIERS: T[] = [
   {
     key: "Prive", tab: "Privé", pass: "BLACK CARD PASS", passColor: "#ffffff", full: "Tirtonic Privé", level: "Tingkat Tertinggi • Ultra-Exclusive",
     grad: "linear-gradient(135deg,#0b1326 0%,#111827 55%,#040812 100%)", light: true,
-    qualifyText: "Belanja Rp100.000.000/tahun — atau bergabung otomatis melalui undangan eksklusif direksi (By Invitation Only).",
+    qualifyText: "Belanja Rp100.000.000 dalam 12 bulan untuk membuka tier tertinggi Tirtonic Privé.",
     qualify: 100_000_000,
     benefits: [
       { icon: "diamond", title: "Poin Belanja Tertinggi 2,5%", desc: "Nilai Kembali 2,5% (Rp40.000 = 1 Poin Tirtonic Ace / 1 poin = Rp1.000)." },
@@ -161,7 +161,7 @@ export default function TierBenefits({ tier, spend12mo, balance, isCoach, coachC
             </div>
             <span className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.45),0_2px_8px_-2px_rgba(0,0,0,0.15)] ${owned ? (W ? "border-white/25 bg-white/15 text-white" : "border-white/60 bg-white/25 text-[#007444]") : "border-white/15 bg-black/25 text-white/85"}`}>
               {owned && <span className={`h-1.5 w-1.5 rounded-full animate-pulse ${W ? "bg-white" : "bg-[#006d40]"}`} />}
-              {owned ? "ACTIVE" : info.key === "Prive" ? "BY INVITATION" : "LOCKED"}
+              {owned ? "ACTIVE" : "LOCKED"}
             </span>
           </div>
 
