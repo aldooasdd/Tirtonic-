@@ -67,7 +67,7 @@ export default async function RiwayatPage({ params, searchParams }: { params: { 
   const pts = await fetchAcePoints(phone);
 
   // Profil member (nama + ultah) untuk edit profil + centang "profil lengkap".
-  const member = phone ? await safeQuery(() => prisma.member.findUnique({ where: { phone }, select: { name: true, birthday: true } }), null) : null;
+  const member = phone ? await safeQuery(() => prisma.member.findUnique({ where: { phone }, select: { name: true, birthday: true, photo: true } }), null) : null;
   const displayName = member?.name ?? name;
   const birthdayISO = member?.birthday ? member.birthday.toISOString().slice(0, 10) : null;
   const profileComplete = !!(member?.name && member?.birthday);
@@ -113,8 +113,10 @@ export default async function RiwayatPage({ params, searchParams }: { params: { 
       <header className="relative z-10 px-5 pb-1 pt-10">
         <div className="mb-5 flex items-center gap-3.5">
           <div className="relative h-11 w-11 flex-shrink-0 rounded-2xl bg-gradient-to-tr from-emerald-700 via-emerald-500 to-teal-300 p-[1.5px] shadow-sm">
-            <div className="flex h-full w-full items-center justify-center rounded-[14px] bg-emerald-50">
-              <span className="text-lg font-extrabold tracking-tight text-emerald-800">{initial}</span>
+            <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-[14px] bg-emerald-50">
+              {member?.photo
+                ? <img src={member.photo} alt="" className="h-full w-full object-cover" />
+                : <span className="text-lg font-extrabold tracking-tight text-emerald-800">{initial}</span>}
             </div>
             <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-emerald-500" />
           </div>
@@ -133,7 +135,7 @@ export default async function RiwayatPage({ params, searchParams }: { params: { 
             </div>
           </div>
           <div className="ml-auto self-start">
-            <EditProfileSheet phone={phone ?? ""} name={member?.name ?? ""} birthdayISO={birthdayISO} waDisplay={phone ? displayPhone(phone) : ""} tierLabel={pts.tierLabel} />
+            <EditProfileSheet phone={phone ?? ""} name={member?.name ?? ""} birthdayISO={birthdayISO} waDisplay={phone ? displayPhone(phone) : ""} tierLabel={pts.tierLabel} photo={member?.photo ?? null} />
           </div>
         </div>
 

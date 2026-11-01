@@ -448,6 +448,7 @@ model Reward {
 model Member {
   phone        String    @id
   name         String?
+  photo        String?   // foto profil (data URL jpeg terkompres ~256px; kecil, disimpan inline)
   isCoach      Boolean   @default(false)
   coachCode    String?   @unique
   invitedPrive Boolean   @default(false)
