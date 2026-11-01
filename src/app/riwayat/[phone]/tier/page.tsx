@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { prisma, safeQuery } from "@/lib/prisma";
-import { normalizePhone } from "@/lib/string-finder/phone";
+import { normalizePhone, displayPhone } from "@/lib/string-finder/phone";
 import { fetchAcePoints } from "@/lib/tirtonichub-points";
 import StringingBottomNav from "@/components/StringingBottomNav";
 import TierBenefits from "@/components/TierBenefits";
@@ -29,7 +29,7 @@ export default async function TierPage({ params }: { params: { phone: string } }
       </header>
 
       <main className="relative z-10 px-5 pt-4">
-        <TierBenefits tier={pts.tier} spend12mo={pts.spend12mo} balance={pts.balance} isCoach={pts.isCoach} coachCode={member?.coachCode ?? null} />
+        <TierBenefits tier={pts.tier} spend12mo={pts.spend12mo} balance={pts.balance} isCoach={pts.isCoach} coachCode={member?.coachCode ?? null} phone={phone ? displayPhone(phone) : null} />
       </main>
 
       <StringingBottomNav active="home" phone={phone} />

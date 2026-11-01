@@ -6,7 +6,16 @@ import { useState } from "react";
 // Token MD3 diubah ke hex (Tailwind app = v3.4 default). Ikon = Material Symbols Outlined.
 // Data nyata: tier user, belanja 12 bln, saldo, status coach + kode referral. Benefit = teks.
 
-type Props = { tier: string; spend12mo: number; balance: number; isCoach: boolean; coachCode: string | null };
+type Props = { tier: string; spend12mo: number; balance: number; isCoach: boolean; coachCode: string | null; phone: string | null };
+
+// Warna kartu per tier — SAMA dengan kartu dashboard (src/app/riwayat/[phone]/page.tsx).
+// white = pakai teks putih di kartu.
+const DCARD: Record<string, { grad: string; white: boolean }> = {
+  White: { grad: "linear-gradient(135deg,#cbd5e1 0%,#94a3b8 55%,#e2e8f0 100%)", white: false },
+  Signature: { grad: "linear-gradient(135deg,#a67c00 0%,#7a5a0f 55%,#caa53d 100%)", white: true },
+  Prive: { grad: "linear-gradient(135deg,#18181b 0%,#000000 60%,#27272a 100%)", white: true },
+  Green: { grad: "linear-gradient(135deg,#004328 0%,#005a36 45%,#006D40 100%)", white: true },
+};
 
 const rupiah = (n: number) => "Rp" + n.toLocaleString("id-ID");
 
@@ -79,7 +88,7 @@ const Icon = ({ n, className }: { n: string; className?: string }) => (
   <span className={`material-symbols-outlined ${className ?? ""}`}>{n}</span>
 );
 
-export default function TierBenefits({ tier, spend12mo, balance, isCoach, coachCode }: Props) {
+export default function TierBenefits({ tier, spend12mo, balance, isCoach, coachCode, phone }: Props) {
   const [sel, setSel] = useState(TIERS.some((t) => t.key === tier) ? tier : "White");
   const info = TIERS.find((t) => t.key === sel) ?? TIERS[0];
   const L = info.light;
@@ -93,6 +102,13 @@ export default function TierBenefits({ tier, spend12mo, balance, isCoach, coachC
   const inkSub = L ? "text-white/70" : "text-[#404942]";
   const inkFaint = L ? "text-white/55" : "text-[#707971]";
   const selIdx = TIERS.findIndex((t) => t.key === sel);
+
+  // Kartu: warna + ink mengikuti kartu dashboard.
+  const dc = DCARD[info.key] ?? DCARD.White;
+  const W = dc.white;
+  const cInk = W ? "text-white" : "text-[#1a1b22]";
+  const cSub = W ? "text-white/70" : "text-[#404942]";
+  const cFaint = W ? "text-white/55" : "text-[#707971]";
 
   return (
     <div className="space-y-6">
@@ -119,54 +135,50 @@ export default function TierBenefits({ tier, spend12mo, balance, isCoach, coachC
 
       {/* Kartu member */}
       <div className="flex flex-col items-center">
-        <div className="relative flex aspect-[1.586/1] w-full max-w-sm flex-col justify-between overflow-hidden rounded-2xl p-4 shadow-xl" style={{ background: info.grad }}>
-          {/* watermark garis lapangan */}
-          <svg className={`pointer-events-none absolute inset-0 h-full w-full ${L ? "opacity-[0.12]" : "opacity-[0.07]"}`} fill="none" viewBox="0 0 320 200" stroke="currentColor">
+        <div className={`relative flex aspect-[1.586/1] w-full max-w-sm flex-col justify-between overflow-hidden rounded-2xl border p-5 shadow-xl ${W ? "border-white/15" : "border-slate-300"}`} style={{ background: dc.grad }}>
+          <div className={`pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full blur-2xl ${W ? "bg-white/10" : "bg-white/40"}`} />
+          <svg className={`pointer-events-none absolute inset-0 h-full w-full ${W ? "opacity-[0.12]" : "opacity-[0.07]"}`} fill="none" viewBox="0 0 320 200" stroke="currentColor" aria-hidden>
             <rect x="20" y="16" width="280" height="168" strokeWidth="2" />
             <line x1="160" x2="160" y1="16" y2="184" strokeWidth="2" />
             <line x1="56" x2="56" y1="16" y2="184" strokeWidth="1.5" />
             <line x1="264" x2="264" y1="16" y2="184" strokeWidth="1.5" />
             <line x1="56" x2="264" y1="100" y2="100" strokeWidth="1.5" />
           </svg>
-          <div className={`pointer-events-none absolute -right-20 -top-20 h-48 w-48 rounded-full blur-2xl ${L ? "bg-white/10" : "bg-[#a9f3c5]/30"}`} />
 
-          {/* atas: brand + badge */}
-          <div className="relative z-10 flex items-start justify-between">
-            <div>
-              <div className="flex items-center gap-1.5">
-                <Icon n="sports_tennis" className={`text-[18px] ${L ? "text-white" : "text-[#004328]"}`} />
-                <span className={`text-[11px] font-bold uppercase tracking-widest ${inkFaint}`}>Tirtonic Ace</span>
+          {/* atas: chip + brand + badge */}
+          <div className="relative z-10 flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="h-6 w-8 rounded-md border border-amber-300/40 bg-gradient-to-br from-amber-200/90 via-amber-300/70 to-yellow-500/80 p-0.5 shadow-sm">
+                <div className="grid h-full w-full grid-cols-2 gap-0.5 rounded-[3px] border border-black/20 p-0.5">
+                  <div className="border-r border-black/20" />
+                  <div />
+                </div>
               </div>
-              <div className="text-xl font-bold tracking-tight" style={{ color: info.passColor }}>{info.pass}</div>
+              <div>
+                <span className={`block text-[10px] font-bold uppercase leading-none tracking-widest ${cFaint}`}>Tirtonic Ace</span>
+                <span className={`text-lg font-extrabold leading-tight tracking-tight ${cInk}`}>{info.full.replace(/^Tirtonic /, "")} Card Pass</span>
+              </div>
             </div>
-            <span className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold ${owned ? (L ? "bg-white/20 text-white" : "bg-[#7afbb1] text-[#007444]") : "bg-black/30 text-white/85"}`}>
-              {owned && <span className={`h-1.5 w-1.5 rounded-full ${L ? "bg-white" : "bg-[#006d40]"} animate-pulse`} />}
-              {owned ? "ACTIVE" : info.key === "Prive" ? "BY INVITATION" : info.key === "Green" ? "LOCKED" : "LOCKED"}
+            <span className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.45),0_2px_8px_-2px_rgba(0,0,0,0.15)] ${owned ? (W ? "border-white/25 bg-white/15 text-white" : "border-white/60 bg-white/25 text-[#007444]") : "border-white/15 bg-black/25 text-white/85"}`}>
+              {owned && <span className={`h-1.5 w-1.5 rounded-full animate-pulse ${W ? "bg-white" : "bg-[#006d40]"}`} />}
+              {owned ? "ACTIVE" : info.key === "Prive" ? "BY INVITATION" : "LOCKED"}
             </span>
           </div>
 
-          {/* tengah: chip + contactless */}
-          <div className="relative z-10 my-auto flex items-center gap-3 pt-2">
-            <div className="flex h-7 w-10 flex-col justify-around rounded-md bg-gradient-to-br from-[#E2B755] via-[#FCE38A] to-[#C99E32] p-1 shadow-inner">
-              <div className="h-px w-full bg-black/20" />
-              <div className="h-px w-full bg-black/20" />
+          {/* tengah: saldo */}
+          <div className="relative z-10">
+            <div className={`text-[10px] font-semibold uppercase tracking-wider ${cFaint}`}>Saldo Ace Points</div>
+            <div className="mt-0.5 flex items-baseline gap-2">
+              <span className={`font-mono text-3xl font-extrabold tracking-tight ${cInk}`}>{balance.toLocaleString("id-ID")}</span>
+              <span className={`text-xs font-bold tracking-wide ${cSub}`}>PTS</span>
             </div>
-            <Icon n="contactless" className={`text-[20px] ${inkFaint}`} />
-            {info.key === "Green" && coachCode && (
-              <span className={`ml-auto rounded-md px-2 py-1 font-mono text-[11px] font-bold ${L ? "bg-black/25 text-white" : "bg-white/50 text-[#1a1b22]"}`}>{coachCode}</span>
-            )}
+            <div className={`mt-0.5 text-[11px] font-medium ${cSub}`}>Setara {rupiah(balance * 1000)}</div>
           </div>
 
-          {/* bawah: ID + valid */}
-          <div className="relative z-10 flex items-end justify-between">
-            <div>
-              <div className={`text-[11px] uppercase tracking-wider ${inkFaint}`}>{info.key === "Green" ? "ID Anggota Pelatih" : "Club Member ID"}</div>
-              <div className={`text-[15px] font-semibold tracking-wider ${ink}`}>{info.key === "Green" ? (coachCode ?? "COACH") : "ACE • 8829"}</div>
-            </div>
-            <div className="text-right">
-              <div className={`text-[11px] uppercase tracking-wider ${inkFaint}`}>Valid Thru</div>
-              <div className={`text-[13px] font-semibold tracking-wide ${ink}`}>10/27</div>
-            </div>
+          {/* bawah: Club Member ID */}
+          <div className="relative z-10">
+            <div className={`text-[10px] font-semibold uppercase tracking-wider ${cFaint}`}>Club Member ID</div>
+            <div className={`mt-0.5 font-mono text-sm font-semibold tracking-wider ${cInk}`}>{phone ?? "—"}</div>
           </div>
         </div>
         {/* dots */}
