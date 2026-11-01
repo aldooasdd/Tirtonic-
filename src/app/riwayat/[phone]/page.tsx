@@ -141,7 +141,7 @@ export default async function RiwayatPage({ params, searchParams }: { params: { 
 
       <main className="relative z-10 space-y-4 px-5 pt-4">
         {/* ======= Kartu Tirtonic Ace (loyalty) ======= */}
-        <Link href={`/riwayat/${encodeURIComponent(phone ?? "")}/tier`} className={`relative flex aspect-[1.586/1] flex-col justify-between overflow-hidden rounded-3xl border p-5 shadow-[0_24px_48px_-12px_rgba(13,92,58,0.4)] ${ink} ${d ? "border-white/15" : "border-slate-300"}`} style={{ background: card.bg }}>
+        <Link href={`/riwayat/${encodeURIComponent(phone ?? "")}/tier`} className={`relative flex aspect-[1.586/1] flex-col justify-between overflow-hidden rounded-2xl border p-5 shadow-[0_24px_48px_-12px_rgba(13,92,58,0.4)] ${ink} ${d ? "border-white/15" : "border-slate-300"}`} style={{ background: card.bg }}>
           <div className={`pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full blur-2xl ${d ? "bg-white/10" : "bg-white/40"}`} />
           <svg className={`pointer-events-none absolute inset-0 h-full w-full ${d ? "opacity-[0.12]" : "opacity-[0.07]"}`} fill="none" viewBox="0 0 320 200" stroke="currentColor" aria-hidden>
             <rect x="20" y="16" width="280" height="168" strokeWidth="2" />
