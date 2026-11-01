@@ -239,7 +239,14 @@ export async function confirmPreorderArrivedLunas(id: string): Promise<{ ok: boo
 export async function markPreorderLunas(invoiceLunas: string, ref?: string): Promise<boolean> {
   const o = await prisma.preorderOrder.findUnique({ where: { invoiceLunas } });
   if (!o) return false;
-  if (o.status !== "WAITING_LUNAS") return true;
+  return markPreorderLunasById(o.id, ref);
+}
+
+/** Pelunasan diterima by id → LUNAS, WA #6. Dipakai webhook & admin manual (fallback DOKU mati). Idempoten. */
+export async function markPreorderLunasById(id: string, ref?: string): Promise<boolean> {
+  const o = await prisma.preorderOrder.findUnique({ where: { id } });
+  if (!o) return false;
+  if (o.status !== "WAITING_LUNAS") return true; // sudah diproses / status lain
   const updated = await prisma.preorderOrder.update({
     where: { id: o.id },
     data: { status: "LUNAS", lunasAt: new Date(), paymentRefLunas: ref ?? o.paymentRefLunas },
