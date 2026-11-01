@@ -2,204 +2,250 @@
 
 import { useState } from "react";
 
-// Halaman "Manfaat Tier" — dibuka saat kartu Ace diklik. Tab per tier + kartu preview + benefit.
-// Benefit = teks informatif (belum fungsional). Angka tier ikut config live (Signature 30jt, Privé 100jt).
+// Halaman "Manfaat Tier" — port dari mockup Stitch (stitch_member_dashboard_redesign #3).
+// Token MD3 diubah ke hex (Tailwind app = v3.4 default). Ikon = Material Symbols Outlined.
+// Data nyata: tier user, belanja 12 bln, saldo, status coach + kode referral. Benefit = teks.
 
-type Props = {
-  tier: string; // tier user sekarang: White | Signature | Prive | Green
-  spend12mo: number;
-  balance: number;
-  isCoach: boolean;
-  coachCode: string | null;
+type Props = { tier: string; spend12mo: number; balance: number; isCoach: boolean; coachCode: string | null };
+
+const rupiah = (n: number) => "Rp" + n.toLocaleString("id-ID");
+
+type Ben = { icon: string; title: string; desc: string };
+type T = {
+  key: string; tab: string; pass: string; passColor: string; full: string; level: string;
+  grad: string; light: boolean; // light = teks putih
+  qualifyText: string; qualify: number | null; benefits: Ben[]; footer: string;
 };
 
-const rupiah = (n: number) => "Rp " + n.toLocaleString("id-ID");
-
-type Benefit = { title: string; desc: string };
-type TierInfo = {
-  key: string;
-  tab: string;
-  pass: string;
-  full: string;
-  level: string;
-  qualifyText: string;
-  qualify: number | null; // rupiah; null = tak berbasis belanja (White/Green)
-  benefits: Benefit[];
-  footer: string;
-  bg: string;
-  dark: boolean;
-};
-
-const CARD: Record<string, { bg: string; dark: boolean }> = {
-  White: { bg: "linear-gradient(135deg,#cbd5e1 0%,#94a3b8 55%,#e2e8f0 100%)", dark: false },
-  Green: { bg: "linear-gradient(135deg,#004328 0%,#005a36 45%,#006D40 100%)", dark: true },
-  Signature: { bg: "linear-gradient(135deg,#a67c00 0%,#7a5a0f 55%,#caa53d 100%)", dark: true },
-  Prive: { bg: "linear-gradient(135deg,#18181b 0%,#000000 60%,#27272a 100%)", dark: true },
-};
-
-const TIERS: TierInfo[] = [
+// gradient + benefit per tier (persis mockup).
+const TIERS: T[] = [
   {
-    key: "White", tab: "White", pass: "WHITE PASS", full: "Tirtonic White", level: "Level 1 • Entry Level",
-    qualifyText: "Kartu dasar untuk seluruh customer. Terbuka otomatis saat pendaftaran nomor WhatsApp.",
-    qualify: null, ...CARD.White,
+    key: "White", tab: "White", pass: "WHITE PASS", passColor: "#004328", full: "Tirtonic White", level: "Level 1 • Entry Level",
+    grad: "linear-gradient(135deg,#ffffff 0%,#f1effa 55%,#d8d6e3 100%)", light: false,
+    qualifyText: "Kartu dasar untuk seluruh customer dalam ekosistem Tirtonic Ace. Terbuka otomatis saat pendaftaran nomor WhatsApp.",
+    qualify: null,
     benefits: [
-      { title: "Poin Belanja Ekstra", desc: "Nilai Kembali 1% (Rp100.000 = 1 Poin Ace · 1 poin = Rp1.000)." },
-      { title: "Voucher Ulang Tahun", desc: "Voucher diskon khusus di bulan hari ulang tahun member." },
+      { icon: "loyalty", title: "Poin Belanja Ekstra", desc: "Nilai Kembali 1% (Rp100.000 = 1 Poin Ace / 1 poin = Rp1.000)." },
+      { icon: "cake", title: "Voucher Ulang Tahun", desc: "Voucher diskon khusus di bulan hari ulang tahun member." },
     ],
-    footer: "Standard Member — riwayat stringing digital, garansi raket resmi, akses matchmaking komunitas Tirtonic Ace.",
+    footer: "Standard Member Privilege — track record riwayat stringing digital, garansi raket resmi, akses matchmaking komunitas Tirtonic Ace.",
   },
   {
-    key: "Green", tab: "Green", pass: "GREEN PASS", full: "Tirtonic Green", level: "Khusus Pelatih • Coach Level",
-    qualifyText: "Kartu khusus pelatih tenis. Verifikasi sertifikasi / profil pelatih via tim kurasi Tirtonic.",
-    qualify: null, ...CARD.Green,
+    key: "Green", tab: "Green", pass: "GREEN PASS", passColor: "#ffffff", full: "Tirtonic Green", level: "Khusus Pelatih • Coach Level",
+    grad: "linear-gradient(135deg,#1b5e39 0%,#0d5c3a 55%,#04331c 100%)", light: true,
+    qualifyText: "Kartu khusus pelatih tenis. Verifikasi sertifikasi / profil pelatih aktif melalui tim kurasi resmi Tirtonic.",
+    qualify: null,
     benefits: [
-      { title: "Poin Belanja Ekstra & Murid", desc: "Nilai Kembali 2% (Rp50.000 = 1 Ace) + 2% dari belanja murid referral otomatis ke saldo pelatih." },
-      { title: "Kode Referral Khusus Murid", desc: "Bagikan kode: diskon senar murid + poin pasif setiap mereka checkout." },
-      { title: "Voucher Ulang Tahun & Merchandise", desc: "Voucher ulang tahun senilai Rp150.000 + paket merchandise pelatih eksklusif." },
-      { title: "Akses Event & Tennis Demo Day", desc: "Tiket VIP demo clinic raket terbaru + alokasi raket uji coba untuk sesi latih tanding murid." },
+      { icon: "currency_exchange", title: "Poin Belanja Ekstra & Murid", desc: "Nilai Kembali 2% (Rp50.000 = 1 Ace) + 2% dari belanja murid referral otomatis ke saldo pelatih." },
+      { icon: "share", title: "Kode Referral Khusus Murid", desc: "Bagikan kode unik: diskon senar murid + poin pasif setiap mereka checkout." },
+      { icon: "cake", title: "Voucher Ulang Tahun & Merchandise", desc: "Voucher ulang tahun senilai Rp150.000 + paket merchandise pelatih eksklusif." },
+      { icon: "stadium", title: "Akses Event & Tennis Demo Day", desc: "Tiket VIP demo clinic raket terbaru + alokasi raket uji coba untuk sesi latih tanding murid." },
     ],
-    footer: "Benefit Dasar Semua Member — akses histori stringing & notifikasi jadwal turnamen komunitas Tirtonic.",
+    footer: "Benefit Dasar Semua Member — akses histori stringing & riwayat tensi raket, notifikasi jadwal turnamen komunitas Tirtonic.",
   },
   {
-    key: "Signature", tab: "Signature", pass: "SIGNATURE", full: "Tirtonic Signature", level: "Level 3 • Eksklusif",
+    key: "Signature", tab: "Signature", pass: "SIGNATURE", passColor: "#4a3708", full: "Tirtonic Signature", level: "Level 3 • Eksklusif",
+    grad: "linear-gradient(135deg,#edd89a 0%,#c6a355 55%,#8d6924 100%)", light: false,
     qualifyText: "Belanja Rp30.000.000 dalam 12 bulan atau kumpulkan 30.000 Tirtonic Ace Points untuk membuka Signature Tier.",
-    qualify: 30_000_000, ...CARD.Signature,
+    qualify: 30_000_000,
     benefits: [
-      { title: "Poin Belanja Ekstra", desc: "Nilai Kembali ±1,5% (Rp65.000 = 1 Poin Tirtonic Ace)." },
-      { title: "Gratis Jasa Stringing", desc: "Gratis 2× pasang senar per tahun di semua outlet Tirtonic." },
-      { title: "Layanan Prioritas", desc: "Fast-track service & antrean khusus pelayanan via WhatsApp VIP." },
-      { title: "Voucher Ulang Tahun & Hadiah", desc: "Voucher ulang tahun eksklusif Tirtonic senilai Rp250.000." },
-      { title: "Akses Rilis Koleksi Awal", desc: "Early access 48 jam untuk peluncuran raket & apparel terbatas." },
+      { icon: "loyalty", title: "Poin Belanja Ekstra", desc: "Nilai Kembali ±1,5% (Rp65.000 = 1 Poin Tirtonic Ace)." },
+      { icon: "build_circle", title: "Gratis Jasa Stringing", desc: "Gratis 2× pasang senar per tahun di semua outlet Tirtonic." },
+      { icon: "support_agent", title: "Layanan Prioritas", desc: "Fast-track service & antrean khusus pelayanan via WhatsApp VIP." },
+      { icon: "cake", title: "Voucher Ulang Tahun & Hadiah", desc: "Voucher ulang tahun eksklusif Tirtonic senilai Rp250.000." },
+      { icon: "local_activity", title: "Akses Rilis Koleksi Awal", desc: "Early access 48 jam untuk peluncuran raket & apparel terbatas." },
     ],
     footer: "Benefit Dasar Semua Member — Tirtonic Ace Points setiap transaksi belanja & stringing di toko maupun online.",
   },
   {
-    key: "Prive", tab: "Privé", pass: "BLACK CARD PASS", full: "Tirtonic Privé", level: "Tingkat Tertinggi • Ultra-Exclusive",
+    key: "Prive", tab: "Privé", pass: "BLACK CARD PASS", passColor: "#ffffff", full: "Tirtonic Privé", level: "Tingkat Tertinggi • Ultra-Exclusive",
+    grad: "linear-gradient(135deg,#0b1326 0%,#111827 55%,#040812 100%)", light: true,
     qualifyText: "Belanja Rp100.000.000/tahun — atau bergabung otomatis melalui undangan eksklusif direksi (By Invitation Only).",
-    qualify: 100_000_000, ...CARD.Prive,
+    qualify: 100_000_000,
     benefits: [
-      { title: "Poin Belanja Tertinggi 2,5%", desc: "Nilai Kembali 2,5% (Rp40.000 = 1 Poin Tirtonic Ace)." },
-      { title: "Gratis 6× Jasa Stringing / Tahun", desc: "Bebas pasang senar 6× per tahun — bebas pilih mesin & Master Stringer." },
-      { title: "Personal Shopper & Concierge 24/7", desc: "Asisten pribadi untuk pemesanan raket impor, booking antrean darurat, konsultasi alat." },
-      { title: "First Priority Drop (72 Jam Awal)", desc: "Akses 72 jam sebelum rilis edisi terbatas & kolaborasi desainer ke publik." },
-      { title: "Hadiah Ulang Tahun Mewah", desc: "Paket kado premium tahunan senilai Rp1.000.000+ dikurasi tim eksekutif." },
-      { title: "Express 30-Menit Restring Kilat", desc: "Garansi senar instan dalam 30 menit saat turnamen tanpa biaya surcharge." },
+      { icon: "diamond", title: "Poin Belanja Tertinggi 2,5%", desc: "Nilai Kembali 2,5% (Rp40.000 = 1 Poin Tirtonic Ace / 1 poin = Rp1.000)." },
+      { icon: "build_circle", title: "Gratis 6× Jasa Stringing / Tahun", desc: "Bebas pasang senar 6× per tahun di seluruh workshop (bebas pilih mesin & Master Stringer)." },
+      { icon: "support_agent", title: "Personal Shopper & Concierge 24/7", desc: "Asisten pribadi untuk pemesanan raket impor, booking antrean darurat, konsultasi alat turnamen." },
+      { icon: "rocket_launch", title: "First Priority Drop (72 Jam Awal)", desc: "Akses prioritas 72 jam sebelum rilis edisi terbatas & kolaborasi desainer ke publik." },
+      { icon: "redeem", title: "Hadiah Ulang Tahun Mewah", desc: "Paket kado premium tahunan senilai Rp1.000.000+ dikurasi langsung tim eksekutif Tirtonic." },
+      { icon: "bolt", title: "Express 30-Menit Restring Kilat", desc: "Garansi pengerjaan senar instan dalam 30 menit saat turnamen tanpa biaya surcharge." },
     ],
-    footer: "Termasuk seluruh benefit dasar — poin tak kedaluwarsa selama aktif, gratis konsultasi tensi, welcome voucher.",
+    footer: "Termasuk seluruh benefit dasar — poin tak kedaluwarsa selama aktif, gratis konsultasi tensi senar, welcome voucher.",
   },
 ];
 
 const RANK: Record<string, number> = { White: 0, Signature: 1, Prive: 2 };
+const Icon = ({ n, className }: { n: string; className?: string }) => (
+  <span className={`material-symbols-outlined ${className ?? ""}`}>{n}</span>
+);
 
 export default function TierBenefits({ tier, spend12mo, balance, isCoach, coachCode }: Props) {
   const [sel, setSel] = useState(TIERS.some((t) => t.key === tier) ? tier : "White");
   const info = TIERS.find((t) => t.key === sel) ?? TIERS[0];
-  const d = info.dark;
+  const L = info.light;
 
-  // Apakah user sudah punya tier ini (benefit aktif vs terkunci).
   const userRank = RANK[tier] ?? 0;
-  const owned =
-    info.key === "White" ? true : info.key === "Green" ? isCoach : userRank >= (RANK[info.key] ?? 99);
-
-  // Progress kualifikasi: White entry, Green by verifikasi, lainnya belanja/qualify.
+  const owned = info.key === "White" ? true : info.key === "Green" ? isCoach : userRank >= (RANK[info.key] ?? 99);
   const pct = info.qualify ? Math.max(0, Math.min(100, Math.round((spend12mo / info.qualify) * 100))) : 100;
   const sisa = info.qualify ? Math.max(0, info.qualify - spend12mo) : 0;
 
-  const ink = d ? "text-white" : "text-slate-900";
-  const inkSub = d ? "text-white/70" : "text-slate-600";
-  const inkFaint = d ? "text-white/55" : "text-slate-500";
+  const ink = L ? "text-white" : "text-[#1a1b22]";
+  const inkSub = L ? "text-white/70" : "text-[#404942]";
+  const inkFaint = L ? "text-white/55" : "text-[#707971]";
+  const selIdx = TIERS.findIndex((t) => t.key === sel);
 
   return (
-    <div className="space-y-4">
-      {/* Tab tier */}
-      <div className="flex gap-1.5 rounded-full bg-slate-100 p-1">
-        {TIERS.map((t) => (
-          <button
-            key={t.key}
-            onClick={() => setSel(t.key)}
-            className={`flex-1 rounded-full px-2 py-1.5 text-xs font-semibold transition ${sel === t.key ? "bg-white text-emerald-900 shadow-sm" : "text-slate-500"}`}
-          >
-            {t.tab}
-            {t.key === tier && <span className="ml-1 text-emerald-500">•</span>}
-          </button>
-        ))}
+    <div className="space-y-6">
+      {/* Material Symbols font (hoisted ke head oleh Next) */}
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" />
+      <style>{`.material-symbols-outlined{font-variation-settings:'FILL'0,'wght'400,'GRAD'0,'opsz'24;line-height:1;vertical-align:middle;}`}</style>
+
+      {/* Pills tier */}
+      <div className="flex items-center justify-between rounded-full bg-[#eeedf7] p-1 shadow-sm">
+        {TIERS.map((t) => {
+          const active = sel === t.key;
+          return (
+            <button
+              key={t.key}
+              onClick={() => setSel(t.key)}
+              className={`flex flex-1 items-center justify-center gap-1 rounded-full py-2 text-[13px] font-semibold tracking-tight transition ${active ? "bg-white text-[#004328] shadow-sm" : "text-[#404942]"}`}
+            >
+              {t.key === tier && <span className="h-2 w-2 rounded-full bg-[#006d40]" />}
+              <span>{t.tab}</span>
+            </button>
+          );
+        })}
       </div>
 
-      {/* Kartu preview */}
-      <div className="relative overflow-hidden rounded-3xl border p-5 shadow-[0_24px_48px_-12px_rgba(13,92,58,0.4)]" style={{ background: info.bg }}>
-        <div className={`pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full blur-2xl ${d ? "bg-white/10" : "bg-white/40"}`} />
-        <div className="relative z-10 flex items-start justify-between">
-          <div>
-            <span className={`block text-[10px] font-bold uppercase tracking-widest ${inkFaint}`}>Tirtonic Ace</span>
-            <span className={`text-xl font-extrabold tracking-tight ${ink}`}>{info.pass}</span>
+      {/* Kartu member */}
+      <div className="flex flex-col items-center">
+        <div className="relative flex aspect-[1.586/1] w-full max-w-sm flex-col justify-between overflow-hidden rounded-2xl p-4 shadow-xl" style={{ background: info.grad }}>
+          {/* watermark garis lapangan */}
+          <svg className={`pointer-events-none absolute inset-0 h-full w-full ${L ? "opacity-[0.12]" : "opacity-[0.07]"}`} fill="none" viewBox="0 0 320 200" stroke="currentColor">
+            <rect x="20" y="16" width="280" height="168" strokeWidth="2" />
+            <line x1="160" x2="160" y1="16" y2="184" strokeWidth="2" />
+            <line x1="56" x2="56" y1="16" y2="184" strokeWidth="1.5" />
+            <line x1="264" x2="264" y1="16" y2="184" strokeWidth="1.5" />
+            <line x1="56" x2="264" y1="100" y2="100" strokeWidth="1.5" />
+          </svg>
+          <div className={`pointer-events-none absolute -right-20 -top-20 h-48 w-48 rounded-full blur-2xl ${L ? "bg-white/10" : "bg-[#a9f3c5]/30"}`} />
+
+          {/* atas: brand + badge */}
+          <div className="relative z-10 flex items-start justify-between">
+            <div>
+              <div className="flex items-center gap-1.5">
+                <Icon n="sports_tennis" className={`text-[18px] ${L ? "text-white" : "text-[#004328]"}`} />
+                <span className={`text-[11px] font-bold uppercase tracking-widest ${inkFaint}`}>Tirtonic Ace</span>
+              </div>
+              <div className="text-xl font-bold tracking-tight" style={{ color: info.passColor }}>{info.pass}</div>
+            </div>
+            <span className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold ${owned ? (L ? "bg-white/20 text-white" : "bg-[#7afbb1] text-[#007444]") : "bg-black/30 text-white/85"}`}>
+              {owned && <span className={`h-1.5 w-1.5 rounded-full ${L ? "bg-white" : "bg-[#006d40]"} animate-pulse`} />}
+              {owned ? "ACTIVE" : info.key === "Prive" ? "BY INVITATION" : info.key === "Green" ? "LOCKED" : "LOCKED"}
+            </span>
           </div>
-          <span className={`rounded-full px-2.5 py-1 text-[10px] font-bold ${owned ? (d ? "bg-white/20 text-white" : "bg-emerald-600 text-white") : "bg-black/30 text-white/80"}`}>
-            {owned ? "ACTIVE" : info.key === "Prive" ? "BY INVITATION" : "LOCKED"}
-          </span>
-        </div>
-        <div className="relative z-10 mt-8 flex items-end justify-between">
-          <span className={`text-sm font-semibold ${ink}`}>{info.full}</span>
-          <span className={`text-[11px] ${inkSub}`}>VALID THRU 10/27</span>
-        </div>
-        {info.key === "Green" && coachCode && (
-          <div className={`relative z-10 mt-3 flex items-center gap-2 rounded-xl px-3 py-2 text-xs ${d ? "bg-black/25 text-white" : "bg-white/50 text-slate-800"}`}>
-            <span className={inkFaint}>Kode Referral:</span>
-            <span className="font-mono font-bold">{coachCode}</span>
+
+          {/* tengah: chip + contactless */}
+          <div className="relative z-10 my-auto flex items-center gap-3 pt-2">
+            <div className="flex h-7 w-10 flex-col justify-around rounded-md bg-gradient-to-br from-[#E2B755] via-[#FCE38A] to-[#C99E32] p-1 shadow-inner">
+              <div className="h-px w-full bg-black/20" />
+              <div className="h-px w-full bg-black/20" />
+            </div>
+            <Icon n="contactless" className={`text-[20px] ${inkFaint}`} />
+            {info.key === "Green" && coachCode && (
+              <span className={`ml-auto rounded-md px-2 py-1 font-mono text-[11px] font-bold ${L ? "bg-black/25 text-white" : "bg-white/50 text-[#1a1b22]"}`}>{coachCode}</span>
+            )}
           </div>
-        )}
+
+          {/* bawah: ID + valid */}
+          <div className="relative z-10 flex items-end justify-between">
+            <div>
+              <div className={`text-[11px] uppercase tracking-wider ${inkFaint}`}>{info.key === "Green" ? "ID Anggota Pelatih" : "Club Member ID"}</div>
+              <div className={`text-[15px] font-semibold tracking-wider ${ink}`}>{info.key === "Green" ? (coachCode ?? "COACH") : "ACE • 8829"}</div>
+            </div>
+            <div className="text-right">
+              <div className={`text-[11px] uppercase tracking-wider ${inkFaint}`}>Valid Thru</div>
+              <div className={`text-[13px] font-semibold tracking-wide ${ink}`}>10/27</div>
+            </div>
+          </div>
+        </div>
+        {/* dots */}
+        <div className="mt-4 flex items-center justify-center gap-2">
+          {TIERS.map((t, i) => (
+            <span key={t.key} className={`h-1.5 rounded-full transition-all ${i === selIdx ? "w-6 bg-[#004328]" : "w-1.5 bg-[#e3e1ec]"}`} />
+          ))}
+        </div>
       </div>
 
-      {/* Status + progress */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-5">
-        <div className="mb-2 flex items-center gap-2">
-          <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">{info.level}</span>
-          {owned && <span className="text-[11px] font-semibold text-emerald-600">✓ Aktif</span>}
+      {/* Status + kualifikasi */}
+      <section className="space-y-4 rounded-2xl bg-white p-5 shadow-sm">
+        <div className="flex items-center justify-between">
+          <span className="rounded-full bg-[#d1e7dd] px-2.5 py-1 text-[11px] font-semibold tracking-wide text-[#0c1f19]">{info.level}</span>
+          {owned && (
+            <span className="flex items-center gap-1 text-[11px] font-semibold text-[#006d40]"><Icon n="check_circle" className="text-[15px]" />Aktif</span>
+          )}
         </div>
-        <h2 className="text-xl font-extrabold text-slate-900">{info.full}</h2>
-        <p className="mt-1.5 text-sm leading-relaxed text-slate-600">{info.qualifyText}</p>
+        <div>
+          <h2 className="text-xl font-bold tracking-tight text-[#004328]">{info.full}</h2>
+          <p className="mt-1 text-[13px] leading-relaxed text-[#404942]">{info.qualifyText}</p>
+        </div>
 
         {info.qualify && !owned && (
-          <div className="mt-4">
-            <div className="mb-1.5 flex items-center justify-between text-[11px] text-slate-500">
-              <span className="font-medium">Progres Kualifikasi</span>
-              <span className="font-mono font-bold text-emerald-700">{rupiah(spend12mo)} / {rupiah(info.qualify)} ({pct}%)</span>
+          <div className="space-y-1.5 pt-1">
+            <div className="flex items-center justify-between text-[11px]">
+              <span className="font-medium text-[#404942]">Progres Kualifikasi</span>
+              <span className="font-bold text-[#004328]">{rupiah(spend12mo)} / {rupiah(info.qualify)}</span>
             </div>
-            <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200">
-              <div className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-emerald-300" style={{ width: `${pct}%` }} />
+            <div className="h-2 w-full overflow-hidden rounded-full bg-[#e3e1ec]">
+              <div className="h-full rounded-full bg-[#006d40] transition-all" style={{ width: `${pct}%` }} />
             </div>
-            <p className="mt-1.5 text-[11px] text-slate-400">Sisa {rupiah(sisa)} lagi untuk membuka tier ini.</p>
+            <div className="flex items-center justify-between text-[11px] text-[#707971]">
+              <span>{info.level.split(" • ")[0]}</span>
+              <span>{pct}% • Kurang {rupiah(sisa)}</span>
+            </div>
           </div>
         )}
         {info.key === "Green" && !isCoach && (
-          <p className="mt-3 rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-500">Butuh verifikasi pelatih via tim kurasi Tirtonic untuk membuka Green Card.</p>
+          <div className="flex items-start gap-2.5 rounded-xl bg-[#f4f2fd] p-2.5">
+            <Icon n="verified_user" className="mt-0.5 shrink-0 text-[20px] text-[#006d40]" />
+            <p className="text-[11px] leading-normal text-[#404942]">Butuh verifikasi lisensi pelatih via tim kurasi Tirtonic untuk mengklaim <strong className="font-semibold text-[#1a1b22]">Green Card</strong>.</p>
+          </div>
         )}
-      </div>
+      </section>
 
-      {/* Daftar benefit */}
-      <div className="space-y-2.5">
+      {/* Benefit */}
+      <section className="space-y-2">
         <div className="flex items-center justify-between px-1">
-          <h3 className="text-base font-extrabold text-slate-900">Keuntungan {info.tab}</h3>
-          <span className="text-xs font-semibold text-emerald-700">{info.benefits.length} Hak Istimewa</span>
+          <h3 className="text-[17px] font-bold text-[#1a1b22]">Keuntungan {info.tab}</h3>
+          <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${owned ? "bg-[#7afbb1] text-[#007444]" : "bg-[#eeedf7] text-[#707971]"}`}>{info.benefits.length} Hak Istimewa</span>
         </div>
         {info.benefits.map((b) => (
-          <div key={b.title} className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-4">
-            <div className="min-w-0 flex-1">
-              <p className="font-bold text-slate-900">{b.title}</p>
-              <p className="mt-0.5 text-sm leading-relaxed text-slate-600">{b.desc}</p>
+          <div key={b.title} className={`flex items-center justify-between rounded-xl bg-white p-4 shadow-sm ${owned ? "" : "opacity-80"}`}>
+            <div className="flex items-center gap-3.5 pr-2">
+              <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${owned ? "bg-[#7afbb1] text-[#007444]" : "bg-[#e3e1ec] text-[#707971]"}`}>
+                <Icon n={owned ? b.icon : "lock"} className="text-[20px]" />
+              </div>
+              <div>
+                <div className="text-[15px] font-semibold text-[#1a1b22]">{b.title}</div>
+                <div className="mt-0.5 text-[13px] text-[#404942]">{b.desc}</div>
+              </div>
             </div>
-            <span className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${owned ? "bg-emerald-600 text-white" : "bg-slate-100 text-slate-400"}`}>
-              {owned ? "✓" : "🔒"}
-            </span>
+            <div className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${owned ? "bg-[#004328] text-white" : "bg-[#eeedf7] text-[#707971]"}`}>
+              <Icon n={owned ? "check" : "lock"} className="text-[16px]" />
+            </div>
           </div>
         ))}
-      </div>
+      </section>
 
-      {/* Footer benefit dasar */}
-      <div className="rounded-2xl bg-slate-50 p-4">
-        <p className="text-sm leading-relaxed text-slate-600">{info.footer}</p>
-      </div>
+      {/* Benefit dasar */}
+      <section className="flex items-start gap-3 rounded-2xl bg-[#d1e7dd]/40 p-4">
+        <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#004328] text-white">
+          <Icon n="verified" className="text-[18px]" />
+        </div>
+        <p className="text-[13px] leading-normal text-[#1a1b22]">{info.footer}</p>
+      </section>
 
-      <p className="px-1 pb-2 text-center text-[11px] text-slate-400">Saldo kamu: <span className="font-bold text-slate-600">{balance.toLocaleString("id-ID")} Ace</span> · Benefit bersifat informatif, klaim menyusul.</p>
+      <p className="px-1 pb-2 text-center text-[11px] text-[#707971]">Saldo kamu: <span className="font-bold text-[#404942]">{balance.toLocaleString("id-ID")} Ace</span> · benefit bersifat informatif, klaim menyusul.</p>
     </div>
   );
 }

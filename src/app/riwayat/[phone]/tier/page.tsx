@@ -16,7 +16,7 @@ export default async function TierPage({ params }: { params: { phone: string } }
     : null;
 
   return (
-    <div className="mx-auto min-h-screen max-w-md bg-[#F8FAFC] pb-28 font-sans text-slate-800 antialiased">
+    <div className="mx-auto min-h-screen max-w-md bg-[#fbf8ff] pb-28 font-sans text-slate-800 antialiased">
       <header className="relative z-10 px-5 pb-1 pt-10">
         <div className="mb-4 flex items-center justify-between">
           <div>
