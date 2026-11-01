@@ -163,7 +163,7 @@ export default async function RiwayatPage({ params, searchParams }: { params: { 
                 <span className={`text-lg font-extrabold leading-tight tracking-tight ${ink}`}>{pts.tierLabel.replace(/^Tirtonic /, "")} Pass</span>
               </div>
             </div>
-            <span className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold ${d ? "bg-white/20 text-white" : "bg-[#7afbb1] text-[#007444]"}`}>
+            <span className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.45),0_2px_8px_-2px_rgba(0,0,0,0.15)] ${d ? "border-white/25 bg-white/15 text-white" : "border-white/60 bg-white/25 text-[#007444]"}`}>
               <span className={`h-1.5 w-1.5 rounded-full animate-pulse ${d ? "bg-white" : "bg-[#006d40]"}`} />ACTIVE
             </span>
           </div>
