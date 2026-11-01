@@ -153,7 +153,7 @@ export default async function RiwayatPage({ params, searchParams }: { params: { 
               </div>
               <div>
                 <span className={`block text-[10px] font-bold uppercase leading-none tracking-widest ${inkFaint}`}>Tirtonic Ace</span>
-                <span className={`text-lg font-extrabold leading-tight tracking-tight ${ink}`}>{pts.tierLabel}</span>
+                <span className={`text-lg font-extrabold leading-tight tracking-tight ${ink}`}>{pts.tierLabel.replace(/^Tirtonic /, "")} Pass</span>
               </div>
             </div>
             <span className={`flex items-center gap-1 text-[11px] font-medium ${inkSub}`}>Manfaat tier<span aria-hidden>›</span></span>
