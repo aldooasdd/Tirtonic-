@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 // Halaman "Manfaat Tier" — port dari mockup Stitch (stitch_member_dashboard_redesign #3).
 // Token MD3 diubah ke hex (Tailwind app = v3.4 default). Ikon = Material Symbols Outlined.
@@ -103,6 +103,18 @@ export default function TierBenefits({ tier, spend12mo, balance, isCoach, coachC
   const inkFaint = L ? "text-white/55" : "text-[#707971]";
   const selIdx = TIERS.findIndex((t) => t.key === sel);
 
+  // Swipe jari ganti tier.
+  const touchX = useRef<number | null>(null);
+  function onTouchStart(e: React.TouchEvent) { touchX.current = e.touches[0].clientX; }
+  function onTouchEnd(e: React.TouchEvent) {
+    if (touchX.current == null) return;
+    const dx = e.changedTouches[0].clientX - touchX.current;
+    touchX.current = null;
+    if (Math.abs(dx) < 40) return;
+    const ni = selIdx + (dx < 0 ? 1 : -1);
+    if (ni >= 0 && ni < TIERS.length) setSel(TIERS[ni].key);
+  }
+
   // Kartu: warna + ink mengikuti kartu dashboard.
   const dc = DCARD[info.key] ?? DCARD.White;
   const W = dc.white;
@@ -135,7 +147,7 @@ export default function TierBenefits({ tier, spend12mo, balance, isCoach, coachC
 
       {/* Kartu member */}
       <div className="flex flex-col items-center">
-        <div className={`relative flex aspect-[1.586/1] w-full max-w-sm flex-col justify-between overflow-hidden rounded-2xl border p-5 shadow-xl ${W ? "border-white/15" : "border-slate-300"}`} style={{ background: dc.grad }}>
+        <div onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} className={`relative flex aspect-[1.586/1] w-full max-w-sm touch-pan-y select-none flex-col justify-between overflow-hidden rounded-2xl border p-5 shadow-xl ${W ? "border-white/15" : "border-slate-300"}`} style={{ background: dc.grad }}>
           <div className={`pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full blur-2xl ${W ? "bg-white/10" : "bg-white/40"}`} />
           <svg className={`pointer-events-none absolute inset-0 h-full w-full ${W ? "text-white opacity-[0.14]" : "text-[#1a1b22] opacity-[0.07]"}`} fill="none" viewBox="0 0 320 200" stroke="currentColor" aria-hidden>
             <rect x="20" y="16" width="280" height="168" strokeWidth="2" />
