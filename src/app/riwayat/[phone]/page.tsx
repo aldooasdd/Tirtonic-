@@ -73,11 +73,11 @@ export default async function RiwayatPage({ params, searchParams }: { params: { 
   const profileComplete = !!(member?.name && member?.birthday);
 
   // Warna kartu per tier (dokumen Member Card). dark = kartu gelap → teks putih.
-  const CARD: Record<string, { bg: string; dark: boolean }> = {
-    White: { bg: "linear-gradient(135deg,#cbd5e1 0%,#94a3b8 55%,#e2e8f0 100%)", dark: false },
-    Signature: { bg: "linear-gradient(135deg,#a67c00 0%,#7a5a0f 55%,#caa53d 100%)", dark: true },
-    Prive: { bg: "linear-gradient(135deg,#18181b 0%,#000000 60%,#27272a 100%)", dark: true },
-    Green: { bg: "linear-gradient(135deg,#004328 0%,#005a36 45%,#006D40 100%)", dark: true },
+  const CARD: Record<string, { bg: string; dark: boolean; check: string }> = {
+    White: { bg: "linear-gradient(135deg,#cbd5e1 0%,#94a3b8 55%,#e2e8f0 100%)", dark: false, check: "#64748b" },
+    Signature: { bg: "linear-gradient(135deg,#a67c00 0%,#7a5a0f 55%,#caa53d 100%)", dark: true, check: "#a67c00" },
+    Prive: { bg: "linear-gradient(135deg,#18181b 0%,#000000 60%,#27272a 100%)", dark: true, check: "#18181b" },
+    Green: { bg: "linear-gradient(135deg,#004328 0%,#005a36 45%,#006D40 100%)", dark: true, check: "#006D40" },
   };
   const card = CARD[pts.tier] ?? CARD.White;
   const d = card.dark;
@@ -125,7 +125,7 @@ export default async function RiwayatPage({ params, searchParams }: { params: { 
             <h1 className="flex items-center gap-1.5 text-xl font-bold leading-tight tracking-tight text-slate-900">
               <span>{displayName ?? "Halo!"}</span>
               {profileComplete && (
-                <svg width="18" height="18" viewBox="0 0 24 24" className="shrink-0" aria-label="Profil lengkap"><circle cx="12" cy="12" r="11" fill="#3b82f6" /><path d="M7 12.5l3.2 3L17 8.5" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" className="shrink-0" aria-label="Profil lengkap"><circle cx="12" cy="12" r="11" fill={card.check} /><path d="M7 12.5l3.2 3L17 8.5" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
               )}
             </h1>
             <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-slate-500">
