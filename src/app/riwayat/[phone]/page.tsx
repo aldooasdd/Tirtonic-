@@ -135,7 +135,7 @@ export default async function RiwayatPage({ params, searchParams }: { params: { 
             </div>
           </div>
           <div className="ml-auto self-start">
-            <EditProfileSheet phone={phone ?? ""} name={member?.name ?? ""} birthdayISO={birthdayISO} waDisplay={phone ? displayPhone(phone) : ""} tierLabel={pts.tierLabel} photo={member?.photo ?? null} />
+            <EditProfileSheet phone={phone ?? ""} name={member?.name ?? ""} birthdayISO={birthdayISO} waDisplay={phone ? displayPhone(phone) : ""} tierLabel={pts.tierLabel} photo={member?.photo ?? null} complete={profileComplete} />
           </div>
         </div>
 

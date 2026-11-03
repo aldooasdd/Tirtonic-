@@ -7,8 +7,8 @@ import { saveProfile } from "@/app/riwayat/profile-actions";
 
 // Edit profil — bottom sheet liquid glass, naik dari bawah. Trigger = tombol pensil di samping nama.
 // Nomor WA tak bisa diganti. Tanggal lahir hanya bisa diisi sekali (kalau sudah ada → terkunci).
-export default function EditProfileSheet({ phone, name, birthdayISO, waDisplay, tierLabel, photo }: {
-  phone: string; name: string; birthdayISO: string | null; waDisplay: string; tierLabel: string; photo: string | null;
+export default function EditProfileSheet({ phone, name, birthdayISO, waDisplay, tierLabel, photo, complete = false }: {
+  phone: string; name: string; birthdayISO: string | null; waDisplay: string; tierLabel: string; photo: string | null; complete?: boolean;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -66,8 +66,11 @@ export default function EditProfileSheet({ phone, name, birthdayISO, waDisplay, 
         type="button"
         aria-label="Edit profil"
         onClick={() => { setNama(name); setTgl(birthdayISO ?? ""); setFoto(photo ?? ""); setOpen(true); }}
-        className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition active:scale-95"
+        className={complete
+          ? "inline-flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition active:scale-95"
+          : "inline-flex h-7 items-center gap-1 rounded-full border border-rose-200 bg-rose-50 pl-2.5 pr-2 text-rose-600 shadow-sm transition active:scale-95"}
       >
+        {!complete && <span className="text-[11px] font-semibold">Verifikasi</span>}
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
       </button>
 
