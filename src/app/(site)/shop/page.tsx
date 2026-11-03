@@ -7,19 +7,16 @@ import { Suspense } from "react";
 
 export const dynamic = "force-dynamic";
 
-const PER = 48;
-
 // Cache hasil query per-kombinasi filter (120 dtk). Tanpa ini tiap kunjungan
-// nge-query 500+ produk ke Supabase (Tokyo) → respon ~5 dtk & egress boros.
+// nge-query semua produk ke Supabase (Tokyo) → respon lambat & egress boros.
 // Argumen diserialisasi jadi cache key otomatis oleh unstable_cache.
+// Semua produk 1 halaman (tanpa pagination).
 const getShopProducts = unstable_cache(
-  async (whereJson: string, sort: string | undefined, page: number) => {
+  async (whereJson: string, sort: string | undefined) => {
     const where = JSON.parse(whereJson) as Prisma.ProductWhereInput;
     return prisma.product.findMany({
       where,
       orderBy: orderBy(sort),
-      take: PER + 1,
-      skip: (page - 1) * PER,
       include: { _count: { select: { variants: true } }, variants: { select: { warna: true, ukuran: true, stok: true }, orderBy: { urutan: "asc" } } },
     });
   },
@@ -73,11 +70,8 @@ export default async function ShopPage({ searchParams }: { searchParams: SP }) {
     { variants: { none: {} }, stok: null }, // non-varian, stok tak terbatas
   ];
 
-  // Pagination server-side: 48/halaman (+1 buat deteksi halaman berikutnya).
-  const page = Math.max(1, parseInt(searchParams.page || "1", 10) || 1);
-
   const [products, brands] = await Promise.all([
-    safeQuery(() => getShopProducts(JSON.stringify(where), searchParams.sort, page), []),
+    safeQuery(() => getShopProducts(JSON.stringify(where), searchParams.sort), []),
     safeQuery(() => getShopBrands(), []),
   ]);
 
@@ -97,9 +91,7 @@ export default async function ShopPage({ searchParams }: { searchParams: SP }) {
     return order.map((label) => ({ label, sold: grup.get(label)!.every((s) => s <= 0) }));
   };
 
-  const hasMore = products.length > PER;
-  const pageItems = products.slice(0, PER);
-  const cards = pageItems.map((p) => ({
+  const cards = products.map((p) => ({
     id: p.id,
     nama: p.nama,
     harga: p.harga,
@@ -113,7 +105,7 @@ export default async function ShopPage({ searchParams }: { searchParams: SP }) {
   return (
     <>
       <Suspense fallback={null}>
-        <ShopClient products={cards} brands={brands} q={searchParams.q} page={page} hasMore={hasMore} />
+        <ShopClient products={cards} brands={brands} q={searchParams.q} page={1} hasMore={false} />
       </Suspense>
       <Footer />
     </>
