@@ -19,12 +19,21 @@ export default function MyRank({ loc, ym }: { loc: string; ym?: string }) {
 
   if (!data?.found) return null;
   return (
-    <div className="mt-4 px-4">
-      <div className="rounded-2xl bg-gradient-to-br from-primaryDark to-primary px-5 py-4 text-white">
-        <p className="text-xs font-bold tracking-widest text-white/80">POSISI ANDA <span className="ml-1 font-extrabold text-white">#{data.rank} · {data.n} stringing</span></p>
-        <p className="mt-0.5 text-sm text-white/80">
-          {data.toTop3 ? `${data.toTop3} stringing lagi untuk masuk 3 besar` : "Kamu sudah masuk 3 besar! 🎉"}
-        </p>
+    <div className="rounded-3xl border border-white/80 bg-gradient-to-br from-white/90 via-slate-50/80 to-white/95 p-4 shadow-[0_4px_20px_rgba(0,0,0,0.03)] backdrop-blur-xl">
+      <div className="flex items-center gap-3">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#0d5c3a] text-white shadow-sm">
+          <span className="text-[15px] font-extrabold tracking-tight">#{data.rank}</span>
+        </div>
+        <div className="min-w-0">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Posisi Anda</p>
+          <p className="text-[15px] font-bold leading-tight tracking-tight text-slate-900">Peringkat #{data.rank} · {data.n} stringing</p>
+        </div>
+      </div>
+      <div className={`mt-3 flex items-center gap-2 rounded-2xl border px-3 py-2 text-[12px] font-semibold ${data.toTop3 ? "border-amber-200/70 bg-amber-50 text-amber-800" : "border-emerald-200/60 bg-emerald-50 text-[#0d5c3a]"}`}>
+        <svg className="h-4 w-4 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>
+        <span className="tracking-tight">
+          {data.toTop3 ? `Butuh ${data.toTop3}× stringing lagi untuk masuk 3 besar` : "Kamu sudah masuk 3 besar! 🎉"}
+        </span>
       </div>
     </div>
   );
