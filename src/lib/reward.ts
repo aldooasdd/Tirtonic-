@@ -9,6 +9,13 @@ const PRIZE: Record<number, string> = {
   2: "Gratis 1× Stringing Service + Voucher Rp 50.000",
   3: "Voucher Rp 50.000",
 };
+// Hiasan pesan WA per peringkat.
+const RANK_EMOJI: Record<number, string> = { 1: "🏆", 2: "🥈", 3: "🥉" };
+const RANK_SUB: Record<number, string> = {
+  1: "kamu jadi Top Stringer of the Month!",
+  2: "kamu nyaris puncak!",
+  3: "kamu masuk podium!",
+};
 
 const cap = (s: string | null) => (s ? s.replace(/\b\p{L}/gu, (c) => c.toUpperCase()) : s);
 const siteUrl = () => (process.env.NEXT_PUBLIC_SITE_URL || "https://tirtonic.com").replace(/\/$/, "");
@@ -60,9 +67,11 @@ export async function runLeaderboardReward(): Promise<{ winners: number; notifie
     if (!reward.notifiedAt) {
       const nama = w.name ?? "Juara";
       const msg =
-        `Selamat ${nama}! 🎾 Kamu Peringkat ${rank} Leaderboard Stringing Tirtonic ${monthLabel} dengan ${w.n} stringing.\n\n` +
-        `Hadiahmu: ${prize}.\n\n` +
-        `Tukarkan di toko cabang manapun — tunjukkan QR "Redeem Reward" di dashboardmu:\n${siteUrl()}/riwayat/${w.phone}`;
+        `${RANK_EMOJI[rank]} Selamat *${nama}*! Kamu *Juara ${rank}* Leaderboard Stringing Tirtonic periode *${monthLabel}*. 🎾\n\n` +
+        `Dengan *${w.n}× stringing*, ${RANK_SUB[rank]}\n\n` +
+        `🎁 Hadiahmu: ${prize}\n\n` +
+        `Lihat posisi & riwayatmu di dashboard: ${siteUrl()}/riwayat/${w.phone}\n\n` +
+        `Terima kasih sudah stringing di Tirtonic! 🙌`;
       const ok = await sendWa(w.phone, msg);
       if (ok) {
         await prisma.reward.update({ where: { id: reward.id }, data: { notifiedAt: new Date() } });
