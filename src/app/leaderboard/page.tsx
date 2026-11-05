@@ -20,7 +20,17 @@ export const metadata: Metadata = { title: "Hall of Fame — Tirtonic", robots: 
 // Kapital awal tiap kata (privasi + rapi): "angga" -> "Angga".
 const cap = (s: string | null) => (s ? s.replace(/\b\p{L}/gu, (c) => c.toUpperCase()) : s);
 
-type Row = { phone: string; name: string | null; n: number; last: number; photo: string | null };
+type Row = { phone: string; name: string | null; n: number; last: number; photo: string | null; verified: boolean };
+
+// Centang terverifikasi (profil lengkap: nama + tgl lahir diisi di dashboard).
+function Check({ cls }: { cls: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={`${cls} shrink-0`} aria-label="Terverifikasi">
+      <circle cx="12" cy="12" r="11" fill="#0d5c3a" />
+      <path d="M7 12.5l3.2 3L17 8.5" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
 
 // Avatar: foto profil member kalau ada, selain itu logo.
 function Avatar({ photo, cls }: { photo: string | null; cls: string }) {
@@ -75,7 +85,7 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
   }
   // Seri (skor sama): yang lebih dulu mencapai skor (last lebih awal) menang.
   const rows: Row[] = [...map.entries()]
-    .map(([phone, v]) => ({ phone, name: cap(v.name), n: v.n, last: v.last, photo: null as string | null }))
+    .map(([phone, v]) => ({ phone, name: cap(v.name), n: v.n, last: v.last, photo: null as string | null, verified: false }))
     .sort((a, b) => b.n - a.n || a.last - b.last)
     .slice(0, 10);
 
@@ -83,13 +93,14 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
   if (rows.length) {
     const members = await prisma.member.findMany({
       where: { phone: { in: rows.map((r) => r.phone) } },
-      select: { phone: true, name: true, photo: true },
+      select: { phone: true, name: true, photo: true, birthday: true },
     });
     const mem = new Map(members.map((mm) => [mm.phone, mm]));
     for (const r of rows) {
       const mm = mem.get(r.phone);
       if (mm?.name) r.name = cap(mm.name);
       if (mm?.photo) r.photo = mm.photo;
+      r.verified = !!(mm?.name && mm?.birthday); // profil lengkap = centang
     }
   }
 
@@ -217,6 +228,7 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
                 </div>
                 <div className="flex items-center gap-1.5">
                   <h3 className="text-[18px] font-bold tracking-tight text-slate-900">{top1.name ?? "Tanpa nama"}</h3>
+                  {top1.verified && <Check cls="h-4 w-4" />}
                   <span className="rounded-full border border-amber-200/80 bg-amber-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-800">Pemimpin Klasemen</span>
                 </div>
                 <p className="mt-0.5 text-[12px] font-normal text-slate-500">Posisi #1 Musim {bulanLong} • {top1.n} Stringing</p>
@@ -244,7 +256,7 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
                           <Avatar photo={second.photo} cls={second.photo ? "h-full w-full" : "h-6 w-6"} />
                         </div>
                         <div className="min-w-0">
-                          <h4 className="truncate text-[13px] font-bold leading-tight tracking-tight text-slate-800">{second.name ?? "Tanpa nama"}</h4>
+                          <h4 className="flex items-center gap-1 text-[13px] font-bold leading-tight tracking-tight text-slate-800"><span className="truncate">{second.name ?? "Tanpa nama"}</span>{second.verified && <Check cls="h-3.5 w-3.5" />}</h4>
                           <p className="text-[11px] font-semibold text-slate-600">{second.n} stringing</p>
                         </div>
                       </div>
@@ -262,7 +274,7 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
                           <Avatar photo={third.photo} cls={third.photo ? "h-full w-full" : "h-6 w-6"} />
                         </div>
                         <div className="min-w-0">
-                          <h4 className="truncate text-[13px] font-bold leading-tight tracking-tight text-slate-800">{third.name ?? "Tanpa nama"}</h4>
+                          <h4 className="flex items-center gap-1 text-[13px] font-bold leading-tight tracking-tight text-slate-800"><span className="truncate">{third.name ?? "Tanpa nama"}</span>{third.verified && <Check cls="h-3.5 w-3.5" />}</h4>
                           <p className="text-[11px] font-semibold text-slate-600">{third.n} stringing</p>
                         </div>
                       </div>
@@ -285,7 +297,7 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
                             <Avatar photo={r.photo} cls={r.photo ? "h-full w-full" : "h-5 w-5"} />
                           </div>
                           <div className="min-w-0">
-                            <span className="block truncate text-[13px] font-semibold leading-tight text-slate-900">{r.name ?? "Tanpa nama"}</span>
+                            <span className="flex items-center gap-1 text-[13px] font-semibold leading-tight text-slate-900"><span className="truncate">{r.name ?? "Tanpa nama"}</span>{r.verified && <Check cls="h-3.5 w-3.5" />}</span>
                             <span className="text-[10px] font-normal text-slate-500">{r.n} stringing</span>
                           </div>
                         </div>
