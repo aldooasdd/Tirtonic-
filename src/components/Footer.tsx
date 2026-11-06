@@ -74,7 +74,7 @@ export default function Footer({ benefits = false }: { benefits?: boolean }) {
             <Link href="/contact">Stores</Link>
           </nav>
           <span className="flex items-center gap-2 font-semibold text-white">
-            © Tirtonic
+            © 2026 PT Tirtonic Global Indonesia
           </span>
         </div>
       </div>
