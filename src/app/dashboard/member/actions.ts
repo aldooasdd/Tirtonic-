@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireSection } from "@/lib/auth";
 import { normalizePhone } from "@/lib/string-finder/phone";
+import { sendWa } from "@/lib/wa";
 
 // Kode coach: huruf dari nama + 3 angka. Dipakai sebagai kode referral (Green).
 function genCode(seed: string): string {
@@ -43,4 +44,36 @@ export async function deleteMember(formData: FormData) {
   const phone = (formData.get("phone") as string) || "";
   await prisma.member.delete({ where: { phone } }).catch(() => {});
   revalidatePath("/dashboard/member");
+}
+
+// Acc / tolak pengajuan Green Card dari halaman Manfaat Tier.
+export async function reviewCoachApplication(formData: FormData) {
+  requireSection("member");
+  const id = (formData.get("id") as string) || "";
+  const approve = formData.get("decision") === "approve";
+  const app = await prisma.coachApplication.findUnique({ where: { id } });
+  if (!app || app.status !== "pending") return;
+
+  if (approve) {
+    const existing = await prisma.member.findUnique({ where: { phone: app.phone } });
+    const coachCode = existing?.coachCode ?? genCode(app.name);
+    await prisma.$transaction([
+      prisma.member.upsert({
+        where: { phone: app.phone },
+        create: { phone: app.phone, name: app.name, isCoach: true, coachCode },
+        update: { isCoach: true, coachCode, name: existing?.name || app.name },
+      }),
+      prisma.coachApplication.update({ where: { id }, data: { status: "approved" } }),
+    ]);
+    const site = (process.env.NEXT_PUBLIC_SITE_URL || "https://tirtonic.com").replace(/\/$/, "");
+    await sendWa(
+      app.phone,
+      `Halo Coach ${app.name}! 🎾\n\nSelamat, pengajuan *Tirtonic Green Card* kamu sudah disetujui. Kamu sekarang resmi jadi *Member Coach* Tirtonic.\n\nKode referral kamu: *${coachCode}*\nBagikan ke murid — kamu dapat bonus Ace Points dari belanja mereka.\n\nCek benefit kamu: ${site}/riwayat/${app.phone}/tier`,
+    );
+  } else {
+    await prisma.coachApplication.update({ where: { id }, data: { status: "rejected" } });
+  }
+  revalidatePath("/dashboard/member");
+  revalidatePath(`/riwayat/${app.phone}`);
+  revalidatePath(`/riwayat/${app.phone}/tier`);
 }

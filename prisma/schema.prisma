@@ -459,6 +459,21 @@ model Member {
   @@index([referredBy])
 }
 
+// Pendaftaran Green Card (coach) dari halaman Manfaat Tier. Admin acc di /dashboard/member
+// → Member.isCoach = true + kirim WA. Bukti = data URL jpeg terkompres klien (inline, hindari egress storage).
+model CoachApplication {
+  id        String   @id @default(cuid())
+  phone     String // 62xxxx
+  name      String
+  club      String
+  proof     String // data URL jpeg
+  status    String   @default("pending") // pending | approved | rejected
+  createdAt DateTime @default(now())
+
+  @@index([status])
+  @@index([phone])
+}
+
 // Penukaran Ace Points jadi potongan (tanpa saldo tersimpan). Pemenang/pembeli
 // generate QR → kasir scan konfirmasi → status "used" → poin baru dipotong.
 // Saldo tersedia = earned (invoice+online) − Σ points yang status "used".

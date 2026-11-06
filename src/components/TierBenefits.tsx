@@ -1,12 +1,14 @@
 "use client";
 
 import { useRef, useState } from "react";
+import CoachApplySheet from "@/components/CoachApplySheet";
 
 // Halaman "Manfaat Tier" — port dari mockup Stitch (stitch_member_dashboard_redesign #3).
 // Token MD3 diubah ke hex (Tailwind app = v3.4 default). Ikon = Material Symbols Outlined.
 // Data nyata: tier user, belanja 12 bln, saldo, status coach + kode referral. Benefit = teks.
 
-type Props = { tier: string; spend12mo: number; balance: number; isCoach: boolean; coachCode: string | null; phone: string | null };
+type Props = { tier: string; spend12mo: number; balance: number; isCoach: boolean; coachCode: string | null; phone: string | null;
+  rawPhone?: string | null; memberName?: string; coachApp?: string | null }; // coachApp = status pengajuan terakhir (pending | rejected)
 
 // Warna kartu per tier — SAMA dengan kartu dashboard (src/app/riwayat/[phone]/page.tsx).
 // white = pakai teks putih di kartu.
@@ -88,7 +90,7 @@ const Icon = ({ n, className }: { n: string; className?: string }) => (
   <span className={`material-symbols-outlined ${className ?? ""}`}>{n}</span>
 );
 
-export default function TierBenefits({ tier, spend12mo, balance, isCoach, coachCode, phone }: Props) {
+export default function TierBenefits({ tier, spend12mo, balance, isCoach, coachCode, phone, rawPhone, memberName, coachApp }: Props) {
   const [sel, setSel] = useState(TIERS.some((t) => t.key === tier) ? tier : "White");
   const info = TIERS.find((t) => t.key === sel) ?? TIERS[0];
   const L = info.light;
@@ -224,6 +226,18 @@ export default function TierBenefits({ tier, spend12mo, balance, isCoach, coachC
             <Icon n="verified_user" className="mt-0.5 shrink-0 text-[20px] text-[#006d40]" />
             <p className="text-[11px] leading-normal text-[#404942]">Butuh verifikasi lisensi pelatih via tim kurasi Tirtonic untuk mengklaim <strong className="font-semibold text-[#1a1b22]">Green Card</strong>.</p>
           </div>
+        )}
+        {info.key === "Green" && !isCoach && rawPhone && (
+          coachApp === "pending" ? (
+            <div className="flex items-center gap-2 rounded-xl bg-amber-50 p-3 text-[12px] font-semibold text-amber-800">
+              <Icon n="hourglass_top" className="text-[18px]" />Pengajuan kamu sedang diverifikasi tim Tirtonic.
+            </div>
+          ) : (
+            <div className="space-y-1.5">
+              {coachApp === "rejected" && <p className="text-[11px] text-rose-600">Pengajuan sebelumnya belum disetujui. Silakan daftar ulang dengan bukti yang jelas.</p>}
+              <CoachApplySheet phone={rawPhone} defaultName={memberName ?? ""} />
+            </div>
+          )
         )}
       </section>
 

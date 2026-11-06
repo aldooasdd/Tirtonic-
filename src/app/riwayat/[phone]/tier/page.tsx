@@ -12,7 +12,10 @@ export default async function TierPage({ params }: { params: { phone: string } }
   const phone = normalizePhone(decodeURIComponent(params.phone));
   const pts = await fetchAcePoints(phone);
   const member = phone
-    ? await safeQuery(() => prisma.member.findUnique({ where: { phone }, select: { coachCode: true } }), null)
+    ? await safeQuery(() => prisma.member.findUnique({ where: { phone }, select: { coachCode: true, name: true } }), null)
+    : null;
+  const app = phone
+    ? await safeQuery(() => prisma.coachApplication.findFirst({ where: { phone }, orderBy: { createdAt: "desc" }, select: { status: true } }), null)
     : null;
 
   return (
@@ -29,7 +32,7 @@ export default async function TierPage({ params }: { params: { phone: string } }
       </header>
 
       <main className="relative z-10 px-5 pt-4">
-        <TierBenefits tier={pts.tier} spend12mo={pts.spend12mo} balance={pts.balance} isCoach={pts.isCoach} coachCode={member?.coachCode ?? null} phone={phone ? displayPhone(phone) : null} />
+        <TierBenefits tier={pts.tier} spend12mo={pts.spend12mo} balance={pts.balance} isCoach={pts.isCoach} coachCode={member?.coachCode ?? null} phone={phone ? displayPhone(phone) : null} rawPhone={phone} memberName={member?.name ?? ""} coachApp={app?.status ?? null} />
       </main>
 
       <StringingBottomNav active="home" phone={phone} />
