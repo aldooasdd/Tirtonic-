@@ -83,6 +83,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       products: products.map((p) => ({
         id: p.id,
+        ref: p.sourceRef, // asal impor (mis. "TOKOPEDIA:<id>"), null = dibuat di web
         name: p.nama,
         brand: p.brand,
         category: p.kategori,
