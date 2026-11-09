@@ -106,7 +106,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   if (!authed(req)) return bad("unauthorized", 401);
-  let body: { action?: string; sn?: string; resi?: string; kurir?: string; productId?: string; variantId?: string; stock?: number; price?: number; product?: ImportProduct };
+  let body: { action?: string; sn?: string; resi?: string; kurir?: string; productId?: string; variantId?: string; stock?: number; price?: number; name?: string; product?: ImportProduct };
   try {
     body = await req.json();
   } catch {
@@ -132,6 +132,15 @@ export async function POST(req: NextRequest) {
     const stock = body.stock == null ? undefined : Math.max(0, Math.round(body.stock));
     const price = body.price == null ? undefined : Math.round(body.price);
     if (price != null && price <= 0) return bad("Harga harus lebih dari 0.");
+    // Ganti nama produk (dari Produk Master Tirtonichub).
+    const name = body.name?.replace(/\s+/g, " ").trim();
+    if (body.name != null) {
+      if (!name || name.length < 3 || name.length > 255) return bad("Nama 3–255 huruf.");
+      const p = await prisma.product.findUnique({ where: { id: body.productId ?? "" }, select: { id: true } });
+      if (!p) return bad("Produk tidak ditemukan.", 404);
+      await prisma.product.update({ where: { id: p.id }, data: { nama: name } });
+      if (stock == null && price == null) return NextResponse.json({ ok: true });
+    }
     // Harga yang tampil = harga diskon bila ada → ubah harga diskon; kalau tidak, harga normal.
     if (body.variantId) {
       const v = await prisma.productVariant.findUnique({ where: { id: body.variantId } });
