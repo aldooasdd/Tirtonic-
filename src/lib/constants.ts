@@ -39,3 +39,6 @@ export const SORT_OPTIONS = [
   { value: "price_asc", label: "Price: low to high" },
   { value: "price_desc", label: "Price: high to low" },
 ];
+
+// Gratis ongkir kalau belanja (setelah potongan kupon) ≥ ini. Dipakai checkout (client) & createOrder (server).
+export const FREE_ONGKIR_MIN = 500_000;

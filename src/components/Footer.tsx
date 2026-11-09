@@ -42,7 +42,7 @@ const ICONS: Record<string, React.ReactNode> = {
 const BENEFITS = [
   { icon: "smile", title: "Garansi Puas", desc: "Kami garansi Anda puas dengan setiap produk berkualitas kami." },
   { icon: "return", title: "7 Hari Pengembalian", desc: "Belanja dengan tenang di berbagai cabang kami." },
-  { icon: "globe", title: "Gratis Ongkir Seluruh Indonesia", desc: "Pengiriman aman dan cepat ke seluruh Indonesia." },
+  { icon: "globe", title: "Gratis Ongkir Min. Rp500rb", desc: "Pengiriman aman dan cepat ke seluruh Indonesia." },
   { icon: "award", title: "100% Authentic", desc: "Seluruh produk dijamin asli (authentic) dengan garansi uang kembali." },
 ];
 

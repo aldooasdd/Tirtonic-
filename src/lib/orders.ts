@@ -4,6 +4,11 @@ import { createDokuPayment } from "@/lib/doku";
 import { notifyN8N } from "@/lib/notify";
 import { computeCoupon } from "@/lib/coupons";
 import { trackResi } from "@/lib/tracking";
+import { ongkirConfigured, getRates, type RateOption } from "@/lib/ongkir";
+import { FREE_ONGKIR_MIN } from "@/lib/constants";
+
+// Fallback kalau Binderbyte belum dikonfigurasi / tak ada tarif untuk kode pos itu.
+const FLAT_OPTIONS: RateOption[] = [{ id: "flat::reguler", label: "Reguler (2-4 hari)", cost: 20000, etd: null }];
 
 export type CartLine = { productId: string; variantId?: string | null; qty: number };
 export type CheckoutInput = {
@@ -16,6 +21,8 @@ export type CheckoutInput = {
   kodePos?: string;
   catatan?: string;
   kupon?: string;
+  pickup?: boolean; // ambil di toko → ongkir 0
+  shippingCourier?: string; // id opsi ongkir (dari shippingOptions), wajib kalau kirim
   items: CartLine[];
 };
 
@@ -87,6 +94,19 @@ export async function resolveLines(items: CartLine[]): Promise<{ ok: true; lines
   return { ok: true, lines };
 }
 
+/** Opsi ongkir ke kode pos tujuan: Binderbyte (berat dari produk), fallback flat. */
+export async function shippingOptions(destPostal: string, lines: ResolvedLine[]): Promise<RateOption[]> {
+  if (ongkirConfigured) {
+    const products = await prisma.product.findMany({ where: { id: { in: lines.map((l) => l.productId) } }, select: { id: true, berat: true } });
+    const opts = await getRates(destPostal, lines.map((l) => ({
+      quantity: l.qty,
+      weight: products.find((p) => p.id === l.productId)?.berat || 500,
+    })));
+    if (opts.length) return opts.sort((a, b) => a.cost - b.cost);
+  }
+  return FLAT_OPTIONS;
+}
+
 /** Buat order dari keranjang. Harga/varian/stok SELALU diverifikasi ulang dari DB
  *  (harga dari client tidak dipercaya). Stok dipotong nanti saat LUNAS, bukan di sini. */
 export async function createOrder(input: CheckoutInput): Promise<CreateOrderResult> {
@@ -116,9 +136,18 @@ export async function createOrder(input: CheckoutInput): Promise<CreateOrderResu
     kupon = cr.code;
   }
 
-  // Gratis ongkir se-Indonesia.
-  const ongkir = 0;
-  const kurir = "Gratis Ongkir";
+  // Ongkir dihitung ULANG di server (biaya dari client tak dipercaya).
+  let ongkir = 0;
+  let kurir = "Ambil di toko";
+  if (!input.pickup) {
+    const kodePos = (input.kodePos || "").replace(/\D/g, "");
+    if (kodePos.length !== 5) return { ok: false, error: "Isi kode pos 5 digit." };
+    const ship = (await shippingOptions(kodePos, lines)).find((o) => o.id === input.shippingCourier);
+    if (!ship) return { ok: false, error: "Cek & pilih ongkir dulu." };
+    const free = subtotal - diskon >= FREE_ONGKIR_MIN;
+    ongkir = free ? 0 : ship.cost;
+    kurir = free ? `${ship.label} (Gratis Ongkir)` : ship.label;
+  }
   const total = Math.max(0, subtotal - diskon + ongkir);
 
   const order = await prisma.order.create({

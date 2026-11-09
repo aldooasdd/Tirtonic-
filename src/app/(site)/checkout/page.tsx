@@ -5,7 +5,9 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useShopCart } from "@/components/ShopCartProvider";
 import { rupiah } from "@/lib/format";
-import { submitCheckout, applyCoupon } from "./actions";
+import { submitCheckout, applyCoupon, checkRates } from "./actions";
+import type { RateOption } from "@/lib/ongkir";
+import { FREE_ONGKIR_MIN } from "@/lib/constants";
 import wilayah from "@/lib/wilayah.json";
 
 const PROVINSI = Object.keys(wilayah as Record<string, string[]>).sort((a, b) => a.localeCompare(b));
@@ -29,7 +31,17 @@ export default function CheckoutPage() {
   const [couponMsg, setCouponMsg] = useState<string | null>(null);
   const [couponBusy, setCouponBusy] = useState(false);
 
+  // Ongkir (Binderbyte)
+  const [kodePos, setKodePos] = useState("");
+  const [rates, setRates] = useState<RateOption[] | null>(null);
+  const [chosenId, setChosenId] = useState("");
+  const [ratesBusy, setRatesBusy] = useState(false);
+  const [ratesMsg, setRatesMsg] = useState<string | null>(null);
+  const postalOk = /^\d{5}$/.test(kodePos.trim());
+
   useEffect(() => setMounted(true), []);
+  // Kode pos / isi keranjang berubah → tarif lama tak berlaku.
+  useEffect(() => { setRates(null); setChosenId(""); }, [kodePos, subtotal]);
   // Isi keranjang berubah → kupon lama tidak valid lagi, reset preview.
   useEffect(() => { setCoupon(null); setCouponMsg(null); }, [subtotal]);
 
@@ -50,8 +62,28 @@ export default function CheckoutPage() {
     }
   }
 
+  async function onCheckRates() {
+    if (!postalOk) return;
+    setRatesBusy(true);
+    setRatesMsg(null);
+    try {
+      const opts = await checkRates(kodePos.trim(), items.map((x) => ({ productId: x.productId, variantId: x.variantId, qty: x.qty })));
+      setRates(opts);
+      setChosenId(opts[0]?.id ?? "");
+      if (!opts.length) setRatesMsg("Ongkir tidak ditemukan untuk kode pos ini. Cek lagi kode posnya.");
+    } catch {
+      setRatesMsg("Gagal cek ongkir. Coba lagi.");
+    } finally {
+      setRatesBusy(false);
+    }
+  }
+
   const diskon = coupon?.diskon ?? 0;
-  const total = Math.max(0, subtotal - diskon); // gratis ongkir
+  const belanja = Math.max(0, subtotal - diskon);
+  const freeOngkir = belanja >= FREE_ONGKIR_MIN;
+  const chosen = rates?.find((r) => r.id === chosenId) ?? null;
+  const ongkir = metode === "pickup" || freeOngkir ? 0 : chosen?.cost ?? 0;
+  const total = belanja + ongkir;
 
   if (mounted && items.length === 0) {
     return (
@@ -66,6 +98,7 @@ export default function CheckoutPage() {
     e.preventDefault();
     setError(null);
     if (metode === "pickup" && !cabang) { setError("Pilih cabang pengambilan dulu."); return; }
+    if (metode === "kirim" && !chosen) { setError("Cek & pilih ongkir dulu."); return; }
     const fd = new FormData(e.currentTarget);
     const pickup = metode === "pickup";
     const catatanRaw = String(fd.get("catatan") || "");
@@ -80,6 +113,9 @@ export default function CheckoutPage() {
         provinsi: pickup ? "-" : provinsi,
         catatan: pickup ? `[AMBIL DI TOKO - ${cabang}] ${catatanRaw}`.trim() : catatanRaw,
         kupon: coupon?.code,
+        pickup,
+        kodePos: pickup ? undefined : kodePos.trim(),
+        shippingCourier: pickup ? undefined : chosen?.id,
         items: items.map((x) => ({ productId: x.productId, variantId: x.variantId, qty: x.qty })),
       });
       if (!res.ok) {
@@ -158,8 +194,47 @@ export default function CheckoutPage() {
           </div>
 
           {metode === "kirim" && (
-            <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4 text-sm font-semibold text-primary">
-              Gratis ongkir ke seluruh Indonesia
+            <div className="glass-card space-y-3 rounded-2xl p-5">
+              <h2 className="font-bold text-gray-900">Pengiriman</h2>
+              <div className={`rounded-xl p-3 text-sm font-semibold ${freeOngkir ? "bg-primary/10 text-primary" : "bg-amber-50 text-amber-800"}`}>
+                {freeOngkir
+                  ? "Selamat! Pesanan kamu dapat gratis ongkir."
+                  : `Belanja ${rupiah(FREE_ONGKIR_MIN - belanja)} lagi untuk gratis ongkir (min. ${rupiah(FREE_ONGKIR_MIN)}).`}
+              </div>
+              <div className="flex gap-2">
+                <input
+                  value={kodePos}
+                  onChange={(e) => setKodePos(e.target.value.replace(/\D/g, "").slice(0, 5))}
+                  inputMode="numeric"
+                  placeholder="Kode pos tujuan (5 digit)"
+                  className="field flex-1"
+                  autoComplete="postal-code"
+                />
+                <button type="button" onClick={onCheckRates} disabled={!postalOk || ratesBusy} className="btn-pill border border-primary bg-white px-4 text-primary hover:bg-primary/5 disabled:opacity-50">
+                  {ratesBusy ? "..." : "Cek Ongkir"}
+                </button>
+              </div>
+              {ratesMsg && <p className="text-sm text-red-600">{ratesMsg}</p>}
+              {rates && rates.length > 0 && (
+                <div className="space-y-2">
+                  {rates.map((r) => (
+                    <label key={r.id} className={`flex cursor-pointer items-center justify-between rounded-xl border px-4 py-3 text-sm transition ${chosenId === r.id ? "border-primary bg-primary/5" : "border-gray-200"}`}>
+                      <span className="flex items-center gap-3">
+                        <input type="radio" name="shipping" checked={chosenId === r.id} onChange={() => setChosenId(r.id)} className="accent-primary" />
+                        <span>
+                          {r.label}
+                          {r.etd && <span className="ml-1 text-xs text-gray-400">({r.etd})</span>}
+                        </span>
+                      </span>
+                      {freeOngkir ? (
+                        <span className="text-right"><s className="mr-1 text-xs text-gray-400">{rupiah(r.cost)}</s><span className="font-semibold text-primary">Gratis</span></span>
+                      ) : (
+                        <span className="font-semibold text-gray-900">{rupiah(r.cost)}</span>
+                      )}
+                    </label>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -225,7 +300,13 @@ export default function CheckoutPage() {
               )}
               <div className="flex justify-between text-gray-600">
                 <span>Ongkir</span>
-                <span className="font-semibold text-primary">Gratis</span>
+                {metode === "pickup" ? (
+                  <span>—</span>
+                ) : freeOngkir ? (
+                  <span className="font-semibold text-primary">Gratis</span>
+                ) : (
+                  <span>{chosen ? rupiah(ongkir) : "Cek dulu"}</span>
+                )}
               </div>
               <div className="flex justify-between pt-1 text-base font-extrabold text-gray-900">
                 <span>Total</span>
