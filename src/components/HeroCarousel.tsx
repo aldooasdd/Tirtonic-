@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 // Link tanpa skema ("tirtonic.com/x", "www.x.com") → tambah https://, biar tak jadi path relatif.
 const fixLink = (l: string) => (/^(\/|#|https?:|mailto:|tel:)/i.test(l.trim()) ? l.trim() : "https://" + l.trim());
@@ -11,11 +11,24 @@ export type Slide = { id: string; gambar: string; gambarMobile: string | null; l
 export default function HeroCarousel({ slides }: { slides: Slide[] }) {
   const [i, setI] = useState(0);
 
+  const touchX = useRef<number | null>(null);
+
+  // Auto-geser 5 dtk; timer reset tiap slide ganti (termasuk habis di-swipe).
   useEffect(() => {
     if (slides.length <= 1) return;
-    const t = setInterval(() => setI((v) => (v + 1) % slides.length), 5000);
-    return () => clearInterval(t);
-  }, [slides.length]);
+    const t = setTimeout(() => setI((v) => (v + 1) % slides.length), 5000);
+    return () => clearTimeout(t);
+  }, [i, slides.length]);
+
+  // Swipe jari kiri/kanan (HP). Tap biasa tetap jalan ke link.
+  function onTouchStart(e: React.TouchEvent) { touchX.current = e.touches[0].clientX; }
+  function onTouchEnd(e: React.TouchEvent) {
+    if (touchX.current == null || slides.length <= 1) return;
+    const dx = e.changedTouches[0].clientX - touchX.current;
+    touchX.current = null;
+    if (Math.abs(dx) < 40) return;
+    setI((v) => (v + (dx < 0 ? 1 : -1) + slides.length) % slides.length);
+  }
 
   // Fallback when no slides added yet.
   if (slides.length === 0) {
@@ -32,7 +45,7 @@ export default function HeroCarousel({ slides }: { slides: Slide[] }) {
 
   return (
     <section className="mx-auto max-w-site px-4 sm:-mt-20">
-      <div className="relative h-[42vh] min-h-[240px] sm:h-[50vh] w-full overflow-hidden rounded-b-2xl bg-primaryDark">
+      <div onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} className="relative h-[42vh] min-h-[240px] sm:h-[50vh] w-full touch-pan-y overflow-hidden rounded-b-2xl bg-primaryDark">
         {slides.map((s, idx) => {
           const img = (
             <>
