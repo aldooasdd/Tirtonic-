@@ -202,6 +202,7 @@ model Product {
   status    StockStatus @default(READY)
   stok      Int?        // stok produk non-varian (null = tak terbatas; 0 = habis). Produk bervarian pakai stok per-varian.
   views     Int         @default(0) // product-page view counter
+  sourceRef String?     @unique // asal impor dari Tirtonichub, mis. "TOKOPEDIA:<productId>" (upsert, tak dobel)
   variants  ProductVariant[]
   twuStrings TwuString[] // String Finder: senar TWU yg pakai produk ini sbg sumber harga/stok
   createdAt DateTime    @default(now())

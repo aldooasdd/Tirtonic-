@@ -3,8 +3,10 @@ import { type NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { markOrderShipped } from "@/lib/orders";
 import { markPreorderShipped } from "@/lib/preorder";
+import { detectKategori } from "@/lib/tokopedia";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 // API untuk Tirtonichub (Tirtonic Channel): tarik pesanan & produk, isi resi, ubah stok/harga.
 // Kunci: header x-hub-secret = POINTS_API_SECRET (rahasia yang sama dengan integrasi Ace Points).
@@ -103,7 +105,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   if (!authed(req)) return bad("unauthorized", 401);
-  let body: { action?: string; sn?: string; resi?: string; kurir?: string; productId?: string; variantId?: string; stock?: number; price?: number };
+  let body: { action?: string; sn?: string; resi?: string; kurir?: string; productId?: string; variantId?: string; stock?: number; price?: number; product?: ImportProduct };
   try {
     body = await req.json();
   } catch {
@@ -149,5 +151,93 @@ export async function POST(req: NextRequest) {
     }
     return NextResponse.json({ ok: true });
   }
-  return bad("action harus ship atau update");
+  if (body.action === "import") {
+    if (!body.product) return bad("product wajib");
+    const r = await importProduct(body.product);
+    return "error" in r ? bad(r.error) : NextResponse.json(r);
+  }
+  return bad("action harus ship, update, atau import");
+}
+
+// --- Impor produk dari Produk Master Tirtonichub (mis. semua produk Tokopedia) ---
+type ImportProduct = {
+  ref: string; // "TOKOPEDIA:<productId>" — kunci upsert
+  name: string;
+  brand?: string | null;
+  category?: string | null; // rantai kategori marketplace (petunjuk kategori)
+  description?: string | null; // HTML marketplace
+  weightGram?: number | null;
+  images?: string[];
+  price?: number; // produk tanpa varian
+  stock?: number;
+  variants?: { warna: string; ukuran?: string; price: number; stock: number; image?: string | null }[];
+};
+
+// HTML deskripsi marketplace → teks biasa (baris dipertahankan).
+const htmlToText = (h: string) =>
+  h
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/(p|div|li|h\d)>/gi, "\n")
+    .replace(/<li[^>]*>/gi, "• ")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+
+async function importProduct(p: ImportProduct): Promise<{ ok: true; id: string; created: boolean } | { error: string }> {
+  const ref = p.ref?.trim();
+  const nama = p.name?.trim();
+  if (!ref || !nama) return { error: "ref & name wajib" };
+  const variants = (p.variants ?? [])
+    .filter((v) => v.warna?.trim() && v.price > 0)
+    .map((v, i) => ({ warna: v.warna.trim(), ukuran: (v.ukuran ?? "").trim(), harga: Math.round(v.price), stok: Math.max(0, Math.round(v.stock)), gambar: v.image ?? null, urutan: i }));
+  const harga = variants.length ? Math.min(...variants.map((v) => v.harga)) : Math.round(p.price ?? 0);
+  if (harga <= 0) return { error: `Harga ${nama} kosong` };
+  const stokTotal = variants.length ? variants.reduce((n, v) => n + v.stok, 0) : Math.max(0, Math.round(p.stock ?? 0));
+  const kat = detectKategori(`${nama} ${p.category ?? ""}`);
+
+  const data = {
+    nama,
+    brand: p.brand?.trim() || null,
+    kategori: kat,
+    harga,
+    berat: p.weightGram && p.weightGram > 0 ? Math.round(p.weightGram) : 500,
+    deskripsi: p.description ? htmlToText(p.description) || null : null,
+    // ponytail: foto di-hotlink dari CDN marketplace (tak di-upload ulang → hemat egress Supabase).
+    // Kalau CDN mulai menolak/kedaluwarsa, re-host via uploadFromUrl.
+    gambar: (p.images ?? []).filter(Boolean).slice(0, 10),
+    status: stokTotal > 0 ? ("READY" as const) : ("SOLD" as const),
+    stok: variants.length ? null : stokTotal,
+  };
+
+  const existing = await prisma.product.findUnique({ where: { sourceRef: ref }, include: { variants: true } });
+  if (!existing) {
+    const created = await prisma.product.create({ data: { ...data, sourceRef: ref, variants: { create: variants } } });
+    return { ok: true, id: created.id, created: true };
+  }
+
+  // Update: varian dicocokkan per warna+ukuran (id lama tetap → keranjang/pesanan aman).
+  // Harga diskon manual di web dibiarkan; harga normal & stok ikut marketplace.
+  const key = (w: string, u: string) => `${w.toLowerCase()}|${u.toLowerCase()}`;
+  const old = new Map(existing.variants.map((v) => [key(v.warna, v.ukuran), v]));
+  const keep = new Set<string>();
+  await prisma.$transaction([
+    prisma.product.update({ where: { id: existing.id }, data }),
+    ...variants.map((v) => {
+      const o = old.get(key(v.warna, v.ukuran));
+      if (o) {
+        keep.add(o.id);
+        return prisma.productVariant.update({ where: { id: o.id }, data: { harga: v.harga, stok: v.stok, gambar: v.gambar ?? o.gambar, urutan: v.urutan } });
+      }
+      return prisma.productVariant.create({ data: { ...v, productId: existing.id } });
+    }),
+  ]);
+  const stale = existing.variants.filter((v) => !keep.has(v.id)).map((v) => v.id);
+  if (stale.length) await prisma.productVariant.deleteMany({ where: { id: { in: stale } } });
+  return { ok: true, id: existing.id, created: false };
 }

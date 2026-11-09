@@ -47,7 +47,7 @@ function decode(s: string): string {
     .trim();
 }
 
-function detectKategori(nama: string): string {
+export function detectKategori(nama: string): string {
   const n = nama.toLowerCase();
   if (/(sepatu|shoe|footwear)/.test(n)) return "Sepatu Tenis";
   if (/(raket|racket|racquet)/.test(n)) return "Raket Tenis";
