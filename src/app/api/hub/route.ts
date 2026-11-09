@@ -193,7 +193,7 @@ const htmlToText = (h: string) =>
 // Kunci nama: huruf kecil, hanya huruf/angka, spasi tunggal (sama dengan productKey di Tirtonichub).
 const nameKey = (t: string) => t.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 
-async function importProduct(p: ImportProduct): Promise<{ ok: true; id: string; created: boolean; skipped?: boolean } | { error: string }> {
+async function importProduct(p: ImportProduct): Promise<{ ok: true; id: string; created: boolean } | { error: string }> {
   const ref = p.ref?.trim();
   const nama = p.name?.trim();
   if (!ref || !nama) return { error: "ref & name wajib" };
@@ -219,12 +219,15 @@ async function importProduct(p: ImportProduct): Promise<{ ok: true; id: string; 
     stok: variants.length ? null : stokTotal,
   };
 
-  const existing = await prisma.product.findUnique({ where: { sourceRef: ref }, include: { variants: true } });
+  let existing = await prisma.product.findUnique({ where: { sourceRef: ref }, include: { variants: true } });
   if (!existing) {
-    // Produk yang sudah ada di web (dibuat manual, bukan impor) dengan nama sama → jangan ditarik lagi.
+    // Produk web yang sudah ada (dibuat manual) dengan nama sama → ditimpa dengan data Tokopedia
+    // & ditandai ref ini (export berikutnya langsung update, tak bikin dobel).
     const manual = await prisma.product.findMany({ where: { sourceRef: null }, select: { id: true, nama: true } });
     const dup = manual.find((m) => nameKey(m.nama) === nameKey(nama));
-    if (dup) return { ok: true, id: dup.id, created: false, skipped: true };
+    if (dup) existing = await prisma.product.update({ where: { id: dup.id }, data: { sourceRef: ref }, include: { variants: true } });
+  }
+  if (!existing) {
     const created = await prisma.product.create({ data: { ...data, sourceRef: ref, variants: { create: variants } } });
     return { ok: true, id: created.id, created: true };
   }
