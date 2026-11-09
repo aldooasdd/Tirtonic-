@@ -3,6 +3,9 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+// Link tanpa skema ("tirtonic.com/x", "www.x.com") → tambah https://, biar tak jadi path relatif.
+const fixLink = (l: string) => (/^(\/|#|https?:|mailto:|tel:)/i.test(l.trim()) ? l.trim() : "https://" + l.trim());
+
 export type Slide = { id: string; gambar: string; gambarMobile: string | null; link: string | null };
 
 export default function HeroCarousel({ slides }: { slides: Slide[] }) {
@@ -44,9 +47,9 @@ export default function HeroCarousel({ slides }: { slides: Slide[] }) {
           return (
             <div
               key={s.id}
-              className={`absolute inset-0 transition-opacity duration-700 ${idx === i ? "opacity-100" : "opacity-0"}`}
+              className={`absolute inset-0 transition-opacity duration-700 ${idx === i ? "opacity-100" : "pointer-events-none opacity-0"}`}
             >
-              {s.link ? <Link href={s.link}>{img}</Link> : img}
+              {s.link ? <Link href={fixLink(s.link)} className="block h-full w-full">{img}</Link> : img}
             </div>
           );
         })}
