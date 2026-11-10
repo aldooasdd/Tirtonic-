@@ -594,6 +594,7 @@ model DemoCampaign {
   title       String
   description String
   banner       String?
+  location     String? // cabang/kota demo: Jogja | Solo | Semarang (badge di kartu event)
   startDate    DateTime? // periode tersedia (mulai) — diisi saat ACC brand
   endDate      DateTime? // periode tersedia (selesai) — diisi saat ACC brand
   isActive     Boolean     @default(true)

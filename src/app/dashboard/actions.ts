@@ -773,6 +773,13 @@ export async function changePassword(_prev: PasswordState, formData: FormData): 
 
 // ──────────────── Event Demo: Kampanye & Klaim (admin) ────────────────
 
+// Lokasi demo: hanya 3 cabang; nilai lain / kosong → null.
+const DEMO_LOCATIONS = ["Jogja", "Solo", "Semarang"];
+function demoLocation(formData: FormData): string | null {
+  const v = ((formData.get("location") as string) || "").trim();
+  return DEMO_LOCATIONS.includes(v) ? v : null;
+}
+
 export async function createCampaign(formData: FormData) {
   requireSection("event");
   const brand = ((formData.get("brand") as string) || "").trim();
@@ -781,9 +788,10 @@ export async function createCampaign(formData: FormData) {
   const description = ((formData.get("description") as string) || "").trim();
   if (!brand || !title || !productType) throw new Error("Brand, judul, dan jenis produk wajib diisi.");
   const banner = await uploadOneImage(formData, "events"); // input name="gambar"
+  const location = demoLocation(formData);
   // Periode (startDate/endDate) diisi nanti saat ACC brand.
   await prisma.demoCampaign.create({
-    data: { brand, productType, title, description, banner },
+    data: { brand, productType, title, description, banner, location },
   });
   revalidatePath("/dashboard/event");
   revalidatePath("/event");
@@ -802,7 +810,7 @@ export async function updateCampaign(formData: FormData) {
   if (!brand || !title || !productType) throw new Error("Brand, judul, dan jenis produk wajib diisi.");
   const startRaw = (formData.get("startDate") as string) || "";
   const endRaw = (formData.get("endDate") as string) || "";
-  const data: Record<string, unknown> = { brand, productType, title, description };
+  const data: Record<string, unknown> = { brand, productType, title, description, location: demoLocation(formData) };
   const banner = await uploadOneImage(formData, "events"); // null kalau tak ganti
   if (banner) data.banner = banner;
   if (startRaw && endRaw) {

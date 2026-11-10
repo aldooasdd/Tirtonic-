@@ -200,6 +200,15 @@ export default async function AdminEvent() {
                 <label className="label">Judul *</label>
                 <input name="title" required className="field" placeholder="Demo Raket Yonex Ezone Series 2026" />
               </div>
+              <div>
+                <label className="label">Lokasi</label>
+                <select name="location" className="field">
+                  <option value="">— Pilih lokasi —</option>
+                  <option value="Jogja">Jogja</option>
+                  <option value="Solo">Solo</option>
+                  <option value="Semarang">Semarang</option>
+                </select>
+              </div>
               <div className="sm:col-span-2">
                 <label className="label">Deskripsi</label>
                 <textarea name="description" rows={3} className="field" placeholder="Coba langsung raket terbaru Yonex..." />
@@ -239,7 +248,7 @@ export default async function AdminEvent() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-medium text-gray-900">{c.title}</p>
-                      <p className="text-xs text-gray-400">{c.brand}{c.startDate && c.endDate ? ` · ${fmt(c.startDate)}–${fmt(c.endDate)}` : " · periode belum diisi"}</p>
+                      <p className="text-xs text-gray-400">{c.brand}{c.location ? ` · ${c.location}` : ""}{c.startDate && c.endDate ? ` · ${fmt(c.startDate)}–${fmt(c.endDate)}` : " · periode belum diisi"}</p>
                     </div>
                     <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${c.brandApproved ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>
                       {c.brandApproved ? "Now · ACC brand" : "Coming soon"}
@@ -292,6 +301,15 @@ export default async function AdminEvent() {
                       <div className="sm:col-span-2">
                         <span className="block text-[10px] font-semibold text-gray-500">Judul *</span>
                         <input name="title" required defaultValue={c.title} className="field" />
+                      </div>
+                      <div>
+                        <span className="block text-[10px] font-semibold text-gray-500">Lokasi</span>
+                        <select name="location" defaultValue={c.location ?? ""} className="field">
+                  <option value="">— Pilih lokasi —</option>
+                  <option value="Jogja">Jogja</option>
+                  <option value="Solo">Solo</option>
+                  <option value="Semarang">Semarang</option>
+                </select>
                       </div>
                       <div className="sm:col-span-2">
                         <span className="block text-[10px] font-semibold text-gray-500">Deskripsi</span>

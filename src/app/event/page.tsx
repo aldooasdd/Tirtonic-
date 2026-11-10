@@ -134,6 +134,12 @@ export default async function EventLanding() {
                       <span className="absolute left-2.5 top-2.5 rounded-full bg-black/40 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white backdrop-blur-sm">{c.brand}</span>
                     </div>
                     <div className="p-3.5">
+                      {c.location && (
+                        <span className="mb-1 inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5Z" /></svg>
+                          {c.location}
+                        </span>
+                      )}
                       <h3 className="line-clamp-2 text-sm font-bold leading-snug text-gray-900">{c.title}</h3>
                       <p className="mt-0.5 text-xs text-gray-400">{c.productType}</p>
                       <span className="glass-primary mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold transition">
@@ -193,7 +199,13 @@ export default async function EventLanding() {
                     <span className="absolute right-2.5 top-2.5 rounded-full bg-white/90 px-2.5 py-0.5 text-[10px] font-bold text-gray-600 backdrop-blur-sm">Menunggu brand</span>
                   </div>
                   <div className="p-3.5">
-                    <h3 className="line-clamp-2 text-sm font-bold leading-snug text-gray-900">{c.title}</h3>
+                    {c.location && (
+                        <span className="mb-1 inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5Z" /></svg>
+                          {c.location}
+                        </span>
+                      )}
+                      <h3 className="line-clamp-2 text-sm font-bold leading-snug text-gray-900">{c.title}</h3>
                     <p className="mt-0.5 text-xs text-gray-400">{c.productType}</p>
                   </div>
                 </div>
