@@ -7,6 +7,11 @@ export const KATEGORI = [
   "Aksesoris",
   "Bola Tenis",
   "Apparel",
+  "Topi",
+  "Wristband",
+  "Headband/Headtie",
+  "Damper",
+  "Kaos Kaki",
 ] as const;
 
 export const SHOE_SIZES = [

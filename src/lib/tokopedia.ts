@@ -54,9 +54,15 @@ export function detectKategori(nama: string): string {
   if (/(grip|overgrip)/.test(n)) return "Grip";
   if (/(senar|string)/.test(n)) return "String";
   if (/(bola|ball)/.test(n)) return "Bola Tenis";
+  // Kaos kaki & aksesoris spesifik dicek sebelum Apparel ("kaos" ikut kena regex Apparel).
+  if (/(kaos kaki|\bsocks?\b)/.test(n)) return "Kaos Kaki";
+  if (/(damper|dampener|vibration)/.test(n)) return "Damper";
+  if (/(wristband|wrist band)/.test(n)) return "Wristband";
+  if (/(headband|head band|headtie|head tie|bandana)/.test(n)) return "Headband/Headtie";
+  if (/(topi|\bcap\b|\bhat\b|visor|bucket)/.test(n)) return "Topi";
   if (/(kaos|t-?shirt|tshirt|jersey|celana|short|pants|polo|jaket|jacket|dress|rok|skirt|apparel|aparel)/.test(n)) return "Apparel";
   if (/(tas|bag|backpack)/.test(n)) return "Tas";
-  if (/(topi|cap|hat|wristband|aksesoris|handuk|towel|dampener|vibration)/.test(n)) return "Aksesoris";
+  if (/(aksesoris|handuk|towel)/.test(n)) return "Aksesoris";
   return KATEGORI[0];
 }
 
