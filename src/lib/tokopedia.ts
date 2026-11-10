@@ -53,7 +53,7 @@ export function detectKategori(nama: string): string {
   if (/(raket|racket|racquet)/.test(n)) return "Raket Tenis";
   if (/(grip|overgrip)/.test(n)) return "Grip";
   if (/(senar|string)/.test(n)) return "String";
-  if (/(bola|ball)/.test(n)) return "Bola Tenis";
+  if (/(\bbola\b|\bballs?\b)/.test(n)) return "Bola Tenis"; // batas kata: "Babolat" bukan bola
   // Kaos kaki & aksesoris spesifik dicek sebelum Apparel ("kaos" ikut kena regex Apparel).
   if (/(kaos kaki|\bsocks?\b)/.test(n)) return "Kaos Kaki";
   if (/(damper|dampener|vibration)/.test(n)) return "Damper";
