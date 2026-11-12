@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { SHOE_SIZES, KATEGORI, PRICE_RANGES } from "@/lib/constants";
+import { SHOE_SIZES, KATEGORI, PRICE_RANGES, DISKON_RANGES } from "@/lib/constants";
 
 function Chevron() {
   return (
@@ -34,7 +34,7 @@ function Section({ title, defaultOpen = false, children }: { title: string; defa
   );
 }
 
-export default function ShopFilters({ brands }: { brands: string[] }) {
+export default function ShopFilters({ brands, diskonCounts = {} }: { brands: string[]; diskonCounts?: Record<string, number> }) {
   const router = useRouter();
   const sp = useSearchParams();
   const cur = (k: string) => sp.get(k) || "";
@@ -64,7 +64,7 @@ export default function ShopFilters({ brands }: { brands: string[] }) {
 
   return (
     <div className="border-t">
-      <Section title="Brand">
+      <Section title="Brand" defaultOpen={!!cur("brand")}>
         {brands.length === 0 && <p className="text-xs text-gray-400">Belum ada brand.</p>}
         {brands.map((b) => (
           <label key={b} className={radio}>
@@ -74,7 +74,7 @@ export default function ShopFilters({ brands }: { brands: string[] }) {
         ))}
       </Section>
 
-      <Section title="Size">
+      <Section title="Size" defaultOpen={!!cur("size")}>
         <div className="grid grid-cols-4 gap-2">
           {SHOE_SIZES.map((s) => (
             <button
@@ -90,7 +90,7 @@ export default function ShopFilters({ brands }: { brands: string[] }) {
         </div>
       </Section>
 
-      <Section title="Price Range" defaultOpen>
+      <Section title="Price Range" defaultOpen={!!cur("price")}>
         {PRICE_RANGES.map((r) => (
           <label key={r.value} className={radio}>
             <input type="radio" name="price" checked={cur("price") === r.value} onChange={() => setParam("price", r.value)} />
@@ -99,7 +99,19 @@ export default function ShopFilters({ brands }: { brands: string[] }) {
         ))}
       </Section>
 
-      <Section title="Category" defaultOpen>
+      {DISKON_RANGES.some((r) => diskonCounts[r.value]) && (
+        <Section title="Diskon" defaultOpen={!!cur("diskon")}>
+          {DISKON_RANGES.filter((r) => diskonCounts[r.value] || cur("diskon") === r.value).map((r) => (
+            <label key={r.value} className={radio}>
+              <input type="radio" name="diskon" checked={cur("diskon") === r.value} onClick={() => cur("diskon") === r.value && setParam("diskon", r.value)} onChange={() => setParam("diskon", r.value)} />
+              {r.label}
+              <span className="ml-auto text-xs text-gray-400">{diskonCounts[r.value] ?? 0}</span>
+            </label>
+          ))}
+        </Section>
+      )}
+
+      <Section title="Category" defaultOpen={!!cur("type")}>
         {KATEGORI.map((c) => (
           <label key={c} className={radio}>
             <input type="checkbox" checked={hasMulti("type", c)} onChange={() => toggleMulti("type", c)} />

@@ -4,6 +4,7 @@ import { prisma, safeQuery } from "@/lib/prisma";
 import ShopClient from "@/components/ShopClient";
 import Footer from "@/components/Footer";
 import { Suspense } from "react";
+import { DISKON_RANGES } from "@/lib/constants";
 
 export const dynamic = "force-dynamic";
 
@@ -33,7 +34,7 @@ const getShopBrands = unstable_cache(
   { revalidate: 300, tags: ["products"] }
 );
 
-type SP = { sort?: string; size?: string; brand?: string; type?: string; q?: string; price?: string; page?: string; deal?: string; event?: string };
+type SP = { sort?: string; size?: string; brand?: string; type?: string; q?: string; price?: string; page?: string; deal?: string; event?: string; diskon?: string };
 
 function orderBy(sort?: string): Prisma.ProductOrderByWithRelationInput {
   switch (sort) {
@@ -91,7 +92,13 @@ export default async function ShopPage({ searchParams }: { searchParams: SP }) {
     return order.map((label) => ({ label, sold: grup.get(label)!.every((s) => s <= 0) }));
   };
 
-  const cards = products.map((p) => ({
+  // Diskon (%) per produk dari harga coret; filter ?diskon= dihitung di sini (semua produk sudah termuat).
+  const pct = (p: { harga: number; hargaDiskon: number | null }) => (p.hargaDiskon && p.hargaDiskon < p.harga ? Math.round((1 - p.hargaDiskon / p.harga) * 100) : 0);
+  const diskonCounts = Object.fromEntries(DISKON_RANGES.map((r) => [r.value, products.filter((p) => { const d = pct(p); return d >= r.min && d <= r.max; }).length]));
+  const dr = DISKON_RANGES.find((r) => r.value === searchParams.diskon);
+  const shown = dr ? products.filter((p) => { const d = pct(p); return d >= dr.min && d <= dr.max; }) : products;
+
+  const cards = shown.map((p) => ({
     id: p.id,
     nama: p.nama,
     harga: p.harga,
@@ -105,7 +112,7 @@ export default async function ShopPage({ searchParams }: { searchParams: SP }) {
   return (
     <>
       <Suspense fallback={null}>
-        <ShopClient products={cards} brands={brands} q={searchParams.q} page={1} hasMore={false} />
+        <ShopClient products={cards} brands={brands} diskonCounts={diskonCounts} q={searchParams.q} page={1} hasMore={false} />
       </Suspense>
       <Footer />
     </>

@@ -37,6 +37,15 @@ export const PRICE_RANGES = [
   { value: "2000000-", label: "> Rp2.000.000" },
 ];
 
+// Filter diskon shop (persen potongan harga coret). Yang tampil hanya range yang ada produknya.
+export const DISKON_RANGES = [
+  { value: "1-10", label: "Diskon 1–10%", min: 1, max: 10 },
+  { value: "11-20", label: "Diskon 11–20%", min: 11, max: 20 },
+  { value: "21-30", label: "Diskon 21–30%", min: 21, max: 30 },
+  { value: "31-40", label: "Diskon 31–40%", min: 31, max: 40 },
+  { value: "41-", label: "Diskon > 40%", min: 41, max: 100 },
+];
+
 // Category-listing product-type filter reuses KATEGORI.
 export const SORT_OPTIONS = [
   { value: "populer", label: "Populer" },

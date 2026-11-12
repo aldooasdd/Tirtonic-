@@ -20,12 +20,14 @@ function FilterIcon() {
 export default function ShopClient({
   products,
   brands,
+  diskonCounts = {},
   q,
   page,
   hasMore,
 }: {
   products: ProductCardData[];
   brands: string[];
+  diskonCounts?: Record<string, number>;
   q?: string;
   page: number;
   hasMore: boolean;
@@ -130,7 +132,7 @@ export default function ShopClient({
                 <FilterIcon />
               </button>
             </div>
-            <ShopFilters brands={brands} />
+            <ShopFilters brands={brands} diskonCounts={diskonCounts} />
           </aside>
 
           <div className="flex-1">
