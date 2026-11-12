@@ -125,7 +125,7 @@ export default function DashShell({ groups, role, logout, children }: { groups: 
         <nav className="fixed inset-x-0 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-30 mx-auto max-w-md px-4 lg:hidden">
           <div className="grid grid-cols-5 items-center rounded-full border border-gray-100 bg-white/95 px-2 shadow-[0_8px_30px_rgba(0,0,0,0.14)] backdrop-blur [&_a]:outline-none [&_button]:outline-none">
             {[
-              { href: "/dashboard/stringing", label: "Antrian", icon: "racket" as const, on: path === "/dashboard/stringing" },
+              { href: "/dashboard/stringing", label: "Antrian", icon: "queue" as const, on: path === "/dashboard/stringing" },
               { href: "/dashboard/stringing#selesai", label: "Selesai", icon: "check" as const, on: false },
             ].map((t) => (
               <Link key={t.label} href={t.href} onClick={t.href.includes("#") ? openHash : undefined} className={`flex flex-col items-center gap-1 py-2.5 text-[11px] ${t.on ? "font-semibold text-primary" : "text-[#7A8A84]"}`}>
