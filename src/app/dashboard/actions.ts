@@ -953,3 +953,11 @@ export async function decideClaim(id: string, decision: "accepted" | "rejected")
   revalidatePath("/event");
   revalidatePath("/komunitas");
 }
+
+/** Pengajuan demo dari komunitas: tandai selesai / hapus. */
+export async function setDemoRequest(id: string, action: "done" | "pending" | "delete") {
+  requireSection("event");
+  if (action === "delete") await prisma.demoRequest.delete({ where: { id } }).catch(() => {});
+  else await prisma.demoRequest.update({ where: { id }, data: { status: action } }).catch(() => {});
+  revalidatePath("/dashboard/event");
+}

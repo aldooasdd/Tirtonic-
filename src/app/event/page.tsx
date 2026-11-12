@@ -7,8 +7,8 @@ import { phaseOf } from "@/lib/event-phase";
 import { productsForCampaigns } from "@/lib/demo-products";
 import ProductRail from "@/components/ProductRail";
 import { EventNavLinks, CityTabs } from "@/components/SlidePills";
-import KomunitasSheet, { KomunitasTrigger } from "@/components/KomunitasSheet";
-import { currentCommunityId } from "@/lib/community-auth";
+import KomunitasSheet, { KomunitasTrigger, AjukanTrigger, AjukanSheet } from "@/components/KomunitasSheet";
+import { currentCommunity } from "@/lib/community-auth";
 
 export const dynamic = "force-dynamic"; // filter kota via ?kota=
 export const metadata: Metadata = { title: "Event Demo Produk — Tirtonic", description: "Jadwal demo produk brand tenis bareng komunitas se-wilayah. Lihat acara yang sedang & akan berlangsung, atau daftarkan komunitasmu." };
@@ -138,7 +138,19 @@ export default async function EventLanding({ searchParams }: { searchParams: { k
     : [];
   const products = productsForCampaigns(demoCamps, pool);
 
-  const loggedIn = !!currentCommunityId();
+  const community = await currentCommunity();
+  const loggedIn = !!community;
+  // Pilihan form Ajukan Demo: brand → kategori, dari katalog shop.
+  const catalog = await safeQuery(() => prisma.product.groupBy({ by: ["brand", "kategori"], where: { brand: { not: null } } }), []);
+  const options: Record<string, string[]> = {};
+  const disp: Record<string, string> = {}; // brand beda huruf besar/kecil → satu pilihan
+  for (const r of catalog) {
+    const raw = (r.brand ?? "").trim();
+    if (!raw) continue;
+    const b = (disp[raw.toLowerCase()] ??= raw);
+    (options[b] ??= []).includes(r.kategori) || options[b].push(r.kategori);
+  }
+  const sortedOptions = Object.fromEntries(Object.keys(options).sort((a, b) => a.localeCompare(b)).map((b) => [b, options[b].sort()]));
   const fmtDay = (d: Date) => d.toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long" });
   const glass = "ev-glass rounded-xl";
   const pill = "ev-pill";
@@ -172,7 +184,7 @@ export default async function EventLanding({ searchParams }: { searchParams: { k
           </nav>
           <div className="flex items-center gap-2">
             <KomunitasTrigger loggedIn={loggedIn} className={`${pill} hidden rounded-full px-3 py-1.5 text-xs font-[600] text-neutral-800 hover:bg-white sm:inline-flex`}>Dashboard Komunitas</KomunitasTrigger>
-            <KomunitasTrigger loggedIn={loggedIn} className="ev-btn inline-flex items-center rounded-full border border-white/20 bg-neutral-950 px-4 py-1.5 text-xs font-[500] text-white transition hover:bg-neutral-800 active:scale-95">Ajukan Demo</KomunitasTrigger>
+            <AjukanTrigger className="ev-btn inline-flex items-center rounded-full border border-white/20 bg-neutral-950 px-4 py-1.5 text-xs font-[500] text-white transition hover:bg-neutral-800 active:scale-95">Ajukan Demo</AjukanTrigger>
           </div>
         </div>
       </header>
@@ -259,9 +271,9 @@ export default async function EventLanding({ searchParams }: { searchParams: { k
                 <h3 className="mt-2 text-lg font-[600] leading-snug text-neutral-950">Ingin jadwal demo mabar di lapangan komunitas Anda?</h3>
                 <p className="mt-2 text-xs leading-relaxed text-neutral-500">Daftarkan komunitas, pilih kampanye demo, tentukan tanggal & lapangan. Produk demo diambil di cabang Tirtonic terdekat.</p>
               </div>
-              <KomunitasTrigger loggedIn={loggedIn} className="ev-btn mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full bg-neutral-950 px-4 py-2.5 text-xs font-[600] text-white hover:bg-neutral-800">
+              <AjukanTrigger className="ev-btn mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full bg-neutral-950 px-4 py-2.5 text-xs font-[600] text-white hover:bg-neutral-800">
                 Ajukan Demo Day Komunitas <Arrow />
-              </KomunitasTrigger>
+              </AjukanTrigger>
             </div>
           </div>
 
@@ -384,6 +396,7 @@ export default async function EventLanding({ searchParams }: { searchParams: { k
         </section>
       </main>
       <KomunitasSheet />
+      <AjukanSheet options={sortedOptions} community={community ? { name: community.name, waPhone: community.waPhone } : null} />
     </div>
   );
 }

@@ -586,6 +586,22 @@ model Community {
   claims       DemoClaim[]
 }
 
+// Pengajuan demo dari komunitas: brand + kategori yang ingin didemokan (pilihan dari katalog shop).
+model DemoRequest {
+  id          String   @id @default(cuid())
+  communityId String? // terisi kalau diajukan saat login komunitas
+  name        String // nama komunitas
+  waPhone     String // 62xxx PIC
+  city        String // Jogja | Solo | Semarang
+  brand       String
+  kategori    String
+  note        String   @default("")
+  status      String   @default("pending") // pending | done
+  createdAt   DateTime @default(now())
+
+  @@index([status])
+}
+
 // Kampanye demo yang dibuat toko (brand, produk, periode). Komunitas mengklaim ini.
 model DemoCampaign {
   id          String      @id @default(cuid())

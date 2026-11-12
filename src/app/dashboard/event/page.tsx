@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { isAuthed, can } from "@/lib/auth";
 import { prisma, safeQuery } from "@/lib/prisma";
-import { createCampaign, updateCampaign, toggleCampaign, approveCampaign, unapproveCampaign, deleteCampaign, decideClaim, deleteClaim, decideCommunity, deleteCommunity, loginAsCommunity } from "../actions";
+import { createCampaign, updateCampaign, toggleCampaign, approveCampaign, unapproveCampaign, deleteCampaign, decideClaim, deleteClaim, decideCommunity, deleteCommunity, loginAsCommunity, setDemoRequest } from "../actions";
 import { phaseOf, PHASE_META } from "@/lib/event-phase";
 import { displayPhone } from "@/lib/string-finder/phone";
 import SubmitButton from "@/components/SubmitButton";
@@ -31,6 +31,8 @@ export default async function AdminEvent() {
     ),
     safeQuery(() => prisma.community.findMany({ orderBy: { createdAt: "desc" }, include: { _count: { select: { claims: true } } } }), []),
   ]);
+  const requests = await safeQuery(() => prisma.demoRequest.findMany({ orderBy: [{ status: "desc" }, { createdAt: "desc" }], take: 50 }), []);
+  const openReq = requests.filter((r) => r.status === "pending").length;
 
   const pendingCommunities = communities.filter((k) => k.status === "pending");
   const otherCommunities = communities.filter((k) => k.status !== "pending");
@@ -99,6 +101,36 @@ export default async function AdminEvent() {
         <Link href="/dashboard/stringing/reward" className={btnPrimary}><Icon name="scan" /> Scan QR</Link>
         <Link href="/event" target="_blank" rel="noreferrer" className={btn}><Icon name="external" /> Lihat landing</Link>
       </PageHeader>
+        {/* Pengajuan demo dari komunitas (form Ajukan Demo di /event) */}
+        {requests.length > 0 && (
+          <div className="overflow-hidden rounded-2xl border border-lime-200 bg-white shadow-sm">
+            <div className="flex items-center justify-between border-b border-lime-100 bg-lime-50/60 px-5 py-4">
+              <h2 className="font-bold text-gray-900">Pengajuan demo komunitas</h2>
+              <span className="text-xs font-semibold text-lime-700">{openReq} baru</span>
+            </div>
+            <ul className="divide-y">
+              {requests.map((r) => (
+                <li key={r.id} className={`flex flex-wrap items-center gap-3 px-5 py-3 ${r.status === "done" ? "opacity-50" : ""}`}>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-semibold text-gray-900">{r.name} <span className="text-xs font-normal text-gray-400">· {r.city} · {fmt(r.createdAt)}</span></p>
+                    <p className="text-sm text-gray-600"><span className="font-semibold text-primary">{r.brand}</span> — {r.kategori}</p>
+                    {r.note && <p className="mt-0.5 text-xs text-gray-500">“{r.note}”</p>}
+                    <a href={`https://wa.me/${r.waPhone}`} target="_blank" rel="noreferrer" className="text-xs text-primary hover:underline">WA 0{r.waPhone.replace(/^62/, "")} ↗</a>
+                  </div>
+                  <div className="flex gap-2">
+                    <form action={setDemoRequest.bind(null, r.id, r.status === "done" ? "pending" : "done")}>
+                      <SubmitButton className="rounded-full bg-primary px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-primaryDark">{r.status === "done" ? "Buka lagi" : "Selesai"}</SubmitButton>
+                    </form>
+                    <form action={setDemoRequest.bind(null, r.id, "delete")}>
+                      <SubmitButton className="rounded-full border px-3.5 py-1.5 text-xs font-semibold text-gray-500 hover:border-red-400 hover:text-red-600">Hapus</SubmitButton>
+                    </form>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         {/* Komunitas baru — perlu di-ACC */}
         {pendingCommunities.length > 0 && (
           <div className="overflow-hidden rounded-2xl border border-amber-200 bg-amber-50/50 shadow-sm">

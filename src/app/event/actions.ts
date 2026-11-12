@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { normalizePhone } from "@/lib/string-finder/phone";
 import { phaseOf } from "@/lib/event-phase";
 import { sendWa } from "@/lib/wa";
+import { currentCommunityId } from "@/lib/community-auth";
 
 export type JoinState = { error?: string; ok?: boolean };
 
@@ -39,5 +40,35 @@ export async function joinEvent(_prev: JoinState, formData: FormData): Promise<J
   );
   revalidatePath(`/event/${claimId}`);
   revalidatePath("/komunitas");
+  return { ok: true };
+}
+
+export type RequestState = { error?: string; ok?: boolean };
+const CITIES = ["Jogja", "Solo", "Semarang"];
+
+/** Komunitas mengajukan demo brand + kategori (pilihan dari katalog shop). Admin lihat di /dashboard/event. */
+export async function requestDemo(_prev: RequestState, formData: FormData): Promise<RequestState> {
+  const get = (k: string) => ((formData.get(k) as string) || "").trim();
+  const name = get("name").slice(0, 80);
+  const waPhone = normalizePhone(get("waPhone"));
+  const city = get("city");
+  const brand = get("brand");
+  const kategori = get("kategori");
+  const note = get("note").slice(0, 500);
+  if (!name) return { error: "Nama komunitas wajib diisi." };
+  if (!waPhone) return { error: "Nomor WhatsApp tidak valid (contoh: 0812xxxx)." };
+  if (!CITIES.includes(city)) return { error: "Pilih kota." };
+  if (!brand || !kategori) return { error: "Pilih brand & kategori produk." };
+  // Pastikan pilihan benar-benar ada di katalog (bukan input bebas).
+  const exists = await prisma.product.findFirst({ where: { brand: { equals: brand, mode: "insensitive" }, kategori }, select: { id: true } });
+  if (!exists) return { error: "Brand / kategori tidak ada di katalog." };
+
+  const communityId = currentCommunityId();
+  await prisma.demoRequest.create({ data: { communityId, name, waPhone, city, brand, kategori, note } });
+  revalidatePath("/dashboard/event");
+  await sendWa(
+    waPhone,
+    `🎾 *Pengajuan demo diterima!*\n\nKomunitas: ${name}\nKota: ${city}\nProduk: ${brand} — ${kategori}${note ? `\nCatatan: ${note}` : ""}\n\nTim Tirtonic akan menghubungi kamu untuk atur jadwal demo. 🙏`,
+  );
   return { ok: true };
 }
