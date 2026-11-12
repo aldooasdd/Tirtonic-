@@ -2,52 +2,37 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { isAuthed, can } from "@/lib/auth";
 import { prisma, safeQuery } from "@/lib/prisma";
-import { normalizePhone, displayPhone } from "@/lib/string-finder/phone";
-import { saveMember, deleteMember, reviewCoachApplication } from "./actions";
+import { displayPhone } from "@/lib/string-finder/phone";
+import { saveMember, reviewCoachApplication } from "./actions";
+import { memberDirectory, filterMembers, TIER_LABEL, type MemberQuery } from "@/lib/member-directory";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Member Loyalty — Tirtonic" };
 
 const fmtDate = (d: Date | null) => (d ? new Date(d).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) : "—");
 
-type Entry = { phone: string; name: string | null; isCoach: boolean; coachCode: string | null; referredBy: string | null; birthday: Date | null; registered: boolean };
+const rp = (n: number) => "Rp" + n.toLocaleString("id-ID");
 
-export default async function MemberPage({ searchParams }: { searchParams: { filter?: string } }) {
+type SP = MemberQuery & { page?: string; per?: string };
+
+export default async function MemberPage({ searchParams }: { searchParams: SP }) {
   if (!isAuthed()) redirect("/dashboard/login");
   if (!can("member")) redirect("/dashboard");
 
-  // Daftar member = semua yang pernah transaksi (stringing + web), + flag coach dari Member.
-  // ponytail: scan semua transaksi (cukup utk admin). Pagination kalau sudah puluhan ribu.
-  const [sfRows, ordRows, memberRows] = await Promise.all([
-    safeQuery(() => prisma.sfOrder.findMany({ select: { phone: true, customerName: true }, orderBy: { createdAt: "desc" } }), []),
-    safeQuery(() => prisma.order.findMany({ select: { telepon: true, nama: true }, orderBy: { createdAt: "desc" } }), []),
-    safeQuery(() => prisma.member.findMany(), []),
-  ]);
-
-  const map = new Map<string, Entry>();
-  const put = (raw: string, name: string | null) => {
-    const p = normalizePhone(raw || "");
-    if (!p) return;
-    const e = map.get(p);
-    if (!e) map.set(p, { phone: p, name: name || null, isCoach: false, coachCode: null, referredBy: null, birthday: null, registered: false });
-    else if (!e.name && name) e.name = name;
-  };
-  for (const o of sfRows) put(o.phone, o.customerName);
-  for (const o of ordRows) put(o.telepon, o.nama);
-  for (const m of memberRows) {
-    const e = map.get(m.phone) ?? { phone: m.phone, name: m.name, isCoach: false, coachCode: null, referredBy: null, birthday: null, registered: false };
-    e.isCoach = m.isCoach; e.coachCode = m.coachCode; e.referredBy = m.referredBy; e.birthday = m.birthday; e.registered = true;
-    if (!e.name && m.name) e.name = m.name;
-    map.set(m.phone, e);
-  }
-
-  const refCount = new Map<string, number>();
-  for (const m of memberRows) if (m.referredBy) refCount.set(m.referredBy, (refCount.get(m.referredBy) ?? 0) + 1);
-
-  const all = [...map.values()].sort((a, b) => Number(b.isCoach) - Number(a.isCoach) || (a.name || "").localeCompare(b.name || ""));
-  const onlyCoach = searchParams.filter === "coach";
-  const shown = onlyCoach ? all.filter((e) => e.isCoach) : all;
+  const { rows: all, hubOnline } = await memberDirectory();
+  const shown = filterMembers(all, searchParams);
   const coachCount = all.filter((e) => e.isCoach).length;
+  const onlyCoach = searchParams.filter === "coach";
+  const branches = [...new Set(all.map((e) => e.branch).filter(Boolean) as string[])].sort();
+  const per = [25, 50, 100].includes(Number(searchParams.per)) ? Number(searchParams.per) : 25;
+  const pages = Math.max(1, Math.ceil(shown.length / per));
+  const page = Math.min(pages, Math.max(1, Number(searchParams.page) || 1));
+  const pageRows = shown.slice((page - 1) * per, page * per);
+  const qs = (patch: Record<string, string | number | undefined>) => {
+    const u = new URLSearchParams();
+    for (const [k, v] of Object.entries({ ...searchParams, ...patch })) if (v !== undefined && v !== "") u.set(k, String(v));
+    return u.toString();
+  };
   const apps = await safeQuery(() => prisma.coachApplication.findMany({ where: { status: "pending" }, orderBy: { createdAt: "asc" } }), []);
 
   const field = "w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none";
@@ -90,7 +75,9 @@ export default async function MemberPage({ searchParams }: { searchParams: { fil
       )}
 
       {/* Form set flag member (coach / referral / ultah) */}
-      <form action={saveMember} className="space-y-3 rounded-2xl border bg-white p-4 shadow-sm">
+      <details className="rounded-2xl border bg-white shadow-sm">
+      <summary className="cursor-pointer px-4 py-3 text-sm font-semibold text-gray-700">Set coach / referral / ultah</summary>
+      <form action={saveMember} className="space-y-3 border-t p-4">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <label className="block">
             <span className="mb-1 block text-xs font-semibold text-gray-600">No. WhatsApp *</span>
@@ -122,52 +109,104 @@ export default async function MemberPage({ searchParams }: { searchParams: { fil
           Simpan Member
         </button>
       </form>
+      </details>
 
-      {/* Daftar member */}
+      {/* Daftar member: search / filter / sort / pagination / export */}
       <div className="overflow-hidden rounded-2xl border bg-white shadow-sm">
-        <div className="flex items-center justify-between gap-2 border-b px-4 py-3">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b px-4 py-3">
           <span className="text-xs font-bold uppercase tracking-wider text-gray-500">{shown.length} Member</span>
-          <div className="flex items-center gap-1 rounded-lg bg-gray-100 p-0.5 text-xs font-semibold">
-            <Link href="/dashboard/member" className={`rounded-md px-2.5 py-1 ${!onlyCoach ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"}`}>
-              Semua {all.length}
-            </Link>
-            <Link href="/dashboard/member?filter=coach" className={`rounded-md px-2.5 py-1 ${onlyCoach ? "bg-white text-emerald-700 shadow-sm" : "text-gray-500"}`}>
-              Coach {coachCount}
-            </Link>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 rounded-lg bg-gray-100 p-0.5 text-xs font-semibold">
+              <Link href={`/dashboard/member?${qs({ filter: undefined, page: undefined })}`} className={`rounded-md px-2.5 py-1 ${!onlyCoach ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"}`}>
+                Semua {all.length}
+              </Link>
+              <Link href={`/dashboard/member?${qs({ filter: "coach", page: undefined })}`} className={`rounded-md px-2.5 py-1 ${onlyCoach ? "bg-white text-emerald-700 shadow-sm" : "text-gray-500"}`}>
+                Coach {coachCount}
+              </Link>
+            </div>
+            <a href={`/dashboard/member/export?${qs({ page: undefined, per: undefined })}`} className="rounded-lg border px-2.5 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50">
+              Export CSV
+            </a>
           </div>
         </div>
-        {shown.length === 0 ? (
-          <p className="p-6 text-center text-sm text-gray-400">{onlyCoach ? "Belum ada coach." : "Belum ada transaksi."}</p>
+
+        <form className="grid grid-cols-2 gap-2 border-b bg-gray-50/60 px-4 py-3 text-sm sm:grid-cols-4">
+          {onlyCoach && <input type="hidden" name="filter" value="coach" />}
+          <input name="q" defaultValue={searchParams.q} placeholder="Cari nama / nomor HP" className={`${field} col-span-2`} />
+          <select name="tier" defaultValue={searchParams.tier ?? ""} className={field}>
+            <option value="">Semua tier</option>
+            {Object.entries(TIER_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+          </select>
+          <select name="branch" defaultValue={searchParams.branch ?? ""} className={field}>
+            <option value="">Semua cabang</option>
+            {branches.map((b) => <option key={b} value={b}>{b}</option>)}
+          </select>
+          <select name="status" defaultValue={searchParams.status ?? ""} className={field}>
+            <option value="">Semua status</option>
+            <option value="aktif">Aktif (transaksi ≤12 bln)</option>
+            <option value="nonaktif">Nonaktif</option>
+          </select>
+          <label className="flex items-center gap-1 text-xs text-gray-500">Join<input type="date" name="from" defaultValue={searchParams.from} className={field} /></label>
+          <label className="flex items-center gap-1 text-xs text-gray-500">s/d<input type="date" name="to" defaultValue={searchParams.to} className={field} /></label>
+          <select name="sort" defaultValue={searchParams.sort ?? "terbaru"} className={field}>
+            <option value="terbaru">Terbaru</option>
+            <option value="poin">Poin tertinggi</option>
+            <option value="belanja">Total belanja</option>
+            <option value="az">A–Z</option>
+          </select>
+          <select name="per" defaultValue={String(per)} className={field}>
+            {[25, 50, 100].map((n) => <option key={n} value={n}>{n} / halaman</option>)}
+          </select>
+          <div className="col-span-2 flex gap-2 sm:col-span-2">
+            <button className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white">Terapkan</button>
+            <Link href="/dashboard/member" className="rounded-xl border px-4 py-2 text-sm font-semibold text-gray-600">Bersihkan</Link>
+          </div>
+        </form>
+        {!hubOnline && <p className="border-b bg-amber-50 px-4 py-2 text-xs text-amber-800">Hub (nota offline) tidak terjangkau — poin/belanja pakai salinan terakhir, cabang mungkin kosong.</p>}
+
+        {pageRows.length === 0 ? (
+          <p className="p-6 text-center text-sm text-gray-400">Tidak ada member yang cocok.</p>
         ) : (
-          <ul className="divide-y">
-            {shown.map((e) => (
-              <li key={e.phone} className="flex items-start justify-between gap-3 px-4 py-3">
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-semibold text-gray-900">{e.name || "—"}</span>
-                    {e.isCoach && <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">COACH {e.coachCode}</span>}
-                    {e.coachCode && refCount.get(e.coachCode) ? (
-                      <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-600">{refCount.get(e.coachCode)} murid</span>
-                    ) : null}
-                  </div>
-                  <div className="mt-0.5 text-xs text-gray-500">
-                    <span className="font-mono">{displayPhone(e.phone)}</span>
-                    {e.referredBy && <> · dirujuk {e.referredBy}</>}
-                    {e.birthday && <> · ultah {fmtDate(e.birthday)}</>}
-                  </div>
-                </div>
-                {e.registered && (
-                  <form action={deleteMember}>
-                    <input type="hidden" name="phone" value={e.phone} />
-                    <button type="submit" className="shrink-0 rounded-lg border border-red-200 px-2.5 py-1 text-xs font-semibold text-red-600 active:scale-95" title="Hapus flag coach/referral (nomor tetap member dari transaksi)">
-                      Reset
-                    </button>
-                  </form>
-                )}
-              </li>
-            ))}
-          </ul>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[720px] text-sm">
+              <thead className="bg-gray-50 text-left text-[11px] font-bold uppercase tracking-wider text-gray-500">
+                <tr>
+                  <th className="px-4 py-2">Member</th>
+                  <th className="px-3 py-2">Tier</th>
+                  <th className="px-3 py-2 text-right">Poin</th>
+                  <th className="px-3 py-2 text-right">Belanja</th>
+                  <th className="px-3 py-2">Cabang</th>
+                  <th className="px-3 py-2">Join</th>
+                  <th className="px-3 py-2">Terakhir</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {pageRows.map((e) => (
+                  <tr key={e.phone} className="hover:bg-gray-50">
+                    <td className="px-4 py-2.5">
+                      <Link href={`/dashboard/member/${e.phone}`} className="font-semibold text-gray-900 hover:underline">{e.name || "Tanpa nama"}</Link>
+                      {e.isCoach && <span className="ml-2 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">COACH {e.coachCode}</span>}
+                      <div className="font-mono text-xs text-gray-500">{displayPhone(e.phone)}</div>
+                    </td>
+                    <td className="px-3 py-2.5 text-xs font-semibold">{TIER_LABEL[e.tier] ?? e.tier}</td>
+                    <td className="px-3 py-2.5 text-right font-semibold tabular-nums">{e.points.toLocaleString("id-ID")}</td>
+                    <td className="px-3 py-2.5 text-right tabular-nums">{rp(e.spend)}</td>
+                    <td className="px-3 py-2.5 text-xs text-gray-600">{e.branch ?? "—"}</td>
+                    <td className="px-3 py-2.5 text-xs text-gray-600">{fmtDate(e.joinedAt)}</td>
+                    <td className="px-3 py-2.5 text-xs text-gray-600">{fmtDate(e.lastTx)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
+        <div className="flex items-center justify-between border-t px-4 py-3 text-xs text-gray-500">
+          <span>Hal {page} / {pages}</span>
+          <div className="flex gap-2">
+            {page > 1 && <Link href={`/dashboard/member?${qs({ page: page - 1 })}`} className="rounded-lg border px-3 py-1 font-semibold">← Sebelumnya</Link>}
+            {page < pages && <Link href={`/dashboard/member?${qs({ page: page + 1 })}`} className="rounded-lg border px-3 py-1 font-semibold">Berikutnya →</Link>}
+          </div>
+        </div>
       </div>
     </div>
   );

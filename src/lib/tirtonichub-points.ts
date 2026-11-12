@@ -11,7 +11,7 @@ import { prisma } from "@/lib/prisma";
 const ACE_VALUE = 1000;
 const YEAR_MS = 365 * 24 * 60 * 60 * 1000;
 const SINCE = new Date("2026-10-31T17:00:00.000Z"); // 1 Nov 2026 00:00 WIB
-const RP_PER_REFERRAL_ACE = 50_000; // coach 2% × (Rp1.000/Ace) = belanja / 50.000
+export const RP_PER_REFERRAL_ACE = 50_000; // coach 2% × (Rp1.000/Ace) = belanja / 50.000
 
 // Tier berbasis belanja 12 bln. rpPerAce = rupiah belanja untuk 1 Ace. (mirror konfig hub)
 const TIERS = [
@@ -19,8 +19,8 @@ const TIERS = [
   { name: "Signature", label: "Tirtonic Signature Card", qualify: 30_000_000, rpPerAce: 65_000 },
   { name: "White", label: "Tirtonic White Card", qualify: 0, rpPerAce: 100_000 },
 ] as const;
-const GREEN = { name: "Green", label: "Tirtonic Green Card", rpPerAce: 50_000 };
-const tierFor = (spend12mo: number) => TIERS.find((t) => spend12mo >= t.qualify) ?? TIERS[TIERS.length - 1];
+export const GREEN = { name: "Green", label: "Tirtonic Green Card", rpPerAce: 50_000 };
+export const tierFor = (spend12mo: number) => TIERS.find((t) => spend12mo >= t.qualify) ?? TIERS[TIERS.length - 1];
 
 const BENEFIT: Record<string, string> = {
   White: "Poin belanja 1%",
@@ -61,7 +61,7 @@ const DEFAULT: AcePoints = {
   isCoach: false,
 };
 
-type Row = { t: number; amount: number };
+export type Row = { t: number; amount: number };
 
 // Poin HANYA dari Rekap Penjualan Tirtonichub (nota offline hub), per keputusan owner.
 // Transaksi tirtonic.com (Order online & stringing) TIDAK dihitung.
@@ -98,7 +98,7 @@ async function cachedRows(phone: string): Promise<Row[]> {
 
 // Hitung poin + belanja dari baris transaksi. tier tiap baris dari belanja 12 bln sampai baris itu.
 // ponytail: O(n²) per nomor (transaksi sedikit). Prefix-sum kalau pernah ribuan.
-function compute(rows: Row[], flagRate: number) {
+export function compute(rows: Row[], flagRate: number) {
   let points = 0;
   for (let i = 0; i < rows.length; i++) {
     const t = rows[i].t;
