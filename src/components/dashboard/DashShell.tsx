@@ -21,6 +21,7 @@ function openHash() {
 export default function DashShell({ groups, role, logout, children }: { groups: NavGroup[]; role: string; logout: () => Promise<void>; children: React.ReactNode }) {
   const path = usePathname();
   const [open, setOpen] = useState(false);
+  const stringing = path.startsWith("/dashboard/stringing");
   useEffect(() => setOpen(false), [path]);
   // Link #section di /dashboard → buka <details> tujuan lalu scroll.
   useEffect(() => {
@@ -116,8 +117,39 @@ export default function DashShell({ groups, role, logout, children }: { groups: 
             <span className="hidden sm:inline">Lihat situs</span>
           </a>
         </header>
-        <main className="px-4 py-6 lg:px-8 lg:py-8">{children}</main>
+        <main className={`px-4 py-6 lg:px-8 lg:py-8 ${stringing ? "pb-32" : ""}`}>{children}</main>
       </div>
+
+      {/* Navbar bawah (mobile) halaman stringing — Scan QR di tengah */}
+      {stringing && (
+        <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-[#E6EAE8] bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden">
+          <div className="mx-auto grid max-w-md grid-cols-5 items-end px-2">
+            {[
+              { href: "/dashboard/stringing", label: "Antrian", icon: "racket" as const, on: path === "/dashboard/stringing" },
+              { href: "/dashboard/stringing#selesai", label: "Selesai", icon: "check" as const, on: false },
+            ].map((t) => (
+              <Link key={t.label} href={t.href} onClick={t.href.includes("#") ? openHash : undefined} className={`flex flex-col items-center gap-1 py-2.5 text-[11px] ${t.on ? "font-semibold text-primary" : "text-[#7A8A84]"}`}>
+                <Icon name={t.icon} className="h-[22px] w-[22px]" />
+                {t.label}
+              </Link>
+            ))}
+            <Link href="/dashboard/stringing/reward" className="flex flex-col items-center gap-1 pb-2.5 text-[11px] font-semibold text-[#0E3B2E]">
+              <span className={`-mt-6 grid h-14 w-14 place-items-center rounded-full border-4 border-white shadow-[0_6px_20px_rgba(14,59,46,0.35)] ${path.startsWith("/dashboard/stringing/reward") ? "bg-primary" : "bg-[#0E3B2E]"} text-ball`}>
+                <Icon name="scan" className="h-6 w-6" />
+              </span>
+              Scan QR
+            </Link>
+            <Link href="/dashboard/password" className="flex flex-col items-center gap-1 py-2.5 text-[11px] text-[#7A8A84]">
+              <Icon name="key" className="h-[22px] w-[22px]" />
+              Akun
+            </Link>
+            <button onClick={() => setOpen(true)} className="flex flex-col items-center gap-1 py-2.5 text-[11px] text-[#7A8A84]">
+              <Icon name="menu" className="h-[22px] w-[22px]" />
+              Menu
+            </button>
+          </div>
+        </nav>
+      )}
     </div>
   );
 }

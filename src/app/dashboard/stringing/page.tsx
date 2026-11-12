@@ -144,7 +144,7 @@ export default async function StringingQueuePage() {
   return (
     <div className="mx-auto max-w-6xl">
       <PageHeader title="Antrian Stringing" desc={`${active.length} aktif · ${active.length + done.length} total`}>
-        <Link href="/dashboard/stringing/reward" className={btnPrimary}><Icon name="scan" /> Scan QR</Link>
+        <Link href="/dashboard/stringing/reward" className={`${btnPrimary} max-lg:hidden`}><Icon name="scan" /> Scan QR</Link>
       </PageHeader>
 
       <BranchFilterChips branches={branches} />
@@ -174,7 +174,9 @@ export default async function StringingQueuePage() {
         })}
 
         {/* Selesai — gabungan semua cabang (collapse + filter cabang; sebelah Solo) */}
-        <DoneStringingCard orders={doneDTO} branches={branches.map((b) => b.name)} />
+        <div id="selesai" className="scroll-mt-20">
+          <DoneStringingCard orders={doneDTO} branches={branches.map((b) => b.name)} />
+        </div>
       </div>
     </div>
   );
