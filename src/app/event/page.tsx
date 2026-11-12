@@ -7,6 +7,8 @@ import { phaseOf } from "@/lib/event-phase";
 import { productsForCampaigns } from "@/lib/demo-products";
 import ProductRail from "@/components/ProductRail";
 import { EventNavLinks, CityTabs } from "@/components/SlidePills";
+import KomunitasSheet, { KomunitasTrigger } from "@/components/KomunitasSheet";
+import { currentCommunityId } from "@/lib/community-auth";
 
 export const dynamic = "force-dynamic"; // filter kota via ?kota=
 export const metadata: Metadata = { title: "Event Demo Produk — Tirtonic", description: "Jadwal demo produk brand tenis bareng komunitas se-wilayah. Lihat acara yang sedang & akan berlangsung, atau daftarkan komunitasmu." };
@@ -136,6 +138,7 @@ export default async function EventLanding({ searchParams }: { searchParams: { k
     : [];
   const products = productsForCampaigns(demoCamps, pool);
 
+  const loggedIn = !!currentCommunityId();
   const fmtDay = (d: Date) => d.toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long" });
   const glass = "ev-glass rounded-xl";
   const pill = "ev-pill";
@@ -168,8 +171,8 @@ export default async function EventLanding({ searchParams }: { searchParams: { k
             />
           </nav>
           <div className="flex items-center gap-2">
-            <Link href="/komunitas" className={`${pill} hidden rounded-full px-3 py-1.5 text-xs font-[600] text-neutral-800 hover:bg-white sm:inline-flex`}>Dashboard Komunitas</Link>
-            <Link href="/komunitas" className="ev-btn inline-flex items-center rounded-full border border-white/20 bg-neutral-950 px-4 py-1.5 text-xs font-[500] text-white transition hover:bg-neutral-800 active:scale-95">Ajukan Demo</Link>
+            <KomunitasTrigger loggedIn={loggedIn} className={`${pill} hidden rounded-full px-3 py-1.5 text-xs font-[600] text-neutral-800 hover:bg-white sm:inline-flex`}>Dashboard Komunitas</KomunitasTrigger>
+            <KomunitasTrigger loggedIn={loggedIn} className="ev-btn inline-flex items-center rounded-full border border-white/20 bg-neutral-950 px-4 py-1.5 text-xs font-[500] text-white transition hover:bg-neutral-800 active:scale-95">Ajukan Demo</KomunitasTrigger>
           </div>
         </div>
       </header>
@@ -198,9 +201,9 @@ export default async function EventLanding({ searchParams }: { searchParams: { k
                 Lihat Demo Aktif
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="m6 9 6 6 6-6" /></svg>
               </a>
-              <Link href="/komunitas" className={`${pill} inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-[500] text-neutral-800 transition hover:bg-white/90 active:scale-95 sm:w-auto`}>
+              <KomunitasTrigger loggedIn={loggedIn} className={`${pill} inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-[500] text-neutral-800 transition hover:bg-white/90 active:scale-95 sm:w-auto`}>
                 Cara Mengajukan Demo <span className="text-neutral-500"><Arrow /></span>
-              </Link>
+              </KomunitasTrigger>
             </div>
           </div>
           <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-neutral-300/60 to-transparent" />
@@ -227,7 +230,7 @@ export default async function EventLanding({ searchParams }: { searchParams: { k
 
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 sm:gap-7">
             {nowCampaigns.map((c) => (
-              <Link key={c.id} href="/komunitas" className={`${glass} ev-lift group flex flex-col overflow-hidden`}>
+              <KomunitasTrigger key={c.id} loggedIn={loggedIn} context={`${c.location ? c.location + " • " : ""}${c.title}`} className={`${glass} ev-lift group flex flex-col overflow-hidden`}>
                 <div className="flex items-center justify-between border-b border-black/[0.06] bg-white/70 px-4 py-2.5 backdrop-blur-md">
                   <span className="flex items-center gap-1.5 text-xs font-[600] text-neutral-900"><Pin /> {c.location ?? "Semua cabang"}</span>
                   <span className="rounded-full bg-lime-100 px-2 py-0.5 text-[10px] font-[600] text-lime-800">Siap diklaim</span>
@@ -243,7 +246,7 @@ export default async function EventLanding({ searchParams }: { searchParams: { k
                     Gabung sebagai komunitas <Arrow />
                   </span>
                 </div>
-              </Link>
+              </KomunitasTrigger>
             ))}
 
             {/* Kartu ajakan */}
@@ -256,9 +259,9 @@ export default async function EventLanding({ searchParams }: { searchParams: { k
                 <h3 className="mt-2 text-lg font-[600] leading-snug text-neutral-950">Ingin jadwal demo mabar di lapangan komunitas Anda?</h3>
                 <p className="mt-2 text-xs leading-relaxed text-neutral-500">Daftarkan komunitas, pilih kampanye demo, tentukan tanggal & lapangan. Produk demo diambil di cabang Tirtonic terdekat.</p>
               </div>
-              <Link href="/komunitas" className="ev-btn mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full bg-neutral-950 px-4 py-2.5 text-xs font-[600] text-white hover:bg-neutral-800">
+              <KomunitasTrigger loggedIn={loggedIn} className="ev-btn mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full bg-neutral-950 px-4 py-2.5 text-xs font-[600] text-white hover:bg-neutral-800">
                 Ajukan Demo Day Komunitas <Arrow />
-              </Link>
+              </KomunitasTrigger>
             </div>
           </div>
 
@@ -373,13 +376,14 @@ export default async function EventLanding({ searchParams }: { searchParams: { k
               <h2 className="mt-5 text-3xl font-[600] leading-tight tracking-tight text-white sm:text-4xl">Daftarkan Komunitas Tenis Anda Sekarang.</h2>
               <p className="mt-4 text-sm leading-relaxed text-neutral-400 sm:text-base">Dapatkan akses prioritas ke demo produk terbaru dari brand tenis dunia, dan undang Tirtonic hadir di jadwal mabar rutin komunitas Anda.</p>
               <div className="mt-8 flex flex-wrap gap-3">
-                <Link href="/komunitas" className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-[600] text-neutral-950 hover:bg-neutral-100">Daftarkan Komunitas <Arrow /></Link>
+                <KomunitasTrigger loggedIn={loggedIn} className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-[600] text-neutral-950 hover:bg-neutral-100">Daftarkan Komunitas <Arrow /></KomunitasTrigger>
                 <Link href="/contact" className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-5 py-3 text-sm font-[500] text-white hover:bg-white/10">Hubungi Tim Tirtonic</Link>
               </div>
             </div>
           </div>
         </section>
       </main>
+      <KomunitasSheet />
     </div>
   );
 }
