@@ -6,6 +6,7 @@ import { createCampaign, updateCampaign, toggleCampaign, approveCampaign, unappr
 import { phaseOf, PHASE_META } from "@/lib/event-phase";
 import { displayPhone } from "@/lib/string-finder/phone";
 import SubmitButton from "@/components/SubmitButton";
+import { PageHeader, StatCard, Icon, card, btn, btnPrimary } from "@/components/dashboard/ui";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Event Demo — Tirtonic Admin" };
@@ -93,23 +94,11 @@ export default async function AdminEvent() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="sticky top-0 z-10 border-b bg-white/90 backdrop-blur">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-2.5">
-            <Link href="/dashboard" className="text-gray-400 hover:text-primary">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6" /></svg>
-            </Link>
-            <div className="text-sm font-extrabold text-gray-900">Event Demo Produk</div>
-          </div>
-          <div className="flex items-center gap-3">
-            <Link href="/dashboard/stringing/reward" className="rounded-full bg-amber-500 px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-amber-600">Scan QR</Link>
-            <Link href="/event" target="_blank" rel="noreferrer" className="text-sm font-medium text-gray-500 hover:text-primary">Lihat landing ↗</Link>
-          </div>
-        </div>
-      </header>
-
-      <main className="mx-auto max-w-5xl space-y-6 px-4 py-6">
+    <div className="mx-auto max-w-6xl space-y-5">
+      <PageHeader title="Event Demo Produk" desc="Kampanye demo raket, klaim peserta, dan komunitas.">
+        <Link href="/dashboard/stringing/reward" className={btnPrimary}><Icon name="scan" /> Scan QR</Link>
+        <Link href="/event" target="_blank" rel="noreferrer" className={btn}><Icon name="external" /> Lihat landing</Link>
+      </PageHeader>
         {/* Komunitas baru — perlu di-ACC */}
         {pendingCommunities.length > 0 && (
           <div className="overflow-hidden rounded-2xl border border-amber-200 bg-amber-50/50 shadow-sm">
@@ -358,7 +347,6 @@ export default async function AdminEvent() {
             )}
           </div>
         </div>
-      </main>
     </div>
   );
 }

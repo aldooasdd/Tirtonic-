@@ -20,12 +20,9 @@ export default async function RewardScanPage() {
   );
 
   return (
-    <div className="mx-auto min-h-screen max-w-md bg-gray-50 px-4 py-6">
-      <Link href="/dashboard/stringing" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-primary">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6" /></svg>
-        Dashboard stringing
-      </Link>
-      <h1 className="mt-3 text-xl font-extrabold text-gray-900">Scan QR (Hadiah, Poin &amp; Demo Event)</h1>
+    <div className="mx-auto max-w-md">
+      <h1 className="text-2xl font-bold tracking-tight text-[#0F1F1A]">Scan QR</h1>
+      <p className="mt-1 text-sm text-[#6B7A74]">Hadiah, poin &amp; ambil/kembali produk demo event.</p>
 
       <div className="mt-4">
         <RewardScanBox />

@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { isAuthed, currentRole, can } from "@/lib/auth";
 import { prisma, safeQuery } from "@/lib/prisma";
 import { rupiah } from "@/lib/format";
-import { createProduct, logout, createHeroSlide, deleteHeroSlide, createStore, deleteStore, createPopularBrand, deletePopularBrand, createArticle, createCoupon, deleteCoupon, toggleCoupon, createPreorderProduct, deletePreorderProduct, togglePreorderProduct } from "./actions";
+import { createProduct, createHeroSlide, deleteHeroSlide, createStore, deleteStore, createPopularBrand, deletePopularBrand, createArticle, createCoupon, deleteCoupon, toggleCoupon, createPreorderProduct, deletePreorderProduct, togglePreorderProduct } from "./actions";
 import ProductForm from "@/components/ProductForm";
 import ProductList from "@/components/ProductList";
 import CouponManager from "@/components/CouponManager";
@@ -11,25 +11,12 @@ import PreorderVariantInput from "@/components/PreorderVariantInput";
 import ArticleForm from "@/components/ArticleForm";
 import ArticleRowActions from "@/components/ArticleRowActions";
 import SponsorshipDeleteButton from "@/components/SponsorshipDeleteButton";
+import { PageHeader, StatCard, Icon, card, btnPrimary } from "@/components/dashboard/ui";
 
 export const dynamic = "force-dynamic";
 // Tokopedia import via the residential proxy can take longer than the default limit.
 export const maxDuration = 60;
 export const metadata = { title: "Dashboard Admin — Tirtonic" };
-
-function Stat({ label, value, tone = "gray" }: { label: string; value: number; tone?: "gray" | "green" | "red" }) {
-  const tones = {
-    gray: "text-gray-900",
-    green: "text-primary",
-    red: "text-red-500",
-  };
-  return (
-    <div className="rounded-2xl border bg-white p-4 shadow-sm">
-      <div className={`text-2xl font-extrabold ${tones[tone]}`}>{value}</div>
-      <div className="mt-0.5 text-xs font-medium text-gray-500">{label}</div>
-    </div>
-  );
-}
 
 export default async function AdminDashboard() {
   if (!isAuthed()) redirect("/dashboard/login");
@@ -55,88 +42,35 @@ export default async function AdminDashboard() {
   const poProducts = await safeQuery(() => prisma.preorderProduct.findMany({ orderBy: { createdAt: "desc" } }), []);
 
   const ready = products.filter((p) => p.status === "READY").length;
+  const isHabis = (p: (typeof products)[number]) => p.status === "SOLD" || (p.variants.length ? p.variants.every((v) => v.stok <= 0) : p.stok != null && p.stok <= 0);
+  const habisCount = products.filter(isHabis).length;
   const fmtDate = (d: Date) => new Date(d).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
   const prodName = new Map(products.map((p) => [p.id, p.nama]));
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* top bar */}
-      <header className="sticky top-0 z-10 border-b bg-white/90 backdrop-blur">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-2.5">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img loading="lazy" decoding="async" src="/logo.png" alt="" className="h-8 w-8" />
-            <div className="leading-tight">
-              <div className="text-sm font-extrabold text-gray-900">Tirtonic Admin</div>
-              <div className="text-[11px] text-gray-400">Masuk sebagai {role?.label ?? "—"}</div>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            {can("pesanan") && (
-              <Link href="/dashboard/orders" className="text-sm font-medium text-gray-500 hover:text-primary">
-                Pesanan
-              </Link>
-            )}
-            {can("stringing") && (
-              <Link href="/dashboard/stringing" className="text-sm font-medium text-gray-500 hover:text-primary">
-                Stringing
-              </Link>
-            )}
-            {can("event") && (
-              <Link href="/dashboard/event" className="text-sm font-medium text-gray-500 hover:text-primary">
-                Event
-              </Link>
-            )}
-            {can("member") && (
-              <Link href="/dashboard/member" className="text-sm font-medium text-gray-500 hover:text-primary">
-                Member
-              </Link>
-            )}
-            {can("produk") && (
-              <Link href="/dashboard/promo" className="text-sm font-medium text-gray-500 hover:text-primary">
-                Promo
-              </Link>
-            )}
-            {can("trafik") && (
-              <Link href="/dashboard/trafik" className="text-sm font-medium text-gray-500 hover:text-primary">
-                Trafik
-              </Link>
-            )}
-            <a href="/" target="_blank" rel="noreferrer" className="hidden text-sm font-medium text-gray-500 hover:text-primary sm:block">
-              Lihat situs ↗
-            </a>
-            <Link href="/dashboard/password" className="text-sm font-medium text-gray-500 hover:text-primary">
-              Ganti sandi
-            </Link>
-            <form action={logout}>
-              <button className="rounded-full border px-4 py-1.5 text-sm font-semibold text-gray-600 transition hover:border-red-400 hover:text-red-600">
-                Logout
-              </button>
-            </form>
-          </div>
-        </div>
-      </header>
-
-      <main className="mx-auto max-w-5xl space-y-6 px-4 py-6">
+    <div className="mx-auto max-w-6xl space-y-5">
+      <PageHeader title={`Halo, ${role?.label ?? "Admin"}`} desc="Kelola katalog, konten, dan promo tirtonic.com — semua di satu tempat.">
+        {can("produk") && <a href="#produk-baru" className={btnPrimary}><Icon name="box" /> Tambah Produk</a>}
+      </PageHeader>
         {/* stats */}
         {hasPanel ? (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <Stat label="Total Produk" value={products.length} />
-            <Stat label="Ready" value={ready} tone="green" />
-            <Stat label="Artikel" value={articles.length} />
-            <Stat label="Hero Slide" value={slides.length} />
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
+            <StatCard icon="box" label="Total Produk" value={products.length} note="di katalog web" />
+            <StatCard icon="check" label="Ready" value={ready} tone="green" note="tampil di shop" />
+            <StatCard icon="x" label="Stok Habis" value={habisCount} tone="red" note="semua varian 0 / Sold" />
+            <StatCard icon="file" label="Artikel" value={articles.length} note={`${slides.length} hero slide`} />
           </div>
         ) : (
           <div className="rounded-2xl border border-dashed bg-white p-8 text-center">
             <p className="font-semibold text-gray-700">Halo, {role?.label}.</p>
-            <p className="mt-1 text-sm text-gray-500">Buka menu di kanan atas untuk mulai kerja.</p>
+            <p className="mt-1 text-sm text-gray-500">Pilih menu di samping untuk mulai kerja.</p>
           </div>
         )}
 
         {/* add product */}
         {can("produk") && (
-        <details className="group overflow-hidden rounded-2xl border bg-white shadow-sm" open>
-          <summary className="flex cursor-pointer items-center justify-between px-5 py-4 font-bold text-gray-900">
+        <details id="produk-baru" className={`group scroll-mt-20 overflow-hidden ${card}`}>
+          <summary className="flex cursor-pointer items-center justify-between px-5 py-4 text-[15px] font-semibold text-[#0F1F1A]">
             <span className="flex items-center gap-2">Tambah Produk</span>
             <span className="text-xs font-normal text-gray-400 group-open:hidden">klik untuk buka</span>
           </summary>
@@ -148,8 +82,8 @@ export default async function AdminDashboard() {
 
         {/* add article */}
         {can("artikel") && (
-        <details className="group overflow-hidden rounded-2xl border bg-white shadow-sm">
-          <summary className="flex cursor-pointer items-center justify-between px-5 py-4 font-bold text-gray-900">
+        <details id="artikel" className={`group scroll-mt-20 overflow-hidden ${card}`}>
+          <summary className="flex cursor-pointer items-center justify-between px-5 py-4 text-[15px] font-semibold text-[#0F1F1A]">
             <span className="flex items-center gap-2">Tambah Artikel</span>
             <span className="text-xs font-normal text-gray-400">{articles.length} artikel</span>
           </summary>
@@ -191,8 +125,8 @@ export default async function AdminDashboard() {
         {/* hero banner */}
         {can("hero") && (
 
-        <details className="group overflow-hidden rounded-2xl border bg-white shadow-sm">
-          <summary className="flex cursor-pointer items-center justify-between px-5 py-4 font-bold text-gray-900">
+        <details id="hero" className={`group scroll-mt-20 overflow-hidden ${card}`}>
+          <summary className="flex cursor-pointer items-center justify-between px-5 py-4 text-[15px] font-semibold text-[#0F1F1A]">
             <span className="flex items-center gap-2">Hero Banner (Home)</span>
             <span className="text-xs font-normal text-gray-400">{slides.length} slide</span>
           </summary>
@@ -242,8 +176,8 @@ export default async function AdminDashboard() {
         {/* our store (cabang) */}
         {can("store") && (
 
-        <details className="group overflow-hidden rounded-2xl border bg-white shadow-sm">
-          <summary className="flex cursor-pointer items-center justify-between px-5 py-4 font-bold text-gray-900">
+        <details id="store" className={`group scroll-mt-20 overflow-hidden ${card}`}>
+          <summary className="flex cursor-pointer items-center justify-between px-5 py-4 text-[15px] font-semibold text-[#0F1F1A]">
             <span className="flex items-center gap-2">Our Store (Cabang)</span>
             <span className="text-xs font-normal text-gray-400">{stores.length} store</span>
           </summary>
@@ -310,8 +244,8 @@ export default async function AdminDashboard() {
 
         {can("brand") && (
 
-        <details className="group overflow-hidden rounded-2xl border bg-white shadow-sm">
-          <summary className="flex cursor-pointer items-center justify-between px-5 py-4 font-bold text-gray-900">
+        <details id="brand" className={`group scroll-mt-20 overflow-hidden ${card}`}>
+          <summary className="flex cursor-pointer items-center justify-between px-5 py-4 text-[15px] font-semibold text-[#0F1F1A]">
             <span className="flex items-center gap-2">Brand Popular (Home)</span>
             <span className="text-xs font-normal text-gray-400">{brands.length} brand</span>
           </summary>
@@ -359,8 +293,8 @@ export default async function AdminDashboard() {
         {/* sponsorship submissions */}
         {can("sponsor") && (
 
-        <details className="group overflow-hidden rounded-2xl border bg-white shadow-sm">
-          <summary className="flex cursor-pointer items-center justify-between px-5 py-4 font-bold text-gray-900">
+        <details id="sponsor" className={`group scroll-mt-20 overflow-hidden ${card}`}>
+          <summary className="flex cursor-pointer items-center justify-between px-5 py-4 text-[15px] font-semibold text-[#0F1F1A]">
             <span className="flex items-center gap-2">Pengajuan Sponsorship</span>
             <span className="text-xs font-normal text-gray-400">{sponsorships.length} pengajuan</span>
           </summary>
@@ -408,8 +342,8 @@ export default async function AdminDashboard() {
         {/* produk pre-order */}
         {can("pesanan") && (
 
-        <details className="group overflow-hidden rounded-2xl border bg-white shadow-sm">
-          <summary className="flex cursor-pointer items-center justify-between px-5 py-4 font-bold text-gray-900">
+        <details id="po-produk" className={`group scroll-mt-20 overflow-hidden ${card}`}>
+          <summary className="flex cursor-pointer items-center justify-between px-5 py-4 text-[15px] font-semibold text-[#0F1F1A]">
             <span className="flex items-center gap-2">Produk Pre-Order</span>
             <span className="text-xs font-normal text-gray-400">{poProducts.length} produk</span>
           </summary>
@@ -500,8 +434,8 @@ export default async function AdminDashboard() {
         {/* kupon diskon */}
         {can("kupon") && (
 
-        <details className="group overflow-hidden rounded-2xl border bg-white shadow-sm">
-          <summary className="flex cursor-pointer items-center justify-between px-5 py-4 font-bold text-gray-900">
+        <details id="kupon" className={`group scroll-mt-20 overflow-hidden ${card}`}>
+          <summary className="flex cursor-pointer items-center justify-between px-5 py-4 text-[15px] font-semibold text-[#0F1F1A]">
             <span className="flex items-center gap-2">Kupon Diskon</span>
             <span className="text-xs font-normal text-gray-400">{coupons.length} kupon</span>
           </summary>
@@ -544,8 +478,8 @@ export default async function AdminDashboard() {
 
         {/* product list (search live di client) */}
         {can("produk") && (
-        <details className="group overflow-hidden rounded-2xl border bg-white shadow-sm">
-          <summary className="flex cursor-pointer items-center justify-between px-5 py-4 font-bold text-gray-900">
+        <details id="produk" className={`group scroll-mt-20 overflow-hidden ${card}`}>
+          <summary className="flex cursor-pointer items-center justify-between px-5 py-4 text-[15px] font-semibold text-[#0F1F1A]">
             <span className="flex items-center gap-2">Daftar Produk</span>
             <span className="text-xs font-normal text-gray-400">{products.length} produk</span>
           </summary>
@@ -558,7 +492,7 @@ export default async function AdminDashboard() {
                 harga: p.harga,
                 status: p.status,
                 gambar: p.gambar,
-                habis: p.status === "SOLD" || (p.variants.length ? p.variants.every((v) => v.stok <= 0) : p.stok != null && p.stok <= 0),
+                habis: isHabis(p),
               }))}
             />
           </div>
@@ -568,7 +502,6 @@ export default async function AdminDashboard() {
         <p className="text-center text-xs text-gray-400">
           Perubahan status Ready/Sold langsung tercermin di halaman Shop &amp; detail produk.
         </p>
-      </main>
     </div>
   );
 }

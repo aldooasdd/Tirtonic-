@@ -2,19 +2,10 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { isAuthed, can } from "@/lib/auth";
 import { prisma, safeQuery } from "@/lib/prisma";
-import { logout } from "../actions";
+import { PageHeader, StatCard, Icon, card, btn, btnPrimary } from "@/components/dashboard/ui";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Trafik — Tirtonic Admin" };
-
-function Stat({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="rounded-2xl border bg-white p-4 shadow-sm">
-      <div className="text-2xl font-extrabold text-gray-900">{value.toLocaleString("id-ID")}</div>
-      <div className="mt-0.5 text-xs text-gray-500">{label}</div>
-    </div>
-  );
-}
 
 export default async function TrafikPage() {
   if (!isAuthed()) redirect("/dashboard/login");
@@ -25,42 +16,15 @@ export default async function TrafikPage() {
   const max = products[0]?.views || 0;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="sticky top-0 z-10 border-b bg-white/90 backdrop-blur">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-2.5">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img loading="lazy" decoding="async" src="/logo.png" alt="" className="h-8 w-8" />
-            <div className="leading-tight">
-              <div className="text-sm font-extrabold text-gray-900">Trafik Produk</div>
-              <div className="text-[11px] text-gray-400">Produk paling sering dilihat</div>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <Link
-              href="/dashboard"
-              className="rounded-full border px-4 py-1.5 text-sm font-semibold text-gray-600 transition hover:border-primary hover:text-primary"
-            >
-              ← Dashboard
-            </Link>
-            <Link href="/dashboard/password" className="rounded-full border px-4 py-1.5 text-sm font-semibold text-gray-600 transition hover:border-primary hover:text-primary">
-              Ganti sandi
-            </Link>
-            <form action={logout}>
-              <button className="rounded-full border px-4 py-1.5 text-sm font-semibold text-gray-600 transition hover:border-red-400 hover:text-red-600">Logout</button>
-            </form>
-          </div>
-        </div>
-      </header>
-
-      <main className="mx-auto max-w-5xl space-y-6 px-4 py-6">
-        <div className="grid grid-cols-3 gap-3">
-          <Stat label="Total dilihat" value={totalViews} />
-          <Stat label="Jumlah produk" value={products.length} />
-          <Stat label="View terpopuler" value={max} />
+    <div className="mx-auto max-w-6xl space-y-5">
+      <PageHeader title="Trafik Produk" desc="Produk paling sering dilihat di tirtonic.com." />
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 lg:gap-4">
+          <StatCard icon="eye" label="Total dilihat" value={totalViews.toLocaleString("id-ID")} />
+          <StatCard icon="box" label="Jumlah produk" value={products.length.toLocaleString("id-ID")} />
+          <StatCard icon="star" label="View terpopuler" value={max.toLocaleString("id-ID")} tone="green" />
         </div>
 
-        <div className="overflow-hidden rounded-2xl border bg-white shadow-sm">
+        <div className={`overflow-hidden ${card}`}>
           <div className="border-b px-5 py-4">
             <h2 className="font-bold text-gray-900">Produk Terpopuler</h2>
           </div>
@@ -95,7 +59,6 @@ export default async function TrafikPage() {
           Angka dihitung dari kunjungan halaman produk (termasuk refresh). Untuk data pengunjung menyeluruh
           (jumlah orang, asal traffic, device), perlu diaktifkan analytics terpisah.
         </p>
-      </main>
     </div>
   );
 }

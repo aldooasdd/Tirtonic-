@@ -3,7 +3,7 @@ import Link from "next/link";
 import { isAuthed, can } from "@/lib/auth";
 import { prisma, safeQuery } from "@/lib/prisma";
 import { rupiah } from "@/lib/format";
-import { logout } from "../actions";
+import { PageHeader, StatCard, Icon, card, btn, btnPrimary } from "@/components/dashboard/ui";
 import PreorderOrderActions from "@/components/PreorderOrderActions";
 
 export const dynamic = "force-dynamic";
@@ -32,16 +32,10 @@ export default async function DashboardPreorder() {
   const orders = await safeQuery(() => prisma.preorderOrder.findMany({ orderBy: { createdAt: "desc" }, take: 300 }), []);
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <Link href="/dashboard/orders" className="text-sm text-gray-500 hover:text-primary">← Pesanan</Link>
-          <h1 className="mt-2 text-2xl font-extrabold text-primary">Pre-Order</h1>
-        </div>
-        <form action={logout}>
-          <button className="rounded-full border px-4 py-1.5 text-sm font-semibold text-gray-600 transition hover:border-red-400 hover:text-red-600">Logout</button>
-        </form>
-      </div>
+    <div className="mx-auto max-w-6xl">
+      <PageHeader title="Pre-Order" desc="Pesanan PO masuk: DP, pelunasan, dan konfirmasi WA.">
+        <Link href="/dashboard#po-produk" className={btn}><Icon name="box" /> Produk PO</Link>
+      </PageHeader>
 
       {/* Pesanan PO masuk */}
       <section>

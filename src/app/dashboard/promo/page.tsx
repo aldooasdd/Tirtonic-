@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { isAuthed, can } from "@/lib/auth";
 import { prisma, safeQuery } from "@/lib/prisma";
 import EventManager from "@/components/EventManager";
+import { PageHeader } from "@/components/dashboard/ui";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Promo / Diskon — Tirtonic" };
@@ -20,10 +20,8 @@ export default async function PromoPage() {
   );
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8">
-      <Link href="/dashboard" className="text-sm text-gray-500 hover:text-primary">← Kembali ke dashboard</Link>
-      <h1 className="mb-1 mt-2 text-2xl font-extrabold text-primary">Promo / Diskon</h1>
-      <p className="mb-6 text-sm text-gray-500">Pilih barang yang ikut promo, set potongan (%), opsional tampilkan di carousel landing. Potongan langsung berlaku di shop & checkout.</p>
+    <div className="mx-auto max-w-6xl">
+      <PageHeader title="Promo / Diskon" desc="Pilih barang yang ikut promo, set potongan (%), opsional tampilkan di carousel landing. Potongan langsung berlaku di shop & checkout." />
       <EventManager products={products} />
     </div>
   );

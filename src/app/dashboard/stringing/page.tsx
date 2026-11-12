@@ -4,7 +4,7 @@ import { isAuthed, can, sessionBranchId } from "@/lib/auth";
 import { prisma, safeQuery } from "@/lib/prisma";
 import { displayPhone } from "@/lib/string-finder/phone";
 import { startStringing, finishStringing } from "./actions";
-import { logout } from "../actions";
+import { PageHeader, StatCard, Icon, card, btn, btnPrimary } from "@/components/dashboard/ui";
 import RacketQrPrint from "@/components/RacketQrPrint";
 import BranchFilterChips from "@/components/BranchFilterChips";
 import DeleteStringingButton from "@/components/DeleteStringingButton";
@@ -142,21 +142,10 @@ export default async function StringingQueuePage() {
   }));
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <Link href="/dashboard" className="text-sm text-gray-500 hover:text-primary">← Kembali ke dashboard</Link>
-          <h1 className="mt-2 text-2xl font-extrabold text-primary">Antrian Stringing</h1>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="text-sm text-gray-400">{active.length} aktif • {active.length + done.length} total</span>
-          <Link href="/dashboard/stringing/reward" className="rounded-full bg-amber-500 px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-amber-600">Scan QR</Link>
-          <Link href="/dashboard/password" className="text-sm font-medium text-gray-500 hover:text-primary">Ganti sandi</Link>
-          <form action={logout}>
-            <button className="rounded-full border px-4 py-1.5 text-sm font-semibold text-gray-600 transition hover:border-red-400 hover:text-red-600">Logout</button>
-          </form>
-        </div>
-      </div>
+    <div className="mx-auto max-w-6xl">
+      <PageHeader title="Antrian Stringing" desc={`${active.length} aktif · ${active.length + done.length} total`}>
+        <Link href="/dashboard/stringing/reward" className={btnPrimary}><Icon name="scan" /> Scan QR</Link>
+      </PageHeader>
 
       <BranchFilterChips branches={branches} />
 

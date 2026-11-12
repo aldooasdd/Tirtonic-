@@ -53,10 +53,10 @@ export default async function MemberPage({ searchParams }: { searchParams: { fil
   const field = "w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none";
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6 p-4 pb-20">
+    <div className="mx-auto max-w-4xl space-y-6 pb-20">
       <div>
-        <h1 className="text-xl font-extrabold text-gray-900">Member Loyalty</h1>
-        <p className="mt-0.5 text-sm text-gray-500">
+        <h1 className="text-2xl font-bold tracking-tight text-[#0F1F1A]">Member &amp; Coach</h1>
+        <p className="mt-1 text-sm text-[#6B7A74]">
           Semua orang yang pernah transaksi otomatis jadi member. Form di bawah untuk set coach (Green), kode referral, &amp; ultah. Tier &amp; poin dihitung otomatis dari transaksi.
         </p>
       </div>
