@@ -184,3 +184,6 @@ html.kiosk main {
   .ev-orb { animation: none; }
   .ev-lift:hover { transform: none; }
 }
+
+html:has(.ev-page) { scroll-behavior: smooth; }
+.ev-page [id] { scroll-margin-top: 7rem; }

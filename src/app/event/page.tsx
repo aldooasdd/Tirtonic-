@@ -6,6 +6,7 @@ import EventCard, { EventCardData } from "@/components/EventCard";
 import { phaseOf } from "@/lib/event-phase";
 import { productsForCampaigns } from "@/lib/demo-products";
 import ProductRail from "@/components/ProductRail";
+import { EventNavLinks, CityTabs } from "@/components/SlidePills";
 
 export const dynamic = "force-dynamic"; // filter kota via ?kota=
 export const metadata: Metadata = { title: "Event Demo Produk — Tirtonic", description: "Jadwal demo produk brand tenis bareng komunitas se-wilayah. Lihat acara yang sedang & akan berlangsung, atau daftarkan komunitasmu." };
@@ -140,7 +141,7 @@ export default async function EventLanding({ searchParams }: { searchParams: { k
   const pill = "ev-pill";
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden bg-[#f7f9fb] text-neutral-900 [letter-spacing:-0.011em]">
+    <div className="ev-page relative min-h-screen overflow-x-clip bg-[#f7f9fb] text-neutral-900 [letter-spacing:-0.011em]">
       {/* orb warna latar */}
       <div aria-hidden className="pointer-events-none fixed inset-0 -z-0">
         <div className="absolute left-1/4 top-0 h-[500px] w-[500px] rounded-full bg-gradient-to-tr from-lime-300/20 via-emerald-200/15 to-transparent blur-[100px]" />
@@ -156,11 +157,15 @@ export default async function EventLanding({ searchParams }: { searchParams: { k
             <img src="/logo.png" alt="" className="h-7 w-7 rounded-xl object-contain" />
             <span>Tirtonic <span className="text-xs font-[500] text-neutral-500 sm:text-sm">Events</span></span>
           </Link>
-          <nav className="hidden items-center gap-6 text-xs font-[500] text-neutral-600 md:flex">
-            <a href="#demo-aktif" className="hover:text-neutral-950">Demo Aktif</a>
-            {soonCampaigns.length > 0 && <a href="#mendatang" className="hover:text-neutral-950">Mendatang</a>}
-            {lastedEvents.length > 0 && <a href="#riwayat" className="hover:text-neutral-950">Riwayat</a>}
-            <a href="#store" className="hover:text-neutral-950">Store Resmi</a>
+          <nav className="hidden md:block">
+            <EventNavLinks
+              items={[
+                { key: "demo-aktif", label: "Demo Aktif" },
+                ...(soonCampaigns.length ? [{ key: "mendatang", label: "Mendatang" }] : []),
+                ...(lastedEvents.length ? [{ key: "riwayat", label: "Riwayat" }] : []),
+                ...(products.length ? [{ key: "store", label: "Store Resmi" }] : []),
+              ]}
+            />
           </nav>
           <div className="flex items-center gap-2">
             <Link href="/komunitas" className={`${pill} hidden rounded-full px-3 py-1.5 text-xs font-[600] text-neutral-800 hover:bg-white sm:inline-flex`}>Dashboard Komunitas</Link>
@@ -204,18 +209,7 @@ export default async function EventLanding({ searchParams }: { searchParams: { k
         {/* Filter kota */}
         <section className="relative z-20 mx-auto -mt-6 max-w-6xl px-4 sm:px-6 lg:px-8">
           <div className="ev-dock flex flex-col items-stretch justify-between gap-3 rounded-2xl p-2.5 md:flex-row md:items-center">
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs font-[500] [scrollbar-width:none] md:pb-0">
-              {["", ...cities].map((c) => (
-                <Link
-                  key={c || "all"}
-                  href={c ? `/event?kota=${encodeURIComponent(c)}` : "/event"}
-                  scroll={false}
-                  className={`shrink-0 rounded-full border px-3.5 py-1.5 shadow-sm transition ${c === kota ? "border-white/20 bg-neutral-900 font-[600] text-white" : "border-white/70 bg-white/60 text-neutral-700 hover:bg-white/90"}`}
-                >
-                  {c || "Semua Kota"}
-                </Link>
-              ))}
-            </div>
+            <CityTabs cities={cities} current={kota} />
             <div className="flex items-center justify-between gap-3 border-t border-black/[0.06] px-1 pt-2 text-xs text-neutral-600 md:justify-end md:border-t-0 md:pt-0">
               <span className="flex items-center gap-1.5 font-[500] text-neutral-800">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-lime-600" aria-hidden><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z" /></svg>
