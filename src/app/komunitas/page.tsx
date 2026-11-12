@@ -186,9 +186,52 @@ export default async function KomunitasHome() {
           )}
         </div>
 
-        <div className="mt-5 grid gap-5 lg:grid-cols-3">
+        <div className="mt-5 grid gap-5">
+          {/* Acara berikutnya */}
+          <aside className={`${glass} flex flex-col p-5`}>
+            <h2 className="text-lg font-[600] text-neutral-950">Acara Berikutnya</h2>
+            {next ? (
+              <div className="mt-4 grid gap-4 lg:grid-cols-[1.3fr_1fr_0.9fr] lg:items-start lg:gap-6">
+                <div>
+                <p className="text-[10px] font-[700] uppercase tracking-wider text-emerald-700">{next.campaign.brand}</p>
+                <h3 className="mt-0.5 text-base font-[600] leading-snug text-neutral-950">{next.campaign.title}</h3>
+                <p className="mt-2 flex items-start gap-1.5 text-xs text-neutral-600">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mt-px shrink-0 text-neutral-400" aria-hidden><path d="M12 21s-7-4.35-7-10a7 7 0 0 1 14 0c0 5.65-7 10-7 10Z" /><circle cx="12" cy="11" r="2.5" /></svg>
+                  {next.court}
+                </p>
+                </div>
+                <div className="grid grid-cols-2 gap-2.5">
+                  <div className="rounded-xl bg-white/80 p-3">
+                    <p className="text-[11px] text-neutral-500">Tanggal</p>
+                    <p className="mt-1 text-sm font-[600] text-neutral-950">{fmtD(next.demoDate)}</p>
+                    {jam(next) && <p className="text-[11px] text-neutral-500">{jam(next)}</p>}
+                  </div>
+                  <div className="rounded-xl bg-white/80 p-3">
+                    <p className="text-[11px] text-neutral-500">Peserta</p>
+                    <p className="mt-1 text-sm font-[600] text-neutral-950">
+                      {next.quotaType === "open" ? `${next.participants.filter((p) => p.status === "accepted").length}/${next.quota}` : next.quota}
+                    </p>
+                    <p className="text-[11px] text-neutral-500">{next.quotaType === "open" ? "open · bisa join" : "closed"}</p>
+                  </div>
+                </div>
+                <div>
+                <div className="space-y-2 text-xs">
+                  <p className="flex items-center justify-between"><span className="text-neutral-500">Produk diambil</span><span className={next.pickedUpAt ? "font-[600] text-emerald-700" : "text-neutral-400"}>{next.pickedUpAt ? "✓ Sudah" : "Belum"}</span></p>
+                  <p className="flex items-center justify-between"><span className="text-neutral-500">Produk dikembalikan</span><span className={next.returnedAt ? "font-[600] text-emerald-700" : "text-neutral-400"}>{next.returnedAt ? "✓ Sudah" : "Belum"}</span></p>
+                </div>
+                <Link href={`/event/${next.id}`} className="ev-btn mt-4 inline-flex w-full items-center justify-center rounded-full bg-neutral-950 px-4 py-2.5 text-xs font-[600] text-white hover:bg-neutral-800">Buka halaman acara</Link>
+                </div>
+              </div>
+            ) : (
+              <div className="mt-4 flex flex-1 flex-col items-center justify-center rounded-xl bg-white/60 p-6 text-center">
+                <p className="text-sm text-neutral-500">Belum ada acara terjadwal.</p>
+                <p className="mt-1 text-xs text-neutral-400">Klaim penawaran demo di samping untuk mulai.</p>
+              </div>
+            )}
+          </aside>
+
           {/* Penawaran demo brand */}
-          <section id="penawaran" className={`${glass} p-5 lg:col-span-2`}>
+          <section id="penawaran" className={`${glass} p-5`}>
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-lg font-[600] text-neutral-950">Penawaran Demo Brand</h2>
               <span className="text-xs text-neutral-500">{claimable.length} bisa diklaim</span>
@@ -251,45 +294,6 @@ export default async function KomunitasHome() {
               </div>
             )}
           </section>
-
-          {/* Acara berikutnya */}
-          <aside className={`${glass} flex flex-col p-5`}>
-            <h2 className="text-lg font-[600] text-neutral-950">Acara Berikutnya</h2>
-            {next ? (
-              <div className="mt-4 flex flex-1 flex-col">
-                <p className="text-[10px] font-[700] uppercase tracking-wider text-emerald-700">{next.campaign.brand}</p>
-                <h3 className="mt-0.5 text-base font-[600] leading-snug text-neutral-950">{next.campaign.title}</h3>
-                <div className="mt-4 grid grid-cols-2 gap-2.5">
-                  <div className="rounded-xl bg-white/80 p-3">
-                    <p className="text-[11px] text-neutral-500">Tanggal</p>
-                    <p className="mt-1 text-sm font-[600] text-neutral-950">{fmtD(next.demoDate)}</p>
-                    {jam(next) && <p className="text-[11px] text-neutral-500">{jam(next)}</p>}
-                  </div>
-                  <div className="rounded-xl bg-white/80 p-3">
-                    <p className="text-[11px] text-neutral-500">Peserta</p>
-                    <p className="mt-1 text-sm font-[600] text-neutral-950">
-                      {next.quotaType === "open" ? `${next.participants.filter((p) => p.status === "accepted").length}/${next.quota}` : next.quota}
-                    </p>
-                    <p className="text-[11px] text-neutral-500">{next.quotaType === "open" ? "open · bisa join" : "closed"}</p>
-                  </div>
-                </div>
-                <p className="mt-3 flex items-start gap-1.5 text-xs text-neutral-600">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mt-px shrink-0 text-neutral-400" aria-hidden><path d="M12 21s-7-4.35-7-10a7 7 0 0 1 14 0c0 5.65-7 10-7 10Z" /><circle cx="12" cy="11" r="2.5" /></svg>
-                  {next.court}
-                </p>
-                <div className="mt-4 space-y-2 border-t border-black/[0.06] pt-4 text-xs">
-                  <p className="flex items-center justify-between"><span className="text-neutral-500">Produk diambil</span><span className={next.pickedUpAt ? "font-[600] text-emerald-700" : "text-neutral-400"}>{next.pickedUpAt ? "✓ Sudah" : "Belum"}</span></p>
-                  <p className="flex items-center justify-between"><span className="text-neutral-500">Produk dikembalikan</span><span className={next.returnedAt ? "font-[600] text-emerald-700" : "text-neutral-400"}>{next.returnedAt ? "✓ Sudah" : "Belum"}</span></p>
-                </div>
-                <Link href={`/event/${next.id}`} className="ev-btn mt-auto inline-flex w-full items-center justify-center rounded-full bg-neutral-950 px-4 py-2.5 text-xs font-[600] text-white hover:bg-neutral-800 [margin-top:1.25rem]">Buka halaman acara</Link>
-              </div>
-            ) : (
-              <div className="mt-4 flex flex-1 flex-col items-center justify-center rounded-xl bg-white/60 p-6 text-center">
-                <p className="text-sm text-neutral-500">Belum ada acara terjadwal.</p>
-                <p className="mt-1 text-xs text-neutral-400">Klaim penawaran demo di samping untuk mulai.</p>
-              </div>
-            )}
-          </aside>
         </div>
 
         {/* Demo saya: kartu kelola (yang aktif) */}
