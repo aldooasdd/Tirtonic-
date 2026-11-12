@@ -163,7 +163,7 @@ export default async function EventLanding({ searchParams }: { searchParams: { k
                 { key: "demo-aktif", label: "Demo Aktif" },
                 ...(soonCampaigns.length ? [{ key: "mendatang", label: "Mendatang" }] : []),
                 ...(lastedEvents.length ? [{ key: "riwayat", label: "Riwayat" }] : []),
-                ...(products.length ? [{ key: "store", label: "Store Resmi" }] : []),
+                ...(products.length ? [{ key: "store", label: "Produk Demo" }] : []),
               ]}
             />
           </nav>
