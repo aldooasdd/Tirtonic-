@@ -6,7 +6,8 @@ import { useEffect, useRef, useState } from "react";
 // Scan QR hadiah / potongan poin. Dua cara:
 // 1) Kamera HP (BarcodeDetector native) — tombol "Scan Kamera".
 // 2) Scanner Zebra (keyboard-wedge) / ketik manual → input + Enter.
-// QR berisi URL penuh → langsung ke path-nya (reward/redeem). Token mentah → anggap reward.
+// QR berisi URL penuh → langsung ke path-nya (hadiah/redeem, atau ambil/kembali produk demo event).
+// Token mentah → anggap reward.
 export default function RewardScanBox() {
   const router = useRouter();
   const [val, setVal] = useState("");
@@ -18,6 +19,8 @@ export default function RewardScanBox() {
   const go = (raw: string) => {
     const v = raw.trim();
     if (!v) return;
+    const ev = v.match(/\/event\/(pickup|return)\/([^/?#\s]+)/);
+    if (ev) { router.push(`/dashboard/event/${ev[1]}/${encodeURIComponent(ev[2])}`); return; }
     const m = v.match(/\/(reward|redeem)\/([^/?#\s]+)/);
     if (m) { router.push(`/dashboard/stringing/${m[1]}/${encodeURIComponent(m[2])}`); return; }
     router.push(`/dashboard/stringing/reward/${encodeURIComponent(v)}`); // token mentah → reward
@@ -77,8 +80,8 @@ export default function RewardScanBox() {
 
   return (
     <div className="rounded-2xl border bg-white p-5 shadow-sm">
-      <label className="block text-sm font-bold text-gray-900">Scan QR hadiah / potongan poin</label>
-      <p className="mt-0.5 text-xs text-gray-500">Scan QR di HP customer dengan kamera, scanner Zebra, atau ketik manual.</p>
+      <label className="block text-sm font-bold text-gray-900">Scan QR hadiah / poin / demo event</label>
+      <p className="mt-0.5 text-xs text-gray-500">Satu scanner untuk hadiah, potongan poin, dan ambil/kembali produk demo event. Pakai kamera, scanner Zebra, atau ketik manual.</p>
 
       {cam ? (
         <div className="mt-3">

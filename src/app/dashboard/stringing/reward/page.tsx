@@ -11,7 +11,7 @@ const fmt = (d: Date) => new Date(d).toLocaleDateString("id-ID", { day: "numeric
 
 export default async function RewardScanPage() {
   if (!isAuthed()) redirect("/dashboard/login");
-  if (!can("stringing")) redirect("/dashboard");
+  if (!can("stringing") && !can("event")) redirect("/dashboard"); // halaman tujuan cek izin masing-masing
 
   // Hadiah yang sudah ditukar (10 terakhir) — biar staff lihat riwayat.
   const recent = await safeQuery(
@@ -25,7 +25,7 @@ export default async function RewardScanPage() {
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6" /></svg>
         Dashboard stringing
       </Link>
-      <h1 className="mt-3 text-xl font-extrabold text-gray-900">Scan Hadiah &amp; Potongan Poin</h1>
+      <h1 className="mt-3 text-xl font-extrabold text-gray-900">Scan QR (Hadiah, Poin &amp; Demo Event)</h1>
 
       <div className="mt-4">
         <RewardScanBox />

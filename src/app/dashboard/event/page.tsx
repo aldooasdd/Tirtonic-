@@ -102,7 +102,10 @@ export default async function AdminEvent() {
             </Link>
             <div className="text-sm font-extrabold text-gray-900">Event Demo Produk</div>
           </div>
-          <Link href="/event" target="_blank" rel="noreferrer" className="text-sm font-medium text-gray-500 hover:text-primary">Lihat landing ↗</Link>
+          <div className="flex items-center gap-3">
+            <Link href="/dashboard/stringing/reward" className="rounded-full bg-amber-500 px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-amber-600">Scan QR</Link>
+            <Link href="/event" target="_blank" rel="noreferrer" className="text-sm font-medium text-gray-500 hover:text-primary">Lihat landing ↗</Link>
+          </div>
         </div>
       </header>
 
