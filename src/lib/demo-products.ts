@@ -27,6 +27,21 @@ export function productsForCampaigns<T extends P & { id: string }>(campaigns: { 
   return [...out.values()].slice(0, limit);
 }
 
+/** Pilihan form Ajukan Demo: brand → kategori yang ada di katalog shop (brand beda huruf besar/kecil digabung). */
+export async function demoRequestOptions(): Promise<Record<string, string[]>> {
+  const { prisma, safeQuery } = await import("@/lib/prisma");
+  const rows = await safeQuery(() => prisma.product.groupBy({ by: ["brand", "kategori"], where: { brand: { not: null } } }), []);
+  const disp: Record<string, string> = {};
+  const out: Record<string, string[]> = {};
+  for (const r of rows) {
+    const raw = (r.brand ?? "").trim();
+    if (!raw) continue;
+    const b = (disp[raw.toLowerCase()] ??= raw);
+    if (!(out[b] ??= []).includes(r.kategori)) out[b].push(r.kategori);
+  }
+  return Object.fromEntries(Object.keys(out).sort((x, y) => x.localeCompare(y)).map((b) => [b, out[b].sort()]));
+}
+
 if (process.argv[1]?.endsWith("demo-products.ts")) {
   const ps = [
     { id: "1", nama: "Yonex Ezone 100 Espresso Brown 2026", brand: "Yonex", kategori: "Raket Tenis" },

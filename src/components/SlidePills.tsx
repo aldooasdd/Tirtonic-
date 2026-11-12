@@ -15,8 +15,12 @@ function useIndicator(active: string) {
       setBox(el ? { left: el.offsetLeft, width: el.offsetWidth } : null);
     };
     measure();
+    // ukur ulang saat font selesai dimuat / lebar berubah (lebar teks bergeser)
+    document.fonts?.ready.then(measure);
+    const ro = new ResizeObserver(measure);
+    if (wrap.current) ro.observe(wrap.current);
     window.addEventListener("resize", measure);
-    return () => window.removeEventListener("resize", measure);
+    return () => { ro.disconnect(); window.removeEventListener("resize", measure); };
   }, [active]);
   return { wrap, box };
 }

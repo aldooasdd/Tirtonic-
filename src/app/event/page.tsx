@@ -4,7 +4,7 @@ import { prisma, safeQuery } from "@/lib/prisma";
 import { rupiah } from "@/lib/format";
 import EventCard, { EventCardData } from "@/components/EventCard";
 import { phaseOf } from "@/lib/event-phase";
-import { productsForCampaigns } from "@/lib/demo-products";
+import { productsForCampaigns, demoRequestOptions } from "@/lib/demo-products";
 import ProductRail from "@/components/ProductRail";
 import { EventNavLinks, CityTabs } from "@/components/SlidePills";
 import KomunitasSheet, { KomunitasTrigger, AjukanTrigger, AjukanSheet } from "@/components/KomunitasSheet";
@@ -140,17 +140,7 @@ export default async function EventLanding({ searchParams }: { searchParams: { k
 
   const community = await currentCommunity();
   const loggedIn = !!community;
-  // Pilihan form Ajukan Demo: brand → kategori, dari katalog shop.
-  const catalog = await safeQuery(() => prisma.product.groupBy({ by: ["brand", "kategori"], where: { brand: { not: null } } }), []);
-  const options: Record<string, string[]> = {};
-  const disp: Record<string, string> = {}; // brand beda huruf besar/kecil → satu pilihan
-  for (const r of catalog) {
-    const raw = (r.brand ?? "").trim();
-    if (!raw) continue;
-    const b = (disp[raw.toLowerCase()] ??= raw);
-    (options[b] ??= []).includes(r.kategori) || options[b].push(r.kategori);
-  }
-  const sortedOptions = Object.fromEntries(Object.keys(options).sort((a, b) => a.localeCompare(b)).map((b) => [b, options[b].sort()]));
+  const sortedOptions = await demoRequestOptions();
   const fmtDay = (d: Date) => d.toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long" });
   const glass = "ev-glass rounded-xl";
   const pill = "ev-pill";
