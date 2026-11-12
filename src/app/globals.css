@@ -125,3 +125,62 @@ html.kiosk a[aria-label="Chat WhatsApp"] {
 html.kiosk main {
   padding-top: 0 !important;
 }
+
+/* Halaman /event — liquid glass ala Apple (dari desain Stitch) */
+.ev-nav {
+  background: rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(28px) saturate(190%);
+  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 16px 40px -10px rgba(0, 20, 40, 0.08), 0 4px 12px -2px rgba(0, 0, 0, 0.04), inset 0 1px 1.5px rgba(255, 255, 255, 0.95), inset 0 -1px 1px rgba(0, 0, 0, 0.04);
+}
+.ev-glass {
+  background: rgba(255, 255, 255, 0.68);
+  backdrop-filter: blur(20px) saturate(170%);
+  -webkit-backdrop-filter: blur(20px) saturate(170%);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 20px 45px -15px rgba(15, 23, 42, 0.07), 0 4px 16px -2px rgba(15, 23, 42, 0.03), inset 0 1px 1.5px rgba(255, 255, 255, 0.95), inset 0 -1px 1px rgba(0, 0, 0, 0.03);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.ev-lift:hover {
+  background: rgba(255, 255, 255, 0.82);
+  transform: translateY(-4px);
+  box-shadow: 0 28px 60px -15px rgba(15, 23, 42, 0.12), 0 10px 24px -4px rgba(15, 23, 42, 0.06), inset 0 1px 2px rgba(255, 255, 255, 1);
+}
+.ev-pill {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(14px) saturate(180%);
+  -webkit-backdrop-filter: blur(14px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 4px 14px -2px rgba(0, 0, 0, 0.05), inset 0 1px 1px rgba(255, 255, 255, 0.9);
+}
+.ev-dock {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 20px 40px -12px rgba(0, 25, 45, 0.08), 0 2px 8px rgba(0, 0, 0, 0.02), inset 0 1px 1.5px rgba(255, 255, 255, 1);
+}
+.ev-obsidian {
+  background: linear-gradient(135deg, rgba(18, 20, 24, 0.94) 0%, rgba(10, 12, 16, 0.97) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 30px 70px -15px rgba(0, 0, 0, 0.45), 0 10px 25px -5px rgba(0, 0, 0, 0.3), inset 0 1px 1.5px rgba(255, 255, 255, 0.28);
+}
+.ev-btn { box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.35); }
+.ev-orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(80px);
+  pointer-events: none;
+  opacity: 0.65;
+  animation: ev-float 12s ease-in-out infinite alternate;
+}
+@keyframes ev-float {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(25px, -20px) scale(1.08); }
+  100% { transform: translate(-20px, 15px) scale(0.96); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ev-orb { animation: none; }
+  .ev-lift:hover { transform: none; }
+}
