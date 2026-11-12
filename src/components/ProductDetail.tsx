@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { rupiah, waLink } from "@/lib/format";
+import { FREE_ONGKIR_MIN } from "@/lib/constants";
 import { useShopCart } from "./ShopCartProvider";
 
 type Variant = { id?: string; warna: string; ukuran: string; harga: number; hargaDiskon?: number | null; stok: number; gambar: string | null };
@@ -25,18 +26,27 @@ type P = {
   variants?: Variant[];
 };
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <details className="group border-b py-4">
-      <summary className="flex cursor-pointer list-none items-center justify-between font-semibold text-gray-900">
-        {title}
-        <span className="text-xl text-gray-400 group-open:hidden">+</span>
-        <span className="hidden text-xl text-gray-400 group-open:inline">−</span>
-      </summary>
-      <div className="pt-3 text-sm leading-relaxed text-gray-600">{children}</div>
-    </details>
-  );
-}
+const Acc = ({ title, open, children }: { title: string; open?: boolean; children: React.ReactNode }) => (
+  <details open={open} className="group rounded-2xl border border-gray-200 bg-white">
+    <summary className="flex cursor-pointer list-none items-center justify-between px-5 py-4 text-[15px] font-[600] text-gray-900 [&::-webkit-details-marker]:hidden">
+      {title}
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="text-gray-500 transition group-open:rotate-180" aria-hidden><path d="m6 9 6 6 6-6" /></svg>
+    </summary>
+    <div className="px-5 pb-5 text-sm leading-relaxed text-gray-600">{children}</div>
+  </details>
+);
+const Info = ({ icon, label, value }: { icon: string; label: string; value: string }) => (
+  <div className="flex items-center gap-3">
+    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gray-100 text-gray-800">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d={icon} /></svg>
+    </span>
+    <div className="min-w-0 leading-tight">
+      <p className="text-[11px] text-gray-400">{label}</p>
+      <p className="truncate text-[13px] font-[500] text-gray-900">{value}</p>
+    </div>
+  </div>
+);
+
 
 export default function ProductDetail({ p }: { p: P }) {
   const variants = p.variants || [];
@@ -52,7 +62,9 @@ export default function ProductDetail({ p }: { p: P }) {
 
   const [active, setActive] = useState(0);
   const [size, setSize] = useState("");
-  const [color, setColor] = useState(hasVar ? colors[0].warna : "");
+  // Default: warna/ukuran pertama yang masih ada stok (bukan yang habis).
+  const firstInStock = colors.find((c) => variants.some((v) => v.warna === c.warna && v.stok > 0)) ?? colors[0];
+  const [color, setColor] = useState(hasVar ? firstInStock.warna : "");
   const [url, setUrl] = useState("");
   const [showChart, setShowChart] = useState(false);
   const [descOpen, setDescOpen] = useState(false);
@@ -149,24 +161,31 @@ export default function ProductDetail({ p }: { p: P }) {
   };
   const categories = [p.brand, p.kategori].filter(Boolean) as string[];
 
+  const pill = (on: boolean, habis: boolean) =>
+    `rounded-full px-5 py-3 text-sm font-[500] transition ${
+      habis ? "cursor-not-allowed bg-gray-50 text-gray-300 line-through" : on ? "bg-neutral-950 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+    }`;
   return (
     <div className="mx-auto max-w-[1200px] px-4 pb-12 pt-3">
-      <nav className="mb-6 text-sm text-gray-500">
-        <Link href="/" className="text-primary hover:underline">Home</Link>
-        <span className="mx-2">/</span>
+      <nav className="mb-5 flex items-center gap-3 text-sm text-gray-500">
+        <button type="button" onClick={() => router.back()} aria-label="Kembali" className="grid h-8 w-8 place-items-center rounded-full text-gray-800 transition hover:bg-gray-100">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M19 12H5" /><path d="m12 19-7-7 7-7" /></svg>
+        </button>
+        <Link href="/" className="hover:text-gray-900">Home</Link>
+        <span className="text-gray-300">›</span>
         {p.brand ? (
           <>
-            <Link href={`/shop?brand=${encodeURIComponent(p.brand)}`} className="text-primary hover:underline">{p.brand}</Link>
-            <span className="mx-2">/</span>
+            <Link href={`/shop?brand=${encodeURIComponent(p.brand)}`} className="hover:text-gray-900">{p.brand}</Link>
+            <span className="text-gray-300">›</span>
           </>
         ) : null}
-        <span className="text-gray-700">{p.nama}</span>
+        <span className="truncate text-gray-700">Detail produk</span>
       </nav>
 
-      <div className="grid gap-10 md:grid-cols-2">
+      <div className="grid gap-8 md:grid-cols-2 lg:gap-10">
         {/* gallery */}
-        <div>
-          <div className="relative aspect-square overflow-hidden rounded-lg bg-gray-100">
+        <div className="md:sticky md:top-24 md:self-start">
+          <div className="relative aspect-[4/5] overflow-hidden rounded-3xl bg-gray-100">
             {gallery.length > 0 ? (
               <div
                 ref={scrollerRef}
@@ -182,122 +201,109 @@ export default function ProductDetail({ p }: { p: P }) {
             ) : (
               <div className="flex h-full w-full items-center justify-center text-gray-300">No image</div>
             )}
+
+            {/* progress bar ala story */}
+            {gallery.length > 1 && (
+              <div className="pointer-events-none absolute inset-x-5 top-4 flex gap-1.5">
+                {gallery.map((_, i) => (
+                  <span key={i} className={`h-1 flex-1 rounded-full transition-colors ${i === active ? "bg-white" : "bg-white/40"}`} />
+                ))}
+              </div>
+            )}
+
+            {/* thumbnail di bawah, di atas foto */}
+            {gallery.length > 1 && (
+              <div className="absolute inset-x-3 bottom-3 flex gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                {gallery.map((g, i) => (
+                  <button
+                    key={g + i}
+                    type="button"
+                    onClick={() => scrollToIdx(i)}
+                    aria-label={`Gambar ${i + 1}`}
+                    className={`relative aspect-[5/4] w-[calc((100%-1rem)/3)] shrink-0 overflow-hidden rounded-2xl border-2 bg-white transition ${i === active ? "border-white shadow-lg" : "border-transparent opacity-80 hover:opacity-100"}`}
+                  >
+                    <Image src={g} alt="" fill sizes="200px" className="object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
-          {gallery.length > 1 && (
-            <div className="mt-4 flex justify-center gap-2">
-              {gallery.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => scrollToIdx(i)}
-                  aria-label={`Gambar ${i + 1}`}
-                  className={`h-2 rounded-full transition-all ${i === active ? "w-6 bg-primary" : "w-2 bg-gray-300"}`}
-                />
-              ))}
-            </div>
-          )}
         </div>
 
         {/* info */}
         <div>
-          <h1 className="text-3xl font-extrabold leading-tight text-gray-900">{p.nama}</h1>
+          <div className="flex flex-wrap items-center gap-2">
+            <Link href={`/shop?type=${encodeURIComponent(p.kategori)}`} className="rounded-full border border-gray-200 px-3.5 py-1 text-xs text-gray-700 hover:border-gray-400">{p.kategori}</Link>
+            <span className={`rounded-full px-3 py-1 text-xs font-[600] ${badgeSold ? "bg-red-50 text-red-600" : "bg-emerald-50 text-emerald-700"}`}>
+              {badgeSold ? "Sold Out" : "Ready Stock"}
+            </span>
+          </div>
+          <h1 className="mt-3 text-2xl font-[600] leading-tight tracking-tight text-gray-900 sm:text-3xl">{p.nama}</h1>
 
-          <div className="mt-3 flex items-center justify-between">
-            <div>
-              <div className="flex items-center gap-2">
-                <p className="text-2xl font-bold text-gray-900">{rupiah(priceNum)}</p>
-                {discounted && <span className="rounded bg-red-500 px-1.5 py-0.5 text-xs font-bold text-white">-{pct}%</span>}
-              </div>
-              {discounted && <p className="text-sm text-gray-400 line-through">{rupiah(normalNum)}</p>}
-            </div>
-            {/* Size chart only matters for sized products (shoes); hide it otherwise. */}
-            {needSize &&
-              (p.sizeChart ? (
-                <button type="button" onClick={() => setShowChart(true)} className="text-sm text-gray-600 underline hover:text-primary">
-                  Size Chart
-                </button>
-              ) : (
-                <a href={waLink(`Halo Admin, boleh minta size chart untuk ${p.nama}?`)} target="_blank" rel="noreferrer" className="text-sm text-gray-600 underline hover:text-primary">
-                  Size Chart
-                </a>
-              ))}
+          <div className="mt-3 flex items-end gap-2.5">
+            <p className="text-2xl font-[600] text-gray-900">{rupiah(priceNum)}</p>
+            {discounted && (
+              <>
+                <p className="pb-0.5 text-sm text-gray-400 line-through">{rupiah(normalNum)}</p>
+                <span className="mb-1 rounded-full bg-red-500 px-2 py-0.5 text-[11px] font-[600] text-white">-{pct}%</span>
+              </>
+            )}
           </div>
 
-          <span className={`mt-3 inline-block rounded-full px-3 py-1 text-xs font-semibold text-white ${badgeSold ? "bg-red-500" : "bg-primary"}`}>
-            {badgeSold ? "Sold Out" : "Ready Stock"}
-          </span>
+          <div className="mt-4 flex items-center gap-2 rounded-full border border-gray-200 px-4 py-2 text-xs text-gray-600">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0" aria-hidden><circle cx="12" cy="12" r="10" /><path d="M12 16v-4M12 8h.01" /></svg>
+            <span>Gratis ongkir untuk belanja min. <b className="font-[600] text-gray-900">{rupiah(FREE_ONGKIR_MIN)}</b> · bisa ambil di toko</span>
+          </div>
 
           {hasVar && (
             <div className="mt-6 space-y-5">
-              {/* Color */}
               <div>
-                <p className="mb-2 text-sm font-semibold text-gray-900">
-                  Pilih warna: <span className="font-normal text-gray-600">{color}</span>
+                <p className="mb-2.5 text-sm text-gray-500">
+                  {!hasSizeAxis && /sepatu/i.test(p.kategori) ? "Pilih ukuran" : "Pilih warna"}: <span className="text-gray-900">{color}</span>
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {colors.map((c) => {
                     const habis = colorSold(c.warna);
                     return (
-                    <button
-                      key={c.warna}
-                      disabled={habis}
-                      onClick={() => {
-                        setColor(c.warna);
-                        setSize("");
-                      }}
-                      className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition ${
-                        habis
-                          ? "cursor-not-allowed border-gray-200 bg-gray-50 text-gray-400 line-through opacity-50"
-                          : color === c.warna
-                          ? "border-primary bg-primary/10 text-primary"
-                          : "border-gray-300 text-gray-700 hover:border-primary"
-                      }`}
-                    >
-                      {c.gambar && (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img loading="lazy" decoding="async" src={c.gambar} alt="" className="h-6 w-6 rounded object-cover" />
-                      )}
-                      {c.warna}
-                    </button>
+                      <button
+                        key={c.warna}
+                        disabled={habis}
+                        onClick={() => {
+                          setColor(c.warna);
+                          setSize("");
+                        }}
+                        className={`${pill(color === c.warna, habis)} flex items-center gap-2 ${c.gambar ? "py-2 pl-2" : ""}`}
+                      >
+                        {c.gambar && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img loading="lazy" decoding="async" src={c.gambar} alt="" className="h-7 w-7 rounded-full object-cover" />
+                        )}
+                        {c.warna}
+                      </button>
                     );
                   })}
                 </div>
               </div>
 
-              {/* Size (second axis) */}
               {hasSizeAxis && (
                 <div>
-                  <p className="mb-2 text-sm font-semibold text-gray-900">
-                    Pilih ukuran: <span className="font-normal text-gray-600">{size || "-"}</span>
+                  <p className="mb-2.5 text-sm text-gray-500">
+                    Pilih ukuran: <span className="text-gray-900">{size || "-"}</span>
                   </p>
-                  <div className="flex flex-wrap gap-3">
-                    {sizesForColor.map((v) => {
-                      const habis = v.stok <= 0;
-                      return (
-                        <button
-                          key={v.ukuran}
-                          disabled={habis}
-                          onClick={() => setSize(v.ukuran)}
-                          className={`min-w-[64px] rounded-lg border px-4 py-3 text-sm font-medium transition ${
-                            habis
-                              ? "cursor-not-allowed border-gray-200 bg-gray-50 text-gray-400 line-through opacity-50"
-                              : size === v.ukuran
-                              ? "border-primary bg-primary text-white"
-                              : "border-gray-300 text-gray-700 hover:border-primary"
-                          }`}
-                        >
-                          {v.ukuran}
-                        </button>
-                      );
-                    })}
+                  <div className="flex flex-wrap gap-2">
+                    {sizesForColor.map((v) => (
+                      <button key={v.ukuran} disabled={v.stok <= 0} onClick={() => setSize(v.ukuran)} className={`${pill(size === v.ukuran, v.stok <= 0)} min-w-[64px]`}>
+                        {v.ukuran}
+                      </button>
+                    ))}
                   </div>
                 </div>
               )}
 
-              {/* Stock of the chosen combo */}
               {selVariant && (
-                <p className="text-sm text-gray-600">
-                  Stok: <span className="font-semibold text-gray-900">{selVariant.stok}</span>
-                  {selVariant.stok <= 0 && <span className="ml-2 font-semibold text-red-500">Habis</span>}
+                <p className="text-sm text-gray-500">
+                  Stok: <span className="text-gray-900">{selVariant.stok}</span>
+                  {selVariant.stok <= 0 && <span className="ml-2 text-red-500">Habis</span>}
                 </p>
               )}
             </div>
@@ -305,21 +311,17 @@ export default function ProductDetail({ p }: { p: P }) {
 
           {needSize && (
             <div className="mt-6">
-              <p className="mb-2 text-sm font-semibold text-gray-900">Select Size</p>
-              <div className="flex flex-wrap gap-3">
+              <div className="mb-2.5 flex items-center justify-between">
+                <p className="text-sm text-gray-500">Pilih ukuran</p>
+                {p.sizeChart ? (
+                  <button type="button" onClick={() => setShowChart(true)} className="text-xs text-gray-600 underline hover:text-gray-900">Size Chart</button>
+                ) : (
+                  <a href={waLink(`Halo Admin, boleh minta size chart untuk ${p.nama}?`)} target="_blank" rel="noreferrer" className="text-xs text-gray-600 underline hover:text-gray-900">Size Chart</a>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-2">
                 {p.ukuran.map((u) => (
-                  <button
-                    key={u}
-                    disabled={sold}
-                    onClick={() => setSize(u)}
-                    className={`min-w-[56px] rounded-lg border px-4 py-3 text-sm font-medium transition ${
-                      sold
-                        ? "cursor-not-allowed border-gray-200 bg-gray-50 text-gray-400 line-through opacity-50"
-                        : size === u
-                        ? "border-primary bg-primary text-white"
-                        : "border-gray-300 text-gray-700 hover:border-primary"
-                    }`}
-                  >
+                  <button key={u} disabled={sold} onClick={() => setSize(u)} className={`${pill(size === u, sold)} min-w-[64px]`}>
                     {u}
                   </button>
                 ))}
@@ -327,112 +329,93 @@ export default function ProductDetail({ p }: { p: P }) {
             </div>
           )}
 
-          <div className="mt-6 flex flex-wrap gap-3">
+          <div className="mt-6 flex gap-3">
             {ready ? (
               <>
-                <button onClick={buyNow} className="btn-pill flex-1 bg-primary hover:bg-primaryDark">
+                <button onClick={buyNow} className="flex-1 rounded-full bg-neutral-950 py-3.5 text-sm font-[600] text-white transition hover:bg-neutral-800 active:scale-[0.99]">
                   Beli Sekarang
                 </button>
-                <button onClick={addItem} className="btn-pill flex-1 border border-primary bg-white text-primary hover:bg-primary/5">
-                  {added ? "✓ Ditambahkan" : "+ Keranjang"}
+                <button
+                  onClick={addItem}
+                  aria-label="Tambah ke keranjang"
+                  title="Tambah ke keranjang"
+                  className={`grid h-[50px] shrink-0 place-items-center rounded-full border transition ${added ? "w-auto border-emerald-600 bg-emerald-50 px-4 text-xs font-[600] text-emerald-700" : "w-[50px] border-gray-300 text-gray-800 hover:border-gray-900"}`}
+                >
+                  {added ? (
+                    "✓ Masuk keranjang"
+                  ) : (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden><circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" /><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6" /><path d="M15 10h-4M13 8v4" /></svg>
+                  )}
                 </button>
               </>
             ) : (
-              <button disabled className="btn-pill flex-1 cursor-not-allowed bg-gray-200 text-gray-400">
+              <button disabled className="flex-1 cursor-not-allowed rounded-full bg-gray-100 py-3.5 text-sm font-[500] text-gray-400">
                 {disabledMsg}
               </button>
             )}
           </div>
 
-          <div className="mt-8">
-            <div className="border-b py-4">
-              <p className="font-semibold text-gray-900">Deskripsi Produk</p>
+          <div className="mt-6 space-y-3">
+            <Acc title="Deskripsi Produk" open>
               {p.deskripsi ? (
                 <>
-                  <p
-                    className={`mt-3 whitespace-pre-line text-sm leading-relaxed text-gray-600 ${
-                      descOpen ? "" : "line-clamp-3"
-                    }`}
-                  >
-                    {p.deskripsi}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => setDescOpen((v) => !v)}
-                    className="mt-2 text-sm font-semibold text-primary hover:underline"
-                  >
+                  <p className={`whitespace-pre-line ${descOpen ? "" : "line-clamp-4"}`}>{p.deskripsi}</p>
+                  <button type="button" onClick={() => setDescOpen((v) => !v)} className="mt-2 text-sm font-[600] text-gray-900 hover:underline">
                     {descOpen ? "Tutup" : "Selengkapnya"}
                   </button>
                 </>
               ) : (
-                <p className="mt-3 text-sm text-gray-400">Belum ada deskripsi untuk produk ini.</p>
+                <p className="text-gray-400">Belum ada deskripsi untuk produk ini.</p>
               )}
+            </Acc>
 
-              {descOpen && (
-                <div className="mt-4 rounded-lg border">
-                  <div className="border-b px-4 py-3 text-xs font-bold uppercase tracking-wide text-gray-700">
-                    About Tirtonic
-                  </div>
-                  <div className="space-y-3 p-4 text-sm text-gray-600">
-                    <p>
-                      Tirtonic Tennis Store adalah toko perlengkapan tenis di Jogja, Solo &amp; Semarang yang menyediakan
-                      produk original dari brand resmi dan distributor terpercaya. Melayani sejak 2022, seluruh produk
-                      melalui pengecekan untuk memastikan keaslian dan kondisi sesuai standar.
-                    </p>
-                    <p>
-                      Informasi produk pada halaman ini disusun oleh tim Tirtonic berdasarkan spesifikasi brand serta
-                      pemeriksaan langsung. Ada pertanyaan soal produk, keaslian, atau ketersediaan? Hubungi customer
-                      service kami.
-                    </p>
-                    <div className="flex gap-2 pt-1">
-                      <a href={process.env.NEXT_PUBLIC_INSTAGRAM || "https://instagram.com/tirtonic"} target="_blank" rel="noreferrer" aria-label="Instagram" className="flex h-9 w-9 items-center justify-center rounded-lg border bg-white transition hover:bg-gray-50">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img loading="lazy" decoding="async" src="/ig-icon.png" alt="" className="h-5 w-5 object-contain" />
-                      </a>
-                      <a href={waLink("Halo Admin Tirtonic, saya mau tanya produk.")} target="_blank" rel="noreferrer" aria-label="WhatsApp" className="flex h-9 w-9 items-center justify-center rounded-lg border bg-white transition hover:bg-gray-50">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img loading="lazy" decoding="async" src="/wa-icon.png" alt="" className="h-6 w-6 object-contain" />
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
+            <Acc title="Pengiriman" open>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-5 pt-1">
+                <Info icon="M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L2 12V2h10l8.6 8.6a2 2 0 0 1 0 2.8z M7 7h.01" label="Diskon" value={discounted ? `Hemat ${pct}%` : "Harga normal"} />
+                <Info icon="M21 8l-9-5-9 5v8l9 5 9-5z M3 8l9 5 9-5 M12 13v8" label="Garansi" value="100% Original" />
+                <Info icon="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2 M15 18H9 M19 18h2a1 1 0 0 0 1-1v-3.7l-4-5.3H14 M7 20a2 2 0 1 0 0-4 2 2 0 0 0 0 4z M17 20a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" label="Kurir" value="JNE · J&T · Lion" />
+                <Info icon="M3 9l1.5-5h15L21 9 M3 9v11h18V9 M3 9h18 M9 20v-6h6v6" label="Ambil di toko" value="Jogja · Solo · Semarang" />
+              </div>
+            </Acc>
+
             {needSize && (
-              <Section title="Exchange Size Warranty">
-                Garansi tukar ukuran hingga 7 hari setelah pesananmu diterima. Pastikan produk masih dalam kondisi baru & lengkap.
-              </Section>
+              <Acc title="Garansi Tukar Ukuran">
+                Garansi tukar ukuran hingga 7 hari setelah pesananmu diterima. Pastikan produk masih dalam kondisi baru &amp; lengkap.
+              </Acc>
             )}
-            <Section title="Authentic. Trusted. Best Price.">
-              Semua produk dijamin 100% original & authentic dengan harga terbaik. Tirtonic melayani sejak 2022.
-            </Section>
+
+            <Acc title="Tentang Tirtonic">
+              <p>
+                Tirtonic Tennis Store adalah toko perlengkapan tenis di Jogja, Solo &amp; Semarang yang menyediakan produk original dari brand resmi dan
+                distributor terpercaya. Melayani sejak 2022, seluruh produk melalui pengecekan untuk memastikan keaslian dan kondisi sesuai standar.
+              </p>
+              <div className="mt-3 flex gap-2">
+                <a href={share.ig} target="_blank" rel="noreferrer" aria-label="Instagram" className="flex h-9 w-9 items-center justify-center rounded-full border bg-white transition hover:bg-gray-50">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img loading="lazy" decoding="async" src="/ig-icon.png" alt="" className="h-5 w-5 object-contain" />
+                </a>
+                <a href={waLink("Halo Admin Tirtonic, saya mau tanya produk.")} target="_blank" rel="noreferrer" aria-label="WhatsApp" className="flex h-9 w-9 items-center justify-center rounded-full border bg-white transition hover:bg-gray-50">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img loading="lazy" decoding="async" src="/wa-icon.png" alt="" className="h-6 w-6 object-contain" />
+                </a>
+              </div>
+            </Acc>
           </div>
 
-          {categories.length > 0 && (
-            <div className="mt-6">
-              <p className="text-xs uppercase tracking-wide text-gray-400">Categories</p>
-              <p className="mt-1 font-semibold text-gray-800">{categories.join(", ")}</p>
+          <div className="mt-6 flex flex-wrap items-center justify-between gap-3 text-sm">
+            {categories.length > 0 && <p className="text-gray-500">{categories.join(" · ")}</p>}
+            <div className="flex items-center gap-2">
+              <span className="text-gray-500">Bagikan</span>
+              {[
+                { href: share.wa, label: "WhatsApp", icon: "/wa-icon.png", size: "h-6 w-6" },
+                { href: share.ig, label: "Instagram", icon: "/ig-icon.png", size: "h-5 w-5" },
+              ].map((x) => (
+                <a key={x.label} href={x.href} target="_blank" rel="noreferrer" aria-label={`Bagikan ke ${x.label}`} className="flex h-9 w-9 items-center justify-center rounded-full border bg-white transition hover:bg-gray-50">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img loading="lazy" decoding="async" src={x.icon} alt="" className={`${x.size} object-contain`} />
+                </a>
+              ))}
             </div>
-          )}
-
-          <div className="mt-6 flex items-center gap-3">
-            <span className="font-semibold text-gray-800">Bagikan</span>
-            {[
-              { href: share.wa, label: "WhatsApp", icon: "/wa-icon.png", size: "h-6 w-6" },
-              { href: share.ig, label: "Instagram", icon: "/ig-icon.png", size: "h-5 w-5" },
-            ].map((s) => (
-              <a
-                key={s.label}
-                href={s.href}
-                target="_blank"
-                rel="noreferrer"
-                aria-label={`Bagikan ke ${s.label}`}
-                className="flex h-9 w-9 items-center justify-center rounded-full border bg-white transition hover:bg-gray-50"
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img loading="lazy" decoding="async" src={s.icon} alt="" className={`${s.size} object-contain`} />
-              </a>
-            ))}
           </div>
         </div>
       </div>
