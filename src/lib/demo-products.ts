@@ -27,19 +27,26 @@ export function productsForCampaigns<T extends P & { id: string }>(campaigns: { 
   return [...out.values()].slice(0, limit);
 }
 
-/** Pilihan form Ajukan Demo: brand → kategori yang ada di katalog shop (brand beda huruf besar/kecil digabung). */
-export async function demoRequestOptions(): Promise<Record<string, string[]>> {
-  const { prisma, safeQuery } = await import("@/lib/prisma");
-  const rows = await safeQuery(() => prisma.product.groupBy({ by: ["brand", "kategori"], where: { brand: { not: null } } }), []);
-  const disp: Record<string, string> = {};
-  const out: Record<string, string[]> = {};
-  for (const r of rows) {
-    const raw = (r.brand ?? "").trim();
-    if (!raw) continue;
-    const b = (disp[raw.toLowerCase()] ??= raw);
-    if (!(out[b] ??= []).includes(r.kategori)) out[b].push(r.kategori);
-  }
-  return Object.fromEntries(Object.keys(out).sort((x, y) => x.localeCompare(y)).map((b) => [b, out[b].sort()]));
+/** Pilihan form Ajukan Demo: brand → kategori yang boleh diajukan (daftar tetap dari toko). */
+export const DEMO_REQUEST_OPTIONS: Record<string, string[]> = {
+  Yonex: ["Raket", "Sepatu"],
+  Head: ["Raket", "Sepatu"],
+  Wilson: ["Raket", "Sepatu"],
+  Solinco: ["Raket"],
+  Volkl: ["Raket"],
+  Babolat: ["Raket"],
+  Asics: ["Sepatu"],
+  Adidas: ["Sepatu"],
+  Dunlop: ["Raket"],
+  "K-Swiss": ["Sepatu"],
+  Lacoste: ["Sepatu"],
+  Mizuno: ["Sepatu"],
+  Nike: ["Sepatu"],
+  Prince: ["Raket"],
+  Tecnifibre: ["Raket"],
+};
+export async function demoRequestOptions() {
+  return DEMO_REQUEST_OPTIONS;
 }
 
 if (process.argv[1]?.endsWith("demo-products.ts")) {
