@@ -99,7 +99,7 @@ export default function DashShell({ groups, role, logout, children }: { groups: 
 
       <div className="lg:pl-[248px]">
         <header className="sticky top-0 z-20 flex h-14 items-center gap-3 border-b border-[#E6EAE8] bg-white/90 px-4 backdrop-blur lg:h-16 lg:px-8">
-          <button onClick={() => setOpen(true)} className="-ml-1 rounded-lg p-1.5 text-[#0F1F1A] lg:hidden" aria-label="Buka menu">
+          <button onClick={() => setOpen(true)} className={`-ml-1 rounded-lg p-1.5 text-[#0F1F1A] lg:hidden ${stringing ? "hidden" : ""}`} aria-label="Buka menu">
             <Icon name="menu" className="h-5 w-5" />
           </button>
           <div className="flex min-w-0 items-center gap-2 text-sm">
@@ -107,7 +107,6 @@ export default function DashShell({ groups, role, logout, children }: { groups: 
             {active && active.href !== "/dashboard" && (
               <>
                 <span className="hidden text-[#C9D1CD] sm:inline">/</span>
-                <Icon name={active.icon} className="h-4 w-4 shrink-0" />
                 <span className="truncate font-medium">{active.label}</span>
               </>
             )}
