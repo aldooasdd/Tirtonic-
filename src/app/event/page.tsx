@@ -131,7 +131,7 @@ export default async function EventLanding({ searchParams }: { searchParams: { k
   );
 
   const fmtDay = (d: Date) => d.toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long" });
-  const glass = "ev-glass rounded-3xl";
+  const glass = "ev-glass rounded-xl";
   const pill = "ev-pill";
 
   return (
@@ -369,7 +369,7 @@ export default async function EventLanding({ searchParams }: { searchParams: { k
               {products.map((p) => {
                 const disc = p.hargaDiskon && p.hargaDiskon < p.harga ? p.hargaDiskon : null;
                 return (
-                  <Link key={p.id} href={`/product/${p.id}`} className={`${glass} ev-lift group flex flex-col overflow-hidden rounded-2xl`}>
+                  <Link key={p.id} href={`/product/${p.id}`} className={`${glass} ev-lift group flex flex-col overflow-hidden`}>
                     <div className="relative aspect-square bg-white">
                       {p.gambar[0] && (
                         // eslint-disable-next-line @next/next/no-img-element
@@ -394,7 +394,7 @@ export default async function EventLanding({ searchParams }: { searchParams: { k
 
         {/* CTA */}
         <section className="mx-auto max-w-6xl px-4 pb-20 pt-6 sm:px-6 lg:px-8">
-          <div className="ev-obsidian relative overflow-hidden rounded-[2rem] p-8 sm:p-14">
+          <div className="ev-obsidian relative overflow-hidden rounded-2xl p-8 sm:p-14">
             <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-lime-400/20 blur-[90px]" />
             <div className="relative max-w-2xl">
               <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[11px] font-[600] uppercase tracking-wider text-lime-300">● Tirtonic Community Network</span>

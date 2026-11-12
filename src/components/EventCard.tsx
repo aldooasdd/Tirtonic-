@@ -33,9 +33,9 @@ export default function EventCard({ e }: { e: EventCardData }) {
   const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(e.lat != null && e.lng != null ? `${e.lat},${e.lng}` : e.court)}`;
 
   return (
-    <div className="group ev-glass ev-lift relative flex gap-4 rounded-3xl p-4">
+    <div className="group ev-glass ev-lift relative flex gap-4 rounded-xl p-4">
       {/* Stretched link: klik area kartu mana pun → detail */}
-      <Link href={`/event/${e.id}`} aria-label={e.campaign.title} className="absolute inset-0 z-[1] rounded-3xl" />
+      <Link href={`/event/${e.id}`} aria-label={e.campaign.title} className="absolute inset-0 z-[1] rounded-xl" />
 
       <div className="min-w-0 flex-1">
         {e.time && <p className="text-[13px] font-[600] text-emerald-700">{e.time}{e.timeEnd ? ` – ${e.timeEnd}` : ""}</p>}
@@ -93,7 +93,7 @@ export default function EventCard({ e }: { e: EventCardData }) {
         </div>
       </div>
 
-      <div className="h-20 w-20 shrink-0 overflow-hidden rounded-2xl bg-gradient-to-br from-neutral-900 to-emerald-950 sm:h-28 sm:w-28">
+      <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-gradient-to-br from-neutral-900 to-emerald-950 sm:h-28 sm:w-28">
         {e.campaign.banner ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img loading="lazy" decoding="async" src={e.campaign.banner} alt="" className="h-full w-full object-cover" />
