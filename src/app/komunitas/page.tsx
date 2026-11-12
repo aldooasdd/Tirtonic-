@@ -11,6 +11,7 @@ import ShareInvite from "@/components/ShareInvite";
 import { pickupToken, returnToken } from "@/lib/pickup-token";
 import SubmitButton from "@/components/SubmitButton";
 import DemoPhotoUpload from "@/components/DemoPhotoUpload";
+import { hubDemoPhotos } from "@/lib/demo-photos";
 import { EventNavLinks } from "@/components/SlidePills";
 import { AjukanTrigger, AjukanSheet } from "@/components/KomunitasSheet";
 import { demoRequestOptions } from "@/lib/demo-products";
@@ -87,8 +88,13 @@ export default async function KomunitasHome() {
   const nDone = phases.filter((p) => p === "done").length;
   const nPeserta = claims.reduce((n, c) => n + c.participants.filter((p) => p.status === "accepted").length, 0);
   // Kartu kelola: belum selesai, atau sudah dikembalikan tapi foto kegiatan belum diunggah.
-  const active = claims.filter((c, i) => phases[i] !== "done" || (c.returnedAt && c.photos.length === 0));
-  const owed = claims.find((c) => c.returnedAt && c.photos.length === 0);
+  // Foto kegiatan dari PC server (hub). null = hub tak terjangkau → anggap tidak ada yang tertunggak.
+  const returnedIds = claims.filter((c) => c.returnedAt).map((c) => c.id);
+  const hubPhotos = returnedIds.length ? await hubDemoPhotos(returnedIds) : {};
+  const photosOf = (id: string) => hubPhotos?.[id] ?? [];
+  const owesPhoto = (c: { id: string; returnedAt: Date | null }) => !!hubPhotos && !!c.returnedAt && photosOf(c.id).length === 0;
+  const active = claims.filter((c, i) => phases[i] !== "done" || owesPhoto(c));
+  const owed = claims.find(owesPhoto);
   const next = [...active].filter((c) => phaseOf(c) !== "pending").sort((x, y) => +x.demoDate - +y.demoDate)[0];
   const options = await demoRequestOptions();
 
@@ -345,7 +351,7 @@ export default async function KomunitasHome() {
                       c.returnedAt ? (
                         <>
                           <p className="ml-2 mt-3 inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-[600] text-emerald-700">✓ Produk sudah dikembalikan</p>
-                          <DemoPhotoUpload claimId={c.id} photos={c.photos} />
+                          <DemoPhotoUpload claimId={c.id} photos={photosOf(c.id)} />
                         </>
                       ) : (
                         <PickupButton token={returnToken(c.id)} qrPath="return-qr" label="Kembalikan produk" hint="Tunjukkan QR ini ke admin Tirtonic saat mengembalikan produk demo ke toko." />

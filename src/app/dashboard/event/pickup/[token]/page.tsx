@@ -4,6 +4,7 @@ import { isAuthed, can } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { verifyPickupToken } from "@/lib/pickup-token";
 import { markPickedUp } from "../../../actions";
+import { claimsOwingPhoto } from "@/lib/demo-photos";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Ambil Produk — Tirtonic Admin", robots: { index: false } };
@@ -20,8 +21,13 @@ export default async function PickupPage({ params }: { params: { token: string }
       })
     : null;
 
-  const owed = claim
-    ? await prisma.demoClaim.findFirst({ where: { communityId: claim.communityId, id: { not: claim.id }, returnedAt: { not: null }, photos: { isEmpty: true } }, select: { campaign: { select: { title: true } } } })
+  const owed = claim && !claim.pickedUpAt
+    ? (await claimsOwingPhoto(
+        await prisma.demoClaim.findMany({
+          where: { communityId: claim.communityId, id: { not: claim.id }, returnedAt: { not: null } },
+          select: { id: true, returnedAt: true, campaign: { select: { title: true } } },
+        }),
+      ))[0] ?? null
     : null;
   const fmt = (d: Date) => new Date(d).toLocaleString("id-ID", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
 

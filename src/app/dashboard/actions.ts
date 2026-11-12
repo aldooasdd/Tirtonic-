@@ -1,5 +1,7 @@
 "use server";
 
+import { claimsOwingPhoto } from "@/lib/demo-photos";
+
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
@@ -892,7 +894,10 @@ export async function markPickedUp(token: string) {
   if (!claimId) return;
   // Komunitas yang belum upload foto kegiatan demo sebelumnya → tidak boleh ambil produk demo baru.
   const c = await prisma.demoClaim.findUnique({ where: { id: claimId }, select: { communityId: true } });
-  if (c && (await prisma.demoClaim.count({ where: { communityId: c.communityId, id: { not: claimId }, returnedAt: { not: null }, photos: { isEmpty: true } } }))) return;
+  if (c) {
+    const returned = await prisma.demoClaim.findMany({ where: { communityId: c.communityId, id: { not: claimId }, returnedAt: { not: null } }, select: { id: true, returnedAt: true } });
+    if ((await claimsOwingPhoto(returned)).length) return;
+  }
   // updateMany + pickedUpAt null → idempoten, pertahankan waktu ambil pertama.
   await prisma.demoClaim.updateMany({ where: { id: claimId, pickedUpAt: null }, data: { pickedUpAt: new Date() } });
   revalidatePath("/dashboard/event");

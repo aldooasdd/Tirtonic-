@@ -638,7 +638,6 @@ model DemoClaim {
   lng           Float?
   pickedUpAt    DateTime? // waktu produk demo diambil komunitas (via scan QR admin)
   returnedAt    DateTime? // waktu produk demo dikembalikan ke toko (via scan QR admin)
-  photos        String[]  @default([]) // foto kegiatan (wajib diunggah komunitas setelah produk dikembalikan)
   createdAt     DateTime          @default(now())
   participants  DemoParticipant[]
 

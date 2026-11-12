@@ -8,6 +8,7 @@ import { createCommunitySession, destroyCommunitySession, currentCommunityId } f
 import { normalizePhone } from "@/lib/string-finder/phone";
 import { uploadFile, storageConfigured } from "@/lib/storage";
 import { sendWa } from "@/lib/wa";
+import { claimsOwingPhoto, uploadHubDemoPhoto } from "@/lib/demo-photos";
 
 export type FormState = { error?: string; ok?: boolean };
 
@@ -165,26 +166,27 @@ export async function decideParticipant(participantId: string, decision: "accept
 
 /** Demo yang produknya sudah dikembalikan tapi belum ada foto kegiatan → blokir klaim & ambil demo berikutnya. */
 async function photoOwed(communityId: string) {
-  return prisma.demoClaim.findFirst({
-    where: { communityId, returnedAt: { not: null }, photos: { isEmpty: true } },
-    select: { id: true, campaign: { select: { title: true } } },
+  const returned = await prisma.demoClaim.findMany({
+    where: { communityId, returnedAt: { not: null } },
+    select: { id: true, returnedAt: true, campaign: { select: { title: true } } },
   });
+  return (await claimsOwingPhoto(returned))[0] ?? null;
 }
 
-/** Tambah 1 foto kegiatan (jpeg base64 hasil kompres di klien). Hanya komunitas pemilik, setelah produk dikembalikan. */
+/** Tambah 1 foto kegiatan (jpeg base64 hasil kompres di klien) → disimpan di PC server (hub). Hanya komunitas pemilik, setelah produk dikembalikan. */
 export async function addDemoPhoto(claimId: string, dataUrl: string): Promise<FormState> {
   const communityId = currentCommunityId();
   if (!communityId) return { error: "Sesi berakhir. Login ulang." };
   const m = /^data:image\/jpeg;base64,(.+)$/.exec(dataUrl || "");
   if (!m || dataUrl.length > 900_000) return { error: "Foto tidak valid / terlalu besar." };
-  const claim = await prisma.demoClaim.findUnique({ where: { id: claimId }, select: { communityId: true, returnedAt: true, photos: true } });
+  const claim = await prisma.demoClaim.findUnique({
+    where: { id: claimId },
+    select: { communityId: true, returnedAt: true, community: { select: { name: true } }, campaign: { select: { title: true } } },
+  });
   if (!claim || claim.communityId !== communityId) return { error: "Acara tidak ditemukan." };
   if (!claim.returnedAt) return { error: "Foto kegiatan diunggah setelah produk dikembalikan." };
-  if (claim.photos.length >= 10) return { error: "Maksimal 10 foto." };
-  if (!storageConfigured) return { error: "Upload belum bisa (storage belum dikonfigurasi)." };
-  const url = await uploadFile(new File([Buffer.from(m[1], "base64")], "kegiatan.jpg", { type: "image/jpeg" }), "demo-photos");
-  await prisma.demoClaim.update({ where: { id: claimId }, data: { photos: { push: url } } });
+  const r = await uploadHubDemoPhoto(claimId, Buffer.from(m[1], "base64"), { community: claim.community.name, title: claim.campaign.title });
+  if (!r.ok) return { error: r.message };
   revalidatePath("/komunitas");
-  revalidatePath("/dashboard/event");
   return { ok: true };
 }
