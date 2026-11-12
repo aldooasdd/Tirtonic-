@@ -171,8 +171,8 @@ export default async function EventLanding({ searchParams }: { searchParams: { k
 
       <main className="relative pt-24 sm:pt-28">
         {/* Hero */}
-        <section className="relative overflow-hidden pb-16 pt-12 sm:pb-28 sm:pt-20">
-          <div className="ev-orb -top-12 left-1/2 h-[340px] w-[720px] -translate-x-1/2 bg-gradient-to-r from-lime-300/35 via-emerald-300/25 to-sky-300/30" />
+        <section className="relative pb-16 pt-12 sm:pb-28 sm:pt-20">
+          <div className="ev-orb -top-40 left-1/2 h-[340px] w-[720px] -translate-x-1/2 bg-gradient-to-r from-lime-300/35 via-emerald-300/25 to-sky-300/30" />
           <div className="ev-orb right-10 top-20 h-[380px] w-[380px] bg-gradient-to-bl from-teal-200/40 to-blue-200/30" />
           <div className="relative mx-auto max-w-4xl px-4 text-center sm:px-6">
             <div className={`${pill} mb-6 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-[600] text-emerald-800`}>
