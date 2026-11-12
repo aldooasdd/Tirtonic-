@@ -223,6 +223,12 @@ export default async function RiwayatPage({ params, searchParams }: { params: { 
           <Link href={`/riwayat/${encodeURIComponent(phone ?? "")}/tukar`} className="flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2.5 py-2 text-xs font-medium text-slate-700 shadow-sm transition active:scale-95">Tukar Poin</Link>
           <Link href={`/riwayat/${encodeURIComponent(phone ?? "")}/voucher`} className="flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2.5 py-2 text-xs font-medium text-slate-700 shadow-sm transition active:scale-95">Voucher Belanja</Link>
         </div>
+        {pts.isCoach && (
+          <Link href={`/riwayat/${encodeURIComponent(phone ?? "")}/coach`} className="flex items-center justify-between rounded-2xl bg-[linear-gradient(135deg,#004328_0%,#006D40_100%)] px-4 py-3 text-white shadow-sm transition active:scale-[0.99]">
+            <span><span className="block text-[10px] font-semibold uppercase tracking-wider text-emerald-200/80">Green Card</span><span className="text-sm font-bold">Dashboard Coach</span></span>
+            <span className="text-lg">→</span>
+          </Link>
+        )}
 
         {/* Reward leaderboard (kalau ada) */}
         {reward && (
