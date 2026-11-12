@@ -156,7 +156,6 @@ export default async function EventLanding({ searchParams }: { searchParams: { k
             {soonCampaigns.length > 0 && <a href="#mendatang" className="hover:text-neutral-950">Mendatang</a>}
             {lastedEvents.length > 0 && <a href="#riwayat" className="hover:text-neutral-950">Riwayat</a>}
             <a href="#store" className="hover:text-neutral-950">Store Resmi</a>
-            <a href="#cara-kerja" className="hover:text-neutral-950">Cara Kerja</a>
           </nav>
           <div className="flex items-center gap-2">
             <Link href="/komunitas" className={`${pill} hidden rounded-full px-3 py-1.5 text-xs font-[600] text-neutral-800 hover:bg-white sm:inline-flex`}>Dashboard Komunitas</Link>
@@ -189,9 +188,9 @@ export default async function EventLanding({ searchParams }: { searchParams: { k
                 Lihat Demo Aktif
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="m6 9 6 6 6-6" /></svg>
               </a>
-              <a href="#cara-kerja" className={`${pill} inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-[500] text-neutral-800 transition hover:bg-white/90 active:scale-95 sm:w-auto`}>
+              <Link href="/komunitas" className={`${pill} inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-[500] text-neutral-800 transition hover:bg-white/90 active:scale-95 sm:w-auto`}>
                 Cara Mengajukan Demo <span className="text-neutral-500"><Arrow /></span>
-              </a>
+              </Link>
             </div>
           </div>
           <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-neutral-300/60 to-transparent" />
@@ -327,32 +326,6 @@ export default async function EventLanding({ searchParams }: { searchParams: { k
             </div>
           </section>
         )}
-
-        {/* CARA KERJA */}
-        <section id="cara-kerja" className="relative scroll-mt-28 py-24">
-          <div className="ev-orb left-1/2 top-1/2 h-[300px] w-[700px] -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-lime-200/20 via-sky-200/20 to-teal-200/20" />
-          <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-            <div className="mx-auto mb-16 max-w-2xl text-center">
-              <div className={`${pill} mb-3 inline-flex items-center gap-1.5 rounded-full px-3.5 py-1 text-xs font-[600] text-neutral-700`}>Sederhana &amp; terintegrasi</div>
-              <h2 className="mb-3 text-3xl font-[600] tracking-tight text-neutral-950 sm:text-4xl">Cara Kerja Program Demo Komunitas</h2>
-              <p className="text-sm text-neutral-500 sm:text-base">Tirtonic menghubungkan brand tenis terbaik dunia langsung ke tangan pemain dan komunitas.</p>
-            </div>
-            <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-              {[
-                ["01", "Daftar & Klaim Demo", "Ketua komunitas daftar di Dashboard Komunitas, pilih kampanye demo, lalu tentukan tanggal, jam & lapangan.", "Disetujui tim Tirtonic"],
-                ["02", "Ambil Demo Kit di Toko", "Perwakilan komunitas mengambil produk demo di cabang Tirtonic dengan scan QR — tercatat otomatis.", "Cabang Jogja · Solo · Semarang"],
-                ["03", "Mabar & Kembalikan", "Semua anggota bebas mencoba selama sesi. Acara open bisa diikuti pemain umum lewat web. Produk dikembalikan via scan QR.", "Gratis untuk komunitas"],
-              ].map(([n, t, d, f]) => (
-                <div key={n} className={`${glass} ev-lift flex flex-col p-6`}>
-                  <div className="mb-6 grid h-12 w-12 place-items-center rounded-2xl border border-white/20 bg-neutral-950 text-lg font-[600] text-white shadow-sm">{n}</div>
-                  <h3 className="mb-2 text-lg font-[600] text-neutral-950">{t}</h3>
-                  <p className="text-xs leading-relaxed text-neutral-600">{d}</p>
-                  <div className="mt-6 border-t border-black/[0.06] pt-4 text-[11px] font-[500] text-neutral-500">✓ {f}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
 
         {/* STORE */}
         {products.length > 0 && (
