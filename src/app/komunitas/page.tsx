@@ -293,9 +293,9 @@ export default async function KomunitasHome() {
         </div>
 
         {/* Demo saya: kartu kelola (yang aktif) */}
-        <section id="demo-saya" className="mt-5">
+        <section id="demo-saya" className="mt-5 grid items-start gap-5 lg:grid-cols-5">
           {active.length > 0 && (
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-4 lg:col-span-2">
               {active.map((c) => {
                 const phase = phaseOf(c);
                 const meta = PHASE_META[phase];
@@ -383,7 +383,7 @@ export default async function KomunitasHome() {
           )}
 
           {/* Riwayat semua demo (tabel) */}
-          <div className={`${glass} mt-5 overflow-hidden`}>
+          <div className={`${glass} overflow-hidden ${active.length ? "lg:col-span-3" : "lg:col-span-5"}`}>
             <div className="flex items-center justify-between px-5 py-4">
               <h2 className="text-lg font-[600] text-neutral-950">Riwayat Demo</h2>
               <span className="text-xs text-neutral-500">{claims.length} demo</span>
@@ -392,7 +392,7 @@ export default async function KomunitasHome() {
               <p className="px-5 pb-8 text-center text-sm text-neutral-400">Belum ada demo. Pilih kampanye brand lalu klaim untuk komunitasmu.</p>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[640px] text-left text-sm">
+                <table className="w-full min-w-[560px] text-left text-sm">
                   <thead>
                     <tr className="border-y border-black/[0.05] bg-white/60 text-xs text-neutral-500">
                       <th className="px-5 py-2.5 font-[500]">Demo</th>
@@ -408,14 +408,14 @@ export default async function KomunitasHome() {
                       return (
                         <tr key={c.id} className="transition hover:bg-white/60">
                           <td className="px-5 py-3">
-                            <Link href={`/event/${c.id}`} className="block max-w-[260px] truncate font-[500] text-neutral-950 hover:text-emerald-700">{c.campaign.title}</Link>
+                            <Link href={`/event/${c.id}`} className="block max-w-[220px] truncate font-[500] text-neutral-950 hover:text-emerald-700">{c.campaign.title}</Link>
                             <span className="text-[11px] text-neutral-500">{c.campaign.brand}</span>
                           </td>
                           <td className="whitespace-nowrap px-3 py-3 text-neutral-600">{fmtD(c.demoDate)}</td>
-                          <td className="max-w-[180px] truncate px-3 py-3 text-neutral-600">{c.court}</td>
+                          <td className="max-w-[140px] truncate px-3 py-3 text-neutral-600">{c.court}</td>
                           <td className="px-3 py-3 text-neutral-600">{c.quotaType === "open" ? `${c.participants.filter((p) => p.status === "accepted").length}/${c.quota}` : c.quota}</td>
                           <td className="px-5 py-3">
-                            <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-[600] ${meta.chip}`}>
+                            <span className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-[600] ${meta.chip}`}>
                               <span className={`h-1.5 w-1.5 rounded-full ${meta.dot}`} />
                               {meta.label}
                             </span>
