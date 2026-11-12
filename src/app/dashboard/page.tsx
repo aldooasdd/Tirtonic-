@@ -12,6 +12,7 @@ import ArticleForm from "@/components/ArticleForm";
 import ArticleRowActions from "@/components/ArticleRowActions";
 import SponsorshipDeleteButton from "@/components/SponsorshipDeleteButton";
 import { PageHeader, StatCard, Icon, card, btnPrimary } from "@/components/dashboard/ui";
+import TopViewedChart from "@/components/dashboard/TopViewedChart";
 
 export const dynamic = "force-dynamic";
 // Tokopedia import via the residential proxy can take longer than the default limit.
@@ -66,6 +67,8 @@ export default async function AdminDashboard() {
             <p className="mt-1 text-sm text-gray-500">Pilih menu di samping untuk mulai kerja.</p>
           </div>
         )}
+
+        {can("trafik") && <TopViewedChart products={products} />}
 
         {/* add product */}
         {can("produk") && (
