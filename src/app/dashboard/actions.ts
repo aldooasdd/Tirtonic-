@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { createSession, destroySession, isAuthed, requireSection, currentRole } from "@/lib/auth";
+import { createSession, destroySession, isAuthed, requireSection, currentRole, can } from "@/lib/auth";
 import { findRoleByPassword, findBranchByAccessCode, roleMatches, setRolePassword, hashPassword } from "@/lib/role-password";
 import { verifyPickupToken, verifyReturnToken } from "@/lib/pickup-token";
 import { uploadFile, uploadFromUrl, storageConfigured } from "@/lib/storage";
@@ -887,7 +887,7 @@ export async function decideCommunity(id: string, decision: "accepted" | "reject
 
 /** Tandai produk demo sudah diambil komunitas (dipanggil saat admin scan QR). */
 export async function markPickedUp(token: string) {
-  requireSection("event");
+  if (!can("event") && !can("stringing")) throw new Error("Unauthorized"); // kasir/stringer di toko juga boleh
   const claimId = verifyPickupToken(token);
   if (!claimId) return;
   // updateMany + pickedUpAt null → idempoten, pertahankan waktu ambil pertama.
@@ -898,7 +898,7 @@ export async function markPickedUp(token: string) {
 
 /** Tandai produk demo sudah dikembalikan ke toko (dipanggil saat admin scan QR). */
 export async function markReturned(token: string) {
-  requireSection("event");
+  if (!can("event") && !can("stringing")) throw new Error("Unauthorized"); // kasir/stringer di toko juga boleh
   const claimId = verifyReturnToken(token);
   if (!claimId) return;
   // idempoten; pertahankan waktu kembali pertama.

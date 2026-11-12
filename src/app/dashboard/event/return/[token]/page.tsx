@@ -10,7 +10,7 @@ export const metadata = { title: "Pengembalian Produk — Tirtonic Admin", robot
 
 export default async function ReturnPage({ params }: { params: { token: string } }) {
   if (!isAuthed()) redirect("/dashboard/login");
-  if (!can("event")) redirect("/dashboard");
+  if (!can("event") && !can("stringing")) redirect("/dashboard"); // scan di toko (stringer/kasir) juga boleh
 
   const claimId = verifyReturnToken(params.token);
   const claim = claimId

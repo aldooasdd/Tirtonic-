@@ -10,7 +10,7 @@ export const metadata = { title: "Ambil Produk — Tirtonic Admin", robots: { in
 
 export default async function PickupPage({ params }: { params: { token: string } }) {
   if (!isAuthed()) redirect("/dashboard/login");
-  if (!can("event")) redirect("/dashboard");
+  if (!can("event") && !can("stringing")) redirect("/dashboard"); // scan di toko (stringer/kasir) juga boleh
 
   const claimId = verifyPickupToken(params.token);
   const claim = claimId
