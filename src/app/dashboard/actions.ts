@@ -890,6 +890,9 @@ export async function markPickedUp(token: string) {
   if (!can("event") && !can("stringing")) throw new Error("Unauthorized"); // kasir/stringer di toko juga boleh
   const claimId = verifyPickupToken(token);
   if (!claimId) return;
+  // Komunitas yang belum upload foto kegiatan demo sebelumnya → tidak boleh ambil produk demo baru.
+  const c = await prisma.demoClaim.findUnique({ where: { id: claimId }, select: { communityId: true } });
+  if (c && (await prisma.demoClaim.count({ where: { communityId: c.communityId, id: { not: claimId }, returnedAt: { not: null }, photos: { isEmpty: true } } }))) return;
   // updateMany + pickedUpAt null → idempoten, pertahankan waktu ambil pertama.
   await prisma.demoClaim.updateMany({ where: { id: claimId, pickedUpAt: null }, data: { pickedUpAt: new Date() } });
   revalidatePath("/dashboard/event");

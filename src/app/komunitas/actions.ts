@@ -82,6 +82,9 @@ export async function claimDemo(_prev: FormState, formData: FormData): Promise<F
   const lat = Number.isFinite(latN) && latN >= -90 && latN <= 90 ? latN : null;
   const lng = Number.isFinite(lngN) && lngN >= -180 && lngN <= 180 ? lngN : null;
 
+  const owed = await photoOwed(communityId);
+  if (owed) return { error: `Upload foto kegiatan demo "${owed.campaign.title}" dulu sebelum klaim demo baru.` };
+
   const campaign = await prisma.demoCampaign.findUnique({ where: { id: campaignId }, select: { id: true, isActive: true, startDate: true, endDate: true } });
   if (!campaign || !campaign.isActive) return { error: "Kampanye demo tidak tersedia." };
   if (!campaign.startDate || !campaign.endDate) return { error: "Kampanye belum siap diklaim (periode belum ditentukan)." };
@@ -156,4 +159,32 @@ export async function decideParticipant(participantId: string, decision: "accept
     await sendWa(p.phone, `🎾 Kamu DITERIMA ikut demo ${p.claim.campaign.brand} di Tirtonic! Sampai ketemu di lapangan ya. Info lebih lanjut akan dishare panitia.`);
   }
   revalidatePath("/komunitas");
+}
+
+// ──────────────── Foto kegiatan (wajib setelah produk dikembalikan) ────────────────
+
+/** Demo yang produknya sudah dikembalikan tapi belum ada foto kegiatan → blokir klaim & ambil demo berikutnya. */
+async function photoOwed(communityId: string) {
+  return prisma.demoClaim.findFirst({
+    where: { communityId, returnedAt: { not: null }, photos: { isEmpty: true } },
+    select: { id: true, campaign: { select: { title: true } } },
+  });
+}
+
+/** Tambah 1 foto kegiatan (jpeg base64 hasil kompres di klien). Hanya komunitas pemilik, setelah produk dikembalikan. */
+export async function addDemoPhoto(claimId: string, dataUrl: string): Promise<FormState> {
+  const communityId = currentCommunityId();
+  if (!communityId) return { error: "Sesi berakhir. Login ulang." };
+  const m = /^data:image\/jpeg;base64,(.+)$/.exec(dataUrl || "");
+  if (!m || dataUrl.length > 900_000) return { error: "Foto tidak valid / terlalu besar." };
+  const claim = await prisma.demoClaim.findUnique({ where: { id: claimId }, select: { communityId: true, returnedAt: true, photos: true } });
+  if (!claim || claim.communityId !== communityId) return { error: "Acara tidak ditemukan." };
+  if (!claim.returnedAt) return { error: "Foto kegiatan diunggah setelah produk dikembalikan." };
+  if (claim.photos.length >= 10) return { error: "Maksimal 10 foto." };
+  if (!storageConfigured) return { error: "Upload belum bisa (storage belum dikonfigurasi)." };
+  const url = await uploadFile(new File([Buffer.from(m[1], "base64")], "kegiatan.jpg", { type: "image/jpeg" }), "demo-photos");
+  await prisma.demoClaim.update({ where: { id: claimId }, data: { photos: { push: url } } });
+  revalidatePath("/komunitas");
+  revalidatePath("/dashboard/event");
+  return { ok: true };
 }

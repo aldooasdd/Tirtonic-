@@ -20,6 +20,9 @@ export default async function PickupPage({ params }: { params: { token: string }
       })
     : null;
 
+  const owed = claim
+    ? await prisma.demoClaim.findFirst({ where: { communityId: claim.communityId, id: { not: claim.id }, returnedAt: { not: null }, photos: { isEmpty: true } }, select: { campaign: { select: { title: true } } } })
+    : null;
   const fmt = (d: Date) => new Date(d).toLocaleString("id-ID", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
 
   return (
@@ -45,9 +48,15 @@ export default async function PickupPage({ params }: { params: { token: string }
             <h1 className="mt-2 text-lg font-bold text-gray-900">{claim.campaign.title}</h1>
             <p className="mt-0.5 text-sm text-gray-500">Komunitas: {claim.community.name}</p>
             {claim.status !== "accepted" && <p className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">Acara ini belum di-ACC ({claim.status}).</p>}
-            <form action={markPickedUp.bind(null, params.token)} className="mt-5">
-              <button className="w-full rounded-full bg-primary py-3 font-bold text-white hover:bg-primaryDark">Tandai produk diambil</button>
-            </form>
+            {owed ? (
+              <p className="mt-5 rounded-xl bg-red-50 px-3 py-3 text-sm text-red-700">
+                Belum bisa diambil: komunitas ini belum upload foto kegiatan demo <b>{owed.campaign.title}</b>. Minta mereka upload dulu di dashboard komunitas.
+              </p>
+            ) : (
+              <form action={markPickedUp.bind(null, params.token)} className="mt-5">
+                <button className="w-full rounded-full bg-primary py-3 font-bold text-white hover:bg-primaryDark">Tandai produk diambil</button>
+              </form>
+            )}
           </>
         )}
         <Link href="/dashboard/event" className="mt-4 inline-block text-xs font-medium text-gray-400 hover:text-primary">← Dashboard event</Link>

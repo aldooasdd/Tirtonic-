@@ -10,6 +10,7 @@ import PickupButton from "@/components/PickupButton";
 import ShareInvite from "@/components/ShareInvite";
 import { pickupToken, returnToken } from "@/lib/pickup-token";
 import SubmitButton from "@/components/SubmitButton";
+import DemoPhotoUpload from "@/components/DemoPhotoUpload";
 import { EventNavLinks } from "@/components/SlidePills";
 import { AjukanTrigger, AjukanSheet } from "@/components/KomunitasSheet";
 import { demoRequestOptions } from "@/lib/demo-products";
@@ -85,7 +86,9 @@ export default async function KomunitasHome() {
   const nOngoing = phases.filter((p) => p === "ongoing" || p === "coming_soon").length;
   const nDone = phases.filter((p) => p === "done").length;
   const nPeserta = claims.reduce((n, c) => n + c.participants.filter((p) => p.status === "accepted").length, 0);
-  const active = claims.filter((_, i) => phases[i] !== "done");
+  // Kartu kelola: belum selesai, atau sudah dikembalikan tapi foto kegiatan belum diunggah.
+  const active = claims.filter((c, i) => phases[i] !== "done" || (c.returnedAt && c.photos.length === 0));
+  const owed = claims.find((c) => c.returnedAt && c.photos.length === 0);
   const next = [...active].filter((c) => phaseOf(c) !== "pending").sort((x, y) => +x.demoDate - +y.demoDate)[0];
   const options = await demoRequestOptions();
 
@@ -232,6 +235,11 @@ export default async function KomunitasHome() {
 
           {/* Penawaran demo brand */}
           <section id="penawaran" className={`${glass} p-5`}>
+            {owed && (
+              <p className="mb-4 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                Upload foto kegiatan demo <b>{owed.campaign.title}</b> dulu (di kartu demo bawah) sebelum klaim demo baru.
+              </p>
+            )}
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-lg font-[600] text-neutral-950">Penawaran Demo Brand</h2>
               <span className="text-xs text-neutral-500">{claimable.length} bisa diklaim</span>
@@ -327,13 +335,18 @@ export default async function KomunitasHome() {
                     {phase !== "pending" && (
                       c.pickedUpAt ? (
                         <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-[600] text-emerald-700">✓ Produk sudah diambil</p>
+                      ) : owed && owed.id !== c.id ? (
+                        <p className="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-800">Upload foto kegiatan demo sebelumnya dulu untuk bisa ambil produk.</p>
                       ) : (
                         <PickupButton token={pickupToken(c.id)} />
                       )
                     )}
                     {c.pickedUpAt && (
                       c.returnedAt ? (
-                        <p className="ml-2 mt-3 inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-[600] text-emerald-700">✓ Produk sudah dikembalikan</p>
+                        <>
+                          <p className="ml-2 mt-3 inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-[600] text-emerald-700">✓ Produk sudah dikembalikan</p>
+                          <DemoPhotoUpload claimId={c.id} photos={c.photos} />
+                        </>
                       ) : (
                         <PickupButton token={returnToken(c.id)} qrPath="return-qr" label="Kembalikan produk" hint="Tunjukkan QR ini ke admin Tirtonic saat mengembalikan produk demo ke toko." />
                       )
