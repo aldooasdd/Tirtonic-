@@ -117,13 +117,13 @@ export default function DashShell({ groups, role, logout, children }: { groups: 
             <span className="hidden sm:inline">Lihat situs</span>
           </a>
         </header>
-        <main className={`px-4 py-6 lg:px-8 lg:py-8 ${stringing ? "pb-32" : ""}`}>{children}</main>
+        <main className={`px-4 py-6 lg:px-8 lg:py-8 ${stringing ? "pb-28" : ""}`}>{children}</main>
       </div>
 
       {/* Navbar bawah (mobile) halaman stringing — Scan QR di tengah */}
       {stringing && (
-        <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-[#E6EAE8] bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden">
-          <div className="mx-auto grid max-w-md grid-cols-5 items-end px-2">
+        <nav className="fixed inset-x-0 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-30 mx-auto max-w-md px-4 lg:hidden">
+          <div className="grid grid-cols-5 items-center rounded-full border border-gray-100 bg-white/95 px-2 shadow-[0_8px_30px_rgba(0,0,0,0.14)] backdrop-blur [&_a]:outline-none [&_button]:outline-none">
             {[
               { href: "/dashboard/stringing", label: "Antrian", icon: "racket" as const, on: path === "/dashboard/stringing" },
               { href: "/dashboard/stringing#selesai", label: "Selesai", icon: "check" as const, on: false },
@@ -133,11 +133,10 @@ export default function DashShell({ groups, role, logout, children }: { groups: 
                 {t.label}
               </Link>
             ))}
-            <Link href="/dashboard/stringing/reward" className="flex flex-col items-center gap-1 pb-2.5 text-[11px] font-semibold text-[#0E3B2E]">
-              <span className={`-mt-6 grid h-14 w-14 place-items-center rounded-full border-4 border-white shadow-[0_6px_20px_rgba(14,59,46,0.35)] ${path.startsWith("/dashboard/stringing/reward") ? "bg-primary" : "bg-[#0E3B2E]"} text-ball`}>
+            <Link href="/dashboard/stringing/reward" aria-label="Scan QR" className="flex justify-center py-1.5">
+              <span className={`grid h-12 w-12 place-items-center rounded-full shadow-[0_6px_16px_rgba(14,59,46,0.35)] ${path.startsWith("/dashboard/stringing/reward") ? "bg-primary" : "bg-[#0E3B2E]"} text-ball`}>
                 <Icon name="scan" className="h-6 w-6" />
               </span>
-              Scan QR
             </Link>
             <Link href="/dashboard/password" className="flex flex-col items-center gap-1 py-2.5 text-[11px] text-[#7A8A84]">
               <Icon name="key" className="h-[22px] w-[22px]" />
