@@ -7,6 +7,15 @@ import { PageHeader, StatCard, card } from "@/components/dashboard/ui";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Trafik — Tirtonic Admin" };
 
+// Nama depan produk: buang awalan kategori ("Sepatu Tenis", "Raket Tenis"), ambil 4 kata pertama (2 kata masih kembar: "Nike Vapor" ×4).
+function shortName(nama: string, kategori: string | null) {
+  const skip = new Set((kategori ?? "").toLowerCase().split(/\s+/).concat(["tenis", "tennis"]));
+  const w = nama.trim().split(/\s+/);
+  let i = 0;
+  while (i < w.length - 1 && skip.has(w[i].toLowerCase())) i++;
+  return w.slice(i, i + 4).join(" ");
+}
+
 export default async function TrafikPage() {
   if (!isAuthed()) redirect("/dashboard/login");
   if (!can("trafik")) redirect("/dashboard");
@@ -68,8 +77,7 @@ export default async function TrafikPage() {
                 <div className="mt-2 flex gap-1.5 sm:gap-3">
                   {top10.map((p, i) => (
                     <div key={p.id} className="flex flex-1 flex-col items-center gap-1">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={p.gambar[0] || ""} alt="" loading="lazy" className="h-8 w-8 rounded-md bg-gray-100 object-cover" />
+                      <span title={p.nama} className="line-clamp-2 text-center text-[10px] font-medium leading-tight text-[#0F1F1A] sm:text-[11px]">{shortName(p.nama, p.kategori)}</span>
                       <span className="text-[10px] text-[#9AA6A1]">#{i + 1}</span>
                     </div>
                   ))}
