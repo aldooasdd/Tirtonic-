@@ -4,6 +4,8 @@ import { prisma, safeQuery } from "@/lib/prisma";
 import { rupiah } from "@/lib/format";
 import EventCard, { EventCardData } from "@/components/EventCard";
 import { phaseOf } from "@/lib/event-phase";
+import { productsForCampaigns } from "@/lib/demo-products";
+import ProductRail from "@/components/ProductRail";
 
 export const dynamic = "force-dynamic"; // filter kota via ?kota=
 export const metadata: Metadata = { title: "Event Demo Produk — Tirtonic", description: "Jadwal demo produk brand tenis bareng komunitas se-wilayah. Lihat acara yang sedang & akan berlangsung, atau daftarkan komunitasmu." };
@@ -117,18 +119,21 @@ export default async function EventLanding({ searchParams }: { searchParams: { k
   const nowEvents: EventCardData[] = events.filter((e) => ["ongoing", "coming_soon"].includes(phaseOf(e)));
   const lastedEvents = events.filter((e) => phaseOf(e) === "done").reverse(); // terbaru dulu
 
-  // Perlengkapan dari brand yang sedang demo (fallback: produk ready terbaru).
-  const brands = Array.from(new Set(campaigns.map((c) => c.brand)));
-  const products = await safeQuery(
-    () =>
-      prisma.product.findMany({
-        where: { status: "READY", ...(brands.length ? { brand: { in: brands, mode: "insensitive" as const } } : {}) },
-        orderBy: { createdAt: "desc" },
-        take: 5,
-        select: { id: true, nama: true, brand: true, kategori: true, harga: true, hargaDiskon: true, gambar: true },
-      }),
-    [],
-  );
+  // Produk yang sedang didemokan (kampanye aktif + acara terjadwal), dicocokkan brand + jenis produk.
+  const demoCamps = [...nowCampaigns, ...nowEvents.map((e) => e.campaign)];
+  const brands = Array.from(new Set(demoCamps.map((c) => c.brand)));
+  const pool = brands.length
+    ? await safeQuery(
+        () =>
+          prisma.product.findMany({
+            where: { status: "READY", OR: brands.map((b) => ({ brand: { equals: b, mode: "insensitive" as const } })) },
+            orderBy: { createdAt: "desc" },
+            select: { id: true, nama: true, brand: true, kategori: true, harga: true, hargaDiskon: true, gambar: true },
+          }),
+        [],
+      )
+    : [];
+  const products = productsForCampaigns(demoCamps, pool);
 
   const fmtDay = (d: Date) => d.toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long" });
   const glass = "ev-glass rounded-xl";
@@ -334,19 +339,19 @@ export default async function EventLanding({ searchParams }: { searchParams: { k
               id="store"
               dot="bg-emerald-600 ring-emerald-300/40"
               kicker="Tirtonic Store"
-              sub="Perlengkapan resmi brand demo"
-              title="Beli Perlengkapan Tenis Resmi Tirtonic Store"
+              sub="Produk yang sedang didemokan"
+              title="Coba di Lapangan, Bawa Pulang dari Tirtonic"
               right={<Link href="/shop" className={`${pill} inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-[600] text-neutral-800 hover:bg-white/90`}>Kunjungi Tirtonic Store <Arrow /></Link>}
             />
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
+            <ProductRail>
               {products.map((p) => {
                 const disc = p.hargaDiskon && p.hargaDiskon < p.harga ? p.hargaDiskon : null;
                 return (
-                  <Link key={p.id} href={`/product/${p.id}`} className={`${glass} ev-lift group flex flex-col overflow-hidden`}>
-                    <div className="relative aspect-square bg-white">
+                  <Link key={p.id} href={`/product/${p.id}`} className={`${glass} ev-lift group flex w-[46%] shrink-0 snap-start flex-col overflow-hidden sm:w-[calc((100%-2rem)/3)] lg:w-[calc((100%-4rem)/5)]`}>
+                    <div className="relative aspect-square overflow-hidden bg-neutral-100">
                       {p.gambar[0] && (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img loading="lazy" decoding="async" src={p.gambar[0]} alt="" className="h-full w-full object-contain p-3 transition duration-500 group-hover:scale-105" />
+                        <img loading="lazy" decoding="async" src={p.gambar[0]} alt="" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
                       )}
                       {disc && <span className="absolute left-2 top-2 rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-[600] text-white">-{Math.round((1 - disc / p.harga) * 100)}%</span>}
                     </div>
@@ -361,7 +366,7 @@ export default async function EventLanding({ searchParams }: { searchParams: { k
                   </Link>
                 );
               })}
-            </div>
+            </ProductRail>
           </section>
         )}
 
