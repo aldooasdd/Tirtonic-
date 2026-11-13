@@ -14,7 +14,7 @@ export type EventCardData = {
   timeEnd: string;
   status: string;
   acceptedCount: number;
-  campaign: { brand: string; title: string; productType: string; banner: string | null };
+  campaign: { brand: string; title: string; productType: string; banner: string | null; location?: string | null };
   community: { name: string; logo: string | null };
 };
 
@@ -70,6 +70,12 @@ export default function EventCard({ e }: { e: EventCardData }) {
           <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${open ? "bg-lime-100 text-lime-800" : "bg-neutral-100 text-neutral-500"}`}>
             {open ? "Open · bisa join" : "Closed"}
           </span>
+          {e.campaign.location && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-sky-100 px-2 py-0.5 text-[11px] font-semibold text-sky-800">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M12 21s-7-4.35-7-10a7 7 0 0 1 14 0c0 5.65-7 10-7 10Z" /><circle cx="12" cy="11" r="2.5" /></svg>
+              {e.campaign.location}
+            </span>
+          )}
           <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] text-neutral-700">{e.campaign.brand}</span>
           {open && phase !== "done" && <span className="text-[11px] text-neutral-500">Sisa {sisa}/{e.quota}</span>}
         </div>
