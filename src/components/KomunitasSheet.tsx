@@ -1,5 +1,7 @@
 "use client";
 
+import { AJUKAN_DEMO_ON } from "@/lib/demo-products";
+
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useFormState, useFormStatus } from "react-dom";
@@ -180,6 +182,7 @@ export default function KomunitasSheet() {
 const EVT_REQ = "komunitas:ajukan";
 
 export function AjukanTrigger({ className, children }: { className?: string; children: React.ReactNode }) {
+  if (!AJUKAN_DEMO_ON) return null;
   return (
     <button type="button" className={className} onClick={() => window.dispatchEvent(new Event(EVT_REQ))}>
       {children}

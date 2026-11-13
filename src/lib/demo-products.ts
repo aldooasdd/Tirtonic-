@@ -1,3 +1,6 @@
+// Tombol "Ajukan Demo" disembunyikan dulu (komunitas belum paham alurnya) — set true untuk buka lagi.
+export const AJUKAN_DEMO_ON = false;
+
 // Cocokkan produk katalog dengan kampanye demo (brand + jenis produk, mis. "Raket Ezone Espresso Brown 2026").
 // ponytail: cocok kata kunci sederhana — kalau sering meleset, tambah relasi produk ↔ kampanye di admin.
 const KAT: Record<string, string> = { raket: "Raket Tenis", sepatu: "Sepatu Tenis", senar: "String", string: "String", tas: "Tas", grip: "Grip", bola: "Bola Tenis", baju: "Apparel", apparel: "Apparel", topi: "Topi" };
