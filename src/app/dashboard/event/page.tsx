@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { isAuthed, can } from "@/lib/auth";
 import { prisma, safeQuery } from "@/lib/prisma";
+import ConfirmSubmit from "@/components/ConfirmSubmit";
 import { createCampaign, updateCampaign, toggleCampaign, approveCampaign, unapproveCampaign, deleteCampaign, decideClaim, deleteClaim, decideCommunity, deleteCommunity, loginAsCommunity, setDemoRequest } from "../actions";
 import { phaseOf, PHASE_META } from "@/lib/event-phase";
 import { displayPhone } from "@/lib/string-finder/phone";
@@ -88,7 +89,7 @@ export default async function AdminEvent() {
             </>
           )}
           <form action={deleteClaim.bind(null, c.id)} className="ml-auto">
-            <button className="rounded-full border px-4 py-1.5 text-xs font-semibold text-gray-500 hover:border-red-400 hover:text-red-600">Hapus</button>
+            <ConfirmSubmit message={`Hapus permanen demo ${c.community.name}? Peserta ikut terhapus & tidak bisa dikembalikan.`} className="rounded-full border px-4 py-1.5 text-xs font-semibold text-gray-500 hover:border-red-400 hover:text-red-600">Hapus</ConfirmSubmit>
           </form>
         </div>
       </div>
@@ -198,7 +199,7 @@ export default async function AdminEvent() {
                     </form>
                   )}
                   <form action={deleteCommunity.bind(null, k.id)}>
-                    <button className="rounded-full border px-4 py-1.5 text-xs font-semibold text-gray-500 hover:border-red-400 hover:text-red-600">Hapus akun</button>
+                    <ConfirmSubmit message={`Hapus akun ${k.name}? SEMUA demo & peserta komunitas ini ikut terhapus permanen.`} className="rounded-full border px-4 py-1.5 text-xs font-semibold text-gray-500 hover:border-red-400 hover:text-red-600">Hapus akun</ConfirmSubmit>
                   </form>
                 </li>
               ))}
@@ -289,7 +290,7 @@ export default async function AdminEvent() {
                       </button>
                     </form>
                     <form action={deleteCampaign.bind(null, c.id)}>
-                      <button className="rounded-full border px-3 py-1 text-xs font-semibold text-gray-500 hover:border-red-400 hover:text-red-600">Hapus</button>
+                      <ConfirmSubmit message="Hapus kampanye ini? SEMUA demo komunitas & peserta di kampanye ini ikut terhapus permanen." className="rounded-full border px-3 py-1 text-xs font-semibold text-gray-500 hover:border-red-400 hover:text-red-600">Hapus</ConfirmSubmit>
                     </form>
                   </div>
 
