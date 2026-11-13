@@ -54,7 +54,6 @@ function dateRange(min: string, max: string): string[] {
 
 export default function ClaimForm({ campaignId, minDate, maxDate, bookings }: { campaignId: string; minDate: string; maxDate: string; bookings: Booking[] }) {
   const [state, action] = useFormState<FormState, FormData>(claimDemo, {});
-  const [quotaType, setQuotaType] = useState<"closed" | "open">("open");
   const [court, setCourt] = useState("");
   const [coord, setCoord] = useState<{ lat: number; lng: number } | null>(null);
   const [area, setArea] = useState("");
@@ -123,7 +122,6 @@ export default function ClaimForm({ campaignId, minDate, maxDate, bookings }: { 
   return (
     <form action={action} className="space-y-4">
       <input type="hidden" name="campaignId" value={campaignId} />
-      <input type="hidden" name="quotaType" value={quotaType} />
       <input type="hidden" name="lat" value={coord?.lat ?? ""} />
       <input type="hidden" name="lng" value={coord?.lng ?? ""} />
 
@@ -163,31 +161,9 @@ export default function ClaimForm({ campaignId, minDate, maxDate, bookings }: { 
       </div>
 
       <div>
-        <label className="label">Tipe kuota peserta *</label>
-        <div className="mt-1 grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            onClick={() => setQuotaType("open")}
-            className={`rounded-xl border px-3 py-2.5 text-left text-sm transition ${quotaType === "open" ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-gray-200"}`}
-          >
-            <span className="block font-bold text-gray-900">Open</span>
-            <span className="block text-xs text-gray-500">Orang bisa join dari web</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setQuotaType("closed")}
-            className={`rounded-xl border px-3 py-2.5 text-left text-sm transition ${quotaType === "closed" ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-gray-200"}`}
-          >
-            <span className="block font-bold text-gray-900">Closed</span>
-            <span className="block text-xs text-gray-500">Kuota fix dari komunitas</span>
-          </button>
-        </div>
-      </div>
-
-      <div>
-        <label className="label">{quotaType === "open" ? "Maksimal peserta *" : "Jumlah peserta *"}</label>
+        <label className="label">Maksimal peserta *</label>
         <input name="quota" required type="number" min={10} defaultValue={10} className="field" />
-        <p className="mt-1 text-xs text-gray-400">Minimal 10 orang (untuk sesi ini).</p>
+        <p className="mt-1 text-xs text-gray-400">Minimal 10 orang. Pemain mendaftar lewat web, kamu terima/tolak di dashboard komunitas.</p>
       </div>
 
       {/* nilai dikirim lewat hidden input (dari pilihan slot) */}

@@ -71,7 +71,7 @@ export async function claimDemo(_prev: FormState, formData: FormData): Promise<F
 
   const campaignId = ((formData.get("campaignId") as string) || "").trim();
   const court = ((formData.get("court") as string) || "").trim();
-  const quotaType = (formData.get("quotaType") as string) === "open" ? "open" : "closed";
+  const quotaType = "open"; // Closed dihapus (13 Nov) — klaim lama yang closed tetap jalan
   const quota = parseInt(((formData.get("quota") as string) || "").replace(/\D/g, ""), 10) || 0;
   const demoRaw = (formData.get("demoDate") as string) || "";
   const eventPicPhone = normalizePhone((formData.get("eventPicPhone") as string) || "");
