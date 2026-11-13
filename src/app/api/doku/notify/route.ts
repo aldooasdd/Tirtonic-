@@ -2,6 +2,9 @@ import { prisma } from "@/lib/prisma";
 import { verifyDokuNotification, dokuConfigured } from "@/lib/doku";
 import { markOrderPaid } from "@/lib/orders";
 import { markPreorderDpPaid, markPreorderLunas } from "@/lib/preorder";
+import { sendWa } from "@/lib/wa";
+
+const ADMIN_WA = "6285163215511"; // sama dgn nomor admin di lib/format.ts
 
 export const dynamic = "force-dynamic";
 
@@ -50,5 +53,9 @@ export async function POST(req: Request) {
   const poLunas = await prisma.preorderOrder.findUnique({ where: { invoiceLunas: invoice }, select: { id: true } });
   if (poLunas) { await markPreorderLunas(invoice, ref); return Response.json(ACK); }
 
+  // Lunas tapi invoice tak dikenal → jangan diam-diam hilang: kabari admin.
+  console.error("DOKU notify: invoice tidak ditemukan", invoice, raw);
+  const amount = Number(order.amount ?? 0);
+  await sendWa(ADMIN_WA, `⚠️ Pembayaran DOKU LUNAS tapi pesanan tidak ada di web.\nInvoice: ${invoice}${amount ? `\nNominal: Rp ${amount.toLocaleString("id-ID")}` : ""}\nCek DOKU dashboard & hubungi customer.`).catch(() => false);
   return Response.json(ACK);
 }

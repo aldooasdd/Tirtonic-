@@ -1,6 +1,6 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
-import { createDokuPayment } from "@/lib/doku";
+import { createDokuPayment, checkDokuStatus } from "@/lib/doku";
 import { notifyN8N } from "@/lib/notify";
 import { computeCoupon } from "@/lib/coupons";
 import { trackResi } from "@/lib/tracking";
@@ -190,7 +190,9 @@ export async function createOrder(input: CheckoutInput): Promise<CreateOrderResu
 export async function markOrderPaid(orderId: string, info?: { metodeBayar?: string; paymentRef?: string }): Promise<boolean> {
   const order = await prisma.order.findUnique({ where: { id: orderId }, include: { items: true } });
   if (!order) return false;
-  if (order.status !== "PENDING") return true; // sudah diproses, jangan dobel
+  // Batal karena kadaluarsa tapi ternyata lunas (notif DOKU telat) → tetap diproses jadi PAID.
+  const expiredUnpaid = order.status === "CANCELLED" && !order.paidAt;
+  if (order.status !== "PENDING" && !expiredUnpaid) return true; // sudah diproses, jangan dobel
 
   await prisma.$transaction([
     prisma.order.update({
@@ -241,8 +243,15 @@ const GRACE_MIN = 10;
  *  pesanan dibaca (tanpa cron). PENDING tak pernah potong stok, jadi aman dihapus. */
 export async function expirePendingOrders(): Promise<void> {
   const cutoff = new Date(Date.now() - (PAY_WINDOW_MIN + GRACE_MIN) * 60_000);
+  // JANGAN dihapus: notif lunas DOKU bisa telat/diulang — kalau dihapus, pesanan lunas hilang.
+  // Cek status ke DOKU dulu: lunas → PAID, selain itu → CANCELLED (tetap tercatat di tab Batal).
   try {
-    await prisma.order.deleteMany({ where: { status: "PENDING", createdAt: { lt: cutoff } } });
+    const expired = await prisma.order.findMany({ where: { status: "PENDING", createdAt: { lt: cutoff } }, select: { id: true, invoice: true } });
+    for (const o of expired) {
+      const st = await checkDokuStatus(o.invoice);
+      if (st === "SUCCESS" || st === "PAID") await markOrderPaid(o.id, { metodeBayar: "DOKU" });
+      else await prisma.order.update({ where: { id: o.id }, data: { status: "CANCELLED" } });
+    }
   } catch {
     /* jangan gagalkan render halaman kalau cleanup error */
   }
