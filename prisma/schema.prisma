@@ -502,7 +502,7 @@ model MemberVoucher {
   label     String // mis. "Potongan Rp 50.000"
   type      String    @default("amount") // percent | amount
   value     Int
-  source    String // promo | reward
+  source    String // promo | reward | demo
   status    String    @default("active") // active | used
   usedAt    DateTime?
   expiresAt DateTime?

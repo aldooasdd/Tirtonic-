@@ -910,9 +910,33 @@ export async function markReturned(token: string) {
   const claimId = verifyReturnToken(token);
   if (!claimId) return;
   // idempoten; pertahankan waktu kembali pertama.
-  await prisma.demoClaim.updateMany({ where: { id: claimId, returnedAt: null }, data: { returnedAt: new Date() } });
+  const { count } = await prisma.demoClaim.updateMany({ where: { id: claimId, returnedAt: null }, data: { returnedAt: new Date() } });
+  if (count) await giveDemoVouchers(claimId); // hanya scan pertama → voucher tak dobel
   revalidatePath("/dashboard/event");
   revalidatePath("/komunitas");
+}
+
+const DEMO_VOUCHER_RP = 50_000;
+
+/** Produk demo kembali → tiap peserta yang di-ACC dapat voucher Rp50rb khusus produk yang didemokan + link dashboard. */
+async function giveDemoVouchers(claimId: string) {
+  const claim = await prisma.demoClaim.findUnique({
+    where: { id: claimId },
+    include: { campaign: { select: { brand: true, productType: true } }, participants: { where: { status: "accepted" } } },
+  });
+  if (!claim) return;
+  const produk = `${claim.campaign.brand} ${claim.campaign.productType}`;
+  const site = (process.env.NEXT_PUBLIC_SITE_URL || "https://tirtonic.com").replace(/\/$/, "");
+  for (const p of claim.participants) {
+    const code = `DEMO-${p.id.slice(-6).toUpperCase()}`;
+    await prisma.memberVoucher.create({
+      data: { phone: p.phone, code, label: `Potongan Rp 50.000 khusus ${produk}`, type: "amount", value: DEMO_VOUCHER_RP, source: "demo" },
+    });
+    await sendWa(
+      p.phone,
+      `🎾 Terima kasih sudah ikut demo ${produk} bareng Tirtonic, ${p.name}!\n\nKamu dapat *voucher potongan Rp 50.000* khusus ${produk}.\nKode: *${code}*\n\nLihat voucher & dashboard kamu:\n${site}/riwayat/${p.phone}/voucher`,
+    );
+  }
 }
 
 /** Hapus 1 pengajuan/klaim demo (cascade: peserta ikut terhapus). */

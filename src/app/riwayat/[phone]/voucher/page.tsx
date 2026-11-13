@@ -65,7 +65,7 @@ export default async function VoucherPage({ params }: { params: { phone: string 
                   <div className="min-w-0 flex-1">
                     <span className="inline-block rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">{v.label}</span>
                     <p className="mt-1 truncate font-bold text-slate-900">Kode {v.code}</p>
-                    <p className="text-[11px] text-slate-500">{v.source === "reward" ? "Hadiah leaderboard" : "Kode promo"}</p>
+                    <p className="text-[11px] text-slate-500">{v.source === "reward" ? "Hadiah leaderboard" : v.source === "demo" ? "Hadiah ikut demo" : "Kode promo"}</p>
                   </div>
                 </div>
                 <div className="flex items-center justify-between border-t border-dashed border-slate-200 px-4 py-2.5">

@@ -157,7 +157,7 @@ export async function decideParticipant(participantId: string, decision: "accept
   const { count } = await prisma.demoParticipant.updateMany({ where: { id: participantId, status: { not: decision } }, data: { status: decision } });
   if (!count) return; // klik dobel — WA sudah terkirim
   if (decision === "accepted") {
-    await sendWa(p.phone, `🎾 Kamu DITERIMA ikut demo ${p.claim.campaign.brand} di Tirtonic! Sampai ketemu di lapangan ya. Info lebih lanjut akan dishare panitia.`);
+    await sendWa(p.phone, `🎾 Kamu DITERIMA ikut demo ${p.claim.campaign.brand} di Tirtonic! Sampai ketemu di lapangan ya. Setelah demo selesai kamu dapat voucher potongan Rp 50.000 🎁. Info lebih lanjut akan dishare panitia.`);
   }
   revalidatePath("/komunitas");
 }
