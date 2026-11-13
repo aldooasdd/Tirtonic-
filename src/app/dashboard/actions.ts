@@ -934,7 +934,7 @@ async function giveDemoVouchers(claimId: string) {
     });
     await sendWa(
       p.phone,
-      `🎾 Terima kasih sudah ikut demo ${produk} bareng Tirtonic, ${p.name}!\n\nKamu dapat *voucher potongan Rp 50.000* khusus ${produk}.\nKode: *${code}*\n\nLihat voucher & dashboard kamu:\n${site}/riwayat/${p.phone}/voucher`,
+      `🎉 Selamat ${p.name}, kamu mendapat voucher!\n\nTerima kasih sudah ikut demo ${produk} bareng Tirtonic. Ini hadiah untukmu:\n\n🎁 *Potongan Rp 50.000* khusus ${produk}\nKode: *${code}*\n\nTunjukkan kode ini ke kasir Tirtonic saat beli. Voucher & dashboard kamu:\n${site}/riwayat/${p.phone}/voucher`,
     );
   }
 }
