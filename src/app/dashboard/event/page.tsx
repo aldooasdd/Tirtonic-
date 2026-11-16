@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { isAuthed, can } from "@/lib/auth";
 import { prisma, safeQuery } from "@/lib/prisma";
 import ConfirmSubmit from "@/components/ConfirmSubmit";
+import DemoPhotosAdmin from "@/components/DemoPhotosAdmin";
+import { hubDemoPhotos } from "@/lib/demo-photos";
 import { createCampaign, updateCampaign, toggleCampaign, approveCampaign, unapproveCampaign, deleteCampaign, decideClaim, deleteClaim, decideCommunity, deleteCommunity, loginAsCommunity, setDemoRequest } from "../actions";
 import { phaseOf, PHASE_META } from "@/lib/event-phase";
 import { displayPhone } from "@/lib/string-finder/phone";
@@ -34,6 +36,9 @@ export default async function AdminEvent() {
   ]);
   const requests = await safeQuery(() => prisma.demoRequest.findMany({ orderBy: [{ status: "desc" }, { createdAt: "desc" }], take: 50 }), []);
   const openReq = requests.filter((r) => r.status === "pending").length;
+  const returnedIds = claims.filter((c) => c.returnedAt).map((c) => c.id);
+  const photos = returnedIds.length ? await hubDemoPhotos(returnedIds) : {};
+  const slug = (t: string) => t.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
   const pendingCommunities = communities.filter((k) => k.status === "pending");
   const otherCommunities = communities.filter((k) => k.status !== "pending");
@@ -76,6 +81,15 @@ export default async function AdminEvent() {
               </span>
             )}
           </div>
+        )}
+        {c.returnedAt && (
+          photos === null ? (
+            <p className="mt-3 text-xs text-amber-700">Server foto (PC hub) tidak bisa dihubungi — foto dokumentasi belum bisa ditampilkan.</p>
+          ) : photos[c.id]?.length ? (
+            <DemoPhotosAdmin photos={photos[c.id]} baseName={`${slug(c.community.name)}-${new Date(c.demoDate).toISOString().slice(0, 10)}`} />
+          ) : (
+            <p className="mt-3 inline-flex rounded-full bg-amber-100 px-2.5 py-1 text-[11px] font-bold text-amber-800">📷 Belum upload foto dokumentasi</p>
+          )
         )}
         <div className="mt-3 flex gap-2">
           {c.status === "pending" && (
