@@ -2,10 +2,11 @@ import "server-only";
 import { createHash } from "crypto";
 import { unstable_cache } from "next/cache";
 import Anthropic from "@anthropic-ai/sdk";
+import OpenAI from "openai";
 
 // Deskripsi "Tentang Demo Day" per acara (1 sesi komunitas), dibuat AI dari data acara itu saja.
 // Di-cache per isi fakta (berubah peserta/foto/fase → dibuat ulang).
-// Sumber AI: N8N_AI_WEBHOOK (n8n + OpenAI) → ANTHROPIC_API_KEY (Claude) → template kalau dua-duanya tak ada / gagal.
+// Sumber AI (yang pertama diset dipakai): OPENAI_API_KEY → N8N_AI_WEBHOOK → ANTHROPIC_API_KEY → template (tak ada / gagal).
 
 export type EventFacts = {
   judulKampanye: string;
@@ -63,7 +64,25 @@ async function viaN8n(url: string, f: EventFacts): Promise<string | null> {
   }
 }
 
+async function viaOpenAI(f: EventFacts): Promise<string | null> {
+  try {
+    const client = new OpenAI({ timeout: 30_000, maxRetries: 1 }); // baca OPENAI_API_KEY
+    const res = await client.chat.completions.create({
+      model: process.env.OPENAI_MODEL || "gpt-4o-mini",
+      messages: [
+        { role: "system", content: SYSTEM },
+        { role: "user", content: `Data sesi demo:\n${JSON.stringify(f, null, 2)}` },
+      ],
+    });
+    return res.choices[0]?.message?.content?.trim() || null;
+  } catch (e) {
+    console.error("event-ai: OpenAI gagal", e instanceof OpenAI.APIError ? `${e.status} ${e.message}` : e);
+    return null;
+  }
+}
+
 async function generate(f: EventFacts): Promise<string> {
+  if (process.env.OPENAI_API_KEY) return (await viaOpenAI(f)) ?? templateDescription(f);
   const n8n = process.env.N8N_AI_WEBHOOK;
   if (n8n) return (await viaN8n(n8n, f)) ?? templateDescription(f);
   if (!process.env.ANTHROPIC_API_KEY) return templateDescription(f);
@@ -90,5 +109,7 @@ async function generate(f: EventFacts): Promise<string> {
 /** Deskripsi acara; dibuat sekali per kombinasi fakta lalu disimpan di data cache Next (lintas request/deploy). */
 export function eventDescription(claimId: string, f: EventFacts): Promise<string> {
   const key = createHash("sha1").update(JSON.stringify(f)).digest("hex").slice(0, 16);
-  return unstable_cache(() => generate(f), ["event-ai", claimId, key], { revalidate: false })();
+  // sumber AI ikut kunci cache → pasang/ganti key langsung membuat ulang (hasil template tak terkunci selamanya)
+  const src = process.env.OPENAI_API_KEY ? "openai" : process.env.N8N_AI_WEBHOOK ? "n8n" : process.env.ANTHROPIC_API_KEY ? "claude" : "tpl";
+  return unstable_cache(() => generate(f), ["event-ai", claimId, key, src], { revalidate: src === "tpl" ? 3600 : false })();
 }
