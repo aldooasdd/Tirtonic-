@@ -18,7 +18,13 @@ export async function hubDemoPhotos(claimIds: string[]): Promise<Record<string, 
   if (!h || !claimIds.length) return h ? {} : null;
   try {
     const r = await fetch(`${h.url}?claimIds=${encodeURIComponent(claimIds.join(","))}`, { headers: h.headers, cache: "no-store", signal: AbortSignal.timeout(8000) });
-    return r.ok ? ((await r.json()) as Record<string, string[]>) : null;
+    if (!r.ok) return null;
+    // Hub di belakang proxy/tunnel membangun URL dari origin internal (mis. http://localhost:3000) → foto rusak di browser.
+    // Paksa pakai origin hub yang dikonfigurasi (sama dengan yang dipakai upload).
+    const base = new URL(h.url).origin;
+    const out = (await r.json()) as Record<string, string[]>;
+    for (const k of Object.keys(out)) out[k] = out[k].map((u) => { try { const x = new URL(u); return base + x.pathname + x.search; } catch { return u; } });
+    return out;
   } catch {
     return null;
   }
