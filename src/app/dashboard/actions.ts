@@ -911,22 +911,33 @@ export async function markReturned(token: string) {
   if (!claimId) return;
   // idempoten; pertahankan waktu kembali pertama.
   const { count } = await prisma.demoClaim.updateMany({ where: { id: claimId, returnedAt: null }, data: { returnedAt: new Date() } });
-  if (count) await giveDemoVouchers(claimId); // hanya scan pertama → voucher tak dobel
+  if (count) await afterDemoReturned(claimId); // hanya scan pertama → WA & voucher tak dobel
   revalidatePath("/dashboard/event");
   revalidatePath("/komunitas");
 }
 
 const DEMO_VOUCHER_RP = 50_000;
 
-/** Produk demo kembali → tiap peserta yang di-ACC dapat voucher Rp50rb khusus produk yang didemokan + link dashboard. */
-async function giveDemoVouchers(claimId: string) {
+/** Produk demo kembali → WA terima kasih + minta upload foto ke komunitas; tiap peserta ACC dapat voucher Rp50rb khusus produk demo. */
+async function afterDemoReturned(claimId: string) {
   const claim = await prisma.demoClaim.findUnique({
     where: { id: claimId },
-    include: { campaign: { select: { brand: true, productType: true } }, participants: { where: { status: "accepted" } } },
+    include: {
+      campaign: { select: { brand: true, productType: true } },
+      community: { select: { name: true, waPhone: true } },
+      participants: { where: { status: "accepted" } },
+    },
   });
   if (!claim) return;
   const produk = `${claim.campaign.brand} ${claim.campaign.productType}`;
   const site = (process.env.NEXT_PUBLIC_SITE_URL || "https://tirtonic.com").replace(/\/$/, "");
+  // komunitas + PIC acara (kalau beda nomor)
+  for (const to of new Set([claim.community.waPhone, claim.eventPicPhone])) {
+    await sendWa(
+      to,
+      `🙏 Terima kasih ${claim.community.name}!\n\nProduk demo ${produk} sudah kami terima kembali. Terima kasih sudah menyelenggarakan demo bareng Tirtonic 🎾\n\nSilakan upload foto kegiatan demo di dashboard komunitas:\n${site}/komunitas\n\n(Foto kegiatan wajib diupload sebelum bisa klaim demo berikutnya.)`,
+    );
+  }
   for (const p of claim.participants) {
     const code = `DEMO-${p.id.slice(-6).toUpperCase()}`;
     await prisma.memberVoucher.create({
