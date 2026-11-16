@@ -6,6 +6,8 @@ import JoinEventForm from "@/components/JoinEventForm";
 import ShareInvite from "@/components/ShareInvite";
 import ShareLinkButton from "@/components/ShareLinkButton";
 import { phaseOf, PHASE_META } from "@/lib/event-phase";
+import { hubDemoPhotos } from "@/lib/demo-photos";
+import PhotoSlider from "@/components/PhotoSlider";
 
 export const revalidate = 60;
 
@@ -63,6 +65,8 @@ export default async function EventDetail({ params }: { params: { id: string } }
   const jam = `${e.time}${e.timeEnd ? ` – ${e.timeEnd}` : ""} WIB`;
   const canJoin = open && (phase === "coming_soon" || phase === "ongoing") && sisa > 0;
   const produk = `${e.campaign.brand} ${e.campaign.productType}`;
+  // Foto dokumentasi komunitas (setelah demo) → slider di hero menggantikan banner.
+  const photos = e.returnedAt ? ((await hubDemoPhotos([e.id]))?.[e.id] ?? []) : [];
 
   // Peta (tanpa API key). Punya koordinat (dari saran OSM) → embed OpenStreetMap + marker; selain itu embed Google by teks.
   const hasGeo = e.lat != null && e.lng != null;
@@ -143,7 +147,9 @@ export default async function EventDetail({ params }: { params: { id: string } }
               <span className="ml-auto rounded-full bg-neutral-950 px-2.5 py-1 text-[10px] font-[700] uppercase tracking-wide text-white">Official Event</span>
             </div>
             <div className="relative aspect-[16/10] overflow-hidden rounded-2xl bg-gradient-to-br from-neutral-900 to-emerald-950 ring-1 ring-black/5">
-              {e.campaign.banner ? (
+              {photos.length ? (
+                <PhotoSlider photos={photos} className="absolute inset-0" dotsClass="top-3" />
+              ) : e.campaign.banner ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={e.campaign.banner} alt="" className="h-full w-full object-cover" />
               ) : (
@@ -152,6 +158,7 @@ export default async function EventDetail({ params }: { params: { id: string } }
               <div className="absolute inset-x-3 bottom-3 flex items-center justify-between gap-2 rounded-xl bg-black/45 px-3 py-2 text-white backdrop-blur-md">
                 <span className="flex min-w-0 items-center gap-2 text-xs"><span className="opacity-80">{I.racket}</span><span className="truncate"><span className="block text-[10px] text-white/70">Produk demo</span><b className="font-[600]">{e.campaign.productType}</b></span></span>
                 {open && phase !== "done" && <span className="shrink-0 rounded-lg bg-emerald-500/90 px-2 py-1 text-[10px] font-[700]">Sisa {sisa} slot</span>}
+                {photos.length > 0 && <span className="shrink-0 rounded-lg bg-white/20 px-2 py-1 text-[10px] font-[700]">📷 {photos.length} foto kegiatan</span>}
               </div>
             </div>
             <div className="px-1 pt-4">
