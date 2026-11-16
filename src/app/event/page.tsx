@@ -327,7 +327,7 @@ export default async function EventLanding({ searchParams }: { searchParams: { k
                   <div className="flex flex-grow flex-col justify-between p-6">
                     <div>
                       <p className="mb-1 text-xs font-[600] text-neutral-600">{e.demoDate.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}</p>
-                      <h3 className="mb-4 text-lg font-[600] leading-snug text-neutral-950">{e.community.name} × {e.campaign.brand}</h3>
+                      <h3 className="mb-4 text-lg font-[600] leading-snug text-neutral-950">{e.community.name}{e.community.logo && <span title="Komunitas terverifikasi" className="ml-1.5 inline-grid h-4 w-4 place-items-center rounded-full bg-sky-500 align-middle text-[9px] font-[800] text-white">✓</span>}</h3>
                     </div>
                     <span className={`${pill} inline-flex w-full items-center justify-center gap-2 rounded-full px-4 py-2.5 text-xs font-[600] text-neutral-800 group-hover:bg-white/90`}>
                       Lihat Detail <Arrow />
