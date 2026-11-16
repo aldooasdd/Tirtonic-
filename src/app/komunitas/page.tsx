@@ -11,6 +11,7 @@ import ShareInvite from "@/components/ShareInvite";
 import { pickupToken, returnToken } from "@/lib/pickup-token";
 import SubmitButton from "@/components/SubmitButton";
 import DemoPhotoUpload from "@/components/DemoPhotoUpload";
+import DemoPhotoBadge from "@/components/DemoPhotoBadge";
 import { hubDemoPhotos } from "@/lib/demo-photos";
 import { EventNavLinks } from "@/components/SlidePills";
 import { AjukanTrigger, AjukanSheet } from "@/components/KomunitasSheet";
@@ -438,10 +439,13 @@ export default async function KomunitasHome() {
                           <td className="max-w-[140px] truncate px-3 py-3 text-neutral-600">{c.court}</td>
                           <td className="px-3 py-3 text-neutral-600">{c.quotaType === "open" ? `${c.participants.filter((p) => p.status === "accepted").length}/${c.quota}` : c.quota}</td>
                           <td className="px-5 py-3">
-                            <span className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-[600] ${meta.chip}`}>
-                              <span className={`h-1.5 w-1.5 rounded-full ${meta.dot}`} />
-                              {meta.label}
-                            </span>
+                            <div className="flex items-center gap-1.5">
+                              <span className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-[600] ${meta.chip}`}>
+                                <span className={`h-1.5 w-1.5 rounded-full ${meta.dot}`} />
+                                {meta.label}
+                              </span>
+                              {c.returnedAt && <DemoPhotoBadge claimId={c.id} photos={photosOf(c.id)} title={c.campaign.title} />}
+                            </div>
                           </td>
                         </tr>
                       );
