@@ -8,6 +8,7 @@ import ShareLinkButton from "@/components/ShareLinkButton";
 import { phaseOf, PHASE_META } from "@/lib/event-phase";
 import { hubDemoPhotos } from "@/lib/demo-photos";
 import PhotoSlider from "@/components/PhotoSlider";
+import { eventDescription } from "@/lib/event-ai";
 
 export const revalidate = 60;
 
@@ -67,6 +68,22 @@ export default async function EventDetail({ params }: { params: { id: string } }
   const produk = `${e.campaign.brand} ${e.campaign.productType}`;
   // Foto dokumentasi komunitas (setelah demo) → slider di hero menggantikan banner.
   const photos = e.returnedAt ? ((await hubDemoPhotos([e.id]))?.[e.id] ?? []) : [];
+  const about = await eventDescription(e.id, {
+    judulKampanye: e.campaign.title,
+    brand: e.campaign.brand,
+    produk: e.campaign.productType,
+    infoProduk: e.campaign.description,
+    komunitas: e.community.name,
+    kota: e.campaign.location,
+    lapangan: e.court,
+    hari: e.demoDate.toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" }),
+    jam,
+    fase: phase === "done" ? "sudah selesai" : phase === "ongoing" ? "berlangsung hari ini" : "akan datang",
+    kuota: e.quota,
+    pesertaDiterima: accepted,
+    fotoKegiatan: photos.length,
+    voucher: `Rp 50.000 khusus ${produk}`,
+  });
 
   // Peta (tanpa API key). Punya koordinat (dari saran OSM) → embed OpenStreetMap + marker; selain itu embed Google by teks.
   const hasGeo = e.lat != null && e.lng != null;
@@ -204,7 +221,7 @@ export default async function EventDetail({ params }: { params: { id: string } }
           {/* Tentang */}
           <section className={`${card} p-4 sm:p-6`}>
             <h2 className="flex items-center gap-2 text-lg font-[700] text-neutral-950"><span className="h-5 w-1 rounded-full bg-emerald-600" />Tentang Demo Day</h2>
-            {e.campaign.description && <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-neutral-600">{e.campaign.description}</p>}
+            <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-neutral-600">{about}</p>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               <div className="ev-pill flex gap-3 rounded-2xl p-3.5">
                 <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-neutral-100 text-neutral-700">{I.racket}</span>
@@ -215,12 +232,6 @@ export default async function EventDetail({ params }: { params: { id: string } }
                 <p className="text-xs leading-relaxed text-neutral-600"><span className="block text-[11px] text-amber-600">Hadiah peserta</span>Peserta terdaftar dapat <b className="font-[600] text-emerald-700">voucher Rp 50.000</b> khusus produk ini setelah demo selesai.</p>
               </div>
             </div>
-            <h3 className="mt-5 text-sm font-[700] text-neutral-900">Cara Pendaftaran:</h3>
-            <ol className="mt-2.5 space-y-2 text-sm text-neutral-600">
-              {["Isi nama & nomor WhatsApp di formulir pendaftaran", "Panitia komunitas mengonfirmasi lewat WhatsApp", "Datang ke lapangan & coba produknya — voucher dikirim setelah demo"].map((t, i) => (
-                <li key={t} className="flex items-center gap-2.5"><span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-neutral-950 text-[10px] font-[700] text-white">{i + 1}</span>{t}</li>
-              ))}
-            </ol>
             {canJoin && sisa <= 5 && (
               <p className="mt-4 flex items-center gap-2 rounded-2xl bg-amber-50 px-4 py-3 text-xs font-[500] text-amber-800 ring-1 ring-amber-200">{I.warn} Kuota tinggal {sisa}. Segera daftar sebelum habis!</p>
             )}
