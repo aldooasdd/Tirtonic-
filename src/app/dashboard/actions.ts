@@ -979,7 +979,7 @@ export async function decideClaim(id: string, decision: "accepted" | "rejected")
   if (!count) return;
   const claim = await prisma.demoClaim.findUniqueOrThrow({
     where: { id },
-    include: { campaign: { select: { brand: true, title: true } }, community: { select: { name: true } } },
+    include: { campaign: { select: { brand: true, title: true, productType: true } }, community: { select: { name: true, waPhone: true } } },
   });
   const tgl = claim.demoDate.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
   const msg =
@@ -987,6 +987,17 @@ export async function decideClaim(id: string, decision: "accepted" | "rejected")
       ? `✅ *Demo DITERIMA!*\n\nAcara demo ${claim.campaign.brand} — ${claim.campaign.title}\nKomunitas: ${claim.community.name}\nLapangan: ${claim.court}\nTanggal: ${tgl}\n\nAcara sudah masuk ke dashboard komunitas & tampil di halaman Event Tirtonic. Siap-siap ya! 🎾`
       : `❌ *Demo belum bisa kami terima*\n\nPengajuan demo ${claim.campaign.brand} (${claim.community.name}) untuk ${tgl} belum bisa kami proses kali ini. Silakan hubungi admin Tirtonic untuk info lebih lanjut. Terima kasih 🙏`;
   await sendWa(claim.eventPicPhone, msg);
+  if (decision === "accepted") {
+    // Semua acara Open: peserta wajib daftar lewat web supaya tercatat & dapat voucher.
+    const site = (process.env.NEXT_PUBLIC_SITE_URL || "https://tirtonic.com").replace(/\/$/, "");
+    const link = `${site}/event/${claim.id}`;
+    for (const to of new Set([claim.community.waPhone, claim.eventPicPhone])) {
+      await sendWa(
+        to,
+        `📋 *Pendaftaran peserta demo ${claim.campaign.brand}*\n\nHalo admin ${claim.community.name}! Pendaftaran peserta untuk demo tanggal ${tgl} *wajib lewat website* ya:\n\n👉 ${link}\n\nSilakan bagikan link ini ke grup / anggota komunitas. Kenapa harus lewat web?\n✅ Data peserta langsung masuk ke dashboard komunitas (kamu tinggal terima/tolak)\n🎁 Peserta yang terdaftar dapat *voucher Rp 50.000* khusus ${claim.campaign.brand} ${claim.campaign.productType} setelah demo selesai\n\nPeserta yang tidak daftar lewat web tidak tercatat & tidak dapat voucher. Terima kasih 🙏`,
+      );
+    }
+  }
   revalidatePath("/dashboard/event");
   revalidatePath("/event");
   revalidatePath("/komunitas");
