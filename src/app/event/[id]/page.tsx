@@ -4,6 +4,7 @@ import Link from "next/link";
 import { prisma, safeQuery } from "@/lib/prisma";
 import JoinEventForm from "@/components/JoinEventForm";
 import ShareInvite from "@/components/ShareInvite";
+import ShareLinkButton from "@/components/ShareLinkButton";
 import { phaseOf, PHASE_META } from "@/lib/event-phase";
 
 export const revalidate = 60;
@@ -32,6 +33,19 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   return { title, description, openGraph: { title, description, images: [`/api/invite/${params.id}`] } };
 }
 
+const I = {
+  back: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="m15 18-6-6 6-6" /></svg>,
+  arrow: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>,
+  up: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="m18 15-6-6-6 6" /></svg>,
+  pin: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M12 21s-7-4.35-7-10a7 7 0 0 1 14 0c0 5.65-7 10-7 10Z" /><circle cx="12" cy="11" r="2.5" /></svg>,
+  ext: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M15 3h6v6" /><path d="M10 14 21 3" /><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /></svg>,
+  users: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg>,
+  racket: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><ellipse cx="14" cy="9" rx="6" ry="7" transform="rotate(35 14 9)" /><path d="m9 14-6 7" /></svg>,
+  gift: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><rect x="3" y="8" width="18" height="4" rx="1" /><path d="M12 8v13M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7" /><path d="M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8s1-5 4.5-5a2.5 2.5 0 0 1 0 5" /></svg>,
+  check: <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M20 6 9 17l-5-5" /></svg>,
+  warn: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" /><path d="M12 9v4M12 17h.01" /></svg>,
+};
+
 export default async function EventDetail({ params }: { params: { id: string } }) {
   const e = await getEvent(params.id);
   if (!e) notFound();
@@ -41,185 +55,222 @@ export default async function EventDetail({ params }: { params: { id: string } }
   const open = e.quotaType === "open";
   const accepted = e.participants.filter((p) => p.status === "accepted").length;
   const sisa = Math.max(0, e.quota - accepted);
-  const hari = e.demoDate.toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  const pct = e.quota > 0 ? Math.min(100, Math.round((accepted / e.quota) * 100)) : 0;
+  const hari = e.demoDate.toLocaleDateString("id-ID", { weekday: "long" });
   const bulan = e.demoDate.toLocaleDateString("id-ID", { month: "short" }).toUpperCase();
   const tanggal = e.demoDate.getDate();
+  const tahun = e.demoDate.getFullYear();
+  const jam = `${e.time}${e.timeEnd ? ` – ${e.timeEnd}` : ""} WIB`;
   const canJoin = open && (phase === "coming_soon" || phase === "ongoing") && sisa > 0;
+  const produk = `${e.campaign.brand} ${e.campaign.productType}`;
 
-  // Peta (tanpa API key). Punya koordinat (dari saran OSM) → embed OpenStreetMap + marker.
-  // Kalau tidak ada koordinat (klaim lama/manual) → fallback embed Google keyless by teks.
+  // Peta (tanpa API key). Punya koordinat (dari saran OSM) → embed OpenStreetMap + marker; selain itu embed Google by teks.
   const hasGeo = e.lat != null && e.lng != null;
-  const mapsQuery = encodeURIComponent(e.court);
+  const mapsQuery = encodeURIComponent(hasGeo ? `${e.lat},${e.lng}` : e.court);
   const d = 0.004; // ~400 m
-  const mapLink = hasGeo
-    ? `https://www.openstreetmap.org/?mlat=${e.lat}&mlon=${e.lng}#map=16/${e.lat}/${e.lng}`
-    : `https://www.google.com/maps/search/?api=1&query=${mapsQuery}`;
+  const gmaps = `https://www.google.com/maps/search/?api=1&query=${mapsQuery}`;
   const mapEmbed = hasGeo
     ? `https://www.openstreetmap.org/export/embed.html?bbox=${e.lng! - d},${e.lat! - d},${e.lng! + d},${e.lat! + d}&layer=mapnik&marker=${e.lat},${e.lng}`
     : `https://maps.google.com/maps?q=${mapsQuery}&z=15&output=embed`;
-  const mapLabel = hasGeo ? "Buka di OpenStreetMap ↗" : "Buka di Google Maps ↗";
 
-  const Tile = ({ icon, title, sub }: { icon: React.ReactNode; title: string; sub?: string }) => (
-    <div className="flex items-center gap-3">
-      <div className="glass-btn flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-primary">{icon}</div>
-      <div className="min-w-0">
-        <p className="truncate text-sm font-semibold text-gray-900">{title}</p>
-        {sub && <p className="truncate text-xs text-gray-400">{sub}</p>}
+  const card = "ev-glass rounded-3xl";
+  const closedMsg = open ? (phase === "done" ? "Acara ini sudah selesai." : "Kuota peserta sudah penuh.") : "Acara ini khusus anggota komunitas penyelenggara — pendaftaran online tidak dibuka.";
+
+  // Tanggal + kapasitas (dipakai di HP setelah hero, dan di kolom kanan desktop)
+  const InfoTiles = (
+    <div className="grid grid-cols-2 gap-3">
+      <div className="ev-pill rounded-2xl p-3.5">
+        <div className="flex items-start justify-between">
+          <div className="flex h-11 w-11 flex-col items-center justify-center rounded-xl bg-neutral-950 text-white">
+            <span className="text-[9px] font-[700] leading-none">{bulan}</span>
+            <span className="text-base font-[800] leading-none">{tanggal}</span>
+          </div>
+          <span className="text-[11px] text-neutral-400">{tahun}</span>
+        </div>
+        <p className="mt-3 text-[11px] capitalize text-neutral-500">{hari}</p>
+        <p className="text-[13px] font-[700] text-neutral-950">{jam}</p>
+      </div>
+      <div className="ev-pill rounded-2xl p-3.5">
+        <div className="flex items-start justify-between gap-1">
+          <div className="grid h-11 w-11 place-items-center rounded-xl bg-emerald-50 text-emerald-700">{I.users}</div>
+          {open && phase !== "done" && (
+            <span className={`rounded-full px-2 py-0.5 text-[10px] font-[700] ${sisa ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200" : "bg-red-50 text-red-600 ring-1 ring-red-200"}`}>{sisa ? `Sisa ${sisa} slot` : "Penuh"}</span>
+          )}
+        </div>
+        <p className="mt-3 text-[11px] text-neutral-500">Kapasitas sesi</p>
+        <p className="text-[13px] font-[700] text-neutral-950">{open ? `${accepted} / ${e.quota} terisi` : `${e.quota} orang`}</p>
       </div>
     </div>
   );
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-b from-emerald-50/50 via-gray-50 to-white text-gray-900">
-      <div aria-hidden className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute -left-20 top-32 h-96 w-96 rounded-full bg-primary/20 blur-[130px]" />
-        <div className="absolute right-0 top-1/2 h-96 w-96 rounded-full bg-emerald-300/30 blur-[130px]" />
-      </div>
-      <div className="relative mx-auto max-w-5xl px-5 py-6 sm:px-8 sm:py-8">
-        <Link href="/event" className="inline-flex items-center gap-1.5 text-sm text-gray-500 transition hover:text-primary">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6" /></svg>
-          Semua acara
-        </Link>
+    <div className="ev-page relative min-h-screen overflow-x-clip bg-[radial-gradient(130%_90%_at_50%_-10%,#ffffff_0%,#f1f5f9_45%,#e2e8f0_100%)] pb-28 text-neutral-900 [letter-spacing:-0.011em] lg:pb-12">
+      <div className="ev-orb -left-24 top-24 h-80 w-80 bg-emerald-200/50" />
+      <div className="ev-orb -right-20 top-[40%] h-96 w-96 bg-sky-200/40" />
 
-        <div className="mt-5 lg:grid lg:grid-cols-5 lg:gap-8">
-          {/* Kiri: cover + about */}
-          <div className="lg:col-span-3">
-            <div className="aspect-[16/10] w-full overflow-hidden rounded-2xl border border-gray-200 bg-gradient-to-br from-primaryDark to-primary">
+      {/* Nav kapsul */}
+      <header className="sticky top-0 z-40 px-3 pt-3 sm:px-6">
+        <div className="ev-nav mx-auto flex max-w-6xl items-center justify-between gap-2 rounded-2xl px-3 py-2.5 sm:px-4">
+          <div className="flex min-w-0 items-center gap-3">
+            <Link href="/event" className="inline-flex shrink-0 items-center gap-1 text-sm font-[500] text-neutral-700 hover:text-neutral-950">{I.back} Semua Acara</Link>
+            <span className="hidden h-5 w-px bg-neutral-200 sm:block" />
+            <Link href="/event" className="hidden items-center gap-2 sm:flex">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logo.png" alt="" className="h-6 w-6 object-contain" />
+              <span className="text-xs font-[700] uppercase tracking-wider text-neutral-800">Tirtonic Events</span>
+            </Link>
+          </div>
+          <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-[700] uppercase tracking-wide ring-1 ring-black/5 ${meta.chip}`}>
+            <span className={`h-1.5 w-1.5 rounded-full ${meta.dot}`} />
+            {meta.label}
+          </span>
+          <div className="flex items-center gap-2">
+            <ShareLinkButton path={`/event/${e.id}`} title={e.campaign.title} className="ev-pill inline-flex h-9 items-center gap-1.5 rounded-full px-3 text-xs font-[600] text-neutral-700 hover:bg-white" />
+            {canJoin && <a href="#daftar" className="ev-btn hidden items-center gap-1.5 rounded-xl bg-[#173f2f] px-4 py-2 text-xs font-[700] uppercase tracking-wide text-white hover:bg-[#0f2d21] lg:inline-flex">Daftar Sesi</a>}
+          </div>
+        </div>
+      </header>
+
+      <main className="relative mx-auto mt-5 max-w-6xl px-3 sm:px-6 lg:grid lg:grid-cols-12 lg:items-start lg:gap-6">
+        {/* ───────── Kolom kiri ───────── */}
+        <div className="space-y-4 lg:col-span-8 lg:space-y-5">
+          {/* Hero */}
+          <section className={`${card} p-3.5 sm:p-5`}>
+            <div className="mb-3 flex flex-wrap items-center gap-2">
+              <span className="rounded-lg bg-white px-2.5 py-1 text-[11px] font-[800] uppercase tracking-widest text-neutral-900 ring-1 ring-black/10">{e.campaign.brand}</span>
+              <span className="rounded-lg bg-emerald-50 px-2.5 py-1 text-[11px] font-[700] uppercase tracking-wide text-emerald-700 ring-1 ring-emerald-200">Demo Day {tahun}</span>
+              {e.campaign.location && <span className="rounded-lg bg-sky-50 px-2.5 py-1 text-[11px] font-[700] text-sky-800 ring-1 ring-sky-200">📍 {e.campaign.location}</span>}
+              <span className="ml-auto rounded-full bg-neutral-950 px-2.5 py-1 text-[10px] font-[700] uppercase tracking-wide text-white">Official Event</span>
+            </div>
+            <div className="relative aspect-[16/10] overflow-hidden rounded-2xl bg-gradient-to-br from-neutral-900 to-emerald-950 ring-1 ring-black/5">
               {e.campaign.banner ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img loading="lazy" decoding="async" src={e.campaign.banner} alt="" className="h-full w-full object-cover" />
+                <img src={e.campaign.banner} alt="" className="h-full w-full object-cover" />
               ) : (
-                <span className="flex h-full w-full items-center justify-center text-2xl font-bold uppercase tracking-widest text-white/90">{e.campaign.brand}</span>
+                <span className="flex h-full w-full items-center justify-center text-3xl font-[800] uppercase tracking-widest text-white/90">{e.campaign.brand}</span>
               )}
-            </div>
-
-            {e.campaign.description && (
-              <div className="mt-6">
-                <h2 className="mb-2 border-b border-gray-200 pb-2 text-sm font-bold text-gray-700">Tentang demo</h2>
-                <p className="whitespace-pre-line text-sm leading-relaxed text-gray-600">{e.campaign.description}</p>
-              </div>
-            )}
-
-            {/* Lokasi lapangan (Google Maps) */}
-            <div className="mt-6">
-              <div className="mb-2 flex items-center justify-between border-b border-gray-200 pb-2">
-                <h2 className="text-sm font-bold text-gray-700">Lokasi</h2>
-                <a href={mapLink} target="_blank" rel="noreferrer" className="text-xs font-bold text-primary hover:underline">{mapLabel}</a>
-              </div>
-              <p className="mb-3 text-sm text-gray-600">{e.court}</p>
-              <div className="glass-card overflow-hidden rounded-2xl">
-                <iframe
-                  title={`Peta ${e.court}`}
-                  src={mapEmbed}
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                  className="h-56 w-full"
-                />
+              <div className="absolute inset-x-3 bottom-3 flex items-center justify-between gap-2 rounded-xl bg-black/45 px-3 py-2 text-white backdrop-blur-md">
+                <span className="flex min-w-0 items-center gap-2 text-xs"><span className="opacity-80">{I.racket}</span><span className="truncate"><span className="block text-[10px] text-white/70">Produk demo</span><b className="font-[600]">{e.campaign.productType}</b></span></span>
+                {open && phase !== "done" && <span className="shrink-0 rounded-lg bg-emerald-500/90 px-2 py-1 text-[10px] font-[700]">Sisa {sisa} slot</span>}
               </div>
             </div>
-          </div>
-
-          {/* Kanan: judul + info + registrasi */}
-          <aside className="mt-6 space-y-5 lg:mt-0 lg:col-span-2">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-primary">{e.campaign.brand}</span>
-                <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-bold ${meta.chip}`}>
-                  <span className={`h-1.5 w-1.5 rounded-full ${meta.dot}`} />
-                  {meta.label}
+            <div className="px-1 pt-4">
+              <p className="text-[11px] font-[600] uppercase tracking-wider text-neutral-500">{e.campaign.productType} • Community gathering</p>
+              <h1 className="mt-1.5 text-2xl font-[700] leading-tight tracking-tight text-neutral-950 sm:text-3xl">{e.campaign.title}</h1>
+              <div className="mt-4 flex items-center gap-3 border-t border-black/[0.06] pt-4">
+                <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-xl bg-white ring-1 ring-black/10">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={e.community.logo || "/logo.png"} alt="" className={e.community.logo ? "h-full w-full object-cover" : "h-5 w-5 object-contain"} />
                 </span>
-              </div>
-              <h1 className="mt-3 text-2xl font-extrabold leading-tight tracking-tight text-gray-900 lg:text-3xl">{e.campaign.title}</h1>
-              <p className="mt-1 text-sm text-gray-400">{e.campaign.productType}</p>
-
-              <div className="mt-4 flex items-center gap-2.5 border-t border-gray-100 pt-4">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/5">
-                  {e.community.logo ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img loading="lazy" decoding="async" src={e.community.logo} alt="" className="h-full w-full object-cover" />
-                  ) : (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img loading="lazy" decoding="async" src="/logo.png" alt="" className="h-4 w-4 object-contain" />
-                  )}
-                </div>
-                <div>
-                  <p className="text-xs text-gray-400">Diselenggarakan oleh</p>
-                  <p className="text-sm font-semibold text-gray-900">{e.community.name} <span className="text-gray-400">×</span> Tirtonic Tennis Store</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-3.5">
-              <div className="flex items-center gap-3">
-                <div className="glass-btn flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-xl">
-                  <span className="text-[9px] font-bold uppercase leading-none text-primary">{bulan}</span>
-                  <span className="text-base font-extrabold leading-none text-gray-900">{tanggal}</span>
-                </div>
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-gray-900">{hari}</p>
-                  <p className="text-xs text-gray-400">Jam {e.time}{e.timeEnd ? `–${e.timeEnd}` : ""}</p>
-                </div>
-              </div>
-              <a href={mapLink} target="_blank" rel="noreferrer" className="group flex items-center gap-3">
-                <div className="glass-btn flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-primary">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 21s-7-4.35-7-10a7 7 0 0 1 14 0c0 5.65-7 10-7 10Z" /><circle cx="12" cy="11" r="2.5" /></svg>
-                </div>
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-gray-900 group-hover:text-primary">{e.court}</p>
-                  <p className="truncate text-xs text-gray-400">Lapangan tenis · lihat di Maps ↗</p>
-                </div>
-              </a>
-              <Tile
-                icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg>}
-                title={open ? `Open · ${accepted}/${e.quota} terisi` : `Closed · ${e.quota} orang`}
-                sub={open ? `Sisa ${sisa} slot untuk umum` : "Khusus anggota komunitas"}
-              />
-              {/* Progress join (acara open) */}
-              {open && (
-                <div>
-                  <div className="mb-1.5 flex items-center justify-between text-xs">
-                    <span className="font-bold text-gray-900">{accepted} / {e.quota} orang join</span>
-                    <span className={sisa === 0 ? "font-semibold text-red-500" : "text-gray-400"}>{sisa === 0 ? "Penuh" : `${sisa} slot lagi`}</span>
-                  </div>
-                  <div className="h-2 w-full overflow-hidden rounded-full bg-gray-100">
-                    <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${e.quota > 0 ? Math.min(100, Math.round((accepted / e.quota) * 100)) : 0}%` }} />
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Registrasi */}
-            <div className="glass-card overflow-hidden rounded-2xl">
-              <div className="border-b border-gray-100 bg-gray-50 px-4 py-2.5">
-                <p className="text-sm font-bold text-gray-900">Registrasi</p>
-              </div>
-              <div className="p-4">
-                {canJoin ? (
-                  <>
-                    <p className="mb-3 text-sm text-gray-500">Daftar di bawah untuk ikut sesi ini. Panitia komunitas akan konfirmasi via WhatsApp.</p>
-                    <JoinEventForm claimId={e.id} />
-                  </>
-                ) : (
-                  <p className="text-sm text-gray-500">
-                    {open
-                      ? phase === "done"
-                        ? "Acara ini sudah selesai."
-                        : "Kuota peserta sudah penuh."
-                      : "Acara ini khusus anggota komunitas penyelenggara — pendaftaran online tidak dibuka."}
+                  <p className="text-[10px] font-[600] uppercase tracking-wider text-neutral-400">Diselenggarakan oleh</p>
+                  <p className="flex items-center gap-1.5 truncate text-sm font-[600] text-neutral-900">
+                    <span className="truncate">{e.community.name} × Tirtonic Tennis Store</span>
+                    <span className="grid h-4 w-4 shrink-0 place-items-center rounded-full bg-sky-500 text-white">{I.check}</span>
                   </p>
-                )}
+                </div>
               </div>
             </div>
+          </section>
 
-            {/* Bagikan undangan ke IG Story */}
-            {phase !== "done" && (
-              <div className="glass-card rounded-2xl p-4">
-                <p className="text-sm font-bold text-gray-900">Ajak teman</p>
-                <p className="mt-0.5 text-xs text-gray-500">Bagikan undangan acara ini ke Instagram Story kamu.</p>
-                <ShareInvite inviteUrl={`/api/invite/${e.id}`} eventPath={`/event/${e.id}`} title={e.campaign.title} />
+          {/* HP: tanggal + kapasitas langsung setelah hero */}
+          <div className="lg:hidden">{InfoTiles}</div>
+
+          {/* Lokasi */}
+          <section className={`${card} p-4 sm:p-6`}>
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex min-w-0 items-start gap-3">
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-rose-50 text-rose-500">{I.pin}</span>
+                <div className="min-w-0">
+                  <h2 className="font-[700] text-neutral-950">Lokasi Lapangan</h2>
+                  <p className="mt-0.5 text-xs text-neutral-500">{e.court}</p>
+                </div>
+              </div>
+              <a href={gmaps} target="_blank" rel="noreferrer" className="inline-flex shrink-0 items-center gap-1 text-xs font-[700] text-emerald-700 hover:underline">Buka Google Maps {I.ext}</a>
+            </div>
+            <div className="relative mt-4 overflow-hidden rounded-2xl ring-1 ring-black/5">
+              <iframe title={`Peta ${e.court}`} src={mapEmbed} loading="lazy" referrerPolicy="no-referrer-when-downgrade" className="h-56 w-full sm:h-64" />
+              <a href={gmaps} target="_blank" rel="noreferrer" className="ev-pill absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-[600] text-neutral-900">Petunjuk Arah {I.ext}</a>
+            </div>
+          </section>
+
+          {/* Tentang */}
+          <section className={`${card} p-4 sm:p-6`}>
+            <h2 className="flex items-center gap-2 text-lg font-[700] text-neutral-950"><span className="h-5 w-1 rounded-full bg-emerald-600" />Tentang Demo Day</h2>
+            {e.campaign.description && <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-neutral-600">{e.campaign.description}</p>}
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <div className="ev-pill flex gap-3 rounded-2xl p-3.5">
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-neutral-100 text-neutral-700">{I.racket}</span>
+                <p className="text-xs leading-relaxed text-neutral-600"><span className="block text-[11px] text-neutral-400">Produk yang dicoba</span><b className="font-[600] text-emerald-700">{produk}</b> — coba langsung gratis di lapangan.</p>
+              </div>
+              <div className="ev-pill flex gap-3 rounded-2xl p-3.5">
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-amber-50 text-amber-600">{I.gift}</span>
+                <p className="text-xs leading-relaxed text-neutral-600"><span className="block text-[11px] text-amber-600">Hadiah peserta</span>Peserta terdaftar dapat <b className="font-[600] text-emerald-700">voucher Rp 50.000</b> khusus produk ini setelah demo selesai.</p>
+              </div>
+            </div>
+            <h3 className="mt-5 text-sm font-[700] text-neutral-900">Cara Pendaftaran:</h3>
+            <ol className="mt-2.5 space-y-2 text-sm text-neutral-600">
+              {["Isi nama & nomor WhatsApp di formulir pendaftaran", "Panitia komunitas mengonfirmasi lewat WhatsApp", "Datang ke lapangan & coba produknya — voucher dikirim setelah demo"].map((t, i) => (
+                <li key={t} className="flex items-center gap-2.5"><span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-neutral-950 text-[10px] font-[700] text-white">{i + 1}</span>{t}</li>
+              ))}
+            </ol>
+            {canJoin && sisa <= 5 && (
+              <p className="mt-4 flex items-center gap-2 rounded-2xl bg-amber-50 px-4 py-3 text-xs font-[500] text-amber-800 ring-1 ring-amber-200">{I.warn} Kuota tinggal {sisa}. Segera daftar sebelum habis!</p>
+            )}
+          </section>
+        </div>
+
+        {/* ───────── Kolom kanan (desktop sticky) / formulir di HP ───────── */}
+        <aside className="mt-4 space-y-4 lg:sticky lg:top-24 lg:col-span-4 lg:mt-0">
+          <section className={`${card} p-4 sm:p-5`}>
+            <div className="hidden lg:block">{InfoTiles}</div>
+            {open && (
+              <div className="mt-0 lg:mt-4">
+                <div className="mb-1.5 flex justify-between text-[11px]">
+                  <span className="font-[600] text-neutral-700">Status ketersediaan</span>
+                  <span className={sisa ? "font-[600] text-emerald-700" : "font-[600] text-red-600"}>{sisa ? `${sisa} slot tersedia` : "Penuh"}</span>
+                </div>
+                <div className="h-1.5 overflow-hidden rounded-full bg-neutral-200/70"><div className="h-full rounded-full bg-emerald-600" style={{ width: `${pct}%` }} /></div>
               </div>
             )}
-          </aside>
+            <div id="daftar" className="mt-5 border-t border-black/[0.06] pt-5">
+              <h2 className="text-center font-[700] text-neutral-950 lg:text-left">Formulir Registrasi Sesi</h2>
+              {canJoin ? (
+                <>
+                  <p className="mb-4 mt-1 text-center text-xs text-neutral-500 lg:text-left">Daftar di bawah untuk ikut sesi ini. Panitia akan mengonfirmasi via WhatsApp.</p>
+                  <JoinEventForm claimId={e.id} />
+                  <p className="mt-3 flex items-center justify-center gap-1.5 text-[11px] text-neutral-500"><span className="text-emerald-600">{I.check}</span>Gratis demo • Konfirmasi via WhatsApp</p>
+                </>
+              ) : (
+                <p className="mt-2 rounded-2xl bg-neutral-100 px-4 py-3 text-center text-sm text-neutral-600">{closedMsg}</p>
+              )}
+            </div>
+          </section>
+
+          {phase !== "done" && (
+            <section className={`${card} p-4 sm:p-5`}>
+              <p className="font-[700] text-neutral-950">Ajak Teman Main</p>
+              <p className="mt-0.5 text-xs text-neutral-500">Bagikan undangan ini ke Instagram Story atau grup WhatsApp kamu.</p>
+              <ShareInvite inviteUrl={`/api/invite/${e.id}`} eventPath={`/event/${e.id}`} title={e.campaign.title} />
+            </section>
+          )}
+        </aside>
+      </main>
+
+      <footer className="relative mt-10 text-center text-[11px] text-neutral-400">© {tahun} Tirtonic Tennis Store • Demo produk × komunitas tenis</footer>
+
+      {/* HP: kapsul melayang di bawah → ke formulir */}
+      <div className="fixed inset-x-0 bottom-3 z-50 px-3 lg:hidden">
+        <div className="ev-dock mx-auto flex max-w-md items-center justify-between gap-3 rounded-full py-2 pl-5 pr-2">
+          <div className="min-w-0">
+            <p className="text-[10px] font-[700] uppercase tracking-wide text-neutral-400">{canJoin ? "Slot tersedia" : "Pendaftaran"}</p>
+            <p className={`truncate text-sm font-[700] ${canJoin ? "text-emerald-700" : "text-neutral-600"}`}>{canJoin ? `Sisa ${sisa} kuota` : phase === "done" ? "Acara selesai" : open ? "Kuota penuh" : "Khusus anggota"}</p>
+          </div>
+          {canJoin ? (
+            <a href="#daftar" className="ev-btn inline-flex shrink-0 items-center gap-1.5 rounded-full bg-neutral-950 px-5 py-3 text-sm font-[700] text-white active:scale-95">Daftar Sekarang {I.up}</a>
+          ) : (
+            <Link href="/event" className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-neutral-100 px-5 py-3 text-sm font-[600] text-neutral-700">Acara lain {I.arrow}</Link>
+          )}
         </div>
       </div>
     </div>
