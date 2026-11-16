@@ -122,3 +122,18 @@ export async function redeemReward(token: string): Promise<void> {
   }
   revalidatePath(`/dashboard/stringing/reward/${token}`);
 }
+
+/** Antrian tanpa cabang (dibuat dari website publik / kiosk belum login) → masukkan ke cabang.
+ *  Stringer cabang: otomatis ke cabangnya. Bos/admin: pilih cabang dari form. */
+export async function assignStringingBranch(id: string, formData: FormData) {
+  requireAuth();
+  const target = sessionBranchId() ?? String(formData.get("branchId") || "");
+  if (!target) return;
+  const o = await prisma.sfOrder.findUnique({ where: { id }, select: { branch: { select: { slug: true } }, resultCode: true } });
+  if (o?.branch?.slug !== "tirtonic") return; // hanya yang belum bercabang
+  const b = await prisma.sfBranch.findFirst({ where: { id: target, isActive: true, slug: { not: "tirtonic" } }, select: { id: true } });
+  if (!b) return;
+  await prisma.sfOrder.update({ where: { id }, data: { branchId: b.id } });
+  await prisma.sfResult.updateMany({ where: { code: o.resultCode }, data: { branchId: b.id } });
+  revalidatePath("/dashboard/stringing");
+}

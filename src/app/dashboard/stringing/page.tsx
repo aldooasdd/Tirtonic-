@@ -3,7 +3,7 @@ import Link from "next/link";
 import { isAuthed, can, sessionBranchId } from "@/lib/auth";
 import { prisma, safeQuery } from "@/lib/prisma";
 import { displayPhone } from "@/lib/string-finder/phone";
-import { startStringing, finishStringing } from "./actions";
+import { startStringing, finishStringing, assignStringingBranch } from "./actions";
 import { PageHeader, StatCard, Icon, card, btn, btnPrimary } from "@/components/dashboard/ui";
 import RacketQrPrint from "@/components/RacketQrPrint";
 import BranchFilterChips from "@/components/BranchFilterChips";
@@ -46,9 +46,10 @@ function fmt(d: Date) {
 }
 
 type OrderRow = Awaited<ReturnType<typeof getOrders>>[number];
+// Stringer cabang lihat cabangnya + antrian tanpa cabang (slug "tirtonic": dari website publik / kiosk belum login).
 function getOrders(branchId: string | null) {
   return prisma.sfOrder.findMany({
-    where: branchId ? { branchId } : undefined,
+    where: branchId ? { OR: [{ branchId }, { branch: { slug: "tirtonic" } }] } : undefined,
     orderBy: [{ status: "asc" }, { createdAt: "desc" }],
     // ponytail: tanpa limit — tampilkan semua. Kalau data makin ribuan & egress/CPU
     // Vercel berat, ganti ke pagination di sini.
@@ -120,8 +121,10 @@ export default async function StringingQueuePage() {
     safeQuery(() => getOrders(branchId), [] as OrderRow[]),
   ]);
 
-  const active = orders.filter((o) => o.status === "antri" || o.status === "dikerjakan");
-  const done = orders.filter((o) => o.status === "selesai" || o.status === "batal"); // batal ikut card Selesai
+  const isGeneric = (o: OrderRow) => !o.branchId || !branches.some((b) => b.id === o.branchId);
+  const active = orders.filter((o) => (o.status === "antri" || o.status === "dikerjakan"));
+  const unassigned = active.filter(isGeneric);
+  const done = orders.filter((o) => (o.status === "selesai" || o.status === "batal") && (!branchId || !isGeneric(o))); // batal ikut card Selesai
   // Siapkan data siap-render buat card "Selesai" (komponen client: collapse + filter cabang).
   const doneDTO: DoneOrder[] = done.map((o) => ({
     id: o.id,
@@ -148,6 +151,34 @@ export default async function StringingQueuePage() {
       </PageHeader>
 
       <BranchFilterChips branches={branches} />
+
+      {/* Antrian tanpa cabang — dulu tak tampil di mana pun. Wajib dimasukkan ke cabang dulu. */}
+      {unassigned.length > 0 && (
+        <section className="mb-5 rounded-2xl border-2 border-amber-300 bg-amber-50 p-4">
+          <h2 className="text-base font-extrabold text-amber-900">⚠️ Cabang belum diketahui · {unassigned.length}</h2>
+          <p className="mt-0.5 text-xs text-amber-800">Dibuat dari website / HP customer (bukan kiosk toko yang login cabang). Masukkan ke cabang yang benar supaya bisa dikerjakan.</p>
+          <div className="mt-3 space-y-3">
+            {unassigned.map((o) => (
+              <div key={o.id} className="space-y-2">
+                <OrderCard o={o} />
+                <form action={assignStringingBranch.bind(null, o.id)} className="flex flex-wrap items-center gap-2">
+                  {branchId ? (
+                    <SubmitButton className="rounded-full bg-amber-600 px-4 py-1.5 text-xs font-bold text-white hover:opacity-90">Masukkan ke {branches[0]?.name ?? "cabang ini"}</SubmitButton>
+                  ) : (
+                    <>
+                      <select name="branchId" required defaultValue="" className="rounded-full border border-amber-300 bg-white px-3 py-1.5 text-xs">
+                        <option value="" disabled>Pilih cabang</option>
+                        {branches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+                      </select>
+                      <SubmitButton className="rounded-full bg-amber-600 px-4 py-1.5 text-xs font-bold text-white hover:opacity-90">Masukkan</SubmitButton>
+                    </>
+                  )}
+                </form>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Card per cabang: antrian aktif + badge dikerjakan/antri — 2 kolom */}
       <div className="grid gap-5 lg:grid-cols-2">
