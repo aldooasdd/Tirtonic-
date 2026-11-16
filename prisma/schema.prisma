@@ -138,6 +138,7 @@ model Order {
   subtotal    Int
   diskon      Int         @default(0) // potongan dari kupon
   kupon       String? // kode kupon yang dipakai
+  voucherId   String? // MemberVoucher yang dipakai (otomatis dari nomor HP) — ditandai "used" saat LUNAS
   total       Int
   status      OrderStatus @default(PENDING)
   resi        String?
@@ -503,6 +504,7 @@ model MemberVoucher {
   type      String    @default("amount") // percent | amount
   value     Int
   source    String // promo | reward | demo
+  productIds String[] @default([]) // kosong = semua produk; voucher demo = produk yang didemokan
   status    String    @default("active") // active | used
   usedAt    DateTime?
   expiresAt DateTime?

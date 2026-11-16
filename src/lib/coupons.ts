@@ -1,5 +1,6 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
+import { normalizePhone } from "@/lib/string-finder/phone";
 
 // Satu baris keranjang yang sudah diverifikasi harganya dari DB.
 // wasDiscounted dipertahankan di tipe (caller masih mengisinya) tapi tak lagi
@@ -55,6 +56,26 @@ export async function computeCoupon(codeRaw: string, lines: CouponLine[]): Promi
     ? Math.min(c.value, base)
     : Math.round((base * Math.min(100, c.value)) / 100);
   return { ok: true, code, diskon };
+}
+
+export type VoucherResult = { id: string; code: string; label: string; diskon: number } | null;
+
+/** Voucher demo milik nomor HP ini → otomatis dipotong di checkout (tanpa kode/QR).
+ *  Hanya produk yang didemokan (productIds) yang jadi dasar potongan. Pilih voucher dengan potongan terbesar.
+ *  ponytail: 1 voucher dipakai di 2 pesanan PENDING sekaligus → keduanya terpotong; yang lunas duluan yang menandai "used". */
+export async function computeMemberVoucher(phoneRaw: string, lines: CouponLine[]): Promise<VoucherResult> {
+  const phone = normalizePhone(phoneRaw || "");
+  if (!phone) return null;
+  const vs = await prisma.memberVoucher.findMany({ where: { phone, status: "active", source: "demo" } });
+  let best: VoucherResult = null;
+  for (const v of vs) {
+    if (v.expiresAt && v.expiresAt < new Date()) continue;
+    const base = lines.filter((l) => !v.productIds.length || v.productIds.includes(l.productId)).reduce((s, l) => s + l.harga * l.qty, 0);
+    if (base <= 0) continue;
+    const diskon = v.type === "amount" ? Math.min(v.value, base) : Math.round((base * Math.min(100, v.value)) / 100);
+    if (!best || diskon > best.diskon) best = { id: v.id, code: v.code, label: v.label, diskon };
+  }
+  return best;
 }
 
 // ponytail: self-check logika potongan (tanpa DB). Jalankan: npx tsx src/lib/coupons.ts

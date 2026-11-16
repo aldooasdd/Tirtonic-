@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useShopCart } from "@/components/ShopCartProvider";
 import { rupiah } from "@/lib/format";
-import { submitCheckout, applyCoupon, checkRates } from "./actions";
+import { submitCheckout, applyCoupon, checkRates, checkMemberVoucher } from "./actions";
 import type { RateOption } from "@/lib/ongkir";
 import { FREE_ONGKIR_MIN } from "@/lib/constants";
 import wilayah from "@/lib/wilayah.json";
@@ -30,6 +30,9 @@ export default function CheckoutPage() {
   const [coupon, setCoupon] = useState<{ code: string; diskon: number } | null>(null);
   const [couponMsg, setCouponMsg] = useState<string | null>(null);
   const [couponBusy, setCouponBusy] = useState(false);
+  // Voucher demo otomatis dari nomor HP
+  const [phone, setPhone] = useState("");
+  const [voucher, setVoucher] = useState<{ code: string; label: string; diskon: number } | null>(null);
 
   // Ongkir (Binderbyte)
   const [kodePos, setKodePos] = useState("");
@@ -44,6 +47,17 @@ export default function CheckoutPage() {
   useEffect(() => { setRates(null); setChosenId(""); }, [kodePos, subtotal]);
   // Isi keranjang berubah → kupon lama tidak valid lagi, reset preview.
   useEffect(() => { setCoupon(null); setCouponMsg(null); }, [subtotal]);
+  // Cek voucher demo milik nomor ini (ulang kalau keranjang berubah).
+  useEffect(() => {
+    if (phone.replace(/\D/g, "").length < 9) { setVoucher(null); return; }
+    const t = setTimeout(() => {
+      checkMemberVoucher({ phone, items: items.map((x) => ({ productId: x.productId, variantId: x.variantId, qty: x.qty })) })
+        .then((v) => setVoucher(v ? { code: v.code, label: v.label, diskon: v.diskon } : null))
+        .catch(() => setVoucher(null));
+    }, 500);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phone, subtotal]);
 
   async function onApplyCoupon() {
     const code = couponCode.trim();
@@ -78,7 +92,7 @@ export default function CheckoutPage() {
     }
   }
 
-  const diskon = coupon?.diskon ?? 0;
+  const diskon = Math.min(subtotal, (coupon?.diskon ?? 0) + (voucher?.diskon ?? 0));
   const belanja = Math.max(0, subtotal - diskon);
   const freeOngkir = belanja >= FREE_ONGKIR_MIN;
   const chosen = rates?.find((r) => r.id === chosenId) ?? null;
@@ -172,7 +186,8 @@ export default function CheckoutPage() {
               )}
 
               <input name="nama" required placeholder="Nama lengkap" className="field" autoComplete="name" />
-              <input name="telepon" required inputMode="tel" placeholder="No. WhatsApp (08xxx)" className="field" autoComplete="tel" />
+              <input name="telepon" required inputMode="tel" placeholder="No. WhatsApp (08xxx)" className="field" autoComplete="tel" value={phone} onChange={(e) => setPhone(e.target.value)} />
+              {voucher && <p className="mt-1.5 rounded-lg bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700">🎁 Voucher demo kamu otomatis dipakai: {voucher.label} (−{rupiah(voucher.diskon)})</p>}
 
               {metode === "kirim" && (
                 <>
@@ -292,10 +307,16 @@ export default function CheckoutPage() {
                 <span>Subtotal</span>
                 <span>{rupiah(subtotal)}</span>
               </div>
-              {diskon > 0 && (
+              {coupon && (
                 <div className="flex justify-between font-semibold text-primary">
-                  <span>Potongan kupon{coupon ? ` (${coupon.code})` : ""}</span>
-                  <span>−{rupiah(diskon)}</span>
+                  <span>Potongan kupon ({coupon.code})</span>
+                  <span>−{rupiah(coupon.diskon)}</span>
+                </div>
+              )}
+              {voucher && (
+                <div className="flex justify-between font-semibold text-primary">
+                  <span>Voucher demo ({voucher.code})</span>
+                  <span>−{rupiah(voucher.diskon)}</span>
                 </div>
               )}
               <div className="flex justify-between text-gray-600">

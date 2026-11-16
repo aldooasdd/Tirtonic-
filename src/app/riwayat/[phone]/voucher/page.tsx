@@ -69,7 +69,7 @@ export default async function VoucherPage({ params }: { params: { phone: string 
                   </div>
                 </div>
                 <div className="flex items-center justify-between border-t border-dashed border-slate-200 px-4 py-2.5">
-                  <span className="text-[11px] text-slate-500">Pakai di checkout atau kasir</span>
+                  <span className="text-[11px] text-slate-500">{v.source === "demo" ? "Otomatis terpotong di checkout pakai nomor ini" : "Pakai di checkout atau kasir"}</span>
                   <Link href="/shop" className="rounded-full bg-primary px-4 py-1.5 text-xs font-bold text-white active:scale-95">Pakai Sekarang</Link>
                 </div>
               </div>

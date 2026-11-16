@@ -2,7 +2,7 @@ import "server-only";
 import { prisma } from "@/lib/prisma";
 import { createDokuPayment, checkDokuStatus } from "@/lib/doku";
 import { notifyN8N } from "@/lib/notify";
-import { computeCoupon } from "@/lib/coupons";
+import { computeCoupon, computeMemberVoucher } from "@/lib/coupons";
 import { trackResi } from "@/lib/tracking";
 import { ongkirConfigured, getRates, type RateOption } from "@/lib/ongkir";
 import { FREE_ONGKIR_MIN } from "@/lib/constants";
@@ -135,6 +135,13 @@ export async function createOrder(input: CheckoutInput): Promise<CreateOrderResu
     diskon = cr.diskon;
     kupon = cr.code;
   }
+  // Voucher demo milik nomor HP pembeli → otomatis, bisa digabung dengan kupon. Total potongan ≤ subtotal.
+  const cl = lines.map((l) => ({ productId: l.productId, harga: l.harga, qty: l.qty, wasDiscounted: l.wasDiscounted }));
+  const voucher = await computeMemberVoucher(telepon, cl);
+  if (voucher) {
+    diskon = Math.min(subtotal, diskon + voucher.diskon);
+    kupon = kupon ? `${kupon} + ${voucher.code}` : voucher.code;
+  }
 
   // Ongkir dihitung ULANG di server (biaya dari client tak dipercaya).
   let ongkir = 0;
@@ -166,6 +173,7 @@ export async function createOrder(input: CheckoutInput): Promise<CreateOrderResu
       subtotal,
       diskon,
       kupon,
+      voucherId: voucher?.id ?? null,
       total,
       items: { create: lines.map(({ wasDiscounted: _w, ...l }) => l) },
     },
@@ -199,6 +207,7 @@ export async function markOrderPaid(orderId: string, info?: { metodeBayar?: stri
       where: { id: orderId },
       data: { status: "PAID", paidAt: new Date(), metodeBayar: info?.metodeBayar ?? order.metodeBayar, paymentRef: info?.paymentRef ?? order.paymentRef },
     }),
+    ...(order.voucherId ? [prisma.memberVoucher.updateMany({ where: { id: order.voucherId, status: "active" }, data: { status: "used", usedAt: new Date() } })] : []),
     // ponytail: potong stok — varian pakai stok per-varian, non-varian pakai Product.stok.
     // Produk non-varian tanpa batas stok (stok null) → decrement null tetap null, aman.
     // Race antar-pesanan bisa bikin minus — tambah lock/stok reservasi kalau volume tinggi.

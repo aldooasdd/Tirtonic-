@@ -1,6 +1,7 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
 import { sendWa } from "@/lib/wa";
+import { productsForCampaigns } from "@/lib/demo-products";
 
 // Foto kegiatan demo disimpan di PC server (Tirtonichub /api/demo-photos), bukan di DB/storage tirtonic.com.
 // Base URL = origin dari TIRTONICHUB_POINTS_URL; auth header x-points-secret (POINTS_API_SECRET).
@@ -59,15 +60,21 @@ export async function releaseDemoVouchers(claimId: string) {
   if (!claim?.returnedAt) return;
   const produk = `${claim.campaign.brand} ${claim.campaign.productType}`;
   const site = (process.env.NEXT_PUBLIC_SITE_URL || "https://tirtonic.com").replace(/\/$/, "");
+  // Voucher hanya berlaku untuk produk yang didemokan (pencocokan brand + jenis, sama dgn carousel Produk Demo).
+  const pool = await prisma.product.findMany({
+    where: { brand: { equals: claim.campaign.brand, mode: "insensitive" } },
+    select: { id: true, nama: true, brand: true, kategori: true },
+  });
+  const productIds = productsForCampaigns([claim.campaign], pool, 500).map((x) => x.id);
   for (const p of claim.participants) {
     const code = `DEMO-${p.id.slice(-6).toUpperCase()}`;
     if (await prisma.memberVoucher.findFirst({ where: { code, source: "demo" }, select: { id: true } })) continue; // sudah dapat
     await prisma.memberVoucher.create({
-      data: { phone: p.phone, code, label: `Potongan Rp 50.000 khusus ${produk}`, type: "amount", value: 50_000, source: "demo" },
+      data: { phone: p.phone, code, label: `Potongan Rp 50.000 khusus ${produk}`, type: "amount", value: 50_000, source: "demo", productIds },
     });
     await sendWa(
       p.phone,
-      `🎉 Selamat ${p.name}, kamu mendapat voucher!\n\nTerima kasih sudah ikut demo ${produk} bareng Tirtonic. Ini hadiah untukmu:\n\n🎁 *Potongan Rp 50.000* khusus ${produk}\nKode: *${code}*\n\nTunjukkan kode ini ke kasir Tirtonic saat beli. Voucher & dashboard kamu:\n${site}/riwayat/${p.phone}/voucher`,
+      `🎉 Selamat ${p.name}, kamu mendapat voucher!\n\nTerima kasih sudah ikut demo ${produk} bareng Tirtonic. Ini hadiah untukmu:\n\n🎁 *Potongan Rp 50.000* khusus ${produk}\nKode: *${code}*\n\nVoucher otomatis terpotong saat checkout di tirtonic.com pakai nomor WA ini (khusus produk yang didemokan). Voucher & dashboard kamu:\n${site}/riwayat/${p.phone}/voucher`,
     );
   }
 }
