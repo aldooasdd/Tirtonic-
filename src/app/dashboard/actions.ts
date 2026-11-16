@@ -916,9 +916,7 @@ export async function markReturned(token: string) {
   revalidatePath("/komunitas");
 }
 
-const DEMO_VOUCHER_RP = 50_000;
-
-/** Produk demo kembali → WA terima kasih + minta upload foto ke komunitas; tiap peserta ACC dapat voucher Rp50rb khusus produk demo. */
+/** Produk demo kembali → WA terima kasih + minta upload foto ke komunitas; peserta diberi tahu voucher menyusul (dirilis setelah foto diupload). */
 async function afterDemoReturned(claimId: string) {
   const claim = await prisma.demoClaim.findUnique({
     where: { id: claimId },
@@ -931,21 +929,18 @@ async function afterDemoReturned(claimId: string) {
   if (!claim) return;
   const produk = `${claim.campaign.brand} ${claim.campaign.productType}`;
   const site = (process.env.NEXT_PUBLIC_SITE_URL || "https://tirtonic.com").replace(/\/$/, "");
+  const peserta = claim.participants.length ? `\n\nSetelah foto diupload, ${claim.participants.length} peserta otomatis dapat voucher Rp 50.000 dari Tirtonic.` : "";
   // komunitas + PIC acara (kalau beda nomor)
   for (const to of new Set([claim.community.waPhone, claim.eventPicPhone])) {
     await sendWa(
       to,
-      `🙏 Terima kasih ${claim.community.name}!\n\nProduk demo ${produk} sudah kami terima kembali. Terima kasih sudah menyelenggarakan demo bareng Tirtonic 🎾\n\nSilakan upload foto kegiatan demo di dashboard komunitas:\n${site}/komunitas\n\n(Foto kegiatan wajib diupload sebelum bisa klaim demo berikutnya.)`,
+      `🙏 Terima kasih ${claim.community.name}!\n\nProduk demo ${produk} sudah kami terima kembali. Terima kasih sudah menyelenggarakan demo bareng Tirtonic 🎾\n\nSilakan upload semua foto dokumentasi kegiatan di dashboard komunitas:\n${site}/komunitas${peserta}\n\n(Foto kegiatan wajib diupload sebelum bisa klaim demo berikutnya.)`,
     );
   }
   for (const p of claim.participants) {
-    const code = `DEMO-${p.id.slice(-6).toUpperCase()}`;
-    await prisma.memberVoucher.create({
-      data: { phone: p.phone, code, label: `Potongan Rp 50.000 khusus ${produk}`, type: "amount", value: DEMO_VOUCHER_RP, source: "demo" },
-    });
     await sendWa(
       p.phone,
-      `🎉 Selamat ${p.name}, kamu mendapat voucher!\n\nTerima kasih sudah ikut demo ${produk} bareng Tirtonic. Ini hadiah untukmu:\n\n🎁 *Potongan Rp 50.000* khusus ${produk}\nKode: *${code}*\n\nTunjukkan kode ini ke kasir Tirtonic saat beli. Voucher & dashboard kamu:\n${site}/riwayat/${p.phone}/voucher`,
+      `🎾 Terima kasih ${p.name} sudah ikut demo ${produk} bareng ${claim.community.name} & Tirtonic!\n\nKamu akan mendapat *voucher potongan Rp 50.000* 🎁 setelah panitia mengupload foto dokumentasi kegiatan. Kodenya nanti kami kirim lewat WA ini.`,
     );
   }
 }

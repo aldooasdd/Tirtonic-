@@ -8,7 +8,7 @@ import { createCommunitySession, destroyCommunitySession, currentCommunityId } f
 import { normalizePhone } from "@/lib/string-finder/phone";
 import { uploadFile, storageConfigured } from "@/lib/storage";
 import { sendWa } from "@/lib/wa";
-import { claimsOwingPhoto, uploadHubDemoPhoto } from "@/lib/demo-photos";
+import { claimsOwingPhoto, uploadHubDemoPhoto, hubDemoPhotos, releaseDemoVouchers } from "@/lib/demo-photos";
 
 export type FormState = { error?: string; ok?: boolean };
 
@@ -189,4 +189,15 @@ export async function addDemoPhoto(claimId: string, dataUrl: string): Promise<Fo
   if (!r.ok) return { error: r.message };
   revalidatePath("/komunitas");
   return { ok: true };
+}
+
+/** Dipanggil klien setelah satu batch foto selesai diupload → rilis voucher peserta (kalau foto memang sudah ada). */
+export async function finishDemoPhotos(claimId: string) {
+  const communityId = currentCommunityId();
+  if (!communityId) return;
+  const claim = await prisma.demoClaim.findUnique({ where: { id: claimId }, select: { communityId: true, returnedAt: true } });
+  if (!claim || claim.communityId !== communityId || !claim.returnedAt) return;
+  const photos = await hubDemoPhotos([claimId]);
+  if (!photos?.[claimId]?.length) return;
+  await releaseDemoVouchers(claimId);
 }

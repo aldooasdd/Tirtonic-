@@ -1,4 +1,6 @@
 import "server-only";
+import { prisma } from "@/lib/prisma";
+import { sendWa } from "@/lib/wa";
 
 // Foto kegiatan demo disimpan di PC server (Tirtonichub /api/demo-photos), bukan di DB/storage tirtonic.com.
 // Base URL = origin dari TIRTONICHUB_POINTS_URL; auth header x-points-secret (POINTS_API_SECRET).
@@ -46,4 +48,26 @@ export async function claimsOwingPhoto<T extends { id: string; returnedAt: Date 
   const photos = await hubDemoPhotos(returned.map((c) => c.id));
   if (!photos) return [];
   return returned.filter((c) => !photos[c.id]?.length);
+}
+
+/** Foto dokumentasi sudah diupload → tiap peserta ACC dapat voucher Rp50rb khusus produk demo + WA. Idempoten per peserta (kode unik). */
+export async function releaseDemoVouchers(claimId: string) {
+  const claim = await prisma.demoClaim.findUnique({
+    where: { id: claimId },
+    include: { campaign: { select: { brand: true, productType: true } }, participants: { where: { status: "accepted" } } },
+  });
+  if (!claim?.returnedAt) return;
+  const produk = `${claim.campaign.brand} ${claim.campaign.productType}`;
+  const site = (process.env.NEXT_PUBLIC_SITE_URL || "https://tirtonic.com").replace(/\/$/, "");
+  for (const p of claim.participants) {
+    const code = `DEMO-${p.id.slice(-6).toUpperCase()}`;
+    if (await prisma.memberVoucher.findFirst({ where: { code, source: "demo" }, select: { id: true } })) continue; // sudah dapat
+    await prisma.memberVoucher.create({
+      data: { phone: p.phone, code, label: `Potongan Rp 50.000 khusus ${produk}`, type: "amount", value: 50_000, source: "demo" },
+    });
+    await sendWa(
+      p.phone,
+      `🎉 Selamat ${p.name}, kamu mendapat voucher!\n\nTerima kasih sudah ikut demo ${produk} bareng Tirtonic. Ini hadiah untukmu:\n\n🎁 *Potongan Rp 50.000* khusus ${produk}\nKode: *${code}*\n\nTunjukkan kode ini ke kasir Tirtonic saat beli. Voucher & dashboard kamu:\n${site}/riwayat/${p.phone}/voucher`,
+    );
+  }
 }

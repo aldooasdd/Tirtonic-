@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { addDemoPhoto } from "@/app/komunitas/actions";
+import { addDemoPhoto, finishDemoPhotos } from "@/app/komunitas/actions";
 
 // Kompres di klien: sisi terpanjang 1600px, jpeg 0.75 → muat di batas body server action.
 async function toJpeg(file: File): Promise<string> {
@@ -38,15 +38,18 @@ export default function DemoPhotoUpload({ claimId, photos }: { claimId: string; 
     if (!files.length) return;
     setMsg("");
     start(async () => {
+      let ok = 0;
       for (const [i, f] of files.entries()) {
         setProgress(`${i + 1}/${files.length}`);
         try {
           const r = await addDemoPhoto(claimId, await toJpeg(f));
           if (r.error) { setMsg(r.error); break; }
+          ok++;
         } catch {
           setMsg("Foto gagal diunggah, coba lagi."); break;
         }
       }
+      if (ok) await finishDemoPhotos(claimId).catch(() => {}); // voucher peserta dirilis setelah dokumentasi masuk
       setProgress("");
       router.refresh();
     });
@@ -67,7 +70,7 @@ export default function DemoPhotoUpload({ claimId, photos }: { claimId: string; 
           </label>
         )}
       </div>
-      {!done && <p className="mt-1 text-[11px] text-amber-700">Belum upload = tidak bisa klaim / ambil produk demo berikutnya.</p>}
+      {!done && <p className="mt-1 text-[11px] text-amber-700">Upload semua foto dokumentasi sekaligus. Setelah terunggah, peserta otomatis dapat voucher Rp 50.000. Belum upload = tidak bisa klaim / ambil produk demo berikutnya.</p>}
       {done && (
         <div className="mt-2 flex gap-1.5 overflow-x-auto [scrollbar-width:none]">
           {photos.map((u) => (
