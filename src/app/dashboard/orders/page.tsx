@@ -121,9 +121,14 @@ export default async function OrdersPage({ searchParams }: { searchParams: { sta
             <div key={o.id} className={`${card} p-5`}>
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <span className="font-bold text-gray-900">{o.invoice}</span>
                     <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${BADGE[o.status] ?? ""}`}>{LABEL[o.status] ?? o.status}</span>
+                    {o.landingPage && (
+                      <span title={`Pertama masuk web lewat ${o.landingPage}${o.landingSource ? ` (dari ${o.landingSource})` : ""}`} className="max-w-[16rem] truncate rounded-full bg-sky-50 px-2 py-0.5 text-[11px] font-semibold text-sky-700 ring-1 ring-sky-200">
+                        ↪ {o.landingSource ? `${o.landingSource} · ` : ""}{o.landingPage}
+                      </span>
+                    )}
                   </div>
                   <p className="text-xs text-gray-400">{fmtDate(o.createdAt)}</p>
                 </div>

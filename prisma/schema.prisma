@@ -139,6 +139,8 @@ model Order {
   diskon      Int         @default(0) // potongan dari kupon
   kupon       String? // kode kupon yang dipakai
   voucherId   String? // MemberVoucher yang dipakai (otomatis dari nomor HP) — ditandai "used" saat LUNAS
+  landingPage   String? // halaman pertama pembeli masuk web (first-touch, cookie tt_first)
+  landingSource String? // asal kunjungan pertama: Instagram | Google | WhatsApp | Langsung | domain
   total       Int
   status      OrderStatus @default(PENDING)
   resi        String?

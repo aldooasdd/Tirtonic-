@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { createDokuPayment, checkDokuStatus } from "@/lib/doku";
 import { notifyN8N } from "@/lib/notify";
 import { computeCoupon, computeMemberVoucher } from "@/lib/coupons";
+import { readFirstTouch } from "@/lib/first-touch";
 import { trackResi } from "@/lib/tracking";
 import { ongkirConfigured, getRates, type RateOption } from "@/lib/ongkir";
 import { FREE_ONGKIR_MIN } from "@/lib/constants";
@@ -174,6 +175,7 @@ export async function createOrder(input: CheckoutInput): Promise<CreateOrderResu
       diskon,
       kupon,
       voucherId: voucher?.id ?? null,
+      ...(() => { const ft = readFirstTouch(); return { landingPage: ft.page, landingSource: ft.source }; })(),
       total,
       items: { create: lines.map(({ wasDiscounted: _w, ...l }) => l) },
     },
