@@ -52,6 +52,7 @@ export default function EventCard({ e }: { e: EventCardData }) {
             )}
           </span>
           <span className="truncate">{e.community.name}</span>
+          {e.community.logo && <span title="Komunitas terverifikasi" className="grid h-3.5 w-3.5 shrink-0 place-items-center rounded-full bg-sky-500 text-[8px] font-[800] text-white">✓</span>}
         </div>
 
         <p className="mt-1 flex items-center gap-1.5 text-sm text-neutral-600">

@@ -201,3 +201,19 @@ export async function finishDemoPhotos(claimId: string) {
   if (!photos?.[claimId]?.length) return;
   await releaseDemoVouchers(claimId);
 }
+
+/** Upload/ganti logo komunitas (syarat centang biru verifikasi). */
+export async function setCommunityLogo(_prev: FormState, formData: FormData): Promise<FormState> {
+  const communityId = currentCommunityId();
+  if (!communityId) return { error: "Sesi berakhir. Login ulang." };
+  const file = formData.get("logo");
+  if (!(file instanceof File) || file.size === 0) return { error: "Pilih file logo dulu." };
+  if (!file.type.startsWith("image/")) return { error: "File harus gambar (JPG/PNG)." };
+  if (file.size > 3_000_000) return { error: "Logo maksimal 3 MB." };
+  if (!storageConfigured) return { error: "Upload logo belum bisa (storage belum dikonfigurasi)." };
+  const logo = await uploadFile(file, "communities");
+  await prisma.community.update({ where: { id: communityId }, data: { logo } });
+  revalidatePath("/komunitas");
+  revalidatePath("/event");
+  return { ok: true };
+}

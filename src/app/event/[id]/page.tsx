@@ -190,7 +190,7 @@ export default async function EventDetail({ params }: { params: { id: string } }
                   <p className="text-[10px] font-[600] uppercase tracking-wider text-neutral-400">Diselenggarakan oleh</p>
                   <p className="flex items-center gap-1.5 truncate text-sm font-[600] text-neutral-900">
                     <span className="truncate">{e.community.name} × Tirtonic Tennis Store</span>
-                    <span className="grid h-4 w-4 shrink-0 place-items-center rounded-full bg-sky-500 text-white">{I.check}</span>
+                    {e.community.logo && <span title="Komunitas terverifikasi" className="grid h-4 w-4 shrink-0 place-items-center rounded-full bg-sky-500 text-white">{I.check}</span>}
                   </p>
                 </div>
               </div>

@@ -12,6 +12,8 @@ import { pickupToken, returnToken } from "@/lib/pickup-token";
 import SubmitButton from "@/components/SubmitButton";
 import DemoPhotoUpload from "@/components/DemoPhotoUpload";
 import DemoPhotoBadge from "@/components/DemoPhotoBadge";
+import CommunityVerify from "@/components/CommunityVerify";
+import { communityChecklist, isVerifiedCommunity } from "@/lib/community-verified";
 import { hubDemoPhotos } from "@/lib/demo-photos";
 import { EventNavLinks } from "@/components/SlidePills";
 import { AjukanSheet } from "@/components/KomunitasSheet";
@@ -99,6 +101,7 @@ export default async function KomunitasHome() {
   const next = [...active].filter((c) => phaseOf(c) !== "pending").sort((x, y) => +x.demoDate - +y.demoDate)[0];
   const options = AJUKAN_DEMO_ON ? await demoRequestOptions() : {};
 
+  const verified = isVerifiedCommunity(community);
   const glass = "ev-glass rounded-3xl";
   const fmtD = (d: Date) => d.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
   const jam = (c: { time: string; timeEnd: string }) => (c.time ? `${c.time}${c.timeEnd ? `–${c.timeEnd}` : ""}` : "");
@@ -166,9 +169,10 @@ export default async function KomunitasHome() {
                 )}
               </span>
               <span className="hidden min-w-0 leading-tight sm:block">
-                <span className="flex max-w-[10rem] items-center gap-1 truncate text-xs font-[700] text-neutral-950">{community.name}<span className="text-sky-500">✓</span></span>
+                <span className="flex max-w-[10rem] items-center gap-1 truncate text-xs font-[700] text-neutral-950">{community.name}{verified && <span title="Terverifikasi" className="text-sky-500">✓</span>}</span>
                 <span className="block max-w-[10rem] truncate text-[10px] text-neutral-500">@{community.instagram}</span>
               </span>
+              {!verified && <CommunityVerify checklist={communityChecklist(community)} />}
               <form action={logoutCommunity}>
                 <button aria-label="Logout" title="Logout" className="grid h-8 w-8 place-items-center rounded-lg text-neutral-500 transition hover:bg-red-50 hover:text-red-600">
                   <Ico d={P.logout} s={16} />
