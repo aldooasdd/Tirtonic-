@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import AvatarStack, { withPhotos } from "@/components/AvatarStack";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma, safeQuery } from "@/lib/prisma";
@@ -20,7 +21,7 @@ async function getEvent(id: string) {
         include: {
           campaign: true,
           community: { select: { name: true, logo: true, instagram: true } },
-          participants: { select: { status: true } },
+          participants: { where: { status: { not: "rejected" } }, select: { status: true, name: true, phone: true }, orderBy: { createdAt: "asc" } },
         },
       }),
     null,
@@ -57,6 +58,7 @@ export default async function EventDetail({ params }: { params: { id: string } }
   const meta = PHASE_META[phase];
   const open = e.quotaType === "open";
   const accepted = e.participants.filter((p) => p.status === "accepted").length;
+  const people = await withPhotos(e.participants);
   const sisa = Math.max(0, e.quota - accepted);
   const pct = e.quota > 0 ? Math.min(100, Math.round((accepted / e.quota) * 100)) : 0;
   const hari = e.demoDate.toLocaleDateString("id-ID", { weekday: "long" });
@@ -120,6 +122,7 @@ export default async function EventDetail({ params }: { params: { id: string } }
         </div>
         <p className="mt-3 text-[11px] text-neutral-500">Kapasitas sesi</p>
         <p className="text-[13px] font-[700] text-neutral-950">{open ? `${accepted} / ${e.quota} terisi` : `${e.quota} orang`}</p>
+        {people.length > 0 && <div className="mt-2"><AvatarStack people={people} max={6} /></div>}
       </div>
     </div>
   );

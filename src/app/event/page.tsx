@@ -3,6 +3,7 @@ import Link from "next/link";
 import { prisma, safeQuery } from "@/lib/prisma";
 import { rupiah } from "@/lib/format";
 import EventCard, { EventCardData } from "@/components/EventCard";
+import { withPhotos } from "@/components/AvatarStack";
 import { phaseOf } from "@/lib/event-phase";
 import { productsForCampaigns, demoRequestOptions, AJUKAN_DEMO_ON } from "@/lib/demo-products";
 import ProductRail from "@/components/ProductRail";
@@ -88,7 +89,7 @@ export default async function EventLanding({ searchParams }: { searchParams: { k
           include: {
             campaign: { select: { brand: true, title: true, productType: true, banner: true, location: true } },
             community: { select: { name: true, logo: true } },
-            participants: { select: { status: true } },
+            participants: { where: { status: { not: "rejected" } }, select: { status: true, name: true, phone: true }, orderBy: { createdAt: "asc" } },
           },
         }),
       [],
@@ -121,7 +122,10 @@ export default async function EventLanding({ searchParams }: { searchParams: { k
       campaign: c.campaign,
       community: c.community,
     }));
-  const nowEvents: EventCardData[] = events.filter((e) => ["ongoing", "coming_soon"].includes(phaseOf(e)));
+  const nowEvents: EventCardData[] = await Promise.all(
+    events.filter((e) => ["ongoing", "coming_soon"].includes(phaseOf(e)))
+      .map(async (e) => ({ ...e, people: await withPhotos(claims.find((c) => c.id === e.id)!.participants) })),
+  );
   const lastedEvents = events.filter((e) => phaseOf(e) === "done").reverse(); // terbaru dulu
   // Foto dokumentasi (disimpan di PC hub) untuk kartu riwayat; hub mati → pakai banner saja.
   const docPhotos = lastedEvents.length ? ((await hubDemoPhotos(lastedEvents.map((e) => e.id))) ?? {}) : {};

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { phaseOf, PHASE_META } from "@/lib/event-phase";
 import ShareLinkButton from "@/components/ShareLinkButton";
+import AvatarStack, { type Person } from "@/components/AvatarStack";
 
 export type EventCardData = {
   id: string;
@@ -14,6 +15,7 @@ export type EventCardData = {
   timeEnd: string;
   status: string;
   acceptedCount: number;
+  people?: Person[]; // peserta terdaftar (avatar)
   campaign: { brand: string; title: string; productType: string; banner: string | null; location?: string | null };
   community: { name: string; logo: string | null };
 };
@@ -78,6 +80,7 @@ export default function EventCard({ e }: { e: EventCardData }) {
             </span>
           )}
           <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] text-neutral-700">{e.campaign.brand}</span>
+          {!!e.people?.length && <AvatarStack people={e.people} />}
           {open && phase !== "done" && <span className="text-[11px] text-neutral-500">Sisa {sisa}/{e.quota}</span>}
         </div>
 

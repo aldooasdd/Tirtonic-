@@ -35,6 +35,9 @@ export async function joinEvent(_prev: JoinState, formData: FormData): Promise<J
   if (accepted >= claim.quota) return { error: "Kuota peserta sudah penuh." };
 
   await prisma.demoParticipant.create({ data: { claimId, name, phone, status: "pending" } });
+  // Pendaftar otomatis punya akun member (dashboard /riwayat/{phone}); nama hanya diisi kalau belum ada.
+  await prisma.member.upsert({ where: { phone }, create: { phone, name }, update: {} });
+  await prisma.member.updateMany({ where: { phone, name: null }, data: { name } });
   await sendWa(
     claim.community.waPhone,
     `🔔 Ada peserta baru mau join demo ${claim.campaign.brand}!\n\nNama: ${name}\nWA: ${phone}\nSesi: ${claim.demoDate.toLocaleDateString("id-ID", { day: "numeric", month: "short" })} ${claim.time}${claim.timeEnd ? `–${claim.timeEnd}` : ""}\n\nTerima/tolak di dashboard komunitas: tirtonic.com/komunitas`,
