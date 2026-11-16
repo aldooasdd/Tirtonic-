@@ -187,7 +187,7 @@ export default async function KomunitasHome() {
         {/* Sapaan */}
         <div id="ringkasan" className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
           <div>
-            <h1 className="text-2xl font-[700] tracking-tight text-neutral-950 sm:text-4xl">Halo, {community.name} 👋</h1>
+            <h1 className="text-2xl font-[700] tracking-tight text-neutral-950 sm:text-4xl">Halo, {community.name}{verified && <span title="Terverifikasi" className="ml-2 inline-grid h-6 w-6 place-items-center rounded-full bg-sky-500 align-middle text-xs font-[800] text-white sm:h-8 sm:w-8 sm:text-base">✓</span>} 👋</h1>
             <p className="mt-1 text-sm text-neutral-500">Ringkasan demo &amp; aktivitas komunitasmu di Tirtonic.</p>
           </div>
           <div className="grid grid-cols-2 gap-2 sm:flex">
