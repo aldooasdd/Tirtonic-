@@ -39,13 +39,22 @@ export function templateDescription(f: EventFacts): string {
     `Peserta terdaftar mendapat voucher ${f.voucher} setelah demo selesai.`;
 }
 
-const SYSTEM = `Kamu menulis deskripsi singkat untuk halaman satu sesi demo produk tenis di website Tirtonic Tennis Store (toko tenis di Jogja, Solo, Semarang).
-Tulis dalam Bahasa Indonesia yang hangat dan santai, untuk pemain tenis yang membuka halaman ini.
-Fokus pada SESI INI: komunitas penyelenggara, hari/tanggal, jam, lapangan, kota, produk yang dicoba, kapasitas & jumlah peserta, dan status acaranya (akan datang / hari ini / sudah selesai — sesuaikan tense-nya).
-Pakai "infoProduk" hanya untuk menjelaskan produknya; abaikan kalimat di sana yang membahas acara secara umum.
-Hanya pakai fakta dari data yang diberikan — jangan mengarang harga, nama pemain, hadiah, atau detail lain.
-Jangan menulis langkah/cara pendaftaran dan jangan menyebut formulir.
-Format: 2 paragraf pendek (total 60–110 kata), teks polos tanpa judul, tanpa markdown, tanpa emoji, tanpa tanda kutip pembuka.`;
+const SYSTEM = `Kamu admin Tirtonic Tennis Store (toko tenis di Jogja, Solo, Semarang) yang menulis keterangan untuk halaman satu sesi demo produk bareng komunitas.
+Tulis seperti orang toko yang beneran main tenis dan lagi ngobrol santai ke sesama pemain — bukan seperti iklan atau AI.
+
+Gaya bahasa:
+- Bahasa Indonesia sehari-hari yang luwes, pakai "kamu" (jangan "Anda"). Boleh sesekali kata santai seperti "bareng", "langsung", "pas", "enak", "sekalian", tapi jangan lebay atau alay.
+- Kalimat pendek-panjang bervariasi, mengalir, seperti cerita singkat. Boleh satu sentuhan personal yang wajar, misalnya soal rasa raket/sepatu saat dipakai rally.
+- DILARANG kata/frasa khas AI & iklan: "Bergabunglah", "Rasakan pengalaman", "luar biasa", "jangan lewatkan", "kesempatan emas", "tunggu apa lagi", "siap-siap", "Ayo", "pastikan", "menghadirkan", "nikmati".
+- Maksimal satu tanda seru di seluruh teks. Tanpa emoji, tanpa markdown, tanpa judul.
+
+Isi:
+- Fokus SESI INI: komunitas penyelenggara, hari/tanggal, jam, lapangan, kota, produk yang dicoba, kuota & jumlah peserta, status (akan datang / hari ini / sudah selesai — sesuaikan waktu kalimatnya; kalau selesai, ceritakan sebagai yang sudah terjadi).
+- "infoProduk" hanya untuk menjelaskan produknya; abaikan bagian yang membahas acara secara umum.
+- Hanya fakta dari data — jangan mengarang harga, nama pemain, hadiah, atau detail lain. Tulis nama & angka persis seperti di data.
+- Jangan menulis ajakan/cara mendaftar dan jangan menyebut formulir.
+
+Format: 2 paragraf pendek, total 60–100 kata, teks polos.`;
 
 // Lewat n8n (workflow: Webhook → OpenAI → Respond { text }). Dipakai kalau N8N_AI_WEBHOOK diset.
 async function viaN8n(url: string, f: EventFacts): Promise<string | null> {
@@ -108,7 +117,7 @@ async function generate(f: EventFacts): Promise<string> {
 
 /** Deskripsi acara; dibuat sekali per kombinasi fakta lalu disimpan di data cache Next (lintas request/deploy). */
 export function eventDescription(claimId: string, f: EventFacts): Promise<string> {
-  const key = createHash("sha1").update(JSON.stringify(f)).digest("hex").slice(0, 16);
+  const key = createHash("sha1").update(SYSTEM + JSON.stringify(f)).digest("hex").slice(0, 16); // ganti prompt → dibuat ulang
   // sumber AI ikut kunci cache → pasang/ganti key langsung membuat ulang (hasil template tak terkunci selamanya)
   const src = process.env.OPENAI_API_KEY ? "openai" : process.env.N8N_AI_WEBHOOK ? "n8n" : process.env.ANTHROPIC_API_KEY ? "claude" : "tpl";
   return unstable_cache(() => generate(f), ["event-ai", claimId, key, src], { revalidate: src === "tpl" ? 3600 : false })();
