@@ -4,7 +4,8 @@ import { unstable_cache } from "next/cache";
 import Anthropic from "@anthropic-ai/sdk";
 
 // Deskripsi "Tentang Demo Day" per acara (1 sesi komunitas), dibuat AI dari data acara itu saja.
-// Di-cache per isi fakta (berubah peserta/foto/fase → dibuat ulang). Tanpa ANTHROPIC_API_KEY / gagal → template.
+// Di-cache per isi fakta (berubah peserta/foto/fase → dibuat ulang).
+// Sumber AI: N8N_AI_WEBHOOK (n8n + OpenAI) → ANTHROPIC_API_KEY (Claude) → template kalau dua-duanya tak ada / gagal.
 
 export type EventFacts = {
   judulKampanye: string;
@@ -45,7 +46,26 @@ Hanya pakai fakta dari data yang diberikan — jangan mengarang harga, nama pema
 Jangan menulis langkah/cara pendaftaran dan jangan menyebut formulir.
 Format: 2 paragraf pendek (total 60–110 kata), teks polos tanpa judul, tanpa markdown, tanpa emoji, tanpa tanda kutip pembuka.`;
 
+// Lewat n8n (workflow: Webhook → OpenAI → Respond { text }). Dipakai kalau N8N_AI_WEBHOOK diset.
+async function viaN8n(url: string, f: EventFacts): Promise<string | null> {
+  try {
+    const r = await fetch(url, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ system: SYSTEM, prompt: `Data sesi demo:\n${JSON.stringify(f, null, 2)}` }),
+      signal: AbortSignal.timeout(30_000),
+    });
+    if (!r.ok) return null;
+    const j = (await r.json().catch(() => null)) as { text?: string } | null;
+    return j?.text?.trim() || null;
+  } catch {
+    return null;
+  }
+}
+
 async function generate(f: EventFacts): Promise<string> {
+  const n8n = process.env.N8N_AI_WEBHOOK;
+  if (n8n) return (await viaN8n(n8n, f)) ?? templateDescription(f);
   if (!process.env.ANTHROPIC_API_KEY) return templateDescription(f);
   try {
     const client = new Anthropic({ timeout: 30_000, maxRetries: 1 });
