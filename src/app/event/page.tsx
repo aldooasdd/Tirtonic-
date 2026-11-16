@@ -9,6 +9,8 @@ import ProductRail from "@/components/ProductRail";
 import { EventNavLinks, CityTabs } from "@/components/SlidePills";
 import KomunitasSheet, { KomunitasTrigger, AjukanTrigger, AjukanSheet } from "@/components/KomunitasSheet";
 import { currentCommunity } from "@/lib/community-auth";
+import { hubDemoPhotos } from "@/lib/demo-photos";
+import PhotoSlider from "@/components/PhotoSlider";
 
 export const dynamic = "force-dynamic"; // filter kota via ?kota=
 export const metadata: Metadata = { title: "Event Demo Produk — Tirtonic", description: "Jadwal demo produk brand tenis bareng komunitas se-wilayah. Lihat acara yang sedang & akan berlangsung, atau daftarkan komunitasmu." };
@@ -121,6 +123,8 @@ export default async function EventLanding({ searchParams }: { searchParams: { k
     }));
   const nowEvents: EventCardData[] = events.filter((e) => ["ongoing", "coming_soon"].includes(phaseOf(e)));
   const lastedEvents = events.filter((e) => phaseOf(e) === "done").reverse(); // terbaru dulu
+  // Foto dokumentasi (disimpan di PC hub) untuk kartu riwayat; hub mati → pakai banner saja.
+  const docPhotos = lastedEvents.length ? ((await hubDemoPhotos(lastedEvents.map((e) => e.id))) ?? {}) : {};
 
   // Produk yang sedang didemokan (kampanye aktif + acara terjadwal), dicocokkan brand + jenis produk.
   const demoCamps = [...nowCampaigns, ...nowEvents.map((e) => e.campaign)];
@@ -315,7 +319,11 @@ export default async function EventLanding({ searchParams }: { searchParams: { k
                     <span className="flex min-w-0 items-center gap-1.5 text-xs font-[600] text-neutral-900"><Pin /> <span className="truncate">{e.campaign.location ? `${e.campaign.location} · ` : ""}{e.court.split(/\s+/).slice(0, 3).join(" ")}</span></span>
                     <span className="shrink-0 rounded-full bg-neutral-200/80 px-2 py-0.5 text-[10px] font-[600] text-neutral-600">Selesai</span>
                   </div>
-                  <Banner c={e.campaign} badge={`${e.acceptedCount} pemain mencoba`} sub={`Tirtonic × ${e.community.name}`} />
+                  {docPhotos[e.id]?.length ? (
+                    <PhotoSlider photos={docPhotos[e.id]} brand={e.campaign.brand} badge={`${docPhotos[e.id].length} foto kegiatan`} />
+                  ) : (
+                    <Banner c={e.campaign} badge={`${e.acceptedCount} pemain mencoba`} sub={`Tirtonic × ${e.community.name}`} />
+                  )}
                   <div className="flex flex-grow flex-col justify-between p-6">
                     <div>
                       <p className="mb-1 text-xs font-[600] text-neutral-600">{e.demoDate.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}</p>
