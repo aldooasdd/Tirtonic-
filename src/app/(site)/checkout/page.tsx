@@ -41,7 +41,7 @@ export default function CheckoutPage() {
   const [lokasiOpts, setLokasiOpts] = useState<LocationOption[]>([]);
   const [lokasiBusy, setLokasiBusy] = useState(false);
   const [lokasi, setLokasi] = useState<LocationOption | null>(null);
-  const kodePos = lokasi?.label.match(/(\d{5})\s*$/)?.[1] ?? "";
+  const kodePos = lokasi?.label.match(/(\d{5})\)?\s*$/)?.[1] ?? "";
   const [rates, setRates] = useState<RateOption[] | null>(null);
   const [chosenId, setChosenId] = useState("");
   const [ratesBusy, setRatesBusy] = useState(false);
