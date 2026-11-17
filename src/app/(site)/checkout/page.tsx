@@ -345,7 +345,7 @@ export default function CheckoutPage() {
                   <span>−{rupiah(b1.total)}</span>
                 </div>
               )}
-              {b1.unpaired && <p className="text-[11px] text-amber-600">Tambah 1 barang Buy 1 Get 1 lagi supaya yang termurah gratis.</p>}
+              {b1.unpaired && <p className="text-[11px] text-amber-600">Pasangkan dengan barang Buy 1 Get 1 yang harganya berbeda supaya yang lebih murah gratis.</p>}
               {coupon && (
                 <div className="flex justify-between font-semibold text-primary">
                   <span>Potongan kupon ({coupon.code})</span>

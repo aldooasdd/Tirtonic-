@@ -349,7 +349,10 @@ export default function ProductDetail({ p, b1g1Others = [] }: { p: P; b1g1Others
 
           {b1Open && (
             <B1G1Popup
-              options={b1g1Others.filter((o) => o.id !== p.id || o.variants.some((v) => v.id !== selVariant?.id))}
+              options={b1g1Others
+                // pasangan wajib beda harga dengan barang ini
+                .map((o) => ({ ...o, variants: o.variants.filter((v) => v.harga !== priceNum) }))
+                .filter((o) => (o.variants.length > 0 || (b1g1Others.find((x) => x.id === o.id)!.variants.length === 0 && o.harga !== priceNum)) && o.id !== p.id)}
               onPick={(it) => { addToCart(it); router.push("/checkout"); }}
               onSkip={() => router.push("/checkout")}
               onClose={() => setB1Open(false)} // tutup = tetap di halaman (barang sudah masuk keranjang)
