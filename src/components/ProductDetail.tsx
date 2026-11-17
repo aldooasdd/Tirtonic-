@@ -272,10 +272,12 @@ export default function ProductDetail({ p, b1g1Others = [] }: { p: P; b1g1Others
             )}
           </div>
 
+          {!b1g1 && ( // B1G1 tidak dapat gratis ongkir
           <div className="mt-4 flex items-center gap-2 rounded-full border border-gray-200 px-4 py-2 text-xs text-gray-600">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0" aria-hidden><circle cx="12" cy="12" r="10" /><path d="M12 16v-4M12 8h.01" /></svg>
-            <span>Gratis ongkir untuk belanja min. <b className="font-[600] text-gray-900">{rupiah(FREE_ONGKIR_MIN)}</b> · bisa ambil di toko</span>
-          </div>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0" aria-hidden><circle cx="12" cy="12" r="10" /><path d="M12 16v-4M12 8h.01" /></svg>
+              <span>Gratis ongkir untuk belanja min. <b className="font-[600] text-gray-900">{rupiah(FREE_ONGKIR_MIN)}</b> · bisa ambil di toko</span>
+            </div>
+          )}
 
           {hasVar && (
             <div className="mt-6 space-y-5">
