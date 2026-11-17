@@ -17,7 +17,7 @@ export async function hubDemoPhotos(claimIds: string[]): Promise<Record<string, 
   const h = hub();
   if (!h || !claimIds.length) return h ? {} : null;
   try {
-    const r = await fetch(`${h.url}?claimIds=${encodeURIComponent(claimIds.join(","))}`, { headers: h.headers, cache: "no-store", signal: AbortSignal.timeout(8000) });
+    const r = await fetch(`${h.url}?claimIds=${encodeURIComponent(claimIds.join(","))}`, { headers: h.headers, next: { revalidate: 300 }, signal: AbortSignal.timeout(3000) } /* cache 5 mnt: PC hub lambat, jangan tahan halaman */);
     if (!r.ok) return null;
     // Hub di belakang proxy/tunnel membangun URL dari origin internal (mis. http://localhost:3000) → foto rusak di browser.
     // Paksa pakai origin hub yang dikonfigurasi (sama dengan yang dipakai upload).

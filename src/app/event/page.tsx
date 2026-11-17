@@ -130,13 +130,13 @@ export default async function EventLanding({ searchParams }: { searchParams: { k
   );
   const lastedEvents = events.filter((e) => phaseOf(e) === "done").reverse(); // terbaru dulu
   // Foto dokumentasi (disimpan di PC hub) untuk kartu riwayat; hub mati → pakai banner saja.
-  const docPhotos = lastedEvents.length ? ((await hubDemoPhotos(lastedEvents.map((e) => e.id))) ?? {}) : {};
+  const docPhotosP = lastedEvents.length ? hubDemoPhotos(lastedEvents.map((e) => e.id)) : Promise.resolve({} as Record<string, string[]>);
 
   // Produk yang sedang didemokan (kampanye aktif + acara terjadwal), dicocokkan brand + jenis produk.
   const demoCamps = [...nowCampaigns, ...nowEvents.map((e) => e.campaign)];
   const brands = Array.from(new Set(demoCamps.map((c) => c.brand)));
-  const pool = brands.length
-    ? await safeQuery(
+  const poolP = brands.length
+    ? safeQuery(
         () =>
           prisma.product.findMany({
             where: { status: "READY", OR: brands.map((b) => ({ brand: { equals: b, mode: "insensitive" as const } })) },
@@ -145,10 +145,12 @@ export default async function EventLanding({ searchParams }: { searchParams: { k
           }),
         [],
       )
-    : [];
+    : Promise.resolve([]);
+  // Foto hub, produk, & sesi komunitas diambil bersamaan (bukan berurutan).
+  const [docPhotosRaw, pool, community] = await Promise.all([docPhotosP, poolP, currentCommunity()]);
+  const docPhotos = docPhotosRaw ?? {};
   const products = productsForCampaigns(demoCamps, pool);
 
-  const community = await currentCommunity();
   const loggedIn = !!community;
   const sortedOptions = await demoRequestOptions();
   const fmtDay = (d: Date) => d.toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long" });

@@ -55,8 +55,8 @@ export function TirtonicSplash() {
     let alive = true;
     loadBall()?.then(() => {
       if (!alive) return;
-      t1 = setTimeout(() => setFade(true), 1500); // ±1,5 pantulan (1 pantul = 1 dtk)
-      t2 = setTimeout(() => setShow(false), 1750);
+      t1 = setTimeout(() => setFade(true), 1000); // 1 pantulan (1 dtk) lalu langsung ke halaman
+      t2 = setTimeout(() => setShow(false), 1200);
     });
     return () => { alive = false; clearTimeout(t1); clearTimeout(t2); };
   }, []);
