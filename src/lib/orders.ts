@@ -1,5 +1,5 @@
 import "server-only";
-import { isB1G1, b1g1Free } from "@/lib/b1g1";
+import { isB1G1, b1g1Free, b1g1OngkirQty } from "@/lib/b1g1";
 import { prisma } from "@/lib/prisma";
 import { createDokuPayment, checkDokuStatus } from "@/lib/doku";
 import { notifyN8N } from "@/lib/notify";
@@ -167,8 +167,9 @@ export async function createOrder(input: CheckoutInput): Promise<CreateOrderResu
     if (kodePos.length !== 5) return { ok: false, error: "Isi kode pos 5 digit." };
     const ship = (await shippingOptions(kodePos, lines)).find((o) => o.id === input.shippingCourier);
     if (!ship) return { ok: false, error: "Cek & pilih ongkir dulu." };
-    const free = subtotal - diskon >= FREE_ONGKIR_MIN;
-    ongkir = free ? 0 : ship.cost;
+    const mult = b1g1OngkirQty(lines); // B1G1: ongkir × total unit, tanpa gratis ongkir
+    const free = mult === 1 && subtotal - diskon >= FREE_ONGKIR_MIN;
+    ongkir = free ? 0 : ship.cost * mult;
     kurir = free ? `${ship.label} (Gratis Ongkir)` : ship.label;
   }
   const total = Math.max(0, subtotal - diskon + ongkir);

@@ -1,6 +1,6 @@
 "use client";
 
-import { b1g1Free } from "@/lib/b1g1";
+import { b1g1Free, b1g1OngkirQty } from "@/lib/b1g1";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -98,9 +98,10 @@ export default function CheckoutPage() {
   const [agreeB1, setAgreeB1] = useState(false);
   const diskon = Math.min(subtotal, b1.total + (coupon?.diskon ?? 0) + (voucher?.diskon ?? 0));
   const belanja = Math.max(0, subtotal - diskon);
-  const freeOngkir = belanja >= FREE_ONGKIR_MIN;
+  const ongkirQty = b1g1OngkirQty(items); // B1G1: ongkir × total barang, tanpa gratis ongkir
+  const freeOngkir = ongkirQty === 1 && belanja >= FREE_ONGKIR_MIN;
   const chosen = rates?.find((r) => r.id === chosenId) ?? null;
-  const ongkir = metode === "pickup" || freeOngkir ? 0 : chosen?.cost ?? 0;
+  const ongkir = metode === "pickup" || freeOngkir ? 0 : (chosen?.cost ?? 0) * ongkirQty;
   const total = belanja + ongkir;
 
   if (mounted && items.length === 0) {
@@ -221,7 +222,9 @@ export default function CheckoutPage() {
             <div className="glass-card space-y-3 rounded-2xl p-5">
               <h2 className="font-bold text-gray-900">Pengiriman</h2>
               <div className={`rounded-xl p-3 text-sm font-semibold ${freeOngkir ? "bg-primary/10 text-primary" : "bg-amber-50 text-amber-800"}`}>
-                {freeOngkir
+                {ongkirQty > 1
+                  ? `Ada barang Buy 1 Get 1: ongkir dihitung per barang (× ${ongkirQty}) dan tidak berlaku gratis ongkir.`
+                  : freeOngkir
                   ? "Selamat! Pesanan kamu dapat gratis ongkir."
                   : `Belanja ${rupiah(FREE_ONGKIR_MIN - belanja)} lagi untuk gratis ongkir (min. ${rupiah(FREE_ONGKIR_MIN)}).`}
               </div>
@@ -253,7 +256,10 @@ export default function CheckoutPage() {
                       {freeOngkir ? (
                         <span className="text-right"><s className="mr-1 text-xs text-gray-400">{rupiah(r.cost)}</s><span className="font-semibold text-primary">Gratis</span></span>
                       ) : (
-                        <span className="font-semibold text-gray-900">{rupiah(r.cost)}</span>
+                        <span className="text-right font-semibold text-gray-900">
+                          {ongkirQty > 1 && <span className="mr-1 text-xs font-normal text-gray-400">{rupiah(r.cost)} × {ongkirQty} =</span>}
+                          {rupiah(r.cost * ongkirQty)}
+                        </span>
                       )}
                     </label>
                   ))}
@@ -365,7 +371,7 @@ export default function CheckoutPage() {
                 ) : freeOngkir ? (
                   <span className="font-semibold text-primary">Gratis</span>
                 ) : (
-                  <span>{chosen ? rupiah(ongkir) : "Cek dulu"}</span>
+                  <span>{chosen ? `${ongkirQty > 1 ? `${ongkirQty} × ${rupiah(chosen.cost)} = ` : ""}${rupiah(ongkir)}` : "Cek dulu"}</span>
                 )}
               </div>
               <div className="flex justify-between pt-1 text-base font-extrabold text-gray-900">
