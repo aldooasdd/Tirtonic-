@@ -343,6 +343,7 @@ export default function ProductDetail({ p, b1g1Others = [] }: { p: P; b1g1Others
               options={b1g1Others.filter((o) => o.id !== p.id || o.variants.some((v) => v.id !== selVariant?.id))}
               onPick={(it) => { addToCart(it); router.push("/checkout"); }}
               onSkip={() => router.push("/checkout")}
+              onClose={() => setB1Open(false)} // tutup = tetap di halaman (barang sudah masuk keranjang)
             />
           )}
           <div className="mt-6 flex gap-3">

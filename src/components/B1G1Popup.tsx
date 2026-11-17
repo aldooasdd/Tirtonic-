@@ -14,10 +14,10 @@ export type B1G1Option = {
 };
 
 /** Popup liquid glass setelah "Beli Sekarang" barang B1G1: pilih 1 barang B1G1 lain (termurah gratis di checkout). */
-export default function B1G1Popup({ options, onPick, onSkip }: { options: B1G1Option[]; onPick: (item: Omit<CartItem, "key">) => void; onSkip: () => void }) {
+export default function B1G1Popup({ options, onPick, onSkip, onClose }: { options: B1G1Option[]; onPick: (item: Omit<CartItem, "key">) => void; onSkip: () => void; onClose: () => void }) {
   const [sel, setSel] = useState<Record<string, string>>({});
   return (
-    <div className="fixed inset-0 z-[70] grid place-items-end bg-black/30 backdrop-blur-sm sm:place-items-center sm:p-6" onClick={onSkip}>
+    <div className="fixed inset-0 z-[70] grid place-items-end bg-black/30 backdrop-blur-sm sm:place-items-center sm:p-6" onClick={onClose}>
       <div className="sheet-in max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-t-3xl border border-white/60 bg-white/75 p-5 pb-8 shadow-2xl backdrop-blur-2xl sm:rounded-3xl sm:pb-5" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-start justify-between gap-3">
           <div>
@@ -25,7 +25,7 @@ export default function B1G1Popup({ options, onPick, onSkip }: { options: B1G1Op
             <h3 className="mt-2 text-lg font-[700] text-neutral-950">Pilih 1 barang lagi, gratis!</h3>
             <p className="mt-0.5 text-xs text-neutral-600">Harga yang lebih murah dari tiap pasang otomatis dipotong di checkout. Promo ini tidak bisa digabung kupon/voucher.</p>
           </div>
-          <button type="button" onClick={onSkip} aria-label="Tutup" className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-white/80 text-neutral-600 hover:bg-white">✕</button>
+          <button type="button" onClick={onClose} aria-label="Tutup" className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-white/80 text-neutral-600 hover:bg-white">✕</button>
         </div>
 
         <div className="mt-4 space-y-2.5">
