@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma, safeQuery } from "@/lib/prisma";
 import { rupiah } from "@/lib/format";
-import { checkDokuStatus } from "@/lib/doku";
+import { checkPaymentStatus } from "@/lib/payment";
 import { markPreorderDpPaid, markPreorderLunas } from "@/lib/preorder";
 
 export const dynamic = "force-dynamic";
@@ -25,7 +25,7 @@ export default async function PreorderOrderPage({ params }: { params: { id: stri
   if (o.status === "PENDING_DP" || o.status === "WAITING_LUNAS") {
     const inv = o.status === "WAITING_LUNAS" ? o.invoiceLunas : o.invoice;
     if (inv) {
-      const st = await checkDokuStatus(inv);
+      const st = await checkPaymentStatus(inv);
       if (st === "SUCCESS" || st === "PAID") {
         if (o.status === "PENDING_DP") await markPreorderDpPaid(o.id);
         else if (o.invoiceLunas) await markPreorderLunas(o.invoiceLunas);

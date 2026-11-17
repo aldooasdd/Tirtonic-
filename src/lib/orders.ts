@@ -1,7 +1,7 @@
 import "server-only";
 import { isB1G1, b1g1Free, b1g1OngkirQty } from "@/lib/b1g1";
 import { prisma } from "@/lib/prisma";
-import { createDokuPayment, checkDokuStatus } from "@/lib/doku";
+import { createPayment, checkPaymentStatus, paymentLabel } from "@/lib/payment";
 import { notifyN8N } from "@/lib/notify";
 import { sendWa } from "@/lib/wa";
 import { computeCoupon, computeMemberVoucher } from "@/lib/coupons";
@@ -202,7 +202,7 @@ export async function createOrder(input: CheckoutInput): Promise<CreateOrderResu
 
   // Kalau DOKU sudah dikonfigurasi → dapatkan URL halaman bayar. Kalau belum → null
   // (order tetap PENDING, bisa dikonfirmasi manual oleh admin).
-  const paymentUrl = await createDokuPayment({
+  const paymentUrl = await createPayment({
     id: order.id,
     invoice: order.invoice,
     total: order.total,
@@ -285,8 +285,8 @@ export async function expirePendingOrders(): Promise<void> {
   try {
     const expired = await prisma.order.findMany({ where: { status: "PENDING", createdAt: { lt: cutoff } }, select: { id: true, invoice: true } });
     for (const o of expired) {
-      const st = await checkDokuStatus(o.invoice);
-      if (st === "SUCCESS" || st === "PAID") await markOrderPaid(o.id, { metodeBayar: "DOKU" });
+      const st = await checkPaymentStatus(o.invoice);
+      if (st === "SUCCESS" || st === "PAID") await markOrderPaid(o.id, { metodeBayar: paymentLabel() });
       else await prisma.order.update({ where: { id: o.id }, data: { status: "CANCELLED" } });
     }
   } catch {

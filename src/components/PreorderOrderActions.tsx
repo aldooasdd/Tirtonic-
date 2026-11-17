@@ -99,7 +99,7 @@ export default function PreorderOrderActions({ id, status, defaultKekurangan, ar
     return (
       <div className="flex flex-wrap items-center gap-2">
         <button
-          onClick={() => { if (confirm("Tandai pembayaran sudah diterima? (fallback kalau webhook DOKU tak masuk)")) run(() => adminPreorderMarkPaid(id)); }}
+          onClick={() => { if (confirm("Tandai pembayaran sudah diterima? (fallback kalau notifikasi pembayaran tak masuk)")) run(() => adminPreorderMarkPaid(id)); }}
           disabled={pending}
           className="rounded-md border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100 disabled:opacity-50"
         >
@@ -114,7 +114,7 @@ export default function PreorderOrderActions({ id, status, defaultKekurangan, ar
     return (
       <div className="flex flex-wrap items-center gap-2">
         <button
-          onClick={() => { if (confirm("Tandai pelunasan sudah diterima? (fallback kalau webhook DOKU tak masuk). Customer dapat WA konfirmasi lunas.")) run(() => adminPreorderMarkLunas(id)); }}
+          onClick={() => { if (confirm("Tandai pelunasan sudah diterima? (fallback kalau notifikasi pembayaran tak masuk). Customer dapat WA konfirmasi lunas.")) run(() => adminPreorderMarkLunas(id)); }}
           disabled={pending}
           className="rounded-md border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100 disabled:opacity-50"
         >

@@ -1,10 +1,5 @@
-import { prisma } from "@/lib/prisma";
 import { verifyDokuNotification, dokuConfigured } from "@/lib/doku";
-import { markOrderPaid } from "@/lib/orders";
-import { markPreorderDpPaid, markPreorderLunas } from "@/lib/preorder";
-import { sendWa } from "@/lib/wa";
-
-const ADMIN_WA = "6285163215511"; // sama dgn nomor admin di lib/format.ts
+import { settleInvoice } from "@/lib/settle-payment";
 
 export const dynamic = "force-dynamic";
 
@@ -37,25 +32,6 @@ export async function POST(req: Request) {
   }
 
   const ref = String(transaction.original_request_id ?? transaction.id ?? "") || undefined;
-
-  const found = await prisma.order.findUnique({ where: { invoice } });
-  if (found) {
-    await markOrderPaid(found.id, {
-      metodeBayar: String(service.id ?? service.payment_method_type ?? "") || undefined,
-      paymentRef: ref,
-    });
-    return Response.json(ACK);
-  }
-
-  // Pre-order: invoice bisa untuk DP (invoice) atau pelunasan (invoiceLunas).
-  const poDp = await prisma.preorderOrder.findUnique({ where: { invoice }, select: { id: true } });
-  if (poDp) { await markPreorderDpPaid(poDp.id, ref); return Response.json(ACK); }
-  const poLunas = await prisma.preorderOrder.findUnique({ where: { invoiceLunas: invoice }, select: { id: true } });
-  if (poLunas) { await markPreorderLunas(invoice, ref); return Response.json(ACK); }
-
-  // Lunas tapi invoice tak dikenal → jangan diam-diam hilang: kabari admin.
-  console.error("DOKU notify: invoice tidak ditemukan", invoice, raw);
-  const amount = Number(order.amount ?? 0);
-  await sendWa(ADMIN_WA, `⚠️ Pembayaran DOKU LUNAS tapi pesanan tidak ada di web.\nInvoice: ${invoice}${amount ? `\nNominal: Rp ${amount.toLocaleString("id-ID")}` : ""}\nCek DOKU dashboard & hubungi customer.`).catch(() => false);
+  await settleInvoice(invoice, { gateway: "DOKU", metode: String(service.id ?? service.payment_method_type ?? ""), ref, amount: Number(order.amount ?? 0) });
   return Response.json(ACK);
 }

@@ -136,7 +136,7 @@ export default function PreorderCheckout({ productId, harga, variants = [], bonu
       <button type="submit" disabled={busy} className="btn-pill w-full bg-primary hover:bg-primaryDark disabled:opacity-60">
         {busy ? "Memproses…" : `${plan === "lunas" ? "Bayar Lunas" : "Bayar DP"} ${rupiah(Math.min(dp, total))}`}
       </button>
-      <p className="text-center text-xs text-gray-400">Pembayaran aman via DOKU. Konfirmasi & info pelunasan dikirim lewat WhatsApp.</p>
+      <p className="text-center text-xs text-gray-400">Pembayaran aman via Midtrans. Konfirmasi & info pelunasan dikirim lewat WhatsApp.</p>
     </form>
   );
 }

@@ -1,6 +1,6 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
-import { createDokuPayment, checkDokuStatus } from "@/lib/doku";
+import { createPayment, checkPaymentStatus, paymentLabel } from "@/lib/payment";
 import { sendWa } from "@/lib/wa";
 import { notifyN8N } from "@/lib/notify";
 import { normalizePhone } from "@/lib/string-finder/phone";
@@ -171,7 +171,7 @@ export async function createPreorder(input: PreorderInput): Promise<CreatePreord
     },
   });
 
-  const paymentUrl = await createDokuPayment({
+  const paymentUrl = await createPayment({
     id: order.id, invoice: order.invoice, total: dp,
     nama, email, telepon,
     callbackPath: `/preorder/order/${order.id}`, dueMinutes: PO_DUE_MIN,
@@ -210,7 +210,7 @@ export async function confirmPreorderReady(id: string, kekurangan: number): Prom
 
   const invoiceLunas = genInvoice("-LN");
   const batasPelunasan = new Date(Date.now() + LUNAS_DAYS * 86_400_000);
-  const payUrl = await createDokuPayment({
+  const payUrl = await createPayment({
     id: o.id, invoice: invoiceLunas, total: sisa,
     nama: o.nama, email: o.email, telepon: o.telepon,
     callbackPath: `/preorder/order/${o.id}`, dueMinutes: LUNAS_DUE_MIN,
@@ -272,7 +272,7 @@ export async function markPreorderShipped(id: string, resi: string, kurir?: stri
       id: updated.id, invoice: updated.invoice, nama: updated.nama, email: updated.email, telepon: updated.telepon,
       alamat: updated.alamat, kota: updated.kota, provinsi: updated.provinsi, kodePos: updated.kodePos,
       kurir: noKurir ?? "", ongkir: 0, subtotal: updated.total, diskon: 0, kupon: null,
-      total: updated.total, status: updated.status, resi: noResi, metodeBayar: "DOKU", catatan: updated.catatan,
+      total: updated.total, status: updated.status, resi: noResi, metodeBayar: paymentLabel(), catatan: updated.catatan,
       items: [{ nama: updated.productNama, varian: updated.varian, harga: updated.harga, qty: updated.qty }],
     }, { orderUrl: linkPesanan(updated.id) });
   }
@@ -299,7 +299,7 @@ export async function refreshDpLink(id: string): Promise<{ ok: boolean; url?: st
   if (!o) return { ok: false, error: "Pesanan tidak ditemukan." };
   if (o.status !== "PENDING_DP") return { ok: false, error: "Pesanan ini sudah dibayar / tidak menunggu pembayaran." };
   const invoice = genInvoice(); // invoice DOKU harus unik tiap request
-  const url = await createDokuPayment({
+  const url = await createPayment({
     id: o.id, invoice, total: o.dp,
     nama: o.nama, email: o.email, telepon: o.telepon,
     callbackPath: `/preorder/order/${o.id}`, dueMinutes: PO_DUE_MIN,
@@ -317,7 +317,7 @@ export async function refreshPelunasanLink(id: string): Promise<{ ok: boolean; u
   if (sisa <= 0) return { ok: false, error: "Tidak ada sisa pembayaran." };
 
   const invoiceLunas = genInvoice("-LN"); // invoice DOKU harus unik tiap request
-  const url = await createDokuPayment({
+  const url = await createPayment({
     id: o.id, invoice: invoiceLunas, total: sisa,
     nama: o.nama, email: o.email, telepon: o.telepon,
     callbackPath: `/preorder/order/${o.id}`, dueMinutes: LUNAS_DUE_MIN,
@@ -340,7 +340,7 @@ export async function runPreorderCron(): Promise<{ paid: number; reminded: numbe
     select: { id: true, invoice: true },
   });
   for (const o of pendingDp) {
-    const st = await checkDokuStatus(o.invoice);
+    const st = await checkPaymentStatus(o.invoice);
     if (st === "SUCCESS" || st === "PAID") { await markPreorderDpPaid(o.id); paid++; }
   }
   // Menunggu pelunasan → cek invoiceLunas.
@@ -349,7 +349,7 @@ export async function runPreorderCron(): Promise<{ paid: number; reminded: numbe
     select: { invoiceLunas: true },
   });
   for (const o of waiting) {
-    const st = await checkDokuStatus(o.invoiceLunas!);
+    const st = await checkPaymentStatus(o.invoiceLunas!);
     if (st === "SUCCESS" || st === "PAID") { await markPreorderLunas(o.invoiceLunas!); paid++; }
   }
 

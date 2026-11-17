@@ -105,7 +105,7 @@ export default function ReserveModal({ productId, harga, dpBenefits, lunasBenefi
         Reserve Now
       </button>
       {err && !open && <p className="mt-2 text-center text-sm text-red-600">{err}</p>}
-      <p className="mt-2 text-center text-xs text-gray-400">Pembayaran aman via DOKU. Langsung checkout, tanpa keranjang.</p>
+      <p className="mt-2 text-center text-xs text-gray-400">Pembayaran aman via Midtrans. Langsung checkout, tanpa keranjang.</p>
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
