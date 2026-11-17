@@ -26,7 +26,8 @@ async function locationId(postal: string): Promise<string | null> {
   return id;
 }
 
-const isLocId = (x: string) => /^(village|district|city)_\d+$/.test(x);
+// Id lokasi dari searchLocations dikirim dengan awalan "loc:" (format id Binderbyte tak diasumsikan).
+const LOC = "loc:";
 
 export type LocationOption = { id: string; label: string };
 const searchCache = new Map<string, LocationOption[]>();
@@ -42,7 +43,7 @@ export async function searchLocations(q: string): Promise<LocationOption[]> {
     const out: LocationOption[] = (Array.isArray(json?.data) ? json.data : [])
       .filter((d: { id?: unknown; label?: unknown }) => d?.id && d?.label)
       .slice(0, 12)
-      .map((d: { id: unknown; label: unknown }) => ({ id: String(d.id), label: String(d.label) }));
+      .map((d: { id: unknown; label: unknown }) => ({ id: LOC + String(d.id), label: String(d.label) }));
     // ponytail: cache per proses, tanpa batas — istilah pencarian sedikit; batasi kalau memori naik.
     searchCache.set(term, out);
     return out;
@@ -51,13 +52,14 @@ export async function searchLocations(q: string): Promise<LocationOption[]> {
   }
 }
 
-/** destination: id lokasi Binderbyte (mis. "village_17602") atau kode pos 5 digit. */
+/** destination: "loc:<id lokasi Binderbyte>" (hasil searchLocations) atau kode pos 5 digit. */
 export async function getRates(destinationInput: string, items: RateItem[]): Promise<RateOption[]> {
   const raw = destinationInput.trim();
-  const dest = isLocId(raw) ? raw : raw.replace(/\D/g, "");
-  if (!KEY || (!isLocId(dest) && dest.length !== 5)) return [];
+  const locId = raw.startsWith(LOC) ? raw.slice(LOC.length) : null;
+  const postal = raw.replace(/\D/g, "");
+  if (!KEY || (!locId && postal.length !== 5)) return [];
   try {
-    const [origin, destination] = await Promise.all([locationId(ORIGIN_POSTAL), isLocId(dest) ? dest : locationId(dest)]);
+    const [origin, destination] = await Promise.all([locationId(ORIGIN_POSTAL), locId ?? locationId(postal)]);
     if (!origin || !destination) return [];
     const grams = items.reduce((s, i) => s + Math.max(1, i.weight) * Math.max(1, i.quantity), 0);
     const kg = Math.max(1, Math.ceil(grams / 1000)); // kurir bulatkan ke atas per kg
