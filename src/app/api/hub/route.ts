@@ -224,7 +224,7 @@ async function importProduct(p: ImportProduct): Promise<{ ok: true; id: string; 
     brand: p.brand?.trim() || null,
     kategori: kat,
     harga,
-    berat: p.weightGram && p.weightGram > 0 ? Math.round(p.weightGram) : 500,
+    berat: kat === "Sepatu Tenis" ? 2000 : p.weightGram && p.weightGram > 0 ? Math.round(p.weightGram) : 500, // sepatu selalu 2 kg
     deskripsi: p.description ? htmlToText(p.description) || null : null,
     // ponytail: foto di-hotlink dari CDN marketplace (tak di-upload ulang → hemat egress Supabase).
     // Kalau CDN mulai menolak/kedaluwarsa, re-host via uploadFromUrl.
@@ -273,7 +273,8 @@ type WeightRow = { ref: string; names: string[]; gram: number };
 
 /** Cocokkan per sourceRef dulu, lalu per nama (produk dibuat manual). Hanya tulis yang beda. */
 async function syncWeights(rows: WeightRow[]) {
-  const ps = await prisma.product.findMany({ select: { id: true, nama: true, sourceRef: true, berat: true } });
+  // Sepatu dikecualikan: berat tetap 2 kg per produk (aturan toko), tidak ikut berat marketplace.
+  const ps = await prisma.product.findMany({ where: { kategori: { not: "Sepatu Tenis" } }, select: { id: true, nama: true, sourceRef: true, berat: true } });
   const byRef = new Map(ps.filter((p) => p.sourceRef).map((p) => [p.sourceRef!, p]));
   const byName = new Map(ps.map((p) => [nameKey(p.nama), p]));
   const target = new Map<string, number>(); // productId → gram
