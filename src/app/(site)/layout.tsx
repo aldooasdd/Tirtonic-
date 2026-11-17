@@ -1,6 +1,7 @@
 import Navbar from "@/components/Navbar";
 import { ShopCartProvider } from "@/components/ShopCartProvider";
 import FloatingWhatsApp from "@/components/FloatingWhatsApp";
+import { TirtonicLoaderWarmup } from "@/components/TirtonicLoader";
 
 export default function SiteLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -10,6 +11,7 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
           clearance lives in the footer (kept black) so no white strip shows below it. */}
       <main className="sm:pt-20">{children}</main>
       <FloatingWhatsApp />
+      <TirtonicLoaderWarmup />
     </ShopCartProvider>
   );
 }

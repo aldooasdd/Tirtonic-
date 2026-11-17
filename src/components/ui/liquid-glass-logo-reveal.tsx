@@ -257,6 +257,11 @@ function loadLogo(logo: string) {
   return job
 }
 
+/** Siapkan tekstur + SDF logo lebih dulu (mis. saat idle) supaya reveal langsung main saat dibutuhkan. */
+export function preloadGlassLogo(logo: string) {
+  return loadLogo(logo).catch(() => undefined)
+}
+
 /* ------------------------------------------------------------------ *
  * Shader
  * ------------------------------------------------------------------ */
