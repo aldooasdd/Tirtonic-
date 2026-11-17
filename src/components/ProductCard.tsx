@@ -14,7 +14,7 @@ export type ProductCardData = {
   varian?: { label: string; sold: boolean }[]; // chip varian di panel hover (grid shop)
 };
 
-export default function ProductCard({ p, thinPrice = false, hoverExpand = false }: { p: ProductCardData; thinPrice?: boolean; hoverExpand?: boolean }) {
+export default function ProductCard({ p, thinPrice = false, hoverExpand = false, badge }: { p: ProductCardData; thinPrice?: boolean; hoverExpand?: boolean; badge?: string }) {
   const href = `/product/${p.id}`;
 
   return (
@@ -35,6 +35,7 @@ export default function ProductCard({ p, thinPrice = false, hoverExpand = false 
             <Image src={p.gambar[1]} alt="" fill sizes="(max-width: 640px) 50vw, 240px" className="object-cover opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
           )}
         </Link>
+        {badge && <span className="pointer-events-none absolute left-2 top-2 rounded-full bg-neutral-950/85 px-2.5 py-1 text-[10px] font-[700] text-white backdrop-blur">{badge}</span>}
       </div>
 
       <Link href={href} className="block p-3">

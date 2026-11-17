@@ -245,7 +245,7 @@ function EventPromo({ products, title }: { products: ProductCardData[]; title?: 
   );
 }
 
-function BestDeal({ products, title = "Best Deal", href = "/shop?deal=1" }: { products: ProductCardData[]; title?: string; href?: string }) {
+function BestDeal({ products, title = "Best Deal", href = "/shop?deal=1", badge }: { products: ProductCardData[]; title?: string; href?: string; badge?: string }) {
   if (products.length === 0) return null;
   return (
     <section className="mx-auto max-w-site px-4 lg:px-6 py-2">
@@ -261,7 +261,7 @@ function BestDeal({ products, title = "Best Deal", href = "/shop?deal=1" }: { pr
       <div className="snap-x-carousel flex gap-4 overflow-x-auto pb-2">
         {products.map((p) => (
           <div key={p.id} className="snap-item w-[200px] shrink-0 sm:w-[220px]">
-            <ProductCard p={p} thinPrice />
+            <ProductCard p={p} thinPrice badge={badge} />
           </div>
         ))}
       </div>
@@ -432,7 +432,7 @@ export default async function HomePage() {
       </div>
       <PreorderBanners products={preorders} />
       <EventPromo products={eventCards} title={eventItems[0]?.eventNama} />
-      <BestDeal products={b1g1Deals} title="Buy 1 Get 1" href="/shop?b1g1=1" />
+      <BestDeal products={b1g1Deals} title="Buy 1 Get 1" href="/shop?b1g1=1" badge="Stok akhir" />
       <BrandPopular brands={brands.map((b) => ({ id: b.id, nama: b.nama, foto: b.foto }))} />
       <BestDeal products={bestDeals} />
       <NewArrival products={arrivals} />
