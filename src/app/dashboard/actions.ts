@@ -79,6 +79,7 @@ function parseData(formData: FormData) {
     berat: toInt(formData.get("berat")) || 500, // gram; default 500 utk hitung ongkir
     diskonPersen,
     hargaDiskon: applyPct(harga, diskonPersen), // no-variant products use this directly
+    varianLabel: ["Warna", "Ukuran", "Type"].includes(String(formData.get("varianLabel"))) ? String(formData.get("varianLabel")) : null,
     brand: ((formData.get("brand") as string) || "").trim() || null,
     deskripsi: ((formData.get("deskripsi") as string) || "").trim() || null,
     ukuran: formData.getAll("ukuran").map(String),

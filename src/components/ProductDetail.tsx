@@ -19,6 +19,7 @@ type P = {
   brand: string | null;
   harga: number;
   hargaDiskon?: number | null;
+  varianLabel?: string | null;
   deskripsi: string | null;
   gambar: string[];
   ukuran: string[];
@@ -269,7 +270,7 @@ export default function ProductDetail({ p, b1g1Others = [] }: { p: P; b1g1Others
             <div className="mt-6 space-y-5">
               <div>
                 <p className="mb-2.5 text-sm text-gray-500">
-                  {!hasSizeAxis && /sepatu/i.test(p.kategori) ? "Pilih ukuran" : "Pilih warna"}: <span className="text-gray-900">{color}</span>
+                  {p.varianLabel ? `Pilih ${p.varianLabel.toLowerCase()}` : !hasSizeAxis && /sepatu/i.test(p.kategori) ? "Pilih ukuran" : "Pilih warna"}: <span className="text-gray-900">{color}</span>
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {colors.map((c) => {

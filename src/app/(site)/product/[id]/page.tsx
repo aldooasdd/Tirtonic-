@@ -63,6 +63,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
           brand: p.brand,
           harga: p.harga,
           hargaDiskon: p.hargaDiskon,
+          varianLabel: p.varianLabel,
           deskripsi: p.deskripsi,
           gambar: p.gambar,
           ukuran: p.ukuran,

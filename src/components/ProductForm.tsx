@@ -22,6 +22,7 @@ type ProductInput = {
   brand: string | null;
   harga: number;
   diskonPersen?: number;
+  varianLabel?: string | null;
   berat?: number;
   deskripsi: string | null;
   ukuran: string[];
@@ -89,8 +90,10 @@ export default function ProductForm({
   };
   // Jenis varian (satu pilihan untuk semua baris). Disimpan tetap di kolom warna/ukuran:
   // varian 1 → kolom warna (isinya bisa ukuran, mis. sepatu), varian 2 → kolom ukuran (opsional).
-  const [axis1, setAxis1] = useState<"Warna" | "Ukuran">(
-    !initVariants.some((v) => v.ukuran) && (/sepatu/i.test(product?.kategori || "") || (initVariants.length > 0 && initVariants.every((v) => /^\d+([.,]\d+)?$/.test(v.warna.trim())))) ? "Ukuran" : "Warna",
+  type Axis = "Warna" | "Ukuran" | "Type";
+  const [axis1, setAxis1] = useState<Axis>(
+    (["Warna", "Ukuran", "Type"].includes(product?.varianLabel ?? "") ? (product!.varianLabel as Axis) : null) ??
+    (!initVariants.some((v) => v.ukuran) && (/sepatu/i.test(product?.kategori || "") || (initVariants.length > 0 && initVariants.every((v) => /^\d+([.,]\d+)?$/.test(v.warna.trim())))) ? "Ukuran" : "Warna"),
   );
   const [axis2On, setAxis2On] = useState(initVariants.some((v) => v.ukuran));
   const turnAxis2 = (on: boolean) => {
@@ -314,12 +317,14 @@ export default function ProductForm({
               <div className="flex flex-wrap items-end gap-3 rounded-lg border border-gray-200 bg-white p-3">
                 <div>
                   <label className="label">Varian 1</label>
-                  <select value={axis1} onChange={(e) => { const v = e.target.value as "Warna" | "Ukuran"; setAxis1(v); if (v === "Ukuran") turnAxis2(false); }} className="field">
+                  <select value={axis1} onChange={(e) => { const v = e.target.value as Axis; setAxis1(v); if (v === "Ukuran") turnAxis2(false); }} className="field">
                     <option value="Warna">Warna</option>
                     <option value="Ukuran">Ukuran</option>
+                    <option value="Type">Type</option>
                   </select>
+                  <input type="hidden" name="varianLabel" value={axis1} />
                 </div>
-                {axis1 === "Warna" && (
+                {axis1 !== "Ukuran" && (
                   <div>
                     <label className="label">Varian 2</label>
                     <select value={axis2On ? "on" : "off"} onChange={(e) => turnAxis2(e.target.value === "on")} className="field">
@@ -335,7 +340,7 @@ export default function ProductForm({
                   <div className="grid gap-2 sm:grid-cols-5">
                     <div>
                       <label className="label">{axis1} *</label>
-                      <input name="v_warna" value={v.warna} onChange={(e) => setVariant(i, "warna", e.target.value)} placeholder={axis1 === "Ukuran" ? "42" : "Biru"} className="field" />
+                      <input name="v_warna" value={v.warna} onChange={(e) => setVariant(i, "warna", e.target.value)} placeholder={axis1 === "Ukuran" ? "42" : axis1 === "Type" ? "100 sq in / 300g" : "Biru"} className="field" />
                     </div>
                     {axis2On ? (
                       <div>
