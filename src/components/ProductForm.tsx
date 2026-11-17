@@ -287,11 +287,12 @@ export default function ProductForm({
                     className="field"
                   />
                 </div>
-                <button type="button" onClick={applyBulkHarga} className="btn-green shrink-0">
+                <button type="button" onClick={applyBulkHarga} className="btn-green h-[46px] shrink-0 py-0">
                   Terapkan ke semua
                 </button>
               </div>
-              <div className="flex flex-wrap items-end gap-2 rounded-lg bg-red-50 p-3">
+              <div className="rounded-lg bg-red-50 p-3">
+              <div className="flex flex-wrap items-end gap-2">
                 <div className="flex-1">
                   <label className="label">Set diskon semua varian (%)</label>
                   <input
@@ -303,11 +304,12 @@ export default function ProductForm({
                     placeholder="mis. 20 · kosongkan = hapus diskon"
                     className="field"
                   />
-                  <p className="mt-1 text-xs text-gray-400">50% ke atas otomatis jadi promo Buy 1 Get 1 (harga normal).</p>
                 </div>
-                <button type="button" onClick={applyBulkDiskon} className="btn-green shrink-0">
+                <button type="button" onClick={applyBulkDiskon} className="btn-green h-[46px] shrink-0 py-0">
                   Terapkan ke semua
                 </button>
+              </div>
+              <p className="mt-1 text-xs text-gray-400">50% ke atas otomatis jadi promo Buy 1 Get 1 (harga normal).</p>
               </div>
               <div className="flex flex-wrap items-end gap-3 rounded-lg border border-gray-200 bg-white p-3">
                 <div>
