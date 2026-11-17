@@ -167,7 +167,8 @@ export async function createOrder(input: CheckoutInput): Promise<CreateOrderResu
     if (kodePos.length !== 5) return { ok: false, error: "Isi kode pos 5 digit." };
     const ship = (await shippingOptions(kodePos, lines)).find((o) => o.id === input.shippingCourier);
     if (!ship) return { ok: false, error: "Cek & pilih ongkir dulu." };
-    const mult = b1g1OngkirQty(lines); // B1G1: ongkir × jumlah unit B1G1, tanpa gratis ongkir
+    // B1G1: tanpa gratis ongkir; ongkir × jumlah unit B1G1 hanya untuk tarif flat (tarif kurir sudah per total berat).
+    const mult = ship.id.startsWith("flat::") ? b1g1OngkirQty(lines) : 1;
     const free = !lines.some((l) => l.b1g1) && subtotal - diskon >= FREE_ONGKIR_MIN;
     ongkir = free ? 0 : ship.cost * mult;
     kurir = free ? `${ship.label} (Gratis Ongkir)` : ship.label;

@@ -98,7 +98,9 @@ export default function CheckoutPage() {
   const [agreeB1, setAgreeB1] = useState(false);
   const diskon = Math.min(subtotal, b1.total + (coupon?.diskon ?? 0) + (voucher?.diskon ?? 0));
   const belanja = Math.max(0, subtotal - diskon);
-  const ongkirQty = b1g1OngkirQty(items); // B1G1: ongkir × jumlah barang B1G1, tanpa gratis ongkir
+  // B1G1: tanpa gratis ongkir; ongkir × jumlah barang B1G1 hanya untuk tarif flat (tarif kurir sudah dihitung dari total berat).
+  const flatRates = !!rates?.length && rates.every((r) => r.id.startsWith("flat::"));
+  const ongkirQty = flatRates ? b1g1OngkirQty(items) : 1;
   const freeOngkir = !hasB1 && belanja >= FREE_ONGKIR_MIN;
   const chosen = rates?.find((r) => r.id === chosenId) ?? null;
   const ongkir = metode === "pickup" || freeOngkir ? 0 : (chosen?.cost ?? 0) * ongkirQty;
@@ -223,7 +225,7 @@ export default function CheckoutPage() {
               <h2 className="font-bold text-gray-900">Pengiriman</h2>
               <div className={`rounded-xl p-3 text-sm font-semibold ${freeOngkir ? "bg-primary/10 text-primary" : "bg-amber-50 text-amber-800"}`}>
                 {hasB1
-                  ? `Ada barang Buy 1 Get 1: ongkir dihitung per barang B1G1 (× ${ongkirQty}) dan tidak berlaku gratis ongkir.`
+                  ? "Ada barang Buy 1 Get 1: ongkir dihitung per barang sesuai berat dan tidak berlaku gratis ongkir."
                   : freeOngkir
                   ? "Selamat! Pesanan kamu dapat gratis ongkir."
                   : `Belanja ${rupiah(FREE_ONGKIR_MIN - belanja)} lagi untuk gratis ongkir (min. ${rupiah(FREE_ONGKIR_MIN)}).`}
