@@ -265,7 +265,7 @@ export default function CheckoutPage() {
             <div id="ketentuan-b1g1" className={`glass-card scroll-mt-24 rounded-2xl p-5 text-xs leading-relaxed text-gray-500 backdrop-blur-md transition ${error && !agreeB1 ? "ring-2 ring-red-400" : "ring-1 ring-black/[0.04]"}`}>
               <p className="mb-1.5 text-sm font-[600] text-gray-700">Ketentuan Produk Stok Akhir</p>
               <ol className="list-decimal space-y-1 pl-4">
-                <li>Produk Buy 1 Get 1 merupakan stok akhir dan dijual dalam kondisi apa adanya (as is).</li>
+                <li>Produk Buy 1 Get 1 merupakan stok akhir dan dijual dalam kondisi apa adanya.</li>
                 <li>Produk dapat memiliki ketidaksempurnaan kosmetik, antara lain yellowing, noda ringan, bekas lem, goresan halus, atau kotak rusak, yang tidak memengaruhi fungsi produk.</li>
                 <li>Produk tidak dapat ditukar, dikembalikan, atau di-refund dengan alasan kondisi kosmetik, ukuran, maupun perubahan keputusan.</li>
                 <li>Jika terdapat kerusakan yang membuat produk tidak dapat digunakan (misalnya sol lepas atau jahitan robek) dan diketahui saat produk diterima, silakan hubungi kami maksimal 1×24 jam setelah barang diterima dengan menyertakan video unboxing.</li>
