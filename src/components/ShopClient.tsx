@@ -136,6 +136,17 @@ export default function ShopClient({
           </aside>
 
           <div className="flex-1">
+            {sp.get("b1g1") && (
+              <div className="mb-6 rounded-3xl border border-white/70 bg-white/55 p-5 text-sm leading-relaxed text-gray-700 shadow-[0_8px_30px_rgba(0,0,0,0.06),inset_0_1px_0_rgba(255,255,255,0.8)] backdrop-blur-xl backdrop-saturate-150">
+                <p className="mb-1.5 font-[700] text-gray-950">Kondisi Stok Akhir</p>
+                <p>
+                  Produk ini merupakan stok akhir dan mungkin memiliki ketidaksempurnaan kosmetik, seperti <b className="font-[700] text-gray-950">yellowing pada sol atau midsole</b>, noda ringan, bekas lem, atau kotak yang tidak sempurna. Kondisi ini <b className="font-[700] text-gray-950">tidak memengaruhi fungsi dan kenyamanan</b> sepatu saat digunakan.
+                </p>
+                <p className="mt-2">
+                  Produk promo Buy 1 Get 1 <b className="font-[700] text-gray-950">tidak dapat ditukar atau dikembalikan</b>. Mohon pastikan ukuran dan model sebelum membeli.
+                </p>
+              </div>
+            )}
             <div className="mb-6 flex items-center justify-between gap-4">
               <p className="text-sm text-gray-500">
                 {q ? (
