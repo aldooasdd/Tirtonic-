@@ -386,7 +386,7 @@ export default async function HomePage() {
       []
     ),
     safeQuery(() => prisma.product.findMany({ orderBy: { createdAt: "desc" }, take: 12, include: { _count: { select: { variants: true } } } }), []),
-    safeQuery(() => prisma.product.findMany({ where: { hargaDiskon: { not: null } }, orderBy: { updatedAt: "desc" }, take: 40, include: { _count: { select: { variants: true } } } }), []),
+    safeQuery(() => prisma.product.findMany({ where: { hargaDiskon: { not: null }, status: "READY" }, orderBy: { updatedAt: "desc" }, take: 300 /* B1G1 (≥50%) disaring di bawah */, include: { _count: { select: { variants: true } } } }), []),
     safeQuery(() => prisma.product.findMany({ where: { eventCarousel: true, status: "READY" }, orderBy: { updatedAt: "desc" }, take: 16, include: { _count: { select: { variants: true } } } }), []),
     safeQuery(() => prisma.product.findMany({ where: { status: "READY", views: { gt: 0 } }, orderBy: { views: "desc" }, take: 12, include: { _count: { select: { variants: true } } } }), []),
     safeQuery(() => prisma.popularBrand.findMany({ orderBy: [{ urutan: "asc" }, { nama: "asc" }] }), []),
