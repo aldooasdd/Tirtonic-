@@ -7,7 +7,7 @@ import "server-only";
 
 const KEY = process.env.BINDERBYTE_API_KEY || "";
 const ORIGIN_POSTAL = process.env.ONGKIR_ORIGIN_POSTAL_CODE || "55581";
-const COURIERS = process.env.ONGKIR_COURIERS || "jne:jnt:sicepat:anteraja:lion:pos:ninja:ide:sap";
+const COURIERS = "jne:jnt:lion"; // hanya JNE, J&T, Lion (permintaan toko)
 
 export const ongkirConfigured = Boolean(KEY);
 
