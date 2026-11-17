@@ -1,7 +1,7 @@
 import "server-only";
 
 // Cek ongkir real-time via Binderbyte (key sama dengan lacak resi: BINDERBYTE_API_KEY).
-// Alur: kode pos → /v1/locations (id lokasi) → /v1/cost. Berat dalam KG.
+// Alur: cari kelurahan/kecamatan (atau kode pos) → /v1/locations (id lokasi) → /v1/cost. Berat dalam KG.
 // Asal kirim default gudang Sleman 55581; ganti lewat ONGKIR_ORIGIN_POSTAL_CODE.
 // Key kosong / gagal → [] → caller pakai ongkir flat.
 
@@ -26,11 +26,38 @@ async function locationId(postal: string): Promise<string | null> {
   return id;
 }
 
-export async function getRates(destinationPostal: string, items: RateItem[]): Promise<RateOption[]> {
-  const dest = destinationPostal.replace(/\D/g, "");
-  if (!KEY || dest.length !== 5) return [];
+const isLocId = (x: string) => /^(village|district|city)_\d+$/.test(x);
+
+export type LocationOption = { id: string; label: string };
+const searchCache = new Map<string, LocationOption[]>();
+
+/** Cari kelurahan/kecamatan/kota (nama atau kode pos) → pilihan tujuan ongkir. */
+export async function searchLocations(q: string): Promise<LocationOption[]> {
+  const term = q.trim().toLowerCase().replace(/\s+/g, " ");
+  if (!KEY || term.length < 3) return [];
+  if (searchCache.has(term)) return searchCache.get(term)!;
   try {
-    const [origin, destination] = await Promise.all([locationId(ORIGIN_POSTAL), locationId(dest)]);
+    const res = await fetch(`https://api.binderbyte.com/v1/locations?api_key=${encodeURIComponent(KEY)}&search=${encodeURIComponent(term)}`, { signal: AbortSignal.timeout(8000) });
+    const json = await res.json();
+    const out: LocationOption[] = (Array.isArray(json?.data) ? json.data : [])
+      .filter((d: { id?: unknown; label?: unknown }) => d?.id && d?.label)
+      .slice(0, 12)
+      .map((d: { id: unknown; label: unknown }) => ({ id: String(d.id), label: String(d.label) }));
+    // ponytail: cache per proses, tanpa batas — istilah pencarian sedikit; batasi kalau memori naik.
+    searchCache.set(term, out);
+    return out;
+  } catch {
+    return [];
+  }
+}
+
+/** destination: id lokasi Binderbyte (mis. "village_17602") atau kode pos 5 digit. */
+export async function getRates(destinationInput: string, items: RateItem[]): Promise<RateOption[]> {
+  const raw = destinationInput.trim();
+  const dest = isLocId(raw) ? raw : raw.replace(/\D/g, "");
+  if (!KEY || (!isLocId(dest) && dest.length !== 5)) return [];
+  try {
+    const [origin, destination] = await Promise.all([locationId(ORIGIN_POSTAL), isLocId(dest) ? dest : locationId(dest)]);
     if (!origin || !destination) return [];
     const grams = items.reduce((s, i) => s + Math.max(1, i.weight) * Math.max(1, i.quantity), 0);
     const kg = Math.max(1, Math.ceil(grams / 1000)); // kurir bulatkan ke atas per kg
