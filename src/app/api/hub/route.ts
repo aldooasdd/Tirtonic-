@@ -107,7 +107,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   if (!authed(req)) return bad("unauthorized", 401);
-  let body: { action?: string; sn?: string; resi?: string; kurir?: string; productId?: string; variantId?: string; stock?: number; price?: number; name?: string; product?: ImportProduct };
+  let body: { action?: string; sn?: string; resi?: string; kurir?: string; productId?: string; variantId?: string; stock?: number; price?: number; name?: string; product?: ImportProduct; weights?: WeightRow[] };
   try {
     body = await req.json();
   } catch {
@@ -162,12 +162,16 @@ export async function POST(req: NextRequest) {
     }
     return NextResponse.json({ ok: true });
   }
+  if (body.action === "weights") {
+    if (!Array.isArray(body.weights)) return bad("weights wajib");
+    return NextResponse.json({ ok: true, ...(await syncWeights(body.weights)) });
+  }
   if (body.action === "import") {
     if (!body.product) return bad("product wajib");
     const r = await importProduct(body.product);
     return "error" in r ? bad(r.error) : NextResponse.json(r);
   }
-  return bad("action harus ship, update, atau import");
+  return bad("action harus ship, update, import, atau weights");
 }
 
 // --- Impor produk dari Produk Master Tirtonichub (mis. semua produk Tokopedia) ---
@@ -262,4 +266,25 @@ async function importProduct(p: ImportProduct): Promise<{ ok: true; id: string; 
   const stale = existing.variants.filter((v) => !keep.has(v.id)).map((v) => v.id);
   if (stale.length) await prisma.productVariant.deleteMany({ where: { id: { in: stale } } });
   return { ok: true, id: existing.id, created: false };
+}
+
+// --- Sinkron berat produk dari Tirtonichub (hanya kolom berat; data lain tak disentuh) ---
+type WeightRow = { ref: string; names: string[]; gram: number };
+
+/** Cocokkan per sourceRef dulu, lalu per nama (produk dibuat manual). Hanya tulis yang beda. */
+async function syncWeights(rows: WeightRow[]) {
+  const ps = await prisma.product.findMany({ select: { id: true, nama: true, sourceRef: true, berat: true } });
+  const byRef = new Map(ps.filter((p) => p.sourceRef).map((p) => [p.sourceRef!, p]));
+  const byName = new Map(ps.map((p) => [nameKey(p.nama), p]));
+  const target = new Map<string, number>(); // productId → gram
+  for (const r of rows) {
+    const gram = Math.round(Number(r.gram));
+    if (!(gram > 0 && gram < 100_000)) continue;
+    const p = byRef.get(r.ref) ?? (r.names ?? []).map((n) => byName.get(nameKey(n))).find(Boolean);
+    if (p && p.berat !== gram && !target.has(p.id)) target.set(p.id, gram);
+  }
+  const groups = new Map<number, string[]>();
+  for (const [id, g] of target) groups.set(g, [...(groups.get(g) ?? []), id]);
+  for (const [g, ids] of groups) await prisma.product.updateMany({ where: { id: { in: ids } }, data: { berat: g } });
+  return { updated: target.size };
 }
