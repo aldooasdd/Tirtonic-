@@ -87,6 +87,13 @@ export default function ProductForm({
     if (!v) return;
     setVariants((prev) => prev.map((row) => ({ ...row, harga: v })));
   };
+  // Bulk set diskon (%) semua varian; kosong = hapus diskon semua varian
+  const [bulkDiskon, setBulkDiskon] = useState("");
+  const applyBulkDiskon = () => {
+    const d = bulkDiskon.replace(/\D/g, "");
+    if (d && (+d < 1 || +d > 90)) return;
+    setVariants((prev) => prev.map((row) => ({ ...row, diskonPersen: d })));
+  };
 
   // Importer UI state
   const [url, setUrl] = useState("");
@@ -270,6 +277,24 @@ export default function ProductForm({
                   />
                 </div>
                 <button type="button" onClick={applyBulkHarga} className="btn-green shrink-0">
+                  Terapkan ke semua
+                </button>
+              </div>
+              <div className="flex flex-wrap items-end gap-2 rounded-lg bg-red-50 p-3">
+                <div className="flex-1">
+                  <label className="label">Set diskon semua varian (%)</label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={90}
+                    value={bulkDiskon}
+                    onChange={(e) => setBulkDiskon(e.target.value)}
+                    placeholder="mis. 20 · kosongkan = hapus diskon"
+                    className="field"
+                  />
+                  <p className="mt-1 text-xs text-gray-400">50% ke atas otomatis jadi promo Buy 1 Get 1 (harga normal).</p>
+                </div>
+                <button type="button" onClick={applyBulkDiskon} className="btn-green shrink-0">
                   Terapkan ke semua
                 </button>
               </div>
