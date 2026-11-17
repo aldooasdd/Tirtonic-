@@ -1,37 +1,37 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { useFormState } from "react-dom";
-import { setClaimQuota, addParticipantManual, type FormState } from "@/app/komunitas/actions";
-import SubmitButton from "@/components/SubmitButton";
+import { useFormState, useFormStatus } from "react-dom";
+import { setClaimQuota, type FormState } from "@/app/komunitas/actions";
 
-/** Atur slot (tambah/kurangi) + daftarkan peserta manual. Di kartu Demo Saya dashboard komunitas. */
-export default function ParticipantAdmin({ claimId, quota, accepted }: { claimId: string; quota: number; accepted: number }) {
-  const [qs, qAction] = useFormState<FormState, FormData>(setClaimQuota.bind(null, claimId), {});
-  const [as, aAction] = useFormState<FormState, FormData>(addParticipantManual.bind(null, claimId), {});
-  const addRef = useRef<HTMLFormElement>(null);
-  useEffect(() => { if (as.ok) addRef.current?.reset(); }, [as]);
-  const field = "min-w-0 rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-sm focus:border-emerald-600 focus:outline-none";
-
+function Step({ value, label, disabled }: { value: number; label: string; disabled?: boolean }) {
+  const { pending } = useFormStatus();
   return (
-    <details className="mt-3 rounded-2xl bg-white/70 p-3 ring-1 ring-black/[0.05]">
-      <summary className="cursor-pointer text-xs font-[700] text-neutral-700">⚙️ Atur slot & tambah peserta</summary>
-      <form action={qAction} className="mt-3 flex items-center gap-2">
-        <span className="text-xs text-neutral-500">Slot peserta</span>
-        <input name="quota" type="number" min={Math.max(1, accepted)} max={100} defaultValue={quota} required className={`${field} w-20`} />
-        <SubmitButton className="rounded-lg bg-neutral-950 px-3 py-1.5 text-xs font-[600] text-white hover:bg-neutral-800">Simpan</SubmitButton>
-        {qs.ok && <span className="text-xs text-emerald-700">✓</span>}
-      </form>
-      {qs.error && <p className="mt-1 text-xs text-red-600">{qs.error}</p>}
+    <button
+      name="quota"
+      value={value}
+      disabled={disabled || pending}
+      aria-label={label === "−" ? "Kurangi slot" : "Tambah slot"}
+      className="grid h-9 w-9 place-items-center rounded-full bg-white text-lg font-[700] text-neutral-800 ring-1 ring-black/10 hover:bg-neutral-50 disabled:opacity-40"
+    >
+      {label}
+    </button>
+  );
+}
 
-      <form ref={addRef} action={aAction} className="mt-3 grid grid-cols-[1fr_1fr_auto] gap-2">
-        <input name="name" required placeholder="Nama peserta" className={field} />
-        <input name="phone" required inputMode="tel" placeholder="No. WA" className={field} />
-        <SubmitButton className="rounded-lg bg-[#173f2f] px-3 py-1.5 text-xs font-[600] text-white hover:bg-[#0f2d21]">Tambah</SubmitButton>
-      </form>
-      {as.error && <p className="mt-1 text-xs text-red-600">{as.error}</p>}
-      {as.ok && <p className="mt-1 text-xs text-emerald-700">✓ Peserta ditambahkan & dapat WA konfirmasi.</p>}
-      <p className="mt-2 text-[11px] text-neutral-400">Peserta yang ditambah di sini langsung diterima, tercatat, dan dapat voucher seperti daftar lewat web.</p>
-    </details>
+/** Tambah / kurangi slot peserta (min = peserta yang sudah diterima). Di kartu Demo Saya dashboard komunitas. */
+export default function ParticipantAdmin({ claimId, quota, accepted }: { claimId: string; quota: number; accepted: number }) {
+  const [st, action] = useFormState<FormState, FormData>(setClaimQuota.bind(null, claimId), {});
+  return (
+    <form action={action} className="mt-3 rounded-2xl bg-white/70 p-3 ring-1 ring-black/[0.05]">
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-xs font-[700] text-neutral-700">Slot peserta</span>
+        <div className="flex items-center gap-3">
+          <Step value={quota - 1} label="−" disabled={quota - 1 < Math.max(1, accepted)} />
+          <span className="min-w-[2ch] text-center text-base font-[700] text-neutral-950">{quota}</span>
+          <Step value={quota + 1} label="+" disabled={quota >= 100} />
+        </div>
+      </div>
+      {st.error && <p className="mt-1.5 text-xs text-red-600">{st.error}</p>}
+    </form>
   );
 }
