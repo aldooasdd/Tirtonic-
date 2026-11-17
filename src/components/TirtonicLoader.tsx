@@ -17,7 +17,7 @@ const DEMO = {
 };
 
 /** Loading antar halaman. */
-export default function TirtonicLoader({ className = "", background = "#e9e9eb" }: { className?: string; background?: string }) {
+export default function TirtonicLoader({ className = "", background = "#ffffff" }: { className?: string; background?: string }) {
   return <GlassIconReveal {...DEMO} background={background} className={`w-full cursor-default ${className}`} />;
 }
 
@@ -46,7 +46,7 @@ export function TirtonicSplash() {
       onClick={() => { setFade(true); setTimeout(() => setShow(false), 200); }}
       className={`fixed inset-0 z-[200] transition-opacity duration-200 ${fade ? "pointer-events-none opacity-0" : "opacity-100"}`}
     >
-      <GlassIconReveal {...DEMO} loop={false} background="#e9e9eb" className="h-svh min-h-[420px] w-full" />
+      <GlassIconReveal {...DEMO} loop={false} background="#ffffff" className="h-svh min-h-[420px] w-full" />
     </div>
   );
 }
