@@ -217,3 +217,48 @@ export async function setCommunityLogo(_prev: FormState, formData: FormData): Pr
   revalidatePath("/event");
   return { ok: true };
 }
+
+// ──────────────── Admin komunitas: atur slot & tambah peserta manual ────────────────
+
+async function ownedOpenClaim(claimId: string) {
+  const communityId = currentCommunityId();
+  if (!communityId) return null;
+  const c = await prisma.demoClaim.findUnique({
+    where: { id: claimId },
+    include: { campaign: { select: { brand: true } }, participants: { select: { status: true, phone: true } } },
+  });
+  return c && c.communityId === communityId && c.status === "accepted" && !c.returnedAt ? c : null;
+}
+
+/** Tambah / kurangi slot peserta. Tak bisa di bawah jumlah peserta yang sudah diterima. */
+export async function setClaimQuota(claimId: string, _prev: FormState, formData: FormData): Promise<FormState> {
+  const c = await ownedOpenClaim(claimId);
+  if (!c) return { error: "Acara tidak bisa diubah." };
+  const quota = parseInt(String(formData.get("quota") || ""), 10);
+  const accepted = c.participants.filter((p) => p.status === "accepted").length;
+  if (!Number.isFinite(quota) || quota < 1 || quota > 100) return { error: "Slot harus 1–100." };
+  if (quota < accepted) return { error: `Sudah ${accepted} peserta diterima — hapus peserta dulu kalau mau slot di bawah ${accepted}.` };
+  await prisma.demoClaim.update({ where: { id: claimId }, data: { quota } });
+  revalidatePath("/komunitas");
+  revalidatePath("/event");
+  revalidatePath(`/event/${claimId}`);
+  return { ok: true };
+}
+
+/** Admin komunitas daftarkan peserta manual (langsung diterima) → tercatat & dapat voucher seperti daftar lewat web. */
+export async function addParticipantManual(claimId: string, _prev: FormState, formData: FormData): Promise<FormState> {
+  const c = await ownedOpenClaim(claimId);
+  if (!c) return { error: "Acara tidak bisa diubah." };
+  const name = String(formData.get("name") || "").trim();
+  const phone = normalizePhone(String(formData.get("phone") || ""));
+  if (!name) return { error: "Nama wajib diisi." };
+  if (!phone) return { error: "Nomor WhatsApp tidak valid (contoh: 0812xxxx)." };
+  if (c.participants.some((p) => p.phone === phone && p.status !== "rejected")) return { error: "Nomor ini sudah terdaftar di acara ini." };
+  if (c.participants.filter((p) => p.status === "accepted").length >= c.quota) return { error: "Slot penuh — tambah slot dulu." };
+  await prisma.demoParticipant.create({ data: { claimId, name, phone, status: "accepted" } });
+  await prisma.member.upsert({ where: { phone }, create: { phone, name }, update: {} });
+  await sendWa(phone, `🎾 Kamu DITERIMA ikut demo ${c.campaign.brand} di Tirtonic! Sampai ketemu di lapangan ya. Info lebih lanjut akan dishare panitia.`);
+  revalidatePath("/komunitas");
+  revalidatePath(`/event/${claimId}`);
+  return { ok: true };
+}

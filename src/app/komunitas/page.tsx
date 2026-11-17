@@ -10,6 +10,7 @@ import PickupButton from "@/components/PickupButton";
 import ShareInvite from "@/components/ShareInvite";
 import { pickupToken, returnToken } from "@/lib/pickup-token";
 import SubmitButton from "@/components/SubmitButton";
+import ParticipantAdmin from "@/components/ParticipantAdmin";
 import DemoPhotoUpload from "@/components/DemoPhotoUpload";
 import DemoPhotoBadge from "@/components/DemoPhotoBadge";
 import CommunityVerify from "@/components/CommunityVerify";
@@ -419,6 +420,7 @@ export default async function KomunitasHome() {
                       </div>
                     </div>
                   )}
+                  {open && phase !== "pending" && phase !== "done" && !c.returnedAt && <ParticipantAdmin claimId={c.id} quota={c.quota} accepted={acceptedParts.length} />}
                   {phase === "pending" && <p className="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-700">Menunggu persetujuan tim Tirtonic.</p>}
                 </div>
               );
