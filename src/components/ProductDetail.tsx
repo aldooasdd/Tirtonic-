@@ -192,8 +192,9 @@ export default function ProductDetail({ p, b1g1Others = [] }: { p: P; b1g1Others
 
       <div className="grid gap-8 md:grid-cols-2 lg:gap-10">
         {/* gallery */}
-        <div className="md:sticky md:top-24 md:self-start">
-          <div className="relative aspect-[4/5] overflow-hidden rounded-3xl bg-gray-100">
+        {/* Sticky & selalu di tengah layar saat scroll; lebar dibatasi tinggi layar supaya tak kepotong bawah. */}
+        <div className="md:sticky md:top-20 md:flex md:h-[calc(100vh-5rem)] md:items-center md:justify-center md:self-start">
+          <div className="relative aspect-[4/5] w-full overflow-hidden rounded-3xl bg-gray-100 md:max-w-[calc((100vh-11rem)*0.8)]">
             {gallery.length > 0 ? (
               <div
                 ref={scrollerRef}
