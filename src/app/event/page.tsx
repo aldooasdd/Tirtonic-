@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { productHref } from "@/lib/product-slug";
 import { isB1G1 } from "@/lib/b1g1";
 import Link from "next/link";
+import { Suspense } from "react";
 import { prisma, safeQuery } from "@/lib/prisma";
 import { rupiah } from "@/lib/format";
 import EventCard, { EventCardData } from "@/components/EventCard";
@@ -147,8 +148,8 @@ export default async function EventLanding({ searchParams }: { searchParams: { k
       )
     : Promise.resolve([]);
   // Foto hub, produk, & sesi komunitas diambil bersamaan (bukan berurutan).
-  const [docPhotosRaw, pool, community] = await Promise.all([docPhotosP, poolP, currentCommunity()]);
-  const docPhotos = docPhotosRaw ?? {};
+  // Foto hub TIDAK ditunggu: kartu riwayat tampil pakai banner dulu, foto menyusul via Suspense (streaming).
+  const [pool, community] = await Promise.all([poolP, currentCommunity()]);
   const products = productsForCampaigns(demoCamps, pool);
 
   const loggedIn = !!community;
@@ -327,11 +328,9 @@ export default async function EventLanding({ searchParams }: { searchParams: { k
                     <span className="flex min-w-0 items-center gap-1.5 text-xs font-[600] text-neutral-900"><Pin /> <span className="truncate">{e.campaign.location ? `${e.campaign.location} · ` : ""}{e.court.split(/\s+/).slice(0, 3).join(" ")}</span></span>
                     <span className="shrink-0 rounded-full bg-neutral-200/80 px-2 py-0.5 text-[10px] font-[600] text-neutral-600">Selesai</span>
                   </div>
-                  {docPhotos[e.id]?.length ? (
-                    <PhotoSlider photos={docPhotos[e.id]} brand={e.campaign.brand} badge={`${docPhotos[e.id].length} foto kegiatan`} />
-                  ) : (
-                    <Banner c={e.campaign} badge={`${e.acceptedCount} pemain mencoba`} sub={`Tirtonic × ${e.community.name}`} />
-                  )}
+                  <Suspense fallback={<Banner c={e.campaign} badge={`${e.acceptedCount} pemain mencoba`} sub={`Tirtonic × ${e.community.name}`} />}>
+                    <DocMedia photosP={docPhotosP} e={e} />
+                  </Suspense>
                   <div className="flex flex-grow flex-col justify-between p-6">
                     <div>
                       <p className="mb-1 text-xs font-[600] text-neutral-600">{e.demoDate.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}</p>
@@ -404,5 +403,15 @@ export default async function EventLanding({ searchParams }: { searchParams: { k
       <KomunitasSheet />
       <AjukanSheet options={sortedOptions} community={community ? { name: community.name, waPhone: community.waPhone } : null} />
     </div>
+  );
+}
+
+/** Foto dokumentasi dari PC hub (streaming); hub lambat/mati → banner kampanye. */
+async function DocMedia({ photosP, e }: { photosP: Promise<Record<string, string[]> | null>; e: { id: string; acceptedCount: number; campaign: Parameters<typeof Banner>[0]["c"]; community: { name: string } } }) {
+  const photos = (await photosP)?.[e.id];
+  return photos?.length ? (
+    <PhotoSlider photos={photos} brand={e.campaign.brand} badge={`${photos.length} foto kegiatan`} />
+  ) : (
+    <Banner c={e.campaign} badge={`${e.acceptedCount} pemain mencoba`} sub={`Tirtonic × ${e.community.name}`} />
   );
 }
