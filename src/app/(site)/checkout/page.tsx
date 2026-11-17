@@ -256,6 +256,21 @@ export default function CheckoutPage() {
               )}
             </div>
           )}
+          {hasB1 && (
+            <div className="glass-card rounded-2xl p-5 text-xs leading-relaxed text-gray-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)] ring-1 ring-black/[0.04] backdrop-blur-md">
+              <p className="mb-1.5 text-sm font-[600] text-gray-700">Ketentuan Produk Stok Akhir</p>
+              <ol className="list-decimal space-y-1 pl-4">
+                <li>Produk Buy 1 Get 1 merupakan stok akhir dan dijual dalam kondisi apa adanya (as is).</li>
+                <li>Produk dapat memiliki ketidaksempurnaan kosmetik, antara lain yellowing, noda ringan, bekas lem, goresan halus, atau kotak rusak, yang tidak memengaruhi fungsi produk.</li>
+                <li>Produk tidak dapat ditukar, dikembalikan, atau di-refund dengan alasan kondisi kosmetik, ukuran, maupun perubahan keputusan.</li>
+                <li>Jika terdapat kerusakan yang membuat produk tidak dapat digunakan (misalnya sol lepas atau jahitan robek) dan diketahui saat produk diterima, silakan hubungi kami maksimal 1×24 jam setelah barang diterima dengan menyertakan video unboxing.</li>
+              </ol>
+              <label className="mt-3 flex cursor-pointer items-start gap-2.5 rounded-xl bg-white/50 p-3 text-gray-600">
+                <input type="checkbox" checked={agreeB1} onChange={(e) => setAgreeB1(e.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 accent-primary" />
+                <span>Saya memahami bahwa produk Buy 1 Get 1 adalah <b className="font-[600] text-gray-700">stok akhir</b>, dapat memiliki ketidaksempurnaan kosmetik seperti yellowing yang tidak memengaruhi fungsi, dan <b className="font-[600] text-gray-700">tidak dapat ditukar atau dikembalikan</b>.</span>
+              </label>
+            </div>
+          )}
         </div>
 
         <div className="md:sticky md:top-24 md:self-start">
@@ -354,23 +369,9 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            {hasB1 && (
-              <div className="mt-4 rounded-2xl border border-white/50 bg-gradient-to-br from-white/40 to-white/10 p-4 text-xs leading-relaxed text-gray-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)] ring-1 ring-black/[0.04] backdrop-blur-md">
-                <p className="mb-1.5 text-sm font-[600] text-gray-700">Ketentuan Produk Stok Akhir</p>
-                <ol className="list-decimal space-y-1 pl-4">
-                  <li>Produk Buy 1 Get 1 merupakan stok akhir dan dijual dalam kondisi apa adanya (as is).</li>
-                  <li>Produk dapat memiliki ketidaksempurnaan kosmetik, antara lain yellowing, noda ringan, bekas lem, goresan halus, atau kotak rusak, yang tidak memengaruhi fungsi produk.</li>
-                  <li>Produk tidak dapat ditukar, dikembalikan, atau di-refund dengan alasan kondisi kosmetik, ukuran, maupun perubahan keputusan.</li>
-                  <li>Jika terdapat kerusakan yang membuat produk tidak dapat digunakan (misalnya sol lepas atau jahitan robek) dan diketahui saat produk diterima, silakan hubungi kami maksimal 1×24 jam setelah barang diterima dengan menyertakan video unboxing.</li>
-                </ol>
-                <label className="mt-3 flex cursor-pointer items-start gap-2.5 rounded-xl bg-white/50 p-3 text-gray-600">
-                  <input type="checkbox" checked={agreeB1} onChange={(e) => setAgreeB1(e.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 accent-primary" />
-                  <span>Saya memahami bahwa produk Buy 1 Get 1 adalah <b className="font-[600] text-gray-700">stok akhir</b>, dapat memiliki ketidaksempurnaan kosmetik seperti yellowing yang tidak memengaruhi fungsi, dan <b className="font-[600] text-gray-700">tidak dapat ditukar atau dikembalikan</b>.</span>
-                </label>
-              </div>
-            )}
 
             {error && <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>}
+            {hasB1 && !agreeB1 && <p className="mt-3 text-center text-xs text-amber-600">Centang persetujuan Ketentuan Produk Stok Akhir dulu.</p>}
 
             <button type="submit" disabled={submitting || (hasB1 && !agreeB1)} className="glass-primary btn-pill mt-4 w-full disabled:opacity-60">
               {submitting ? "Memproses..." : "Buat Pesanan & Bayar"}
