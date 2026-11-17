@@ -54,7 +54,11 @@ export default async function ShopPage({ searchParams }: { searchParams: SP }) {
   const where: Prisma.ProductWhereInput = {};
   if (searchParams.type) where.kategori = { in: searchParams.type.split(",").filter(Boolean) };
   if (searchParams.brand) where.brand = searchParams.brand;
-  if (searchParams.size) where.ukuran = { has: searchParams.size };
+  // Size: ukuran produk, atau varian yang masih ada stok (sepatu sering simpan ukuran di kolom warna).
+  if (searchParams.size) {
+    const sz = searchParams.size;
+    where.AND = [{ OR: [{ ukuran: { has: sz } }, { variants: { some: { stok: { gt: 0 }, OR: [{ ukuran: sz }, { warna: sz }] } } }] }];
+  }
   if (searchParams.q) where.nama = { contains: searchParams.q, mode: "insensitive" };
   if (searchParams.deal || searchParams.b1g1) where.hargaDiskon = { not: null }; // hanya barang diskon (Best Deal / B1G1 disaring di bawah)
   if (searchParams.event) where.eventAktif = true; // hanya barang yang lagi event/promo

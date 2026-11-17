@@ -87,6 +87,17 @@ export default function ProductForm({
     if (!v) return;
     setVariants((prev) => prev.map((row) => ({ ...row, harga: v })));
   };
+  // Jenis varian (satu pilihan untuk semua baris). Disimpan tetap di kolom warna/ukuran:
+  // varian 1 → kolom warna (isinya bisa ukuran, mis. sepatu), varian 2 → kolom ukuran (opsional).
+  const [axis1, setAxis1] = useState<"Warna" | "Ukuran">(
+    !initVariants.some((v) => v.ukuran) && (/sepatu/i.test(product?.kategori || "") || (initVariants.length > 0 && initVariants.every((v) => /^\d+([.,]\d+)?$/.test(v.warna.trim())))) ? "Ukuran" : "Warna",
+  );
+  const [axis2On, setAxis2On] = useState(initVariants.some((v) => v.ukuran));
+  const turnAxis2 = (on: boolean) => {
+    setAxis2On(on);
+    if (!on) setVariants((prev) => prev.map((row) => ({ ...row, ukuran: "" })));
+  };
+
   // Bulk set diskon (%) semua varian; kosong = hapus diskon semua varian
   const [bulkDiskon, setBulkDiskon] = useState("");
   const applyBulkDiskon = () => {
@@ -298,17 +309,40 @@ export default function ProductForm({
                   Terapkan ke semua
                 </button>
               </div>
+              <div className="flex flex-wrap items-end gap-3 rounded-lg border border-gray-200 bg-white p-3">
+                <div>
+                  <label className="label">Varian 1 (semua baris)</label>
+                  <select value={axis1} onChange={(e) => { const v = e.target.value as "Warna" | "Ukuran"; setAxis1(v); if (v === "Ukuran") turnAxis2(false); }} className="field">
+                    <option value="Warna">Warna</option>
+                    <option value="Ukuran">Ukuran</option>
+                  </select>
+                </div>
+                {axis1 === "Warna" && (
+                  <div>
+                    <label className="label">Varian 2</label>
+                    <select value={axis2On ? "on" : "off"} onChange={(e) => turnAxis2(e.target.value === "on")} className="field">
+                      <option value="off">Off</option>
+                      <option value="on">Ukuran</option>
+                    </select>
+                  </div>
+                )}
+                <p className="pb-2 text-xs text-gray-400">Sepatu: pilih Varian 1 = Ukuran → muncul di filter Size shop.</p>
+              </div>
               {variants.map((v, i) => (
                 <div key={v.key} className="rounded-lg border bg-gray-50 p-3">
                   <div className="grid gap-2 sm:grid-cols-5">
                     <div>
-                      <label className="label">Warna *</label>
-                      <input name="v_warna" value={v.warna} onChange={(e) => setVariant(i, "warna", e.target.value)} placeholder="Biru" className="field" />
+                      <label className="label">{axis1} *</label>
+                      <input name="v_warna" value={v.warna} onChange={(e) => setVariant(i, "warna", e.target.value)} placeholder={axis1 === "Ukuran" ? "42" : "Biru"} className="field" />
                     </div>
-                    <div>
-                      <label className="label">Ukuran</label>
-                      <input name="v_ukuran" value={v.ukuran} onChange={(e) => setVariant(i, "ukuran", e.target.value)} placeholder="1.20mm (opsional)" className="field" />
-                    </div>
+                    {axis2On ? (
+                      <div>
+                        <label className="label">Ukuran</label>
+                        <input name="v_ukuran" value={v.ukuran} onChange={(e) => setVariant(i, "ukuran", e.target.value)} placeholder="1.20mm" className="field" />
+                      </div>
+                    ) : (
+                      <input type="hidden" name="v_ukuran" value="" />
+                    )}
                     <div>
                       <label className="label">Harga (Rp) *</label>
                       <input name="v_harga" type="number" value={v.harga} onChange={(e) => setVariant(i, "harga", e.target.value)} placeholder="174000" className="field" />
