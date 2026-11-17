@@ -6,6 +6,7 @@ import ProductCard from "@/components/ProductCard";
 import ViewBeacon from "@/components/ViewBeacon";
 import type { B1G1Option } from "@/components/B1G1Popup";
 import { isB1G1 } from "@/lib/b1g1";
+import { b1g1ProductIds } from "@/lib/b1g1-db";
 
 // ISR: halaman produk di-cache 5 menit → DB cuma dibaca sekali per 5 menit (hemat egress),
 // bukan tiap kunjungan/crawler. Stok/harga telat maks 5 menit — oke buat toko.
@@ -35,10 +36,9 @@ export default async function ProductPage({ params }: { params: { id: string } }
 
   // Pilihan pasangan Buy 1 Get 1 (barang diskon ≥50% yang masih ada stok).
   const b1Pool = await safeQuery(
-    () => prisma.product.findMany({
-      where: { status: "READY", OR: [{ hargaDiskon: { not: null } }, { variants: { some: { hargaDiskon: { not: null } } } }] },
+    async () => prisma.product.findMany({
+      where: { id: { in: await b1g1ProductIds() } },
       include: { variants: { orderBy: { urutan: "asc" } } },
-      take: 60,
     }),
     [],
   );

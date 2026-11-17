@@ -1,4 +1,5 @@
 import { isB1G1 } from "@/lib/b1g1";
+import { b1g1ProductIds } from "@/lib/b1g1-db";
 import Link from "next/link";
 import PreorderHeroSlides from "@/components/PreorderHeroSlides";
 import LaunchCountdown from "@/components/LaunchCountdown";
@@ -385,7 +386,7 @@ export default async function HomePage() {
       []
     ),
     safeQuery(() => prisma.product.findMany({ orderBy: { createdAt: "desc" }, take: 12, include: { _count: { select: { variants: true } } } }), []),
-    safeQuery(() => prisma.product.findMany({ where: { hargaDiskon: { not: null } }, orderBy: { updatedAt: "desc" }, take: 16, include: { _count: { select: { variants: true } } } }), []),
+    safeQuery(() => prisma.product.findMany({ where: { hargaDiskon: { not: null } }, orderBy: { updatedAt: "desc" }, take: 40, include: { _count: { select: { variants: true } } } }), []),
     safeQuery(() => prisma.product.findMany({ where: { eventCarousel: true, status: "READY" }, orderBy: { updatedAt: "desc" }, take: 16, include: { _count: { select: { variants: true } } } }), []),
     safeQuery(() => prisma.product.findMany({ where: { status: "READY", views: { gt: 0 } }, orderBy: { views: "desc" }, take: 12, include: { _count: { select: { variants: true } } } }), []),
     safeQuery(() => prisma.popularBrand.findMany({ orderBy: [{ urutan: "asc" }, { nama: "asc" }] }), []),
@@ -398,7 +399,8 @@ export default async function HomePage() {
   const forYou = popular.map(toCard);
   // only keep real discounts (diskon < harga), cap at 12
   // Diskon ≥50% → bukan Best Deal lagi, masuk carousel Buy 1 Get 1 (harga normal).
-  const b1g1Deals = deals.filter((p) => isB1G1(p.harga, p.hargaDiskon)).slice(0, 12).map(toCard);
+  const b1Ids = await safeQuery(() => b1g1ProductIds(), [] as string[]);
+  const b1g1Deals = (await safeQuery(() => prisma.product.findMany({ where: { id: { in: b1Ids } }, orderBy: { updatedAt: "desc" }, include: { _count: { select: { variants: true } } } }), [])).map(toCard);
   const bestDeals = deals.filter((p) => p.hargaDiskon != null && p.hargaDiskon < p.harga && !isB1G1(p.harga, p.hargaDiskon)).slice(0, 12).map(toCard);
   const eventCards = eventItems.map(toCard);
   const storeItems = stores.map((s) => ({
