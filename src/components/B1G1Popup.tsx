@@ -42,7 +42,7 @@ export default function B1G1Popup({ options, onPick, onSkip, onClose }: { option
                   <p className="line-clamp-2 text-sm font-[600] text-neutral-900">{o.nama}</p>
                   <p className="text-xs text-neutral-500">{hasVar && !v ? "mulai " : ""}{rupiah(harga)}</p>
                   {hasVar && (
-                    <select value={sel[o.id] ?? ""} onChange={(e) => setSel({ ...sel, [o.id]: e.target.value })} className="mt-1 w-full rounded-lg border border-neutral-200 bg-white px-2 py-1 text-xs">
+                    <select value={sel[o.id] ?? ""} onChange={(e) => setSel({ ...sel, [o.id]: e.target.value })} className="mt-1 w-full appearance-none rounded-lg border border-neutral-200 bg-white bg-[length:12px] bg-[right_0.75rem_center] bg-no-repeat py-1.5 pl-2.5 pr-9 text-xs" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23525252' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E\")" }}>
                       <option value="" disabled>Pilih varian</option>
                       {o.variants.map((x) => <option key={x.id} value={x.id}>{x.label} · {rupiah(x.harga)}</option>)}
                     </select>
