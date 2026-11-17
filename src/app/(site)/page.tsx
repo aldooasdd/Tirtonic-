@@ -401,6 +401,8 @@ export default async function HomePage() {
   // Diskon ≥50% → bukan Best Deal lagi, masuk carousel Buy 1 Get 1 (harga normal).
   const b1Ids = await safeQuery(() => b1g1ProductIds(), [] as string[]);
   const b1g1Deals = (await safeQuery(() => prisma.product.findMany({ where: { id: { in: b1Ids } }, orderBy: { updatedAt: "desc" }, include: { _count: { select: { variants: true } } } }), [])).map(toCard);
+  // ponytail: diacak tiap render ISR (revalidate 120 dtk) — urutan berganti tiap ~2 menit, bukan tiap pengunjung.
+  b1g1Deals.splice(0, b1g1Deals.length, ...b1g1Deals.map((x) => ({ x, r: Math.random() })).sort((a, b) => a.r - b.r).map(({ x }) => x));
   const bestDeals = deals.filter((p) => p.hargaDiskon != null && p.hargaDiskon < p.harga && !isB1G1(p.harga, p.hargaDiskon)).slice(0, 12).map(toCard);
   const eventCards = eventItems.map(toCard);
   const storeItems = stores.map((s) => ({
