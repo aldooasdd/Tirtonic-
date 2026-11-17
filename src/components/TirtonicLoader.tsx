@@ -20,6 +20,7 @@ export default function TirtonicLoader({ className = "", background = "#ffffff" 
         tileSize={180}
         logoScale={0.6}
         finalScale={0.75}
+        speed={1.8} // loading biasanya singkat → reveal dipercepat
         tuning={{ startZoom: 2.3 }}
         className="h-full w-full cursor-default"
         style={{ backgroundColor: "transparent" }}
@@ -33,8 +34,8 @@ export function TirtonicLoaderWarmup() {
   useEffect(() => {
     const run = () => void preloadGlassLogo(LOGO);
     const w = window as Window & { requestIdleCallback?: (cb: () => void) => number };
-    if (w.requestIdleCallback) w.requestIdleCallback(run);
-    else setTimeout(run, 1500);
+    if (w.requestIdleCallback) w.requestIdleCallback(run, { timeout: 2000 } as never);
+    else setTimeout(run, 800);
   }, []);
   return null;
 }
