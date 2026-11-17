@@ -62,6 +62,17 @@ export default function ProductDetail({ p, b1g1Others = [] }: { p: P; b1g1Others
     else if (!found.gambar && v.gambar) found.gambar = v.gambar;
     return acc;
   }, []);
+  // Ukuran angka ("40", "40.5", "40 1/2", "S/M/L") diurutkan kecil→besar; selain itu (warna) urutan asli.
+  const sizeNum = (x: string) => {
+    const t = x.trim().toUpperCase();
+    const m = t.match(/^(\d+(?:[.,]\d+)?)(?:\s+1\/2)?/);
+    if (m) return parseFloat(m[1].replace(",", ".")) + (/\s1\/2$/.test(t) ? 0.5 : 0);
+    const abc = ["XXS", "XS", "S", "M", "L", "XL", "XXL", "XXXL"].indexOf(t);
+    return abc >= 0 ? 1000 + abc : NaN;
+  };
+  const bySize = <T,>(arr: T[], key: (t: T) => string) =>
+    arr.length && arr.every((t) => !isNaN(sizeNum(key(t)))) ? [...arr].sort((a, b) => sizeNum(key(a)) - sizeNum(key(b))) : arr;
+  const colorsSorted = bySize(colors, (c) => c.warna);
 
   const [active, setActive] = useState(0);
   const [size, setSize] = useState("");
@@ -100,7 +111,7 @@ export default function ProductDetail({ p, b1g1Others = [] }: { p: P; b1g1Others
   const needSize = !hasVar && p.ukuran.length > 0; // shoe sizes, only when there are no variants
 
   // variant selection
-  const sizesForColor = variants.filter((v) => v.warna === color);
+  const sizesForColor = bySize(variants.filter((v) => v.warna === color), (v) => v.ukuran);
   // warna habis = semua varian warna itu stoknya 0 (buat sepatu, warna = ukuran)
   const colorSold = (warna: string) => variants.filter((v) => v.warna === warna).every((v) => v.stok <= 0);
   const selVariant = hasVar
@@ -273,7 +284,7 @@ export default function ProductDetail({ p, b1g1Others = [] }: { p: P; b1g1Others
                   {p.varianLabel ? `Pilih ${p.varianLabel.toLowerCase()}` : !hasSizeAxis && /sepatu/i.test(p.kategori) ? "Pilih ukuran" : "Pilih warna"}: <span className="text-gray-900">{color}</span>
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {colors.map((c) => {
+                  {colorsSorted.map((c) => {
                     const habis = colorSold(c.warna);
                     return (
                       <button
@@ -283,12 +294,8 @@ export default function ProductDetail({ p, b1g1Others = [] }: { p: P; b1g1Others
                           setColor(c.warna);
                           setSize("");
                         }}
-                        className={`${pill(color === c.warna, habis)} flex items-center gap-2 ${c.gambar ? "py-2 pl-2" : ""}`}
+                        className={`${pill(color === c.warna, habis)} flex items-center gap-2`}
                       >
-                        {c.gambar && (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img loading="lazy" decoding="async" src={c.gambar} alt="" className="h-7 w-7 rounded-full object-cover" />
-                        )}
                         {c.warna}
                       </button>
                     );
