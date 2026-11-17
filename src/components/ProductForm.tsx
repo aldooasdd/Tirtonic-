@@ -311,7 +311,7 @@ export default function ProductForm({
               </div>
               <div className="flex flex-wrap items-end gap-3 rounded-lg border border-gray-200 bg-white p-3">
                 <div>
-                  <label className="label">Varian 1 (semua baris)</label>
+                  <label className="label">Varian 1</label>
                   <select value={axis1} onChange={(e) => { const v = e.target.value as "Warna" | "Ukuran"; setAxis1(v); if (v === "Ukuran") turnAxis2(false); }} className="field">
                     <option value="Warna">Warna</option>
                     <option value="Ukuran">Ukuran</option>
