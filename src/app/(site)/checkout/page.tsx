@@ -117,6 +117,11 @@ export default function CheckoutPage() {
     setError(null);
     if (metode === "pickup" && !cabang) { setError("Pilih cabang pengambilan dulu."); return; }
     if (metode === "kirim" && !chosen) { setError("Cek & pilih ongkir dulu."); return; }
+    if (hasB1 && !agreeB1) {
+      setError("Centang persetujuan Ketentuan Produk Stok Akhir dulu.");
+      document.getElementById("ketentuan-b1g1")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
     const fd = new FormData(e.currentTarget);
     const pickup = metode === "pickup";
     const catatanRaw = String(fd.get("catatan") || "");
@@ -257,7 +262,7 @@ export default function CheckoutPage() {
             </div>
           )}
           {hasB1 && (
-            <div className="glass-card rounded-2xl p-5 text-xs leading-relaxed text-gray-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)] ring-1 ring-black/[0.04] backdrop-blur-md">
+            <div id="ketentuan-b1g1" className={`glass-card scroll-mt-24 rounded-2xl p-5 text-xs leading-relaxed text-gray-500 backdrop-blur-md transition ${error && !agreeB1 ? "ring-2 ring-red-400" : "ring-1 ring-black/[0.04]"}`}>
               <p className="mb-1.5 text-sm font-[600] text-gray-700">Ketentuan Produk Stok Akhir</p>
               <ol className="list-decimal space-y-1 pl-4">
                 <li>Produk Buy 1 Get 1 merupakan stok akhir dan dijual dalam kondisi apa adanya (as is).</li>
@@ -371,9 +376,8 @@ export default function CheckoutPage() {
 
 
             {error && <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>}
-            {hasB1 && !agreeB1 && <p className="mt-3 text-center text-xs text-amber-600">Centang persetujuan Ketentuan Produk Stok Akhir dulu.</p>}
 
-            <button type="submit" disabled={submitting || (hasB1 && !agreeB1)} className="glass-primary btn-pill mt-4 w-full disabled:opacity-60">
+            <button type="submit" disabled={submitting} className="glass-primary btn-pill mt-4 w-full disabled:opacity-60">
               {submitting ? "Memproses..." : "Buat Pesanan & Bayar"}
             </button>
             <p className="mt-2 text-center text-xs text-gray-400">Kamu akan diarahkan ke halaman pembayaran yang aman.</p>
