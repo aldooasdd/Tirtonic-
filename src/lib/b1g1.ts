@@ -25,10 +25,10 @@ export function b1g1Free<T extends { key: string; harga: number; qty: number; b1
   return { total, freeQty, unpaired: used.some((u) => !u) };
 }
 
-/** Ongkir B1G1: keranjang berisi barang B1G1 → ongkir dikali total unit yang dibeli (2 barang = ×2),
+/** Ongkir B1G1: dikali jumlah unit B1G1 saja (2 barang B1G1 = ×2; barang biasa tidak ikut dihitung),
  *  dan tidak dapat gratis ongkir. Tanpa B1G1 → ×1. */
 export const b1g1OngkirQty = (lines: { qty: number; b1g1?: boolean }[]) =>
-  lines.some((l) => l.b1g1) ? lines.reduce((s, l) => s + l.qty, 0) : 1;
+  Math.max(1, lines.reduce((s, l) => s + (l.b1g1 ? l.qty : 0), 0));
 
 // ponytail: self-check — node -e 'require("./b1g1").demo()' tidak perlu; jalankan via tsx bila logika berubah.
 export function demo() {
@@ -42,7 +42,7 @@ export function demo() {
   if (r.total !== 300 || r.freeQty.c !== 1 || r.freeQty.b !== 1 || r.unpaired) throw new Error("b1g1 salah");
   const same = b1g1Free([{ key: "x", harga: 500, qty: 2, b1g1: true }]); // harga sama → tak dapat
   if (same.total !== 0 || !same.unpaired) throw new Error("harga sama harusnya tidak dipasangkan");
-  if (b1g1OngkirQty([{ qty: 1, b1g1: true }, { qty: 2 }]) !== 3 || b1g1OngkirQty([{ qty: 4 }]) !== 1) throw new Error("ongkir b1g1 salah");
+  if (b1g1OngkirQty([{ qty: 2, b1g1: true }, { qty: 3 }]) !== 2 || b1g1OngkirQty([{ qty: 4 }]) !== 1) throw new Error("ongkir b1g1 salah");
   if (!isB1G1(100, 50) || isB1G1(100, 51) || isB1G1(100, null)) throw new Error("isB1G1 salah");
   return "ok";
 }
