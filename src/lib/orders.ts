@@ -165,7 +165,7 @@ export async function createOrder(input: CheckoutInput): Promise<CreateOrderResu
   let kurir = "Ambil di toko";
   if (!input.pickup) {
     const kodePos = (input.kodePos || "").replace(/\D/g, "");
-    const dest = input.lokasiId?.trim() || kodePos;
+    const dest = kodePos.length === 5 ? kodePos : input.lokasiId?.trim() || kodePos; // sama dengan checkout
     if (!input.lokasiId && kodePos.length !== 5) return { ok: false, error: "Pilih kelurahan / kecamatan tujuan dulu." };
     const ship = (await shippingOptions(dest, lines)).find((o) => o.id === input.shippingCourier);
     if (!ship) return { ok: false, error: "Pilih lokasi tujuan & kurir dulu." };

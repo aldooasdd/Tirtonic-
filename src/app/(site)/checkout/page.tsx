@@ -99,7 +99,8 @@ export default function CheckoutPage() {
     setRatesBusy(true);
     setRatesMsg(null);
     try {
-      const opts = await checkRates(lokasi.id, items.map((x) => ({ productId: x.productId, variantId: x.variantId, qty: x.qty })));
+      // Kode pos dari label lokasi (jalur yang terbukti di Binderbyte); id lokasi hanya cadangan.
+      const opts = await checkRates(kodePos || lokasi.id, items.map((x) => ({ productId: x.productId, variantId: x.variantId, qty: x.qty })));
       setRates(opts);
       setChosenId(opts[0]?.id ?? "");
       if (!opts.length) setRatesMsg("Ongkir tidak ditemukan untuk lokasi ini. Coba pilih kelurahan / kecamatan lain.");
