@@ -432,9 +432,9 @@ export default async function HomePage() {
       </div>
       <PreorderBanners products={preorders} />
       <EventPromo products={eventCards} title={eventItems[0]?.eventNama} />
+      <BestDeal products={b1g1Deals} title="Buy 1 Get 1" href="/shop?b1g1=1" />
       <ForYou products={forYou} />
       <BrandPopular brands={brands.map((b) => ({ id: b.id, nama: b.nama, foto: b.foto }))} />
-      <BestDeal products={b1g1Deals} title="Buy 1 Get 1" href="/shop?b1g1=1" />
       <BestDeal products={bestDeals} />
       <NewArrival products={arrivals} />
       <Benefits />
