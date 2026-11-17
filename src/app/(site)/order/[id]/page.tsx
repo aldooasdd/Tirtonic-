@@ -87,6 +87,12 @@ export default async function OrderPage({ params }: { params: { id: string } }) 
           <div className="flex justify-between pt-1 text-base font-extrabold text-gray-900"><span>Total</span><span>{rupiah(order.total)}</span></div>
         </div>
 
+        {/\bB1G1\b/.test(order.kupon ?? "") && (
+          <p className="mt-4 rounded-2xl bg-white/50 p-4 text-sm leading-relaxed text-gray-600 ring-1 ring-black/[0.05] backdrop-blur-md">
+            Terima kasih atas pesanan Anda. Sebagai pengingat, produk Buy 1 Get 1 merupakan stok akhir dengan kemungkinan ketidaksempurnaan kosmetik (seperti yellowing) yang tidak memengaruhi fungsi, dan tidak dapat ditukar atau dikembalikan.
+          </p>
+        )}
+
         {/* shipping address */}
         <div className="mt-6 border-t pt-4 text-sm text-gray-600">
           <h2 className="mb-2 font-bold text-gray-900">Dikirim ke</h2>

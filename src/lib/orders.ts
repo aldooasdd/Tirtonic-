@@ -3,6 +3,7 @@ import { isB1G1, b1g1Free } from "@/lib/b1g1";
 import { prisma } from "@/lib/prisma";
 import { createDokuPayment, checkDokuStatus } from "@/lib/doku";
 import { notifyN8N } from "@/lib/notify";
+import { sendWa } from "@/lib/wa";
 import { computeCoupon, computeMemberVoucher } from "@/lib/coupons";
 import { readFirstTouch } from "@/lib/first-touch";
 import { trackResi } from "@/lib/tracking";
@@ -237,6 +238,13 @@ export async function markOrderPaid(orderId: string, info?: { metodeBayar?: stri
 
   const fresh = await prisma.order.findUnique({ where: { id: orderId }, include: { items: true } });
   if (fresh) await notifyN8N("paid", fresh);
+  // Pesanan berisi Buy 1 Get 1 → WA konfirmasi tambahan soal kondisi stok akhir.
+  if (fresh && /\bB1G1\b/.test(fresh.kupon ?? "")) {
+    await sendWa(
+      fresh.telepon,
+      `Terima kasih atas pesanan Anda (${fresh.invoice}). Sebagai pengingat, produk Buy 1 Get 1 merupakan stok akhir dengan kemungkinan ketidaksempurnaan kosmetik (seperti yellowing) yang tidak memengaruhi fungsi, dan tidak dapat ditukar atau dikembalikan.`,
+    );
+  }
 
   // Ambil di toko → tidak ada pengiriman, langsung DELIVERED (tanpa klik admin).
   if (/^AMBIL DI TOKO/i.test(order.alamat)) {
