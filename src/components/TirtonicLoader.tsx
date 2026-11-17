@@ -10,6 +10,7 @@ const DEMO = {
   look: "light" as const,
   originalColors: true,
   tileSize: 150, // demo 256 — dikecilkan
+  speed: 2.2, // reveal ±1,6 dtk (demo ±3,5 dtk)
   logoScale: 0.6,
   finalScale: 0.8,
   tuning: { startZoom: 2.3 },
@@ -34,16 +35,16 @@ export function TirtonicSplash() {
     let alive = true;
     preloadGlassLogo(DEMO.logo).then(() => {
       if (!alive) return;
-      t1 = setTimeout(() => setFade(true), 3900); // reveal ±3,5 dtk (present 2,4 + tail 1,1) + jeda
-      t2 = setTimeout(() => setShow(false), 4500);
+      t1 = setTimeout(() => setFade(true), 1700); // reveal (3,5 dtk ÷ speed 2,2) tuntas
+      t2 = setTimeout(() => setShow(false), 1950);
     });
     return () => { alive = false; clearTimeout(t1); clearTimeout(t2); };
   }, []);
   if (!show) return null;
   return (
     <div
-      onClick={() => { setFade(true); setTimeout(() => setShow(false), 400); }}
-      className={`fixed inset-0 z-[200] transition-opacity duration-500 ${fade ? "pointer-events-none opacity-0" : "opacity-100"}`}
+      onClick={() => { setFade(true); setTimeout(() => setShow(false), 200); }}
+      className={`fixed inset-0 z-[200] transition-opacity duration-200 ${fade ? "pointer-events-none opacity-0" : "opacity-100"}`}
     >
       <GlassIconReveal {...DEMO} loop={false} background="#e9e9eb" className="h-svh min-h-[420px] w-full" />
     </div>
