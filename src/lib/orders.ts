@@ -191,7 +191,7 @@ export async function createOrder(input: CheckoutInput): Promise<CreateOrderResu
       voucherId: voucher?.id ?? null,
       ...(() => { const ft = readFirstTouch(); return { landingPage: ft.page, landingSource: ft.source }; })(),
       total,
-      items: { create: lines.map(({ wasDiscounted: _w, ...l }) => l) },
+      items: { create: lines.map(({ wasDiscounted: _w, b1g1: _b, ...l }) => l) }, // flag hitung saja, bukan kolom OrderItem
     },
   });
 
