@@ -8,7 +8,7 @@ const BASE = "https://www.tirtonic.com";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [products, articles] = await Promise.all([
-    prisma.product.findMany({ where: { status: "READY" }, select: { id: true, updatedAt: true } }),
+    prisma.product.findMany({ where: { status: "READY" }, select: { id: true, slug: true, updatedAt: true } }),
     prisma.article.findMany({ select: { id: true, slug: true, tanggal: true } }),
   ]);
 
@@ -21,7 +21,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     ...staticPages,
-    ...products.map((p) => ({ url: `${BASE}/product/${p.id}`, lastModified: p.updatedAt, changeFrequency: "weekly" as const, priority: 0.7 })),
+    ...products.map((p) => ({ url: `${BASE}/product/${p.slug || p.id}`, lastModified: p.updatedAt, changeFrequency: "weekly" as const, priority: 0.7 })),
     ...articles.map((a) => ({ url: `${BASE}${articleHref(a)}`, lastModified: a.tanggal, changeFrequency: "monthly" as const, priority: 0.5 })),
   ];
 }

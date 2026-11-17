@@ -1,4 +1,5 @@
 import { timingSafeEqual } from "node:crypto";
+import { uniqueProductSlug } from "@/lib/product-slug";
 import { type NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { markOrderShipped } from "@/lib/orders";
@@ -237,7 +238,8 @@ async function importProduct(p: ImportProduct): Promise<{ ok: true; id: string; 
     if (dup) existing = await prisma.product.update({ where: { id: dup.id }, data: { sourceRef: ref }, include: { variants: true } });
   }
   if (!existing) {
-    const created = await prisma.product.create({ data: { ...data, sourceRef: ref, variants: { create: variants } } });
+    const slug = await uniqueProductSlug(String(data.nama), async (x) => !!(await prisma.product.findUnique({ where: { slug: x }, select: { id: true } })));
+    const created = await prisma.product.create({ data: { ...data, slug, sourceRef: ref, variants: { create: variants } } });
     return { ok: true, id: created.id, created: true };
   }
 

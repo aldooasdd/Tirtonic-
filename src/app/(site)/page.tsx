@@ -394,7 +394,7 @@ export default async function HomePage() {
     safeQuery(() => prisma.sfOrder.findMany({ where: { status: { in: ["antri", "dikerjakan"] } }, orderBy: { createdAt: "asc" }, select: { resultCode: true, status: true, branchId: true, stringerName: true } }), []),
     safeQuery(() => prisma.preorderProduct.findMany({ where: { isActive: true, showOnLanding: true }, orderBy: { createdAt: "desc" }, take: 4, select: { id: true, nama: true, tagline: true, slogan: true, harga: true, gambar: true, bannerDesktop: true, bannerMobile: true, bannersDesktop: true, bannersMobile: true, estimasi: true, launchAt: true, kuota: true, variants: { select: { stok: true } }, _count: { select: { orders: true } } } }), []),
   ]);
-  const toCard = (p: (typeof latest)[number]) => ({ id: p.id, nama: p.nama, harga: p.harga, hargaDiskon: p.hargaDiskon, gambar: p.gambar, status: p.status, fromPrice: p._count.variants > 0 });
+  const toCard = (p: (typeof latest)[number]) => ({ id: p.id, slug: p.slug, nama: p.nama, harga: p.harga, hargaDiskon: p.hargaDiskon, gambar: p.gambar, status: p.status, fromPrice: p._count.variants > 0 });
   const arrivals = latest.map(toCard);
   const forYou = popular.map(toCard);
   // only keep real discounts (diskon < harga), cap at 12

@@ -2,11 +2,13 @@ import Link from "next/link";
 import Image from "next/image";
 import { rupiah } from "@/lib/format";
 import { isB1G1 } from "@/lib/b1g1";
+import { productHref } from "@/lib/product-slug";
 
 export type ProductCardData = {
   id: string;
   nama: string;
   harga: number;
+  slug?: string | null; // URL /product/<slug>
   hargaDiskon?: number | null; // discounted price; when < harga → show cut + badge
   gambar: string[];
   status: "READY" | "SOLD";
@@ -15,7 +17,7 @@ export type ProductCardData = {
 };
 
 export default function ProductCard({ p, thinPrice = false, hoverExpand = false, badge }: { p: ProductCardData; thinPrice?: boolean; hoverExpand?: boolean; badge?: string }) {
-  const href = `/product/${p.id}`;
+  const href = productHref(p);
 
   return (
     <div

@@ -110,6 +110,7 @@ export default async function ShopPage({ searchParams }: { searchParams: SP }) {
 
   const cards = shown.map((p) => ({
     id: p.id,
+    slug: p.slug,
     nama: p.nama,
     harga: p.harga,
     hargaDiskon: p.hargaDiskon,

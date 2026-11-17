@@ -193,6 +193,7 @@ model Product {
   brand     String?
   harga     Int // rupiah, whole number (harga normal)
   hargaDiskon Int? // harga diskon (opsional); jika < harga → tampil coret + badge
+  slug         String?  @unique // URL ramah-SEO /product/<slug> (dari nama); null → fallback ke id
   varianLabel  String? // nama Varian 1 (Warna / Ukuran / Type) — isinya disimpan di kolom warna varian
   diskonPersen Int @default(0) // diskon se-produk (%), berlaku ke semua varian; 0 = tanpa diskon
   eventAktif Boolean @default(false) // ikut event/promo → tampil di filter "Promo" shop

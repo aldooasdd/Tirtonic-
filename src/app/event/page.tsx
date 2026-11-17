@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { productHref } from "@/lib/product-slug";
 import { isB1G1 } from "@/lib/b1g1";
 import Link from "next/link";
 import { prisma, safeQuery } from "@/lib/prisma";
@@ -140,7 +141,7 @@ export default async function EventLanding({ searchParams }: { searchParams: { k
           prisma.product.findMany({
             where: { status: "READY", OR: brands.map((b) => ({ brand: { equals: b, mode: "insensitive" as const } })) },
             orderBy: { createdAt: "desc" },
-            select: { id: true, nama: true, brand: true, kategori: true, harga: true, hargaDiskon: true, gambar: true },
+            select: { id: true, slug: true, nama: true, brand: true, kategori: true, harga: true, hargaDiskon: true, gambar: true },
           }),
         [],
       )
@@ -359,7 +360,7 @@ export default async function EventLanding({ searchParams }: { searchParams: { k
               {products.map((p) => {
                 const disc = p.hargaDiskon && p.hargaDiskon < p.harga && !isB1G1(p.harga, p.hargaDiskon) ? p.hargaDiskon : null; // ≥50% = B1G1, harga normal
                 return (
-                  <Link key={p.id} href={`/product/${p.id}`} className={`${glass} ev-lift group flex w-[46%] shrink-0 snap-start flex-col overflow-hidden sm:w-[calc((100%-2rem)/3)] lg:w-[calc((100%-4rem)/5)]`}>
+                  <Link key={p.id} href={productHref(p)} className={`${glass} ev-lift group flex w-[46%] shrink-0 snap-start flex-col overflow-hidden sm:w-[calc((100%-2rem)/3)] lg:w-[calc((100%-4rem)/5)]`}>
                     <div className="relative aspect-square overflow-hidden bg-neutral-100">
                       {p.gambar[0] && (
                         // eslint-disable-next-line @next/next/no-img-element

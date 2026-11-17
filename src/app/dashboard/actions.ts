@@ -1,5 +1,6 @@
 "use server";
 
+import { uniqueProductSlug } from "@/lib/product-slug";
 import { claimsOwingPhoto } from "@/lib/demo-photos";
 
 import { redirect } from "next/navigation";
@@ -49,7 +50,7 @@ function revalidatePublic(productId?: string) {
   revalidatePath("/");
   revalidatePath("/shop");
   revalidatePath("/dashboard");
-  if (productId) revalidatePath(`/product/${productId}`);
+  if (productId) revalidatePath("/product/[id]", "page"); // url bisa slug atau id
 }
 
 async function uploadImages(formData: FormData): Promise<string[]> {
@@ -162,8 +163,9 @@ export async function createProduct(formData: FormData) {
   const sizeChart = await resolveSizeChart(formData);
   const variants = await parseVariants(formData, data.diskonPersen);
   const headline = headlinePrice(variants, data);
+  const slug = await uniqueProductSlug(data.nama, async (x) => !!(await prisma.product.findUnique({ where: { slug: x }, select: { id: true } })));
   await prisma.product.create({
-    data: { ...data, ...headline, stok: variants.length ? null : data.stok, gambar: [...existing, ...uploaded], sizeChart, variants: { create: variants } },
+    data: { ...data, ...headline, slug, stok: variants.length ? null : data.stok, gambar: [...existing, ...uploaded], sizeChart, variants: { create: variants } },
   });
   revalidatePublic();
   redirect("/dashboard");
@@ -256,11 +258,15 @@ export async function updateProduct(id: string, formData: FormData) {
   const sizeChart = await resolveSizeChart(formData);
   const variants = await parseVariants(formData, data.diskonPersen);
   const headline = headlinePrice(variants, data);
+  // Slug dibuat sekali (produk lama tanpa slug); tak diubah saat ganti nama supaya link lama tetap jalan.
+  const cur = await prisma.product.findUnique({ where: { id }, select: { slug: true } });
+  const slug = cur?.slug ?? (await uniqueProductSlug(data.nama, async (x) => !!(await prisma.product.findFirst({ where: { slug: x, id: { not: id } }, select: { id: true } }))));
   await prisma.product.update({
     where: { id },
     data: {
       ...data,
       ...headline,
+      slug,
       stok: variants.length ? null : data.stok,
       gambar: [...existing, ...uploaded],
       sizeChart,

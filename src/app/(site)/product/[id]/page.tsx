@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { prisma, safeQuery } from "@/lib/prisma";
 import Footer from "@/components/Footer";
 import ProductDetail from "@/components/ProductDetail";
@@ -15,13 +15,14 @@ export const revalidate = 300;
 export default async function ProductPage({ params }: { params: { id: string } }) {
   const p = await safeQuery(
     () =>
-      prisma.product.findUnique({
-        where: { id: params.id },
+      prisma.product.findFirst({
+        where: { OR: [{ slug: decodeURIComponent(params.id) }, { id: params.id }] },
         include: { variants: { orderBy: { urutan: "asc" } } },
       }),
     null
   );
   if (!p) notFound();
+  if (p.slug && params.id !== p.slug) permanentRedirect(`/product/${p.slug}`); // link lama (id) → URL nama produk
 
   const related = await safeQuery(
     () =>
@@ -93,7 +94,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
             {related.map((r) => (
               <div key={r.id} className="snap-item w-[160px] shrink-0 sm:w-[220px]">
                 <ProductCard
-                  p={{ id: r.id, nama: r.nama, harga: r.harga, hargaDiskon: r.hargaDiskon, gambar: r.gambar, status: r.status, fromPrice: r._count.variants > 0 }}
+                  p={{ id: r.id, slug: r.slug, nama: r.nama, harga: r.harga, hargaDiskon: r.hargaDiskon, gambar: r.gambar, status: r.status, fromPrice: r._count.variants > 0 }}
                 />
               </div>
             ))}
