@@ -86,6 +86,11 @@ export default function EventCard({ e }: { e: EventCardData }) {
 
         {/* Daftar & Bagikan — di atas stretched link (z-2) biar bisa diklik terpisah */}
         <div className="relative z-[2] mt-3 flex flex-wrap gap-2">
+          {open && sisa === 0 && (phase === "coming_soon" || phase === "ongoing") && (
+            <Link href={`/event/${e.id}#daftar`} className="inline-flex items-center gap-1.5 ev-btn rounded-full bg-amber-500 px-3.5 py-1.5 text-[11px] font-[600] text-white transition hover:bg-amber-600">
+              ⏳ Waiting List
+            </Link>
+          )}
           {canJoin && (
             <Link
               href={`/event/${e.id}`}

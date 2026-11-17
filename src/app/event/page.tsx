@@ -126,7 +126,7 @@ export default async function EventLanding({ searchParams }: { searchParams: { k
     }));
   const nowEvents: EventCardData[] = await Promise.all(
     events.filter((e) => ["ongoing", "coming_soon"].includes(phaseOf(e)))
-      .map(async (e) => ({ ...e, people: await withPhotos(claims.find((c) => c.id === e.id)!.participants) })),
+      .map(async (e) => ({ ...e, people: await withPhotos(claims.find((c) => c.id === e.id)!.participants.filter((x) => x.status !== "waitlist")) })),
   );
   const lastedEvents = events.filter((e) => phaseOf(e) === "done").reverse(); // terbaru dulu
   // Foto dokumentasi (disimpan di PC hub) untuk kartu riwayat; hub mati → pakai banner saja.

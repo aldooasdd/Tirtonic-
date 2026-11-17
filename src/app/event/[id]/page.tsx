@@ -58,7 +58,7 @@ export default async function EventDetail({ params }: { params: { id: string } }
   const meta = PHASE_META[phase];
   const open = e.quotaType === "open";
   const accepted = e.participants.filter((p) => p.status === "accepted").length;
-  const people = await withPhotos(e.participants);
+  const people = await withPhotos(e.participants.filter((x) => x.status !== "waitlist"));
   const sisa = Math.max(0, e.quota - accepted);
   const pct = e.quota > 0 ? Math.min(100, Math.round((accepted / e.quota) * 100)) : 0;
   const hari = e.demoDate.toLocaleDateString("id-ID", { weekday: "long" });
@@ -67,6 +67,8 @@ export default async function EventDetail({ params }: { params: { id: string } }
   const tahun = e.demoDate.getFullYear();
   const jam = `${e.time}${e.timeEnd ? ` – ${e.timeEnd}` : ""} WIB`;
   const canJoin = open && (phase === "coming_soon" || phase === "ongoing") && sisa > 0;
+  const canWait = open && (phase === "coming_soon" || phase === "ongoing") && sisa === 0; // penuh → waiting list
+  const waitCount = e.participants.filter((x) => x.status === "waitlist").length;
   const produk = `${e.campaign.brand} ${e.campaign.productType}`;
   // Foto dokumentasi komunitas (setelah demo) → slider di hero menggantikan banner.
   const photos = e.returnedAt ? ((await hubDemoPhotos([e.id]))?.[e.id] ?? []) : [];
@@ -262,6 +264,12 @@ export default async function EventDetail({ params }: { params: { id: string } }
                   <JoinEventForm claimId={e.id} />
                   <p className="mt-3 flex items-center justify-center gap-1.5 text-[11px] text-neutral-500"><span className="text-emerald-600">{I.check}</span>Gratis demo • Konfirmasi via WhatsApp</p>
                 </>
+              ) : canWait ? (
+                <>
+                  <p className="mb-4 mt-1 text-center text-xs text-neutral-500 lg:text-left"><span className="mr-1 inline-block h-2 w-2 rounded-full bg-amber-500 align-middle" /><b className="text-neutral-800">Slot penuh — gabung waiting list.</b> Jangan khawatir! Kalau ada peserta yang berhalangan, panitia bisa mengalihkan slotnya ke antrean waiting list.</p>
+                  <JoinEventForm claimId={e.id} waitlist={waitCount} />
+                  <p className="mt-3 flex items-center justify-center gap-1.5 text-[11px] text-neutral-500">🔒 Pendaftaran 100% Gratis • Tanpa Biaya Reservasi</p>
+                </>
               ) : (
                 <p className="mt-2 rounded-2xl bg-neutral-100 px-4 py-3 text-center text-sm text-neutral-600">{closedMsg}</p>
               )}
@@ -284,11 +292,11 @@ export default async function EventDetail({ params }: { params: { id: string } }
       <div className="fixed inset-x-0 bottom-3 z-50 px-3 lg:hidden">
         <div className="ev-dock mx-auto flex max-w-md items-center justify-between gap-3 rounded-full py-2 pl-5 pr-2">
           <div className="min-w-0">
-            <p className="text-[10px] font-[700] uppercase tracking-wide text-neutral-400">{canJoin ? "Slot tersedia" : "Pendaftaran"}</p>
-            <p className={`truncate text-sm font-[700] ${canJoin ? "text-emerald-700" : "text-neutral-600"}`}>{canJoin ? `Sisa ${sisa} kuota` : phase === "done" ? "Acara selesai" : open ? "Kuota penuh" : "Khusus anggota"}</p>
+            <p className="text-[10px] font-[700] uppercase tracking-wide text-neutral-400">{canJoin ? "Slot tersedia" : canWait ? "Slot penuh" : "Pendaftaran"}</p>
+            <p className={`truncate text-sm font-[700] ${canJoin ? "text-emerald-700" : "text-neutral-600"}`}>{canJoin ? `Sisa ${sisa} kuota` : canWait ? `Antrean ${waitCount} orang` : phase === "done" ? "Acara selesai" : open ? "Kuota penuh" : "Khusus anggota"}</p>
           </div>
-          {canJoin ? (
-            <a href="#daftar" className="ev-btn inline-flex shrink-0 items-center gap-1.5 rounded-full bg-neutral-950 px-5 py-3 text-sm font-[700] text-white active:scale-95">Daftar Sekarang {I.up}</a>
+          {canJoin || canWait ? (
+            <a href="#daftar" className="ev-btn inline-flex shrink-0 items-center gap-1.5 rounded-full bg-neutral-950 px-5 py-3 text-sm font-[700] text-white active:scale-95">{canJoin ? "Daftar Sekarang" : "Waiting List"} {I.up}</a>
           ) : (
             <Link href="/event" className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-neutral-100 px-5 py-3 text-sm font-[600] text-neutral-700">Acara lain {I.arrow}</Link>
           )}

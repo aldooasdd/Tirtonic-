@@ -8,7 +8,7 @@ import { sendWa } from "@/lib/wa";
 import { currentCommunityId } from "@/lib/community-auth";
 import { DEMO_REQUEST_OPTIONS } from "@/lib/demo-products";
 
-export type JoinState = { error?: string; ok?: boolean };
+export type JoinState = { error?: string; ok?: boolean; waitlist?: number }; // waitlist = nomor antrean
 
 /** Orang umum join acara demo "open" dari web. Perlu di-ACC komunitas penyelenggara. */
 export async function joinEvent(_prev: JoinState, formData: FormData): Promise<JoinState> {
@@ -32,12 +32,21 @@ export async function joinEvent(_prev: JoinState, formData: FormData): Promise<J
   if (phase !== "coming_soon" && phase !== "ongoing") return { error: "Pendaftaran acara ini sudah ditutup." };
   if (claim.participants.some((p) => p.phone === phone && p.status !== "rejected")) return { error: "Nomor ini sudah terdaftar di acara ini." };
   const accepted = claim.participants.filter((p) => p.status === "accepted").length;
-  if (accepted >= claim.quota) return { error: "Kuota peserta sudah penuh." };
+  const full = accepted >= claim.quota; // penuh → masuk waiting list (admin komunitas yang ACC)
+  const pos = claim.participants.filter((p) => p.status === "waitlist").length + 1;
 
-  await prisma.demoParticipant.create({ data: { claimId, name, phone, status: "pending" } });
+  await prisma.demoParticipant.create({ data: { claimId, name, phone, status: full ? "waitlist" : "pending" } });
   // Pendaftar otomatis punya akun member (dashboard /riwayat/{phone}); nama hanya diisi kalau belum ada.
   await prisma.member.upsert({ where: { phone }, create: { phone, name }, update: {} });
   await prisma.member.updateMany({ where: { phone, name: null }, data: { name } });
+  const tgl = `${claim.demoDate.toLocaleDateString("id-ID", { day: "numeric", month: "short" })} ${claim.time}${claim.timeEnd ? `–${claim.timeEnd}` : ""}`;
+  if (full) {
+    await sendWa(phone, `⏳ Hai ${name}, kamu masuk *waiting list* demo ${claim.campaign.brand} (${tgl}) — antrean ke-${pos}.\n\nKalau ada slot kosong dan panitia ${claim.community.name} menyetujui, kamu langsung dapat konfirmasi lewat WhatsApp ini. 🎾`);
+    await sendWa(claim.community.waPhone, `⏳ Ada pendaftar *waiting list* demo ${claim.campaign.brand} (slot penuh)\n\nNama: ${name}\nWA: ${phone}\nAntrean ke-${pos}\n\nKalau ada slot kosong / mau tambah slot, terima di dashboard komunitas: tirtonic.com/komunitas`);
+    revalidatePath(`/event/${claimId}`);
+    revalidatePath("/komunitas");
+    return { ok: true, waitlist: pos };
+  }
   await sendWa(
     claim.community.waPhone,
     `🔔 Ada peserta baru mau join demo ${claim.campaign.brand}!\n\nNama: ${name}\nWA: ${phone}\nSesi: ${claim.demoDate.toLocaleDateString("id-ID", { day: "numeric", month: "short" })} ${claim.time}${claim.timeEnd ? `–${claim.timeEnd}` : ""}\n\nTerima/tolak di dashboard komunitas: tirtonic.com/komunitas`,

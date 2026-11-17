@@ -348,6 +348,8 @@ export default async function KomunitasHome() {
               const open = c.quotaType === "open";
               const acceptedParts = c.participants.filter((p) => p.status === "accepted");
               const pendingParts = c.participants.filter((p) => p.status === "pending");
+              const waitParts = c.participants.filter((p) => p.status === "waitlist"); // urut daftar (createdAt asc)
+              const slotFull = acceptedParts.length >= c.quota;
               return (
                 <div key={c.id} className={`${glass} p-5`}>
                   <div className="flex items-center justify-between gap-2 border-b border-black/[0.06] pb-3">
@@ -394,6 +396,30 @@ export default async function KomunitasHome() {
                             <div className="flex shrink-0 gap-1.5">
                               <form action={decideParticipant.bind(null, p.id, "accepted")}>
                                 <SubmitButton className="rounded-lg bg-neutral-950 px-3 py-1.5 text-xs font-[600] text-white hover:bg-neutral-800">Terima</SubmitButton>
+                              </form>
+                              <form action={decideParticipant.bind(null, p.id, "rejected")}>
+                                <SubmitButton className="rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs text-neutral-500 hover:border-red-400 hover:text-red-600">Tolak</SubmitButton>
+                              </form>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {open && phase !== "pending" && waitParts.length > 0 && (
+                    <div className="mt-3 rounded-2xl bg-sky-50/70 p-3 ring-1 ring-sky-200">
+                      <p className="text-xs font-[700] text-sky-800">⏳ Waiting list · {waitParts.length} orang</p>
+                      <p className="mb-2 mt-0.5 text-[11px] text-sky-700">{slotFull ? "Slot penuh — tambah slot dulu (tombol +) untuk menerima dari antrean." : "Ada slot kosong — terima untuk langsung masuk jadi peserta."}</p>
+                      <div className="space-y-2">
+                        {waitParts.map((p, i) => (
+                          <div key={p.id} className="flex items-center justify-between gap-2">
+                            <div className="min-w-0">
+                              <p className="truncate text-sm font-[600] text-neutral-800"><span className="mr-1 text-xs text-sky-600">#{i + 1}</span>{p.name}</p>
+                              <p className="text-xs text-neutral-500">{p.phone}</p>
+                            </div>
+                            <div className="flex shrink-0 gap-1.5">
+                              <form action={decideParticipant.bind(null, p.id, "accepted")}>
+                                <SubmitButton className={`rounded-lg px-3 py-1.5 text-xs font-[600] text-white ${slotFull ? "pointer-events-none bg-neutral-300" : "bg-neutral-950 hover:bg-neutral-800"}`}>Terima</SubmitButton>
                               </form>
                               <form action={decideParticipant.bind(null, p.id, "rejected")}>
                                 <SubmitButton className="rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs text-neutral-500 hover:border-red-400 hover:text-red-600">Tolak</SubmitButton>

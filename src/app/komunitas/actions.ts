@@ -151,9 +151,11 @@ export async function decideParticipant(participantId: string, decision: "accept
   // Pastikan peserta ini milik acara komunitas yang login.
   const p = await prisma.demoParticipant.findUnique({
     where: { id: participantId },
-    include: { claim: { select: { communityId: true, eventPicPhone: true, campaign: { select: { brand: true } } } } },
+    include: { claim: { select: { id: true, quota: true, communityId: true, eventPicPhone: true, campaign: { select: { brand: true } } } } },
   });
   if (!p || p.claim.communityId !== communityId) return;
+  // Terima (termasuk dari waiting list) hanya kalau masih ada slot — penuh → tambah slot dulu.
+  if (decision === "accepted" && (await prisma.demoParticipant.count({ where: { claimId: p.claim.id, status: "accepted" } })) >= p.claim.quota) return;
   const { count } = await prisma.demoParticipant.updateMany({ where: { id: participantId, status: { not: decision } }, data: { status: decision } });
   if (!count) return; // klik dobel — WA sudah terkirim
   if (decision === "accepted") {
