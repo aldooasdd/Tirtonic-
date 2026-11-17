@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { isB1G1 } from "@/lib/b1g1";
 import Link from "next/link";
 import { prisma, safeQuery } from "@/lib/prisma";
 import { rupiah } from "@/lib/format";
@@ -356,7 +357,7 @@ export default async function EventLanding({ searchParams }: { searchParams: { k
             />
             <ProductRail>
               {products.map((p) => {
-                const disc = p.hargaDiskon && p.hargaDiskon < p.harga ? p.hargaDiskon : null;
+                const disc = p.hargaDiskon && p.hargaDiskon < p.harga && !isB1G1(p.harga, p.hargaDiskon) ? p.hargaDiskon : null; // ≥50% = B1G1, harga normal
                 return (
                   <Link key={p.id} href={`/product/${p.id}`} className={`${glass} ev-lift group flex w-[46%] shrink-0 snap-start flex-col overflow-hidden sm:w-[calc((100%-2rem)/3)] lg:w-[calc((100%-4rem)/5)]`}>
                     <div className="relative aspect-square overflow-hidden bg-neutral-100">

@@ -1,3 +1,4 @@
+import { isB1G1 } from "@/lib/b1g1";
 import Link from "next/link";
 import PreorderHeroSlides from "@/components/PreorderHeroSlides";
 import LaunchCountdown from "@/components/LaunchCountdown";
@@ -243,16 +244,16 @@ function EventPromo({ products, title }: { products: ProductCardData[]; title?: 
   );
 }
 
-function BestDeal({ products }: { products: ProductCardData[] }) {
+function BestDeal({ products, title = "Best Deal", href = "/shop?deal=1" }: { products: ProductCardData[]; title?: string; href?: string }) {
   if (products.length === 0) return null;
   return (
     <section className="mx-auto max-w-site px-4 lg:px-6 py-2">
       <div className="mb-1.5 flex items-center justify-between gap-3">
         <h2 className="flex items-center gap-2 text-xl font-extrabold text-gray-900">
-          Best Deal {/* eslint-disable-next-line @next/next/no-img-element */}
+          {title} {/* eslint-disable-next-line @next/next/no-img-element */}
           <img loading="lazy" decoding="async" src="/logo.png" alt="" className="h-7 w-7" />
         </h2>
-        <Link href="/shop?deal=1" className="text-sm font-semibold text-primary hover:underline">
+        <Link href={href} className="text-sm font-semibold text-primary hover:underline">
           View All
         </Link>
       </div>
@@ -396,7 +397,9 @@ export default async function HomePage() {
   const arrivals = latest.map(toCard);
   const forYou = popular.map(toCard);
   // only keep real discounts (diskon < harga), cap at 12
-  const bestDeals = deals.filter((p) => p.hargaDiskon != null && p.hargaDiskon < p.harga).slice(0, 12).map(toCard);
+  // Diskon ≥50% → bukan Best Deal lagi, masuk carousel Buy 1 Get 1 (harga normal).
+  const b1g1Deals = deals.filter((p) => isB1G1(p.harga, p.hargaDiskon)).slice(0, 12).map(toCard);
+  const bestDeals = deals.filter((p) => p.hargaDiskon != null && p.hargaDiskon < p.harga && !isB1G1(p.harga, p.hargaDiskon)).slice(0, 12).map(toCard);
   const eventCards = eventItems.map(toCard);
   const storeItems = stores.map((s) => ({
     id: s.id,
@@ -429,6 +432,7 @@ export default async function HomePage() {
       <EventPromo products={eventCards} title={eventItems[0]?.eventNama} />
       <ForYou products={forYou} />
       <BrandPopular brands={brands.map((b) => ({ id: b.id, nama: b.nama, foto: b.foto }))} />
+      <BestDeal products={b1g1Deals} title="Buy 1 Get 1" href="/shop?b1g1=1" />
       <BestDeal products={bestDeals} />
       <NewArrival products={arrivals} />
       <Benefits />

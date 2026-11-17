@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { rupiah } from "@/lib/format";
+import { isB1G1 } from "@/lib/b1g1";
 
 export type ProductCardData = {
   id: string;
@@ -38,7 +39,12 @@ export default function ProductCard({ p, thinPrice = false, hoverExpand = false 
 
       <Link href={href} className="block p-3">
         <h3 className="line-clamp-2 min-h-[2.5rem] text-sm font-normal text-gray-800 group-hover:text-primary">{p.nama}</h3>
-        {p.hargaDiskon && p.hargaDiskon < p.harga ? (
+        {isB1G1(p.harga, p.hargaDiskon) ? (
+          <div className="mt-1">
+            <p className={`text-base text-gray-900 ${thinPrice ? "font-normal" : "font-bold"}`}>{rupiah(p.harga)}</p>
+            <span className="rounded bg-red-500 px-1.5 py-0.5 text-[10px] font-[800] text-white">BUY 1 GET 1</span>
+          </div>
+        ) : p.hargaDiskon && p.hargaDiskon < p.harga ? (
           <div className="mt-1">
             <div className="flex items-center gap-1.5">
               <span className={`text-base text-gray-900 ${thinPrice ? "font-normal" : "font-bold"}`}>{rupiah(p.hargaDiskon)}</span>

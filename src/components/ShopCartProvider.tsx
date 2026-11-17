@@ -12,6 +12,7 @@ export type CartItem = {
   gambar: string | null;
   qty: number;
   max: number; // stok tersedia (varian); 99 kalau tak dibatasi
+  b1g1?: boolean; // promo Buy 1 Get 1 (harga normal; termurah tiap pasang gratis di checkout)
 };
 
 type Ctx = {

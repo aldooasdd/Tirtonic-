@@ -7,6 +7,8 @@ import { useRouter } from "next/navigation";
 import { rupiah, waLink } from "@/lib/format";
 import { FREE_ONGKIR_MIN } from "@/lib/constants";
 import { useShopCart } from "./ShopCartProvider";
+import B1G1Popup, { type B1G1Option } from "./B1G1Popup";
+import { isB1G1 } from "@/lib/b1g1";
 
 type Variant = { id?: string; warna: string; ukuran: string; harga: number; hargaDiskon?: number | null; stok: number; gambar: string | null };
 
@@ -48,7 +50,7 @@ const Info = ({ icon, label, value }: { icon: string; label: string; value: stri
 );
 
 
-export default function ProductDetail({ p }: { p: P }) {
+export default function ProductDetail({ p, b1g1Others = [] }: { p: P; b1g1Others?: B1G1Option[] }) {
   const variants = p.variants || [];
   const hasVar = variants.length > 0;
   const hasSizeAxis = variants.some((v) => v.ukuran !== "");
@@ -68,7 +70,8 @@ export default function ProductDetail({ p }: { p: P }) {
   const [url, setUrl] = useState("");
   const [showChart, setShowChart] = useState(false);
   const [descOpen, setDescOpen] = useState(false);
-  const { add: addToCart } = useShopCart();
+  const { add: addToCart, items: cartItems } = useShopCart();
+  const [b1Open, setB1Open] = useState(false);
   const router = useRouter();
   const [added, setAdded] = useState(false);
 
@@ -114,7 +117,8 @@ export default function ProductDetail({ p }: { p: P }) {
   const base = selVariant ?? cheapestVar;
   const normalNum = hasVar ? base?.harga ?? 0 : p.harga;
   const diskonNum = hasVar ? base?.hargaDiskon ?? null : p.hargaDiskon ?? null;
-  const discounted = diskonNum != null && diskonNum < normalNum;
+  const b1g1 = isB1G1(normalNum, diskonNum); // diskon ≥50% → Buy 1 Get 1, harga normal
+  const discounted = !b1g1 && diskonNum != null && diskonNum < normalNum;
   const priceNum = discounted ? diskonNum! : normalNum;
   const pct = discounted ? Math.round((1 - diskonNum! / normalNum) * 100) : 0;
 
@@ -138,6 +142,7 @@ export default function ProductDetail({ p }: { p: P }) {
       gambar: colorImg ?? p.gambar[0] ?? null,
       qty: 1,
       max: hasVar ? selVariant?.stok ?? 1 : p.stok ?? 99,
+      b1g1,
     });
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
@@ -145,6 +150,9 @@ export default function ProductDetail({ p }: { p: P }) {
   const buyNow = () => {
     if (!ready) return;
     addItem();
+    // B1G1 & jumlah unit B1G1 di keranjang jadi ganjil → tawarkan pasangannya dulu.
+    const units = cartItems.filter((x) => x.b1g1).reduce((n, x) => n + x.qty, 0) + 1;
+    if (b1g1 && units % 2 === 1) return setB1Open(true);
     router.push("/checkout");
   };
 
@@ -242,6 +250,7 @@ export default function ProductDetail({ p }: { p: P }) {
 
           <div className="mt-3 flex items-end gap-2.5">
             <p className="text-2xl font-[600] text-gray-900">{rupiah(priceNum)}</p>
+            {b1g1 && <span className="mb-1 rounded-full bg-red-500 px-2.5 py-0.5 text-[11px] font-[800] text-white">BUY 1 GET 1</span>}
             {discounted && (
               <>
                 <p className="pb-0.5 text-sm text-gray-400 line-through">{rupiah(normalNum)}</p>
@@ -329,6 +338,13 @@ export default function ProductDetail({ p }: { p: P }) {
             </div>
           )}
 
+          {b1Open && (
+            <B1G1Popup
+              options={b1g1Others.filter((o) => o.id !== p.id || o.variants.some((v) => v.id !== selVariant?.id))}
+              onPick={(it) => { addToCart(it); router.push("/checkout"); }}
+              onSkip={() => router.push("/checkout")}
+            />
+          )}
           <div className="mt-6 flex gap-3">
             {ready ? (
               <>

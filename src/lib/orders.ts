@@ -1,4 +1,5 @@
 import "server-only";
+import { isB1G1, b1g1Free } from "@/lib/b1g1";
 import { prisma } from "@/lib/prisma";
 import { createDokuPayment, checkDokuStatus } from "@/lib/doku";
 import { notifyN8N } from "@/lib/notify";
@@ -33,6 +34,7 @@ export type CheckoutInput = {
 export type ResolvedLine = {
   productId: string; variantId: string | null; nama: string; varian: string | null;
   harga: number; qty: number; gambar: string | null; wasDiscounted: boolean;
+  b1g1: boolean; // promo Buy 1 Get 1 (diskon ≥50% → harga normal, termurah tiap pasang gratis)
 };
 
 type ProductWithVariants = { id: string; nama: string; berat: number; harga: number; hargaDiskon: number | null; status: string; stok: number | null; gambar: string[]; variants: { id: string; warna: string; ukuran: string; harga: number; hargaDiskon: number | null; stok: number; gambar: string | null }[] };
@@ -48,10 +50,18 @@ function genInvoice(): string {
   return `TIRT-${ymd}-${rand}`;
 }
 
+// Diskon ≥50% → promo B1G1: harga normal (diskonnya hilang), potongan dihitung per pasang.
 const effHarga = (harga: number, hargaDiskon: number | null) =>
-  hargaDiskon != null && hargaDiskon < harga ? hargaDiskon : harga;
+  hargaDiskon != null && hargaDiskon < harga && !isB1G1(harga, hargaDiskon) ? hargaDiskon : harga;
 
-const wasDiscounted = (harga: number, hargaDiskon: number | null) => hargaDiskon != null && hargaDiskon < harga;
+const wasDiscounted = (harga: number, hargaDiskon: number | null) => hargaDiskon != null && hargaDiskon < harga && !isB1G1(harga, hargaDiskon);
+
+/** Potongan B1G1 dari baris final. */
+export const b1g1Of = (lines: ResolvedLine[]) =>
+  b1g1Free(lines.map((l) => ({ key: `${l.productId}::${l.variantId ?? ""}`, harga: l.harga, qty: l.qty, b1g1: l.b1g1 })));
+/** Baris yang boleh kena kupon/voucher (B1G1 tidak bisa digabung). */
+export const couponLines = (lines: ResolvedLine[]) =>
+  lines.filter((l) => !l.b1g1).map((l) => ({ productId: l.productId, harga: l.harga, qty: l.qty, wasDiscounted: l.wasDiscounted }));
 
 /** Verifikasi tiap item keranjang dari DB → baris final (harga, varian, stok).
  *  Dipakai createOrder dan preview kupon di checkout. */
@@ -80,6 +90,7 @@ export async function resolveLines(items: CartLine[]): Promise<{ ok: true; lines
         harga: effHarga(v.harga, v.hargaDiskon), qty,
         gambar: v.gambar ?? p.gambar[0] ?? null,
         wasDiscounted: wasDiscounted(v.harga, v.hargaDiskon),
+        b1g1: isB1G1(v.harga, v.hargaDiskon),
       });
     } else {
       if (p.status === "SOLD" || (p.stok != null && p.stok <= 0)) return { ok: false, error: `${p.nama} sedang habis.` };
@@ -89,6 +100,7 @@ export async function resolveLines(items: CartLine[]): Promise<{ ok: true; lines
         harga: effHarga(p.harga, p.hargaDiskon), qty,
         gambar: p.gambar[0] ?? null,
         wasDiscounted: wasDiscounted(p.harga, p.hargaDiskon),
+        b1g1: isB1G1(p.harga, p.hargaDiskon),
       });
     }
   }
@@ -128,16 +140,18 @@ export async function createOrder(input: CheckoutInput): Promise<CreateOrderResu
   const subtotal = lines.reduce((s, l) => s + l.harga * l.qty, 0);
 
   // Kupon (kalau ada): divalidasi ulang di server — kode dari client tak dipercaya.
-  let diskon = 0;
-  let kupon: string | null = null;
+  // Buy 1 Get 1 dulu (termurah tiap pasang gratis); kupon & voucher hanya untuk barang non-B1G1.
+  const b1 = b1g1Of(lines).total;
+  let diskon = b1;
+  let kupon: string | null = b1 ? "B1G1" : null;
+  const cl = couponLines(lines);
   if (input.kupon?.trim()) {
-    const cr = await computeCoupon(input.kupon, lines.map((l) => ({ productId: l.productId, harga: l.harga, qty: l.qty, wasDiscounted: l.wasDiscounted })));
+    const cr = await computeCoupon(input.kupon, cl);
     if (!cr.ok) return { ok: false, error: cr.error };
-    diskon = cr.diskon;
-    kupon = cr.code;
+    diskon += cr.diskon;
+    kupon = kupon ? `${kupon} + ${cr.code}` : cr.code;
   }
   // Voucher demo milik nomor HP pembeli → otomatis, bisa digabung dengan kupon. Total potongan ≤ subtotal.
-  const cl = lines.map((l) => ({ productId: l.productId, harga: l.harga, qty: l.qty, wasDiscounted: l.wasDiscounted }));
   const voucher = await computeMemberVoucher(telepon, cl);
   if (voucher) {
     diskon = Math.min(subtotal, diskon + voucher.diskon);

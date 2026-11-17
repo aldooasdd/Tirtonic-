@@ -1,5 +1,6 @@
 "use client";
 
+import { b1g1Free } from "@/lib/b1g1";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -92,7 +93,8 @@ export default function CheckoutPage() {
     }
   }
 
-  const diskon = Math.min(subtotal, (coupon?.diskon ?? 0) + (voucher?.diskon ?? 0));
+  const b1 = b1g1Free(items); // Buy 1 Get 1: termurah tiap pasang gratis (server hitung ulang)
+  const diskon = Math.min(subtotal, b1.total + (coupon?.diskon ?? 0) + (voucher?.diskon ?? 0));
   const belanja = Math.max(0, subtotal - diskon);
   const freeOngkir = belanja >= FREE_ONGKIR_MIN;
   const chosen = rates?.find((r) => r.id === chosenId) ?? null;
@@ -270,8 +272,16 @@ export default function CheckoutPage() {
                   <div className="min-w-0 flex-1">
                     <p className="line-clamp-1 font-medium text-gray-800">{x.nama}</p>
                     {x.varian && <p className="text-xs text-gray-500">{x.varian}</p>}
+                    {x.b1g1 && <span className="mt-0.5 inline-block rounded bg-red-500 px-1.5 py-0.5 text-[9px] font-[800] text-white">BUY 1 GET 1</span>}
                   </div>
-                  <span className="shrink-0 font-semibold text-gray-900">{rupiah(x.harga * x.qty)}</span>
+                  {b1.freeQty[x.key] ? (
+                    <span className="shrink-0 text-right">
+                      <span className="block text-xs text-gray-400 line-through">{rupiah(x.harga * b1.freeQty[x.key])}</span>
+                      <span className="block font-semibold text-red-600">{x.qty > b1.freeQty[x.key] ? rupiah(x.harga * (x.qty - b1.freeQty[x.key])) : "GRATIS"}</span>
+                    </span>
+                  ) : (
+                    <span className="shrink-0 font-semibold text-gray-900">{rupiah(x.harga * x.qty)}</span>
+                  )}
                 </li>
               ))}
             </ul>
@@ -307,6 +317,13 @@ export default function CheckoutPage() {
                 <span>Subtotal</span>
                 <span>{rupiah(subtotal)}</span>
               </div>
+              {b1.total > 0 && (
+                <div className="flex justify-between font-semibold text-red-600">
+                  <span>Buy 1 Get 1</span>
+                  <span>−{rupiah(b1.total)}</span>
+                </div>
+              )}
+              {b1.unpaired && <p className="text-[11px] text-amber-600">Tambah 1 barang Buy 1 Get 1 lagi supaya yang termurah gratis.</p>}
               {coupon && (
                 <div className="flex justify-between font-semibold text-primary">
                   <span>Potongan kupon ({coupon.code})</span>

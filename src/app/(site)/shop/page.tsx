@@ -1,3 +1,4 @@
+import { isB1G1 } from "@/lib/b1g1";
 import { Prisma } from "@prisma/client";
 import { unstable_cache } from "next/cache";
 import { prisma, safeQuery } from "@/lib/prisma";
@@ -34,7 +35,7 @@ const getShopBrands = unstable_cache(
   { revalidate: 300, tags: ["products"] }
 );
 
-type SP = { sort?: string; size?: string; brand?: string; type?: string; q?: string; price?: string; page?: string; deal?: string; event?: string; diskon?: string };
+type SP = { sort?: string; size?: string; brand?: string; type?: string; q?: string; price?: string; page?: string; deal?: string; b1g1?: string; event?: string; diskon?: string };
 
 function orderBy(sort?: string): Prisma.ProductOrderByWithRelationInput {
   switch (sort) {
@@ -55,7 +56,7 @@ export default async function ShopPage({ searchParams }: { searchParams: SP }) {
   if (searchParams.brand) where.brand = searchParams.brand;
   if (searchParams.size) where.ukuran = { has: searchParams.size };
   if (searchParams.q) where.nama = { contains: searchParams.q, mode: "insensitive" };
-  if (searchParams.deal) where.hargaDiskon = { not: null }; // hanya barang diskon (Best Deal)
+  if (searchParams.deal || searchParams.b1g1) where.hargaDiskon = { not: null }; // hanya barang diskon (Best Deal / B1G1 disaring di bawah)
   if (searchParams.event) where.eventAktif = true; // hanya barang yang lagi event/promo
   if (searchParams.price) {
     const [min, max] = searchParams.price.split("-").map((n) => (n ? parseInt(n, 10) : undefined));
@@ -96,7 +97,8 @@ export default async function ShopPage({ searchParams }: { searchParams: SP }) {
   const pct = (p: { harga: number; hargaDiskon: number | null }) => (p.hargaDiskon && p.hargaDiskon < p.harga ? Math.round((1 - p.hargaDiskon / p.harga) * 100) : 0);
   const diskonCounts = Object.fromEntries(DISKON_RANGES.map((r) => [r.value, products.filter((p) => { const d = pct(p); return d >= r.min && d <= r.max; }).length]));
   const dr = DISKON_RANGES.find((r) => r.value === searchParams.diskon);
-  const shown = dr ? products.filter((p) => { const d = pct(p); return d >= dr.min && d <= dr.max; }) : products;
+  const shown = (dr ? products.filter((p) => { const d = pct(p); return d >= dr.min && d <= dr.max; }) : products)
+    .filter((p) => (searchParams.b1g1 ? isB1G1(p.harga, p.hargaDiskon) : searchParams.deal ? !isB1G1(p.harga, p.hargaDiskon) : true));
 
   const cards = shown.map((p) => ({
     id: p.id,
