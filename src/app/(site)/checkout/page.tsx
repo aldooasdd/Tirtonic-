@@ -265,7 +265,7 @@ export default function CheckoutPage() {
                   />
                 )}
                 {!lokasi && lokasiQ.trim().length >= 3 && (
-                  <div className="absolute inset-x-0 top-full z-20 mt-1 max-h-72 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-lg">
+                  <div className="mt-1 max-h-72 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-sm" /* inline, bukan melayang: kartu glass di bawah tak menutupinya */>
                     {lokasiBusy && !lokasiOpts.length ? (
                       <p className="px-4 py-3 text-sm text-gray-500">Mencari…</p>
                     ) : lokasiOpts.length ? (
