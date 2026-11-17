@@ -9,6 +9,7 @@ const DEMO = {
   label: "Tirtonic",
   look: "light" as const,
   originalColors: true,
+  tileSize: 150, // demo 256 — dikecilkan
   logoScale: 0.6,
   finalScale: 0.8,
   tuning: { startZoom: 2.3 },
