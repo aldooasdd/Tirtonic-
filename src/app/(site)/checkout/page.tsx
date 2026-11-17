@@ -6,8 +6,8 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useShopCart } from "@/components/ShopCartProvider";
 import { rupiah } from "@/lib/format";
-import { submitCheckout, applyCoupon, checkRates, checkMemberVoucher, findLocations } from "./actions";
-import type { LocationOption, RateOption } from "@/lib/ongkir";
+import { submitCheckout, applyCoupon, checkRates, checkMemberVoucher } from "./actions";
+import type { RateOption } from "@/lib/ongkir";
 import { FREE_ONGKIR_MIN } from "@/lib/constants";
 import wilayah from "@/lib/wilayah.json";
 
@@ -36,33 +36,16 @@ export default function CheckoutPage() {
   const [voucher, setVoucher] = useState<{ code: string; label: string; diskon: number } | null>(null);
 
   // Ongkir (Binderbyte)
-  // Tujuan: cari kelurahan/kecamatan (nama atau kode pos) → pilih → id lokasi Binderbyte.
-  const [lokasiQ, setLokasiQ] = useState("");
-  const [lokasiOpts, setLokasiOpts] = useState<LocationOption[]>([]);
-  const [lokasiBusy, setLokasiBusy] = useState(false);
-  const [lokasi, setLokasi] = useState<LocationOption | null>(null);
-  const kodePos = lokasi?.label.match(/(\d{5})\)?\s*$/)?.[1] ?? "";
+  const [kodePos, setKodePos] = useState("");
   const [rates, setRates] = useState<RateOption[] | null>(null);
   const [chosenId, setChosenId] = useState("");
   const [ratesBusy, setRatesBusy] = useState(false);
   const [ratesMsg, setRatesMsg] = useState<string | null>(null);
-
+  const postalOk = /^\d{5}$/.test(kodePos.trim());
 
   useEffect(() => setMounted(true), []);
   // Kode pos / isi keranjang berubah → tarif lama tak berlaku.
-  useEffect(() => { setRates(null); setChosenId(""); }, [lokasi, subtotal]);
-  // Ketik ≥3 huruf → cari lokasi (debounce, hemat kuota Binderbyte).
-  useEffect(() => {
-    const q = lokasiQ.trim();
-    if (lokasi || q.length < 3) { setLokasiOpts([]); return; }
-    setLokasiBusy(true);
-    const t = setTimeout(() => {
-      findLocations(q).then(setLokasiOpts).catch(() => setLokasiOpts([])).finally(() => setLokasiBusy(false));
-    }, 450);
-    return () => { clearTimeout(t); setLokasiBusy(false); };
-  }, [lokasiQ, lokasi]);
-  // Lokasi dipilih → langsung cek ongkir.
-  useEffect(() => { if (lokasi) void onCheckRates(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [lokasi]);
+  useEffect(() => { setRates(null); setChosenId(""); }, [kodePos, subtotal]);
   // Isi keranjang berubah → kupon lama tidak valid lagi, reset preview.
   useEffect(() => { setCoupon(null); setCouponMsg(null); }, [subtotal]);
   // Cek voucher demo milik nomor ini (ulang kalau keranjang berubah).
@@ -95,15 +78,14 @@ export default function CheckoutPage() {
   }
 
   async function onCheckRates() {
-    if (!lokasi) return;
+    if (!postalOk) return;
     setRatesBusy(true);
     setRatesMsg(null);
     try {
-      // Kode pos dari label lokasi (jalur yang terbukti di Binderbyte); id lokasi hanya cadangan.
-      const opts = await checkRates(kodePos || lokasi.id, items.map((x) => ({ productId: x.productId, variantId: x.variantId, qty: x.qty })));
+      const opts = await checkRates(kodePos.trim(), items.map((x) => ({ productId: x.productId, variantId: x.variantId, qty: x.qty })));
       setRates(opts);
       setChosenId(opts[0]?.id ?? "");
-      if (!opts.length) setRatesMsg("Ongkir tidak ditemukan untuk lokasi ini. Coba pilih kelurahan / kecamatan lain.");
+      if (!opts.length) setRatesMsg("Ongkir tidak ditemukan untuk kode pos ini. Cek lagi kode posnya.");
     } catch {
       setRatesMsg("Gagal cek ongkir. Coba lagi.");
     } finally {
@@ -137,7 +119,7 @@ export default function CheckoutPage() {
     e.preventDefault();
     setError(null);
     if (metode === "pickup" && !cabang) { setError("Pilih cabang pengambilan dulu."); return; }
-    if (metode === "kirim" && !chosen) { setError("Pilih lokasi tujuan & kurir dulu."); return; }
+    if (metode === "kirim" && !chosen) { setError("Cek & pilih ongkir dulu."); return; }
     if (hasB1 && !agreeB1) {
       setError("Centang persetujuan Ketentuan Produk Stok Akhir dulu.");
       document.getElementById("ketentuan-b1g1")?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -158,8 +140,7 @@ export default function CheckoutPage() {
         catatan: pickup ? `[AMBIL DI TOKO - ${cabang}] ${catatanRaw}`.trim() : catatanRaw,
         kupon: coupon?.code,
         pickup,
-        kodePos: pickup ? undefined : kodePos || undefined,
-        lokasiId: pickup ? undefined : lokasi?.id,
+        kodePos: pickup ? undefined : kodePos.trim(),
         shippingCourier: pickup ? undefined : chosen?.id,
         items: items.map((x) => ({ productId: x.productId, variantId: x.variantId, qty: x.qty })),
       });
@@ -249,38 +230,19 @@ export default function CheckoutPage() {
                   ? "Selamat! Pesanan kamu dapat gratis ongkir."
                   : `Belanja ${rupiah(FREE_ONGKIR_MIN - belanja)} lagi untuk gratis ongkir (min. ${rupiah(FREE_ONGKIR_MIN)}).`}
               </div>
-              <div className="relative">
-                {lokasi ? (
-                  <div className="field flex items-center justify-between gap-3">
-                    <span className="min-w-0 truncate text-sm text-gray-900">{lokasi.label}</span>
-                    <button type="button" onClick={() => { setLokasi(null); setLokasiQ(""); setRates(null); }} className="shrink-0 text-xs font-semibold text-primary">Ganti</button>
-                  </div>
-                ) : (
-                  <input
-                    value={lokasiQ}
-                    onChange={(e) => setLokasiQ(e.target.value)}
-                    placeholder="Cari kelurahan / kecamatan tujuan (mis. Condongcatur)"
-                    className="field w-full"
-                    autoComplete="off"
-                  />
-                )}
-                {!lokasi && lokasiQ.trim().length >= 3 && (
-                  <div className="absolute inset-x-0 top-full z-20 mt-1 max-h-72 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-lg">
-                    {lokasiBusy && !lokasiOpts.length ? (
-                      <p className="px-4 py-3 text-sm text-gray-500">Mencari…</p>
-                    ) : lokasiOpts.length ? (
-                      lokasiOpts.map((o) => (
-                        <button key={o.id} type="button" onClick={() => setLokasi(o)} className="block w-full px-4 py-2.5 text-left text-sm text-gray-800 hover:bg-primary/5">
-                          {o.label}
-                        </button>
-                      ))
-                    ) : (
-                      <p className="px-4 py-3 text-sm text-gray-500">Lokasi tidak ditemukan. Coba nama kelurahan, kecamatan, atau kode pos.</p>
-                    )}
-                  </div>
-                )}
+              <div className="flex gap-2">
+                <input
+                  value={kodePos}
+                  onChange={(e) => setKodePos(e.target.value.replace(/\D/g, "").slice(0, 5))}
+                  inputMode="numeric"
+                  placeholder="Kode pos tujuan (5 digit)"
+                  className="field flex-1"
+                  autoComplete="postal-code"
+                />
+                <button type="button" onClick={onCheckRates} disabled={!postalOk || ratesBusy} className="btn-pill border border-primary bg-white px-4 text-primary hover:bg-primary/5 disabled:opacity-50">
+                  {ratesBusy ? "..." : "Cek Ongkir"}
+                </button>
               </div>
-              {ratesBusy && <p className="text-sm text-gray-500">Mengecek ongkir…</p>}
               {ratesMsg && <p className="text-sm text-red-600">{ratesMsg}</p>}
               {rates && rates.length > 0 && (
                 <div className="space-y-2">
@@ -411,7 +373,7 @@ export default function CheckoutPage() {
                 ) : freeOngkir ? (
                   <span className="font-semibold text-primary">Gratis</span>
                 ) : (
-                  <span>{chosen ? `${ongkirQty > 1 ? `${ongkirQty} × ${rupiah(chosen.cost)} = ` : ""}${rupiah(ongkir)}` : "Pilih lokasi"}</span>
+                  <span>{chosen ? `${ongkirQty > 1 ? `${ongkirQty} × ${rupiah(chosen.cost)} = ` : ""}${rupiah(ongkir)}` : "Cek dulu"}</span>
                 )}
               </div>
               <div className="flex justify-between pt-1 text-base font-extrabold text-gray-900">

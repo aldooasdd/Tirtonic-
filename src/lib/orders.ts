@@ -22,7 +22,6 @@ export type CheckoutInput = {
   kota: string;
   provinsi: string;
   kodePos?: string;
-  lokasiId?: string; // id lokasi Binderbyte dari pencarian kelurahan/kecamatan
   catatan?: string;
   kupon?: string;
   pickup?: boolean; // ambil di toko → ongkir 0
@@ -110,10 +109,10 @@ export async function resolveLines(items: CartLine[]): Promise<{ ok: true; lines
 }
 
 /** Opsi ongkir ke kode pos tujuan: Binderbyte (berat dari produk), fallback flat. */
-export async function shippingOptions(dest: string, lines: ResolvedLine[]): Promise<RateOption[]> {
+export async function shippingOptions(destPostal: string, lines: ResolvedLine[]): Promise<RateOption[]> {
   if (ongkirConfigured) {
     const products = await prisma.product.findMany({ where: { id: { in: lines.map((l) => l.productId) } }, select: { id: true, berat: true } });
-    const opts = await getRates(dest, lines.map((l) => ({
+    const opts = await getRates(destPostal, lines.map((l) => ({
       quantity: l.qty,
       weight: products.find((p) => p.id === l.productId)?.berat || 500,
     })));
@@ -165,10 +164,9 @@ export async function createOrder(input: CheckoutInput): Promise<CreateOrderResu
   let kurir = "Ambil di toko";
   if (!input.pickup) {
     const kodePos = (input.kodePos || "").replace(/\D/g, "");
-    const dest = kodePos.length === 5 ? kodePos : input.lokasiId?.trim() || kodePos; // sama dengan checkout
-    if (!input.lokasiId && kodePos.length !== 5) return { ok: false, error: "Pilih kelurahan / kecamatan tujuan dulu." };
-    const ship = (await shippingOptions(dest, lines)).find((o) => o.id === input.shippingCourier);
-    if (!ship) return { ok: false, error: "Pilih lokasi tujuan & kurir dulu." };
+    if (kodePos.length !== 5) return { ok: false, error: "Isi kode pos 5 digit." };
+    const ship = (await shippingOptions(kodePos, lines)).find((o) => o.id === input.shippingCourier);
+    if (!ship) return { ok: false, error: "Cek & pilih ongkir dulu." };
     // B1G1: tanpa gratis ongkir; ongkir × jumlah unit B1G1 hanya untuk tarif flat (tarif kurir sudah per total berat).
     const mult = ship.id.startsWith("flat::") ? b1g1OngkirQty(lines) : 1;
     const free = !lines.some((l) => l.b1g1) && subtotal - diskon >= FREE_ONGKIR_MIN;

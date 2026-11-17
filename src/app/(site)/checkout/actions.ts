@@ -2,7 +2,7 @@
 
 import { createOrder, resolveLines, shippingOptions, couponLines, type CartLine, type CheckoutInput, type CreateOrderResult } from "@/lib/orders";
 import { computeCoupon, computeMemberVoucher, type CouponResult, type VoucherResult } from "@/lib/coupons";
-import { searchLocations, type LocationOption, type RateOption } from "@/lib/ongkir";
+import type { RateOption } from "@/lib/ongkir";
 
 export async function submitCheckout(input: CheckoutInput): Promise<CreateOrderResult> {
   return createOrder(input);
@@ -19,11 +19,6 @@ export async function applyCoupon(input: { code: string; items: CartLine[] }): P
 }
 
 // Daftar ongkir ke kode pos tujuan (harga & berat dari DB).
-export async function findLocations(q: string): Promise<LocationOption[]> {
-  return searchLocations(q.slice(0, 60));
-}
-
-/** dest: id lokasi Binderbyte (hasil findLocations) atau kode pos. */
 export async function checkRates(kodePos: string, items: CartLine[]): Promise<RateOption[]> {
   const resolved = await resolveLines(items);
   if (!resolved.ok) return [];
