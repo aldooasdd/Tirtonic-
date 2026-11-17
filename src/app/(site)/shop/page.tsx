@@ -57,7 +57,11 @@ export default async function ShopPage({ searchParams }: { searchParams: SP }) {
   // Size: ukuran produk, atau varian yang masih ada stok (sepatu sering simpan ukuran di kolom warna).
   if (searchParams.size) {
     const sz = searchParams.size;
-    where.AND = [{ OR: [{ ukuran: { has: sz } }, { variants: { some: { stok: { gt: 0 }, OR: [{ ukuran: sz }, { warna: sz }] } } }] }];
+    const alt = [sz, sz.replace(/^(\d+)\.5$/, "$1 1/2")]; // sebagian varian ditulis "40 1/2"
+    where.AND = [{ OR: [
+      { variants: { none: {} }, ukuran: { has: sz } }, // non-varian: daftar ukuran produk
+      { variants: { some: { stok: { gt: 0 }, OR: [{ ukuran: { in: alt } }, { warna: { in: alt } }] } } }, // varian: ukuran itu masih ada stok
+    ] }];
   }
   if (searchParams.q) where.nama = { contains: searchParams.q, mode: "insensitive" };
   if (searchParams.deal || searchParams.b1g1) where.hargaDiskon = { not: null }; // hanya barang diskon (Best Deal / B1G1 disaring di bawah)
