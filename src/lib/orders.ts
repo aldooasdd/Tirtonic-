@@ -1,5 +1,5 @@
 import "server-only";
-import { isB1G1, b1g1Free, b1g1OngkirQty } from "@/lib/b1g1";
+import { isB1G1, b1g1Free, b1g1OngkirQty, B1G1_BLOCK_MSG } from "@/lib/b1g1";
 import { prisma } from "@/lib/prisma";
 import { createPayment, checkPaymentStatus, paymentLabel } from "@/lib/payment";
 import { notifyN8N } from "@/lib/notify";
@@ -142,8 +142,10 @@ export async function createOrder(input: CheckoutInput): Promise<CreateOrderResu
   const subtotal = lines.reduce((s, l) => s + l.harga * l.qty, 0);
 
   // Kupon (kalau ada): divalidasi ulang di server — kode dari client tak dipercaya.
-  // Buy 1 Get 1 dulu (termurah tiap pasang gratis); kupon & voucher hanya untuk barang non-B1G1.
-  const b1 = b1g1Of(lines).total;
+  // Buy 1 Get 1 dulu (gratis ≤ 50% barang dibayar); kupon & voucher hanya untuk barang non-B1G1.
+  const b1g1 = b1g1Of(lines);
+  if (b1g1.blocked) return { ok: false, error: B1G1_BLOCK_MSG }; // aturan 50% owner, divalidasi ulang di server
+  const b1 = b1g1.total;
   let diskon = b1;
   let kupon: string | null = b1 ? "B1G1" : null;
   const cl = couponLines(lines);

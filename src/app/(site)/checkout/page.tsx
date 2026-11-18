@@ -1,6 +1,6 @@
 "use client";
 
-import { b1g1Free, b1g1OngkirQty } from "@/lib/b1g1";
+import { b1g1Free, b1g1OngkirQty, B1G1_BLOCK_MSG } from "@/lib/b1g1";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -111,7 +111,7 @@ export default function CheckoutPage() {
     }
   }
 
-  const b1 = b1g1Free(items); // Buy 1 Get 1: termurah tiap pasang gratis (server hitung ulang)
+  const b1 = b1g1Free(items); // Buy 1 Get 1: gratis ≤ 50% barang dibayar (server hitung ulang)
   const hasB1 = items.some((x) => x.b1g1);
   const [agreeB1, setAgreeB1] = useState(false);
   const diskon = Math.min(subtotal, b1.total + (coupon?.diskon ?? 0) + (voucher?.diskon ?? 0));
@@ -138,6 +138,10 @@ export default function CheckoutPage() {
     setError(null);
     if (metode === "pickup" && !cabang) { setError("Pilih cabang pengambilan dulu."); return; }
     if (metode === "kirim" && !chosen) { setError("Pilih lokasi tujuan & kurir dulu."); return; }
+    if (b1.blocked) {
+      setError(B1G1_BLOCK_MSG);
+      return;
+    }
     if (hasB1 && !agreeB1) {
       setError("Centang persetujuan Ketentuan Produk Stok Akhir dulu.");
       document.getElementById("ketentuan-b1g1")?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -312,6 +316,7 @@ export default function CheckoutPage() {
               <p className="mb-1.5 text-sm font-[600] text-gray-700">Ketentuan Produk Stok Akhir</p>
               <ol className="list-decimal space-y-1 pl-4">
                 <li>Produk Buy 1 Get 1 merupakan stok akhir dan dijual dalam kondisi apa adanya.</li>
+                <li>Barang gratis maksimal 50% dari harga barang yang dibayar (contoh: bayar Rp 1.000.000, gratis maksimal Rp 500.000).</li>
                 <li>Produk dapat memiliki ketidaksempurnaan kosmetik, antara lain yellowing, noda ringan, bekas lem, goresan halus, atau kotak rusak, yang tidak memengaruhi fungsi produk.</li>
                 <li>Produk tidak dapat ditukar, dikembalikan, atau di-refund dengan alasan kondisi kosmetik, ukuran, maupun perubahan keputusan.</li>
                 <li>Jika terdapat kerusakan yang membuat produk tidak dapat digunakan (misalnya sol lepas atau jahitan robek) dan diketahui saat produk diterima, silakan hubungi kami maksimal 1×24 jam setelah barang diterima dengan menyertakan video unboxing.</li>
@@ -391,7 +396,11 @@ export default function CheckoutPage() {
                   <span>−{rupiah(b1.total)}</span>
                 </div>
               )}
-              {b1.unpaired && <p className="text-[11px] text-amber-600">Pasangkan dengan barang Buy 1 Get 1 yang harganya berbeda supaya yang lebih murah gratis.</p>}
+              {b1.blocked ? (
+                <p className="text-[11px] font-semibold text-red-600">{B1G1_BLOCK_MSG}</p>
+              ) : b1.unpaired && (
+                <p className="text-[11px] text-amber-600">Barang gratis maksimal 50% dari harga barang yang dibayar. Tambah pasangan Buy 1 Get 1 yang sesuai supaya dapat gratis.</p>
+              )}
               {coupon && (
                 <div className="flex justify-between font-semibold text-primary">
                   <span>Potongan kupon ({coupon.code})</span>

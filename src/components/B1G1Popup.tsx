@@ -23,7 +23,7 @@ export default function B1G1Popup({ options, onPick, onSkip, onClose }: { option
           <div>
             <span className="rounded-full bg-red-500 px-2.5 py-0.5 text-[11px] font-[800] text-white">BUY 1 GET 1</span>
             <h3 className="mt-2 text-lg font-[700] text-neutral-950">Pilih 1 barang lagi, gratis!</h3>
-            <p className="mt-0.5 text-xs text-neutral-600">Pasangan harus beda harga — yang lebih murah otomatis gratis di checkout. Tidak bisa digabung kupon/voucher.</p>
+            <p className="mt-0.5 text-xs text-neutral-600">Barang gratis maksimal 50% dari harga barang yang dibayar — yang lebih murah otomatis gratis di checkout. Tidak bisa digabung kupon/voucher.</p>
           </div>
           <button type="button" onClick={onClose} aria-label="Tutup" className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-white/80 text-neutral-600 hover:bg-white">✕</button>
         </div>
