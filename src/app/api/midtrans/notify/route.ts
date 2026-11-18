@@ -1,17 +1,22 @@
-import { verifyMidtransNotification, midtransConfigured, midtransPaid } from "@/lib/midtrans";
+import { verifyMidtransNotification, midtransConfigured, midtransPaid, checkMidtransStatus } from "@/lib/midtrans";
 import { settleInvoice } from "@/lib/settle-payment";
 
 export const dynamic = "force-dynamic";
 
-// Webhook pembayaran Midtrans (Snap). Signature diverifikasi; hanya status lunas yang diproses.
-// Midtrans menganggap sukses kalau dibalas HTTP 200.
+// Webhook pembayaran Midtrans (Snap). Selalu balas 200 (Midtrans menganggap non-2xx = gagal & tes URL gagal).
+// Signature cocok → percaya payload. Tidak cocok (mis. key berizin terbatas tak dipakai menandatangani,
+// atau notifikasi tes) → JANGAN percaya payload; tanya status langsung ke API Midtrans pakai Server Key kita.
 export async function POST(req: Request) {
   if (!midtransConfigured) return Response.json({ ok: false, reason: "not_configured" });
   let n: Record<string, string> = {};
-  try { n = (await req.json()) as Record<string, string>; } catch { return Response.json({ ok: false, reason: "bad_json" }, { status: 400 }); }
-  if (!verifyMidtransNotification(n)) return Response.json({ ok: false, reason: "invalid_signature" }, { status: 401 });
+  try { n = (await req.json()) as Record<string, string>; } catch { return Response.json({ ok: false, reason: "bad_json" }); }
+  if (!n.order_id) return Response.json({ ok: false, reason: "no_order_id" });
 
-  if (!midtransPaid(n.transaction_status ?? "", n.fraud_status)) return Response.json({ ok: true }); // pending/expire/cancel: abaikan
+  const paid = verifyMidtransNotification(n)
+    ? midtransPaid(n.transaction_status ?? "", n.fraud_status)
+    : (await checkMidtransStatus(n.order_id)) === "SUCCESS";
+  if (!paid) return Response.json({ ok: true }); // pending/expire/cancel/tes: abaikan
+
   await settleInvoice(n.order_id, { gateway: "Midtrans", metode: n.payment_type, ref: n.transaction_id, amount: Number(n.gross_amount) || undefined });
   return Response.json({ ok: true });
 }
