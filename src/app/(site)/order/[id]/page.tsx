@@ -2,7 +2,8 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma, safeQuery } from "@/lib/prisma";
 import { rupiah, waLink } from "@/lib/format";
-import { expirePendingOrders, PAY_WINDOW_MIN } from "@/lib/orders";
+import { expirePendingOrders, markOrderPaid, PAY_WINDOW_MIN } from "@/lib/orders";
+import { checkPaymentStatus, paymentLabel } from "@/lib/payment";
 import PaymentCountdown from "@/components/PaymentCountdown";
 
 export const dynamic = "force-dynamic";
@@ -17,11 +18,14 @@ const STATUS: Record<string, { label: string; cls: string; desc: string }> = {
 
 export default async function OrderPage({ params }: { params: { id: string } }) {
   await expirePendingOrders(); // bersihkan PENDING kadaluarsa dulu
-  const order = await safeQuery(
-    () => prisma.order.findUnique({ where: { id: params.id }, include: { items: true } }),
-    null
-  );
+  const load = () => safeQuery(() => prisma.order.findUnique({ where: { id: params.id }, include: { items: true } }), null);
+  let order = await load();
   if (!order) notFound();
+  // Notifikasi gerbang bayar bisa telat → cek status langsung saat pembeli kembali ke halaman ini.
+  if (order.status === "PENDING" && (await checkPaymentStatus(order.invoice)) === "SUCCESS") {
+    await markOrderPaid(order.id, { metodeBayar: paymentLabel() });
+    order = (await load()) ?? order;
+  }
 
   const s = STATUS[order.status] ?? STATUS.PENDING;
 
