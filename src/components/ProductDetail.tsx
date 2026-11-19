@@ -8,7 +8,7 @@ import { rupiah, waLink } from "@/lib/format";
 import { FREE_ONGKIR_MIN } from "@/lib/constants";
 import { useShopCart } from "./ShopCartProvider";
 import B1G1Popup, { type B1G1Option } from "./B1G1Popup";
-import { isB1G1 } from "@/lib/b1g1";
+import { isB1G1, b1g1PairOk } from "@/lib/b1g1";
 
 type Variant = { id?: string; warna: string; ukuran: string; harga: number; hargaDiskon?: number | null; stok: number; gambar: string | null };
 
@@ -352,9 +352,9 @@ export default function ProductDetail({ p, b1g1Others = [] }: { p: P; b1g1Others
           {b1Open && (
             <B1G1Popup
               options={b1g1Others
-                // pasangan wajib beda harga dengan barang ini
-                .map((o) => ({ ...o, variants: o.variants.filter((v) => v.harga !== priceNum) }))
-                .filter((o) => (o.variants.length > 0 || (b1g1Others.find((x) => x.id === o.id)!.variants.length === 0 && o.harga !== priceNum)) && o.id !== p.id)}
+                // pasangan: beda harga & selisih ≤ Rp500.000 dengan barang ini
+                .map((o) => ({ ...o, variants: o.variants.filter((v) => b1g1PairOk(v.harga, priceNum)) }))
+                .filter((o) => (o.variants.length > 0 || (b1g1Others.find((x) => x.id === o.id)!.variants.length === 0 && b1g1PairOk(o.harga, priceNum))) && o.id !== p.id)}
               onPick={(it) => { addToCart(it); router.push("/checkout"); }}
               onSkip={() => router.push("/checkout")}
               onClose={() => setB1Open(false)} // tutup = tetap di halaman (barang sudah masuk keranjang)
