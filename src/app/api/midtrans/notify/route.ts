@@ -12,10 +12,11 @@ export async function POST(req: Request) {
   try { n = (await req.json()) as Record<string, string>; } catch { return Response.json({ ok: false, reason: "bad_json" }); }
   if (!n.order_id) return Response.json({ ok: false, reason: "no_order_id" });
 
-  const paid = verifyMidtransNotification(n)
-    ? midtransPaid(n.transaction_status ?? "", n.fraud_status)
-    : (await checkMidtransStatus(n.order_id)) === "SUCCESS";
-  if (!paid) return Response.json({ ok: true }); // pending/expire/cancel/tes: abaikan
+  const signed = verifyMidtransNotification(n);
+  const st = signed ? null : await checkMidtransStatus(n.order_id);
+  const paid = signed ? midtransPaid(n.transaction_status ?? "", n.fraud_status) : st === "SUCCESS";
+  if (!signed) console.log("midtrans notify (cek API)", n.order_id, st);
+  if (!paid) return Response.json({ ok: true, st: st === null ? "unknown" : "checked" }); // pending/expire/cancel/tes: abaikan
 
   await settleInvoice(n.order_id, { gateway: "Midtrans", metode: n.payment_type, ref: n.transaction_id, amount: Number(n.gross_amount) || undefined });
   return Response.json({ ok: true });

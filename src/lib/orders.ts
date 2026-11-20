@@ -287,6 +287,7 @@ export async function expirePendingOrders(): Promise<void> {
     for (const o of expired) {
       const st = await checkPaymentStatus(o.invoice);
       if (st === "SUCCESS" || st === "PAID") await markOrderPaid(o.id, { metodeBayar: paymentLabel() });
+      else if (st === null) continue; // cek ke gerbang gagal → jangan batalkan, coba lagi nanti
       else await prisma.order.update({ where: { id: o.id }, data: { status: "CANCELLED" } });
     }
   } catch {
