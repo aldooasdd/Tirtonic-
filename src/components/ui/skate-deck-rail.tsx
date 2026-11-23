@@ -16,8 +16,8 @@ export interface SkateDeck {
   image: string;
   /** Short tag such as a price, hung from the hook. */
   tag?: string;
-  /** Semua varian, tampil di atas harga pada popup; sold = dicoret. */
-  variants?: { label: string; sold: boolean }[];
+  /** Semua varian, tampil di atas harga pada popup. */
+  variants?: string[];
   /** Short facts shown as chips in the detail view (wheelbase, plies, concave …). */
   details?: string[];
 }
@@ -1004,9 +1004,7 @@ function Detail({ uid, item, index, total, labels, reduced, fallback, extra, sou
           {item.variants && item.variants.length > 0 && (
             <ul aria-label="Varian" className="flex flex-wrap gap-1.5">
               {item.variants.map((v) => (
-                <li key={v.label} className={`rounded-full border border-white/80 px-3 py-1.5 text-xs ${v.sold ? "bg-white/25 text-zinc-500 line-through" : "bg-white/65 text-zinc-900"}`}>
-                  {v.label}{v.sold && <span className="sr-only"> (habis)</span>}
-                </li>
+                <li key={v} className="rounded-full border border-white/80 bg-white/65 px-3 py-1.5 text-xs text-zinc-900">{v}</li>
               ))}
             </ul>
           )}

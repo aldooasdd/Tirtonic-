@@ -16,7 +16,7 @@ async function railItems(): Promise<RailItem[]> {
     if (p.variants.length ? !ada.length : p.stok != null && p.stok <= 0) return []; // habis → turun dari rak
     const harga = (ada.length ? ada : [p]).map(hargaJual);
     const min = Math.min(...harga);
-    const variants = p.variants.map((v) => ({ label: [v.warna, v.ukuran].filter(Boolean).join(" / "), sold: v.stok <= 0 }));
+    const variants = p.variants.map((v) => [v.warna, v.ukuran].filter(Boolean).join(" / "));
     return [{ id, name: railName(p.nama), series: p.brand ?? undefined, tag: `${Math.max(...harga) > min ? "Mulai " : ""}${rupiah(min)}`, image: foto, variants, href: productHref(p) }];
   });
 }
