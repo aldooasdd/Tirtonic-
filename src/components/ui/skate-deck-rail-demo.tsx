@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import SkateDeckRail from "@/components/ui/skate-deck-rail";
 import type { SkateDeck } from "@/components/ui/skate-deck-rail";
 
@@ -14,39 +13,25 @@ const DECKS: SkateDeck[] = [
   { id: "vcore-pro", name: "Yonex VCORE Pro", series: "VCORE", tag: "Rp 3.650.000", description: "Flex klasik, rasa kokoh untuk pemukul flat-drive.", details: ["97 in²", "310 g", "16×19", "Flex"], image: RACKET },
 ];
 // TEST: diulang jadi 15 supaya rel lebih panjang dari layar (bisa digeser).
-export const SKATE_DEMO_DECKS: SkateDeck[] = [0, 1, 2].flatMap((k) => DECKS.map((d) => ({ ...d, id: `${d.id}-${k}` })));
+const SKATE_DEMO_DECKS: SkateDeck[] = [0, 1, 2].flatMap((k) => DECKS.map((d) => ({ ...d, id: `${d.id}-${k}` })));
 
-function AddToCart({ price }: { price?: string }) {
-  const [added, setAdded] = React.useState(false);
-  return (
-    <button
-      type="button"
-      aria-pressed={added}
-      onClick={() => setAdded((value) => !value)}
-      className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-white shadow-sm outline-none transition-[transform,box-shadow] hover:-translate-y-px hover:shadow-md focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none"
-    >
-      {added ? (
-        <>
-          <svg aria-hidden="true" viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 8.5l3.2 3L13 4.5" /></svg>
-          Masuk keranjang
-        </>
-      ) : (
-        <>Tambah ke keranjang{price ? ` · ${price}` : ""}</>
-      )}
-    </button>
-  );
-}
+/** Raket asli dari dashboard; href = halaman produk. */
+export type RailItem = SkateDeck & { href: string };
 
-export default function SkateDeckRailDemo({ autoplay = true }: { autoplay?: boolean }) {
+export default function SkateDeckRailDemo({ items, autoplay = true }: { items: RailItem[]; autoplay?: boolean }) {
   return (
     <div data-skate-demo className="flex min-h-svh w-full items-center justify-center bg-background text-foreground">
       <SkateDeckRail
-        items={SKATE_DEMO_DECKS}
+        items={items.length ? items : SKATE_DEMO_DECKS}
         heading="Pilih raketmu"
         caption="Geser untuk lihat raket lain, klik untuk detail."
         interval={3600}
         autoplay={autoplay}
-        detailAction={(deck) => <AddToCart key={deck.id} price={deck.tag} />}
+        detailAction={(deck) => (
+          <a href={(deck as RailItem).href ?? "/shop?type=Raket%20Tenis"} className="inline-flex rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-white shadow-sm outline-none transition-[transform,box-shadow] hover:-translate-y-px hover:shadow-md focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 motion-reduce:transition-none">
+            Lihat detail produk
+          </a>
+        )}
         action={
           <a href="/shop?type=Raket%20Tenis" className="rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-white shadow-sm outline-none transition-[transform,box-shadow] hover:-translate-y-px hover:shadow-md focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none">
             Lihat semua raket

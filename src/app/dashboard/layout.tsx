@@ -29,6 +29,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     { label: "Konten", items: pick([
       can("artikel") && { href: "/dashboard#artikel", label: "Artikel", icon: "file" },
       can("hero") && { href: "/dashboard#hero", label: "Hero Banner", icon: "image" },
+      can("hero") && { href: "/dashboard/rak", label: "Rak Raket", icon: "racket" },
       can("store") && { href: "/dashboard#store", label: "Cabang", icon: "store" },
       can("brand") && { href: "/dashboard#brand", label: "Brand Popular", icon: "star" },
       can("sponsor") && { href: "/dashboard#sponsor", label: "Sponsorship", icon: "handshake" },

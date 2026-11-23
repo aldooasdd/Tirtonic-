@@ -1,4 +1,25 @@
-import SkateDeckRailDemo from "@/components/ui/skate-deck-rail-demo";
+import SkateDeckRailDemo, { type RailItem } from "@/components/ui/skate-deck-rail-demo";
+import { prisma, safeQuery } from "@/lib/prisma";
+import { rupiah } from "@/lib/format";
+import { isB1G1 } from "@/lib/b1g1";
+import { productHref } from "@/lib/product-slug";
+import { railName } from "@/lib/rail";
+
+export const revalidate = 300; // stok & harga; upload dari dashboard langsung tampil (revalidatePath)
+
+const hargaJual = (x: { harga: number; hargaDiskon: number | null }) => (x.hargaDiskon != null && x.hargaDiskon < x.harga && !isB1G1(x.harga, x.hargaDiskon) ? x.hargaDiskon : x.harga);
+
+async function railItems(): Promise<RailItem[]> {
+  const rows = await safeQuery(() => prisma.racketRail.findMany({ where: { product: { status: "READY" } }, orderBy: [{ urutan: "asc" }, { createdAt: "asc" }], include: { product: { include: { variants: true } } } }), []);
+  return rows.flatMap(({ id, foto, product: p }) => {
+    const ada = p.variants.filter((v) => v.stok > 0);
+    if (p.variants.length ? !ada.length : p.stok != null && p.stok <= 0) return []; // habis → turun dari rak
+    const harga = (ada.length ? ada : [p]).map(hargaJual);
+    const min = Math.min(...harga);
+    return [{ id, name: railName(p.nama), series: p.brand ?? undefined, tag: `${Math.max(...harga) > min ? "Mulai " : ""}${rupiah(min)}`, image: foto, href: productHref(p) }];
+  });
+}
+
 
 export const metadata = {
   title: "Skate Deck Rail — Test",
@@ -8,7 +29,8 @@ export const metadata = {
 // Halaman uji coba komponen SkateDeckRail. BUKAN bagian flow utama — tidak dilink
 // dari nav/shop. Token warna shadcn (background/foreground/card/chart-*) didefinisikan
 // scoped di sini supaya gak nyentuh sisa situs.
-export default function SkateTestPage() {
+export default async function SkateTestPage() {
+  const items = await railItems();
   return (
     <div id="skate-test-root">
       {/* :root supaya dialog detail (render via portal ke body) ikut kebawa var-nya */}
@@ -28,7 +50,7 @@ export default function SkateTestPage() {
           --color-chart-5: #f4a462;
         }
       `}</style>
-      <SkateDeckRailDemo />
+      <SkateDeckRailDemo items={items} />
     </div>
   );
 }
