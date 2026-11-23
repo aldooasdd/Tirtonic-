@@ -2,7 +2,7 @@
 export const RAIL_W = 487;
 export const RAIL_H = 1200;
 
-export const railName = (nama: string) => nama.replace(/^raket\s+(tenis|tennis)?\s*/i, "").replace(/\s*(tennis racket|raket tenis|raket tennis)\b/gi, "").trim() || nama;
+export const railName = (nama: string) => nama.replace(/^raket\s+(tenis|tennis)?\s*/i, "").replace(/\s*(tennis racket|racket tennis|raket tenis|raket tennis)\b/gi, "").trim() || nama;
 
 /** Kotak raket (piksel alpha > 128) dari data RGBA. null = kosong. clear = bagian piksel yang transparan (0–1). */
 export function alphaBox(data: Uint8ClampedArray, w: number, h: number) {

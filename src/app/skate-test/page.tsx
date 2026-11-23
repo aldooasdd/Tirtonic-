@@ -10,13 +10,14 @@ export const revalidate = 300; // stok & harga; upload dari dashboard langsung t
 const hargaJual = (x: { harga: number; hargaDiskon: number | null }) => (x.hargaDiskon != null && x.hargaDiskon < x.harga && !isB1G1(x.harga, x.hargaDiskon) ? x.hargaDiskon : x.harga);
 
 async function railItems(): Promise<RailItem[]> {
-  const rows = await safeQuery(() => prisma.racketRail.findMany({ where: { product: { status: "READY" } }, orderBy: [{ urutan: "asc" }, { createdAt: "asc" }], include: { product: { include: { variants: true } } } }), []);
+  const rows = await safeQuery(() => prisma.racketRail.findMany({ where: { product: { status: "READY" } }, orderBy: [{ urutan: "asc" }, { createdAt: "asc" }], include: { product: { include: { variants: { orderBy: { urutan: "asc" } } } } } }), []);
   return rows.flatMap(({ id, foto, product: p }) => {
     const ada = p.variants.filter((v) => v.stok > 0);
     if (p.variants.length ? !ada.length : p.stok != null && p.stok <= 0) return []; // habis → turun dari rak
     const harga = (ada.length ? ada : [p]).map(hargaJual);
     const min = Math.min(...harga);
-    return [{ id, name: railName(p.nama), series: p.brand ?? undefined, tag: `${Math.max(...harga) > min ? "Mulai " : ""}${rupiah(min)}`, image: foto, href: productHref(p) }];
+    const variants = p.variants.map((v) => ({ label: [v.warna, v.ukuran].filter(Boolean).join(" / "), sold: v.stok <= 0 }));
+    return [{ id, name: railName(p.nama), series: p.brand ?? undefined, tag: `${Math.max(...harga) > min ? "Mulai " : ""}${rupiah(min)}`, image: foto, variants, href: productHref(p) }];
   });
 }
 
