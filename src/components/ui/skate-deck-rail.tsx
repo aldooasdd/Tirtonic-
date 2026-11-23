@@ -57,7 +57,6 @@ const LIFT_SCALE = 0.03;
 const GAP = 0.06;
 const FRONT_EXTRA = 0; // raket yang menghadap depan tidak menggeser tetangganya
 const MAX_H = 460;
-const MIN_RAIL_H = 180;
 const CAROUSEL_MAX_H = 430;
 const EDGE = 24;
 const RAIL_TOP = 14;
@@ -69,7 +68,9 @@ const FOOT = 0.085;
 const STAGE_K = 1 + RAIL_Y + HOOK_LEN - HOLE_Y + FOOT;
 const SWING_K = 26;
 const SWING_DAMP = 2.3;
-const SWING_LIMIT = 3;
+const SWING_LIMIT = 8;
+const RAIL_GAP = 0.6; // jarak antar raket di rel (× lebar raket)
+const CAROUSEL_BELOW = 640; // di bawah lebar ini: satu raket di tengah
 const COUPLE = 0.035;
 const HANG_SHARE = 0.3;
 const RAD = Math.PI / 180;
@@ -203,11 +204,13 @@ type Sim = {
   swing: number[]; vswing: number[];
   tag: number[]; vtag: number[];
   frameX: number[]; frameV: number[]; acc: number[];
-  drag: number; grab: number; free: number; last: number; raf: number;
+  drag: number; free: number; last: number; raf: number;
+  // geser rel (desktop/tablet): posisi dasar tiap raket, offset, kecepatan, tujuan (panah/keyboard), batas
+  base: number[]; scroll: number; sv: number; goal: number | null; max: number; pan: boolean;
 };
 
 function emptySim(): Sim {
-  return { x: [], vx: [], tx: [], turn: [], vturn: [], tturn: [], swing: [], vswing: [], tag: [], vtag: [], frameX: [], frameV: [], acc: [], drag: -1, grab: 0, free: 0, last: 0, raf: 0 };
+  return { x: [], vx: [], tx: [], turn: [], vturn: [], tturn: [], swing: [], vswing: [], tag: [], vtag: [], frameX: [], frameV: [], acc: [], drag: -1, free: 0, last: 0, raf: 0, base: [], scroll: 0, sv: 0, goal: null, max: 0, pan: false };
 }
 
 function footprint(h: number, e: number) {
@@ -257,6 +260,7 @@ export function SkateDeckRail({
   const [playing, setPlaying] = React.useState(autoplay);
   const [lifted, setLifted] = React.useState(null as number | null);
   const [failed, setFailed] = React.useState({} as { [id: string]: boolean });
+  const [maxScroll, setMaxScroll] = React.useState(0);
   const returnFocus = React.useRef(null as number | null);
   const pendingOpen = React.useRef(-1);
   const pointer = React.useRef({ id: -1, index: -1, x: 0, y: 0, moved: false, kind: "", swipe: 0, lastX: 0, lastT: 0, v: 0 });
@@ -286,9 +290,8 @@ export function SkateDeckRail({
       if (!width) return;
       const chrome = section.getBoundingClientRect().height - stage.getBoundingClientRect().height;
       const byHeight = (window.innerHeight - chrome - 12 - RAIL_TOP - FOOT_PX) / STAGE_K;
-      const fit = (width - 2 * EDGE) / (Math.max(1, count) * (DECK_ASPECT + GAP) + FRONT_EXTRA * DECK_ASPECT);
-      const carousel = fit < MIN_RAIL_H;
-      const raw = carousel ? Math.min(CAROUSEL_MAX_H, width * 0.92, byHeight) : Math.min(MAX_H, fit, byHeight);
+      const carousel = width < CAROUSEL_BELOW;
+      const raw = carousel ? Math.min(CAROUSEL_MAX_H, width * 0.92, byHeight) : Math.min(MAX_H, width * 0.42, byHeight);
       const h = Math.round(Math.max(150, raw));
       setSize((old) => (Math.abs(old.width - width) < 0.5 && old.carousel === carousel && Math.abs(old.h - h) < 1 ? old : { width, h, carousel }));
     };
@@ -312,11 +315,10 @@ export function SkateDeckRail({
       for (let i = c - 1; i >= 0; i--) xs[i] = (xs[i + 1] ?? 0) - ((feet[i + 1] ?? 0) + (feet[i] ?? 0)) / 2 - gap;
       return xs;
     }
-    const n = feet.length;
-    const restGap = clamp((width - 2 * EDGE - n * deckW - FRONT_EXTRA * deckW) / Math.max(1, n - 1), GAP * h, deckW * 0.6);
-    const total = feet.reduce((sum, f) => sum + f, 0) + restGap * Math.max(0, n - 1);
-    let cursor = (width - total) / 2;
-    return feet.map((f) => { const x = cursor + f / 2; cursor += f + restGap; return x; });
+    const pitch = deckW * (1 + RAIL_GAP);
+    const span = pitch * feet.length;
+    const start = span <= width ? (width - span) / 2 : EDGE; // muat → di tengah; tidak muat → bisa digeser
+    return feet.map((_, i) => start + pitch * (i + 0.5));
   }, [items]);
 
   const paint = React.useCallback((i: number) => {
@@ -361,16 +363,32 @@ export function SkateDeckRail({
     // slow frames keep wall-clock time: up to 100 ms per frame, integrated in sub-steps of at most ~17 ms
     const dt = s.last ? Math.min(0.1, (now - s.last) / 1000) : 1 / 60;
     s.last = now;
-    const { h, width, carousel } = live.current.size;
+    const { h, carousel } = live.current.size;
     const deckW = h * DECK_ASPECT;
     const tail = h * (1 - HOLE_Y) + HOOK_LEN * h * HANG_SHARE;
     const spacing = (i: number) => (footprint(h, progress(s.turn[i] ?? 0, i)) + footprint(h, progress(s.turn[i + 1] ?? 0, i + 1))) / 2 + h * 0.012;
     for (let i = 0; i < n; i++) s.frameX[i] = s.x[i] ?? 0;
+    if (!carousel) {
+      if (!s.pan) {
+        if (s.goal !== null) {
+          s.scroll += (s.goal - s.scroll) * (1 - Math.exp(-7 * dt));
+          s.sv = 0;
+          if (Math.abs(s.goal - s.scroll) < 0.4) { s.scroll = s.goal; s.goal = null; }
+        } else {
+          s.scroll += s.sv * dt;
+          s.sv *= Math.exp(-3.2 * dt);
+          const over = s.scroll - clamp(s.scroll, 0, s.max);
+          if (over) { s.scroll -= over * (1 - Math.exp(-12 * dt)); s.sv *= Math.exp(-14 * dt); if (Math.abs(over) < 0.4) s.scroll = clamp(s.scroll, 0, s.max); }
+          if (Math.abs(s.sv) < 4) s.sv = 0;
+        }
+      }
+      for (let i = 0; i < n; i++) { s.tx[i] = (s.base[i] ?? 0) - s.scroll; s.x[i] = s.tx[i] ?? 0; s.vx[i] = 0; }
+    }
     const sub = Math.max(2, Math.ceil(dt / 0.017));
     const sdt = dt / sub;
     for (let k = 0; k < sub; k++) {
       for (let i = 0; i < n; i++) {
-        if (i === s.drag) continue;
+        if (!carousel) break; // mode rel: posisi ikut geseran, bukan pegas
         const restoring = now > s.free;
         const stiff = restoring ? 130 : 0;
         const damp = restoring ? 2 * Math.sqrt(130) * 0.86 : 3.2;
@@ -395,25 +413,6 @@ export function SkateDeckRail({
             if (i !== s.drag) s.vx[i] = shared - kick;
             if (i + 1 !== s.drag) s.vx[i + 1] = shared + kick;
           }
-        }
-      }
-      if (!carousel && n > 0) {
-        const first = EDGE * 0.5 + footprint(h, progress(s.turn[0] ?? 0, 0)) / 2;
-        const last = width - EDGE * 0.5 - footprint(h, progress(s.turn[n - 1] ?? 0, n - 1)) / 2;
-        if ((s.x[0] ?? 0) < first) { s.x[0] = first; s.vx[0] = Math.abs(s.vx[0] ?? 0) * 0.3; }
-        if ((s.x[n - 1] ?? 0) > last) { s.x[n - 1] = last; s.vx[n - 1] = -Math.abs(s.vx[n - 1] ?? 0) * 0.3; }
-        for (let i = 0; i < n - 1; i++) {
-          const min = (s.x[i] ?? 0) + spacing(i);
-          if ((s.x[i + 1] ?? 0) >= min - 0.01) continue;
-          s.x[i + 1] = min;
-          if (i + 1 !== s.drag && (s.vx[i + 1] ?? 0) < (s.vx[i] ?? 0)) s.vx[i + 1] = s.vx[i] ?? 0;
-        }
-        if ((s.x[n - 1] ?? 0) > last) s.x[n - 1] = last;
-        for (let i = n - 1; i > 0; i--) {
-          const max = (s.x[i] ?? 0) - spacing(i - 1);
-          if ((s.x[i - 1] ?? 0) <= max + 0.01) continue;
-          s.x[i - 1] = max;
-          if (i - 1 !== s.drag && (s.vx[i - 1] ?? 0) > (s.vx[i] ?? 0)) s.vx[i - 1] = s.vx[i] ?? 0;
         }
       }
       for (let i = 0; i < n; i++) {
@@ -458,7 +457,8 @@ export function SkateDeckRail({
       s.frameV[i] = v;
       s.acc[i] = (s.acc[i] ?? 0) * 0.5 + clamp(a, -30000, 30000) * 0.5;
     }
-    let busy = s.drag >= 0 || now < s.free;
+    const out = s.scroll !== clamp(s.scroll, 0, s.max);
+    let busy = s.drag >= 0 || now < s.free || (!carousel && (s.pan || s.sv !== 0 || s.goal !== null || out));
     for (let i = 0; i < n; i++) {
       paint(i);
       if (Math.abs(s.vx[i] ?? 0) > 0.4 || (now > s.free && Math.abs((s.x[i] ?? 0) - (s.tx[i] ?? 0)) > 0.25) || Math.abs((s.turn[i] ?? 0) - (s.tturn[i] ?? 0)) > 0.05 || Math.abs(s.vturn[i] ?? 0) > 0.05 || Math.abs(s.swing[i] ?? 0) > 0.02 || Math.abs(s.vswing[i] ?? 0) > 0.05 || Math.abs(s.tag[i] ?? 0) > 0.05 || Math.abs(s.vtag[i] ?? 0) > 0.08 || Math.abs(s.acc[i] ?? 0) > 1) busy = true;
@@ -479,6 +479,7 @@ export function SkateDeckRail({
     const s = sim.current;
     if (live.current.reduced) {
       for (let i = 0; i < live.current.count; i++) {
+        if (!live.current.size.carousel) s.tx[i] = (s.base[i] ?? 0) - s.scroll;
         s.x[i] = s.tx[i] ?? 0; s.vx[i] = 0; s.turn[i] = s.tturn[i] ?? restAngle(i); s.vturn[i] = 0;
         s.swing[i] = 0; s.vswing[i] = 0; s.tag[i] = 0; s.vtag[i] = 0; s.acc[i] = 0; s.frameV[i] = 0;
         paint(i);
@@ -494,6 +495,33 @@ export function SkateDeckRail({
     s.vswing[i] = (s.vswing[i] ?? 0) + amount;
     kick();
   }, [kick]);
+
+  const scrollTo = React.useCallback((x: number) => {
+    const s = sim.current;
+    s.goal = clamp(x, 0, s.max);
+    s.sv = 0;
+    if (live.current.reduced) { s.scroll = s.goal; s.goal = null; for (let i = 0; i < live.current.count; i++) s.tx[i] = (s.base[i] ?? 0) - s.scroll; }
+    kick();
+  }, [kick]);
+
+  /** Geser rel supaya raket ini kelihatan utuh (autoplay & keyboard). */
+  const reveal = React.useCallback((i: number) => {
+    const { width, h, carousel } = live.current.size;
+    if (carousel) return;
+    const s = sim.current;
+    const from = s.goal ?? s.scroll;
+    const half = (h * DECK_ASPECT * (1 + RAIL_GAP)) / 2;
+    const x = (s.base[i] ?? 0) - from;
+    if (x - half < 0 || x + half > width) scrollTo((s.base[i] ?? 0) - width / 2);
+  }, [scrollTo]);
+
+  const page = (dir: 1 | -1) => {
+    stop();
+    const s = sim.current;
+    const { width, h } = live.current.size;
+    const pitch = h * DECK_ASPECT * (1 + RAIL_GAP);
+    scrollTo((s.goal ?? s.scroll) + dir * Math.max(1, Math.floor(width / pitch) - 1) * pitch);
+  };
 
   const choose = React.useCallback((index: number | null) => {
     const l = live.current;
@@ -518,8 +546,12 @@ export function SkateDeckRail({
     const front = active;
     const xs = targets(size.h, size.width, size.carousel, front, active ?? live.current.carouselIndex);
     const fresh = s.x.length !== count;
+    s.base = xs;
+    s.max = size.carousel ? 0 : Math.max(0, (xs[count - 1] ?? 0) + (size.h * DECK_ASPECT * (1 + RAIL_GAP)) / 2 + EDGE - size.width);
+    s.scroll = size.carousel ? 0 : s.pan ? s.scroll : clamp(s.scroll, 0, s.max);
+    setMaxScroll(s.max);
     for (let i = 0; i < count; i++) {
-      s.tx[i] = (xs[i] ?? 0) + (size.carousel ? pointer.current.swipe : 0);
+      s.tx[i] = (xs[i] ?? 0) + (size.carousel ? pointer.current.swipe : -s.scroll);
       s.tturn[i] = i === front ? 0 : restAngle(i);
       if (fresh || reduced) {
         s.x[i] = s.tx[i] ?? 0; s.vx[i] = 0; s.frameX[i] = s.x[i] ?? 0; s.frameV[i] = 0; s.acc[i] = 0;
@@ -554,11 +586,13 @@ export function SkateDeckRail({
     if (!playing || reduced || openIndex !== null || count === 0 || !size.width) return;
     let timer = window.setTimeout(function advance() {
       const current = live.current.active;
-      choose(current === null ? 0 : (current + 1) % live.current.count);
+      const next = current === null ? 0 : (current + 1) % live.current.count;
+      choose(next);
+      reveal(next);
       timer = window.setTimeout(advance, interval);
     }, active === null ? 1100 : interval);
     return () => window.clearTimeout(timer);
-  }, [playing, reduced, openIndex, count, interval, size.width, choose, active]);
+  }, [playing, reduced, openIndex, count, interval, size.width, choose, reveal, active]);
 
   const open = React.useCallback((index: number) => {
     stop();
@@ -614,12 +648,13 @@ export function SkateDeckRail({
         const v = (event.clientX - p.lastX) / Math.max(1, now - p.lastT);
         p.v = p.v * 0.6 + v * 0.4;
         p.lastX = event.clientX; p.lastT = now;
-        if (s.drag >= 0) {
-          s.vx[s.drag] = p.v * 1000;
-          s.x[s.drag] = event.clientX - stage.getBoundingClientRect().left - s.grab;
-          s.free = now + 900;
+        if (!live.current.size.carousel) {
+          if (!s.pan) { s.pan = true; s.goal = null; p.swipe = s.scroll + dx; choose(null); }
+          const raw = p.swipe - dx;
+          const edge = clamp(raw, 0, s.max);
+          s.scroll = edge + (raw - edge) * 0.35; // lewat ujung: terasa ditahan
           kick();
-        } else if (live.current.size.carousel) {
+        } else {
           p.swipe = dx;
           const xs = targets(live.current.size.h, live.current.size.width, true, live.current.active, live.current.active ?? live.current.carouselIndex);
           for (let i = 0; i < live.current.count; i++) s.tx[i] = (xs[i] ?? 0) + dx;
@@ -644,6 +679,7 @@ export function SkateDeckRail({
     const hit = nearest(event.clientX, event.clientY);
     const now = performance.now();
     pendingOpen.current = -1;
+    sim.current.sv = 0; // sentuh = berhenti meluncur
     pointer.current = { id: event.pointerId, index: hit ?? -1, x: event.clientX, y: event.clientY, moved: false, kind: event.pointerType, swipe: 0, lastX: event.clientX, lastT: now, v: 0 };
   };
 
@@ -654,12 +690,12 @@ export function SkateDeckRail({
     const stage = stageRef.current;
     if (stage?.hasPointerCapture(event.pointerId)) stage.releasePointerCapture(event.pointerId);
     pointer.current = { ...p, id: -1 };
-    if (s.drag >= 0) {
-      // a fling only if the hand was still moving when it let go
-      const idle = performance.now() - p.lastT;
-      s.vx[s.drag] = (s.vx[s.drag] ?? 0) * clamp(1 - idle / 120, 0, 1);
-      s.drag = -1;
-      s.free = performance.now() + 700;
+    if (s.pan) {
+      s.pan = false;
+      pointer.current.swipe = 0;
+      // meluncur hanya kalau tangan masih bergerak saat dilepas
+      s.sv = live.current.reduced ? 0 : clamp(-p.v * 1000, -2600, 2600) * clamp(1 - (performance.now() - p.lastT) / 120, 0, 1);
+      if (live.current.reduced) s.scroll = clamp(s.scroll, 0, s.max);
       kick();
       return;
     }
@@ -679,6 +715,24 @@ export function SkateDeckRail({
     else pendingOpen.current = p.index;
   };
 
+  // geser dua jari di trackpad (non-passive supaya browser tidak "back")
+  React.useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+    const onWheel = (event: WheelEvent) => {
+      const s = sim.current;
+      if (live.current.size.carousel || s.max <= 0 || Math.abs(event.deltaX) <= Math.abs(event.deltaY)) return;
+      event.preventDefault();
+      stop();
+      s.goal = null;
+      s.sv = 0;
+      s.scroll = clamp(s.scroll + event.deltaX, 0, s.max);
+      kick();
+    };
+    stage.addEventListener("wheel", onWheel, { passive: false });
+    return () => stage.removeEventListener("wheel", onWheel);
+  }, [kick, stop]);
+
   const onKeyDown = (event: React.KeyboardEvent) => {
     const keys = ["ArrowRight", "ArrowLeft", "Home", "End"];
     if (!keys.includes(event.key) || count === 0) return;
@@ -688,6 +742,7 @@ export function SkateDeckRail({
     const next = event.key === "Home" ? 0 : event.key === "End" ? count - 1 : clamp(from + (event.key === "ArrowRight" ? 1 : -1), 0, count - 1);
     setFocusIndex(next);
     choose(next);
+    reveal(next);
     slots.current[next]?.focus({ preventScroll: true });
   };
 
@@ -716,7 +771,7 @@ export function SkateDeckRail({
         role="group"
         aria-roledescription="rak raket"
         aria-label={heading ?? "Rak raket"}
-        className="relative mx-auto mt-6 w-full max-w-6xl touch-pan-y select-none"
+        className="relative mt-6 w-full cursor-grab touch-pan-y select-none active:cursor-grabbing"
         style={{ height: geo.height, overflowX: "clip" }}
         onPointerMove={onPointerMove}
         onPointerDown={onPointerDown}
@@ -725,14 +780,14 @@ export function SkateDeckRail({
         onPointerLeave={(event) => { if (event.pointerType === "mouse" && pointer.current.id < 0 && !live.current.size.carousel && !document.activeElement?.matches("[data-deck]:focus-visible")) choose(null); }}
         onKeyDown={onKeyDown}
       >
-        <div aria-hidden="true" data-rail className={`pointer-events-none absolute z-[5] ${size.carousel ? "-inset-x-3" : "inset-x-4"}`} style={{ top: geo.railY - geo.railT / 2, height: geo.railT }}>
+        <div aria-hidden="true" data-rail className={`pointer-events-none absolute z-[5] ${size.carousel || maxScroll > 0 ? "-inset-x-3" : "inset-x-4"}`} style={{ top: geo.railY - geo.railT / 2, height: geo.railT }}>
           <div className="absolute inset-x-3 h-3 rounded-full bg-black/15 blur-[5px]" style={{ top: geo.railT + 1 }} />
           <div className="absolute inset-0 rounded-full" style={{ background: RAIL_GRADIENT, boxShadow: "0 1px 0 color-mix(in oklab, var(--color-foreground) 14%, transparent)" }} />
           <svg aria-hidden="true" className="absolute inset-0 size-full rounded-full opacity-25 mix-blend-overlay" preserveAspectRatio="none">
             <rect width="100%" height="100%" filter={`url(#${uid}-powder)`} />
           </svg>
           <div className="absolute inset-x-2 top-[20%] h-px rounded-full bg-white/35" />
-          {!size.carousel && [0, 1].map((side) => (
+          {!size.carousel && maxScroll <= 0 && [0, 1].map((side) => (
             <div key={side} className="absolute top-1/2 w-3.5 -translate-y-1/2 rounded-[3px]" style={{ [side ? "right" : "left"]: 8, height: geo.railT * 2.8, background: BRACKET_GRADIENT, boxShadow: "0 3px 6px color-mix(in oklab, black 22%, transparent)" }}>
               <span className="absolute left-1/2 top-1 size-1 -translate-x-1/2 rounded-full bg-white/30" />
               <span className="absolute bottom-1 left-1/2 size-1 -translate-x-1/2 rounded-full bg-white/30" />
@@ -757,7 +812,7 @@ export function SkateDeckRail({
               aria-pressed={facing}
               className="group absolute left-0 cursor-pointer rounded-lg outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
               style={{ top: geo.top, width: w, height: size.h, zIndex: facing ? 30 : 10 + i, transform: `translate3d(${((sim.current.x[i] ?? 0) - w / 2).toFixed(2)}px,0,0)` }}
-              onFocus={() => { setFocusIndex(i); if (pointer.current.id < 0) { stop(); choose(i); } }}
+              onFocus={() => { setFocusIndex(i); if (pointer.current.id < 0) { stop(); choose(i); reveal(i); } }}
               onClick={(event) => { const pending = pendingOpen.current; pendingOpen.current = -1; if (event.detail === 0 || pending === i) open(i); }}
             >
               <span ref={(node) => { hangs.current[i] = node; }} data-hang className="absolute inset-0" style={{ transformOrigin: `calc(50% + ${hook.pivotX.toFixed(2)}px) ${hook.pivotY.toFixed(2)}px` }}>
@@ -793,6 +848,16 @@ export function SkateDeckRail({
         <div className="relative z-10 flex justify-center gap-1.5" role="group" aria-label={heading ?? "Rak raket"}>
           {items.map((item, i) => (
             <button key={item.id} type="button" tabIndex={-1} aria-label={item.name} aria-current={carouselIndex === i} onClick={() => { stop(); choose(i); }} className={`h-1.5 rounded-full outline-none transition-[width,background-color] duration-300 focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transition-none ${carouselIndex === i ? "w-6 bg-foreground" : "w-1.5 bg-black/25 hover:bg-black/45"}`} />
+          ))}
+        </div>
+      )}
+
+      {!size.carousel && maxScroll > 0 && (
+        <div className="relative z-10 flex justify-center gap-2 pt-2">
+          {([-1, 1] as const).map((dir) => (
+            <button key={dir} type="button" aria-label={dir < 0 ? "Geser ke kiri" : "Geser ke kanan"} onClick={() => page(dir)} className="inline-flex size-10 items-center justify-center rounded-full border border-border bg-white outline-none transition-colors hover:border-primary hover:text-primary focus-visible:ring-2 focus-visible:ring-ring">
+              <svg aria-hidden="true" viewBox="0 0 16 16" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d={dir < 0 ? "M10 3L5 8l5 5" : "M6 3l5 5-5 5"} /></svg>
+            </button>
           ))}
         </div>
       )}
