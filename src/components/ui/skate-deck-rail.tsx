@@ -14,8 +14,6 @@ export interface SkateDeck {
   description?: string;
   /** Graphic-side photo: a transparent cut-out of one deck, nose up, filling a tall canvas (0.238 wide per 1 high, e.g. 238 x 1000). */
   image: string;
-  /** Grip-side photo on the same canvas. Optional: without it the component draws grip tape over the deck outline. */
-  gripImage?: string;
   /** Short tag such as a price, hung from the hook. */
   tag?: string;
   /** Short facts shown as chips in the detail view (wheelbase, plies, concave …). */
@@ -23,8 +21,6 @@ export interface SkateDeck {
 }
 
 export interface SkateDeckRailLabels {
-  graphic: string;
-  grip: string;
   close: string;
   open: string;
 }
@@ -74,7 +70,7 @@ const CAROUSEL_BELOW = 640; // di bawah lebar ini: satu raket di tengah
 const COUPLE = 0.035;
 const HANG_SHARE = 0.3;
 const RAD = Math.PI / 180;
-const DEFAULT_LABELS: SkateDeckRailLabels = { graphic: "Depan", grip: "Belakang", close: "Tutup", open: "Lihat" };
+const DEFAULT_LABELS: SkateDeckRailLabels = { close: "Tutup", open: "Lihat" };
 
 const DECK_PATH = "M3,150 C3,46 53,4 119,4 C185,4 235,46 235,150 L235,850 C235,954 185,996 119,996 C53,996 3,954 3,850 Z";
 const FALLBACK_MASK = `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 238 1000' preserveAspectRatio='none'><path d='${DECK_PATH}'/></svg>`)}")`;
@@ -880,12 +876,6 @@ export function SkateDeckRail({
   );
 }
 
-/** Sisi belakang: foto belakang kalau ada, kalau tidak bayangan cermin foto depan (raket simetris). */
-function BackFace({ item, fallback, tone }: { item: SkateDeck; fallback: boolean; tone: number }) {
-  if (fallback) return <FallbackArt tone={tone} />;
-  return <img src={item.gripImage ?? item.image} alt="" draggable={false} className={`pointer-events-none absolute inset-0 size-full select-none object-contain ${item.gripImage ? "" : "-scale-x-100"}`} />;
-}
-
 function Detail({ uid, item, index, total, labels, reduced, fallback, extra, source, onLift, onClose }: {
   uid: string;
   item: SkateDeck;
@@ -901,50 +891,15 @@ function Detail({ uid, item, index, total, labels, reduced, fallback, extra, sou
 }) {
   const dialogRef = React.useRef(null as HTMLDivElement | null);
   const figureRef = React.useRef(null as HTMLDivElement | null);
-  const spinRef = React.useRef(null as HTMLDivElement | null);
   const closeRef = React.useRef(null as HTMLButtonElement | null);
-  const [side, setSide] = React.useState("graphic" as "graphic" | "grip");
   const [shown, setShown] = React.useState(false);
-  const angle = React.useRef({ value: 0, target: 0, velocity: 0, raf: 0, last: 0, dragging: false, startX: 0, startAngle: 0, auto: 0 });
   const closing = React.useRef(false);
   const titleId = `${uid}-deck-title`;
   const mask = fallback ? FALLBACK_MASK : `url("${item.image}")`;
 
-  const spin = React.useCallback(() => {
-    const a = angle.current;
-    const node = spinRef.current;
-    const loop = (now: number) => {
-      const dt = a.last ? Math.min(0.1, (now - a.last) / 1000) : 1 / 60;
-      a.last = now;
-      const steps = Math.max(1, Math.ceil(dt / 0.017));
-      for (let k = 0; k < steps; k++) {
-        const accel = -90 * (a.value - a.target) - 2 * Math.sqrt(90) * 0.8 * a.velocity;
-        a.velocity += accel * (dt / steps);
-        a.value += a.velocity * (dt / steps);
-      }
-      if (node) node.style.transform = `rotateY(${a.value.toFixed(2)}deg)`;
-      if (Math.abs(a.value - a.target) < 0.05 && Math.abs(a.velocity) < 0.05) { a.value = a.target; if (node) node.style.transform = `rotateY(${a.value}deg)`; a.raf = 0; a.last = 0; return; }
-      a.raf = requestAnimationFrame(loop);
-    };
-    if (reduced) { a.value = a.target; a.velocity = 0; if (node) node.style.transform = `rotateY(${a.value}deg)`; return; }
-    if (!a.raf) a.raf = requestAnimationFrame(loop);
-  }, [reduced]);
-
-  const turnTo = React.useCallback((next: "graphic" | "grip") => {
-    const a = angle.current;
-    window.clearTimeout(a.auto);
-    a.auto = 0;
-    const base = Math.round(a.value / 360) * 360;
-    a.target = base + (next === "grip" ? 180 : 0);
-    if (Math.abs(a.target - a.value) > 180) a.target -= 360 * Math.sign(a.target - a.value);
-    setSide(next);
-    spin();
-  }, [spin]);
-
   React.useLayoutEffect(() => {
     const figure = figureRef.current;
     const from = source();
-    const a = angle.current;
     closeRef.current?.focus({ preventScroll: true });
     const overflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -963,25 +918,18 @@ function Detail({ uid, item, index, total, labels, reduced, fallback, extra, sou
       ], { duration: 680, easing: "cubic-bezier(.22,.85,.3,1)" });
     }
     const raf = requestAnimationFrame(() => setShown(true));
-    if (reduced) {
-      a.target = 0; a.value = 0; a.velocity = 0;
-    }
     return () => {
       cancelAnimationFrame(raf);
       animation?.cancel();
-      window.clearTimeout(a.auto);
       document.body.style.overflow = overflow;
-      cancelAnimationFrame(a.raf);
-      a.raf = 0;
       onLift(false);
     };
-  }, [source, reduced, onLift, spin]);
+  }, [source, reduced, onLift]);
 
   const dismiss = React.useCallback(() => {
     if (closing.current) return;
     closing.current = true;
     setShown(false);
-    turnTo("graphic");
     const figure = figureRef.current;
     const to = source();
     if (!figure || !to || reduced || to.width === 0) { onClose(); return; }
@@ -995,23 +943,21 @@ function Detail({ uid, item, index, total, labels, reduced, fallback, extra, sou
       { transform: `translate(${dx}px, ${dy}px) scale(${scale})` },
     ], { duration: 560, easing: "cubic-bezier(.45,0,.55,1)", fill: "forwards" });
     animation.onfinish = () => onClose();
-  }, [source, reduced, onClose, turnTo]);
+  }, [source, reduced, onClose]);
 
   React.useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       const dialog = dialogRef.current;
       if (!dialog || dialog.contains(event.target as Node)) return;
       if (event.key === "Escape") { event.preventDefault(); dismiss(); }
-      else if (event.key === "ArrowLeft" || event.key === "ArrowRight") turnTo(side === "graphic" ? "grip" : "graphic");
       else if (event.key === "Tab") { const first = dialog.querySelector("button"); if (first) { event.preventDefault(); first.focus(); } }
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [dismiss, turnTo, side]);
+  }, [dismiss]);
 
   const onKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === "Escape") { event.preventDefault(); dismiss(); return; }
-    if (event.key === "ArrowLeft" || event.key === "ArrowRight") { event.preventDefault(); turnTo(side === "graphic" ? "grip" : "graphic"); return; }
     if (event.key !== "Tab") return;
     const controls = [...(dialogRef.current?.querySelectorAll("button, a[href], input, select, textarea, [tabindex]:not([tabindex='-1'])") ?? [])].filter((node) => !(node as HTMLButtonElement).disabled) as HTMLElement[];
     const first = controls[0];
@@ -1020,8 +966,6 @@ function Detail({ uid, item, index, total, labels, reduced, fallback, extra, sou
     if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
     else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
   };
-
-  const faces = (["graphic", "grip"] as const);
 
   return createPortal(
     <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} data-deck-detail className="fixed inset-0 z-50 flex justify-center overflow-y-auto p-4 text-foreground sm:p-8" onKeyDown={onKeyDown}>
@@ -1048,23 +992,7 @@ function Detail({ uid, item, index, total, labels, reduced, fallback, extra, sou
           <span aria-hidden="true" className="absolute inset-0 translate-x-[6%] translate-y-[2%] blur-lg">
             <span className="absolute inset-0 bg-black/25" style={maskStyle(mask, fallback)} />
           </span>
-          <div
-            className="absolute inset-0 cursor-grab touch-pan-y active:cursor-grabbing"
-            style={{ perspective: "1200px" }}
-            onPointerDown={(event) => { const a = angle.current; window.clearTimeout(a.auto); a.auto = 0; a.dragging = true; a.startX = event.clientX; a.startAngle = a.value; cancelAnimationFrame(a.raf); a.raf = 0; a.last = 0; event.currentTarget.setPointerCapture(event.pointerId); }}
-            onPointerMove={(event) => { const a = angle.current; if (!a.dragging) return; a.value = clamp(a.startAngle + (event.clientX - a.startX) * 0.6, a.startAngle - 220, a.startAngle + 220); if (spinRef.current) spinRef.current.style.transform = `rotateY(${a.value.toFixed(2)}deg)`; }}
-            onPointerUp={() => { const a = angle.current; if (!a.dragging) return; a.dragging = false; const facing = ((a.value % 360) + 360) % 360; turnTo(item.gripImage && facing > 90 && facing < 270 ? "grip" : "graphic"); }}
-            onPointerCancel={() => { angle.current.dragging = false; turnTo(side); }}
-          >
-            <div ref={spinRef} data-detail-spin className="absolute inset-0 [transform-style:preserve-3d]">
-              <div data-face="graphic" className="absolute inset-0 [backface-visibility:hidden]">
-                {fallback ? <FallbackArt tone={index} /> : <img src={item.image} alt={item.name} draggable={false} className="pointer-events-none absolute inset-0 size-full select-none object-contain" />}
-              </div>
-              <div data-face="grip" className="absolute inset-0 [backface-visibility:hidden]" style={{ transform: "rotateY(180deg)" }}>
-                <BackFace item={item} fallback={fallback} tone={index} />
-              </div>
-            </div>
-          </div>
+          {fallback ? <FallbackArt tone={index} /> : <img src={item.image} alt={item.name} draggable={false} className="pointer-events-none absolute inset-0 size-full select-none object-contain" />}
         </div>
         <div className={`relative flex w-full min-w-0 flex-col items-start gap-3 transition-[opacity,transform] delay-150 duration-500 motion-reduce:transition-none ${shown ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"}`}>
           <p className="font-mono text-[11px] tracking-[0.2em] text-zinc-700">
@@ -1083,13 +1011,6 @@ function Detail({ uid, item, index, total, labels, reduced, fallback, extra, sou
               {item.details.map((detail) => <li key={detail} className="rounded-full border border-white/80 bg-white/55 px-2.5 py-1 text-[11px] text-zinc-700">{detail}</li>)}
             </ul>
           )}
-          {item.gripImage && <div role="group" aria-label={`${labels.graphic} / ${labels.grip}`} className="mt-1 inline-flex self-start rounded-full border border-border p-1">
-            {faces.map((face) => (
-              <button key={face} type="button" data-side={face} aria-pressed={side === face} onClick={() => turnTo(face)} className={`rounded-full px-3.5 py-1.5 text-xs font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transition-none ${side === face ? "bg-primary text-white" : "text-zinc-700 hover:text-foreground"}`}>
-                {face === "graphic" ? labels.graphic : labels.grip}
-              </button>
-            ))}
-          </div>}
           {extra && <div className="mt-1">{extra}</div>}
         </div>
       </div>
