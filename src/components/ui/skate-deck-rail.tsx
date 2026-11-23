@@ -50,30 +50,30 @@ export interface SkateDeckRailProps extends React.ComponentProps<"section"> {
   labels?: SkateDeckRailLabels;
 }
 
-const DECK_ASPECT = 0.5; // raket lebih lebar dari papan skate (foto ~0.667)
+const DECK_ASPECT = 0.406; // foto raket dipotong pas di tepi frame (lebar : tinggi)
 const PERSPECTIVE = 900;
-const LIFT_Z = 40;
-const LIFT_SCALE = 0.05;
+const LIFT_Z = 24;
+const LIFT_SCALE = 0.03;
 const GAP = 0.06;
-const FRONT_EXTRA = 0.36;
-const MAX_H = 380;
+const FRONT_EXTRA = 0; // raket yang menghadap depan tidak menggeser tetangganya
+const MAX_H = 460;
 const MIN_RAIL_H = 180;
 const CAROUSEL_MAX_H = 430;
 const EDGE = 24;
 const RAIL_TOP = 14;
 const RAIL_Y = 0.022;
 const HOOK_LEN = 0.085;
-const HOLE_Y = 0.034;
-const FOOT_PX = 36;
-const FOOT = 0.11;
+const HOLE_Y = 0.013; // titik kait = tengah frame atas raket
+const FOOT_PX = 72; // ruang nama + harga di bawah raket
+const FOOT = 0.085;
 const STAGE_K = 1 + RAIL_Y + HOOK_LEN - HOLE_Y + FOOT;
 const SWING_K = 26;
 const SWING_DAMP = 2.3;
-const SWING_LIMIT = 12;
+const SWING_LIMIT = 3;
 const COUPLE = 0.035;
 const HANG_SHARE = 0.3;
 const RAD = Math.PI / 180;
-const DEFAULT_LABELS: SkateDeckRailLabels = { graphic: "Graphic", grip: "Grip", close: "Close", open: "Open" };
+const DEFAULT_LABELS: SkateDeckRailLabels = { graphic: "Depan", grip: "Belakang", close: "Tutup", open: "Lihat" };
 
 const DECK_PATH = "M3,150 C3,46 53,4 119,4 C185,4 235,46 235,150 L235,850 C235,954 185,996 119,996 C53,996 3,954 3,850 Z";
 const FALLBACK_MASK = `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 238 1000' preserveAspectRatio='none'><path d='${DECK_PATH}'/></svg>`)}")`;
@@ -81,25 +81,18 @@ const CONCAVE = "linear-gradient(90deg, color-mix(in oklab, black 46%, transpare
 const RAIL_GRADIENT = "linear-gradient(to bottom, color-mix(in oklab, var(--rail-ink) 56%, white) 0%, color-mix(in oklab, var(--rail-ink) 84%, white) 17%, var(--rail-ink) 46%, color-mix(in oklab, var(--rail-ink) 72%, black) 80%, color-mix(in oklab, var(--rail-ink) 50%, black) 100%)";
 const REST_SHADE = "linear-gradient(90deg, color-mix(in oklab, black 34%, transparent), color-mix(in oklab, black 12%, transparent) 45%, color-mix(in oklab, black 4%, transparent))";
 const BRACKET_GRADIENT = "linear-gradient(to right, color-mix(in oklab, var(--rail-ink) 70%, white), var(--rail-ink) 55%, color-mix(in oklab, var(--rail-ink) 60%, black))";
-const PLY = "linear-gradient(to right, color-mix(in oklab, white 52%, var(--color-muted-foreground)), color-mix(in oklab, white 82%, var(--color-muted-foreground)) 50%, color-mix(in oklab, white 48%, var(--color-muted-foreground)))";
-const BOLTS = [0.174, 0.229, 0.748, 0.804].flatMap((y) => [0.402, 0.598].map((x) => [x, y]));
-const GRIP_WINDOW = { top: 84.5, side: 33, bottom: 7.5 };
 
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
 }
 
-function restAngle(i: number) {
-  return -8 - ((i * 5 + 3) % 7);
+function restAngle(_i: number) {
+  return -22; // sudut sama semua supaya barisan rapi
 }
 
 function maskStyle(mask: string, fallback: boolean): React.CSSProperties {
   const value = `${mask} center / ${fallback ? "100% 100%" : "contain"} no-repeat`;
   return { WebkitMask: value, mask: value };
-}
-
-function tagScale(h: number) {
-  return clamp(h / 300, 0.8, 1);
 }
 
 function railThickness(h: number) {
@@ -130,7 +123,7 @@ function hookGeometry(h: number) {
     top: HOLE_Y * h - (cy + length),
     pivotX: rc,
     pivotY: -(HOOK_LEN - HOLE_Y) * h - lift,
-    shank: `M${f(cx)},${f(cy + length)} L${f(cx)},${f(cy - lift)}`,
+    shank: `M${f(cx + 2 * rc * 0.6)},${f(cy + length - rc * 0.2)} A${f(rc * 0.6)},${f(rc * 0.6)} 0 0 1 ${f(cx)},${f(cy + length - rc * 0.2)} L${f(cx)},${f(cy - lift)}`,
     curl: `M${f(cx)},${f(cy - lift)} A${f(rc)},${f(rc)} 0 0 1 ${f(cx + 2 * rc)},${f(cy - lift)} L${f(cx + 2 * rc)},${f(cy + r * 0.3)}`,
     curlX: cx + rc,
     curlY: cy - lift,
@@ -204,17 +197,6 @@ function FallbackArt({ tone }: { tone: number }) {
   );
 }
 
-function Hole({ h }: { h: number }) {
-  const size = Math.max(4, h * 0.022);
-  return (
-    <span
-      aria-hidden="true"
-      className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-black/80"
-      style={{ top: `${HOLE_Y * 100}%`, width: size, height: size, boxShadow: "0 1px 0 color-mix(in oklab, white 35%, transparent), inset 0 1px 1px color-mix(in oklab, black 70%, transparent)" }}
-    />
-  );
-}
-
 type Sim = {
   x: number[]; vx: number[]; tx: number[];
   turn: number[]; vturn: number[]; tturn: number[];
@@ -263,7 +245,6 @@ export function SkateDeckRail({
   const glints = React.useRef([] as (HTMLSpanElement | null)[]);
   const nears = React.useRef([] as (HTMLSpanElement | null)[]);
   const fars = React.useRef([] as (HTMLSpanElement | null)[]);
-  const tags = React.useRef([] as (HTMLSpanElement | null)[]);
   const sim = React.useRef(emptySim());
   const [size, setSize] = React.useState({ width: 0, h: 300, carousel: false });
   const [innerActive, setInnerActive] = React.useState(null as number | null);
@@ -329,14 +310,10 @@ export function SkateDeckRail({
       xs[c] = width / 2;
       for (let i = c + 1; i < feet.length; i++) xs[i] = (xs[i - 1] ?? 0) + ((feet[i - 1] ?? 0) + (feet[i] ?? 0)) / 2 + gap;
       for (let i = c - 1; i >= 0; i--) xs[i] = (xs[i + 1] ?? 0) - ((feet[i + 1] ?? 0) + (feet[i] ?? 0)) / 2 - gap;
-      // keep the wall full: the track never leaves an empty stretch at either end
-      const left = (xs[0] ?? 0) - (feet[0] ?? 0) / 2;
-      const right = (xs[feet.length - 1] ?? 0) + (feet[feet.length - 1] ?? 0) / 2;
-      const shift = right - left <= width - 2 * EDGE ? (width - left - right) / 2 : left > EDGE ? EDGE - left : right < width - EDGE ? width - EDGE - right : 0;
-      return xs.map((x) => x + shift);
+      return xs;
     }
     const n = feet.length;
-    const restGap = clamp((width - 2 * EDGE - n * deckW - FRONT_EXTRA * deckW) / Math.max(1, n - 1), GAP * h, deckW * 0.8);
+    const restGap = clamp((width - 2 * EDGE - n * deckW - FRONT_EXTRA * deckW) / Math.max(1, n - 1), GAP * h, deckW * 0.6);
     const total = feet.reduce((sum, f) => sum + f, 0) + restGap * Math.max(0, n - 1);
     let cursor = (width - total) / 2;
     return feet.map((f) => { const x = cursor + f / 2; cursor += f + restGap; return x; });
@@ -376,8 +353,6 @@ export function SkateDeckRail({
       far.style.opacity = lift.toFixed(3);
       far.style.transform = `translate3d(${(deckW * (0.07 + 0.2 * lift)).toFixed(1)}px, ${(h * (0.012 + 0.045 * lift)).toFixed(1)}px, 0) scale(${(1 + 0.05 * lift).toFixed(3)})`;
     }
-    const tag = tags.current[i];
-    if (tag) tag.style.transform = `rotate(${(-9 + (s.tag[i] ?? 0)).toFixed(2)}deg) scale(${tagScale(h).toFixed(3)})`;
   }, []);
 
   const step = React.useCallback((now: number) => {
@@ -534,8 +509,7 @@ export function SkateDeckRail({
     live.current.requested = undefined;
     if (old === active) return;
     previous.current = active;
-    if (active !== null) { impulse(active - 1, -26); impulse(active + 1, 26); live.current.carouselIndex = active; }
-    if (old !== null) { impulse(old - 1, 12); impulse(old + 1, -12); }
+    if (active !== null) { impulse(active, 8); live.current.carouselIndex = active; }
   }, [active, impulse]);
 
   React.useLayoutEffect(() => {
@@ -561,7 +535,7 @@ export function SkateDeckRail({
   React.useEffect(() => {
     if (!size.width || brushed.current || reduced) return;
     brushed.current = true;
-    const timers = items.map((_, i) => window.setTimeout(() => impulse(i, 38 - i * 2), 90 + i * 60));
+    const timers = items.map((_, i) => window.setTimeout(() => impulse(i, 14), 90 + i * 60));
     return () => timers.forEach((t) => window.clearTimeout(t));
   }, [size.width, reduced, items, impulse]);
 
@@ -635,10 +609,6 @@ export function SkateDeckRail({
         p.moved = true;
         stop();
         if (stage.isConnected) stage.setPointerCapture(event.pointerId);
-        if (!live.current.size.carousel && p.index >= 0) {
-          s.drag = p.index;
-          s.grab = (event.clientX - stage.getBoundingClientRect().left) - (s.x[p.index] ?? 0);
-        }
       }
       if (p.moved) {
         const v = (event.clientX - p.lastX) / Math.max(1, now - p.lastT);
@@ -730,10 +700,9 @@ export function SkateDeckRail({
       data-slot="skate-deck-rail"
       data-mode={size.carousel ? "carousel" : "rail"}
       data-active={active ?? ""}
-      className={`relative isolate w-full overflow-hidden bg-background text-foreground [--rail-ink:var(--color-foreground)] dark:[--rail-ink:color-mix(in_oklab,var(--color-foreground)_17%,var(--color-background))] ${className ?? ""}`}
+      className={`relative isolate w-full overflow-hidden bg-background text-foreground [--rail-ink:var(--color-foreground)] ${className ?? ""}`}
     >
       <Defs uid={uid} h={size.h} />
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10" style={{ background: "radial-gradient(90% 75% at 22% 18%, color-mix(in oklab, var(--color-foreground) 6%, transparent), transparent 70%), radial-gradient(70% 60% at 50% 55%, color-mix(in oklab, var(--color-foreground) 3%, transparent), transparent 80%)", WebkitMaskImage: "linear-gradient(to bottom, transparent, black 18%, black 80%, transparent)", maskImage: "linear-gradient(to bottom, transparent, black 18%, black 80%, transparent)" }} />
       {(eyebrow || heading) && (
         <header className="relative z-10 flex flex-col items-center gap-2 px-6 pt-7 text-center">
           {eyebrow && <p className="text-[11px] font-medium uppercase tracking-[0.28em] text-muted-foreground">{eyebrow}</p>}
@@ -745,9 +714,9 @@ export function SkateDeckRail({
         ref={stageRef}
         data-stage
         role="group"
-        aria-roledescription="deck rail"
-        aria-label={heading ?? "Deck rail"}
-        className="relative mt-4 w-full touch-pan-y select-none"
+        aria-roledescription="rak raket"
+        aria-label={heading ?? "Rak raket"}
+        className="relative mx-auto mt-6 w-full max-w-6xl touch-pan-y select-none"
         style={{ height: geo.height, overflowX: "clip" }}
         onPointerMove={onPointerMove}
         onPointerDown={onPointerDown}
@@ -756,15 +725,14 @@ export function SkateDeckRail({
         onPointerLeave={(event) => { if (event.pointerType === "mouse" && pointer.current.id < 0 && !live.current.size.carousel && !document.activeElement?.matches("[data-deck]:focus-visible")) choose(null); }}
         onKeyDown={onKeyDown}
       >
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0" style={{ backgroundImage: "radial-gradient(circle, color-mix(in oklab, var(--color-foreground) 8%, transparent) 0 1.3px, transparent 1.8px)", backgroundSize: "22px 22px", backgroundPosition: "11px 6px", WebkitMaskImage: "linear-gradient(to bottom, transparent, black 14%, black 72%, transparent)", maskImage: "linear-gradient(to bottom, transparent, black 14%, black 72%, transparent)" }} />
-        <div aria-hidden="true" data-rail className="pointer-events-none absolute inset-x-0 z-[5]" style={{ top: geo.railY - geo.railT / 2, height: geo.railT }}>
-          <div className="absolute inset-x-3 h-3 rounded-full bg-black/15 blur-[5px] dark:bg-black/60" style={{ top: geo.railT + 1 }} />
+        <div aria-hidden="true" data-rail className={`pointer-events-none absolute z-[5] ${size.carousel ? "-inset-x-3" : "inset-x-4"}`} style={{ top: geo.railY - geo.railT / 2, height: geo.railT }}>
+          <div className="absolute inset-x-3 h-3 rounded-full bg-black/15 blur-[5px]" style={{ top: geo.railT + 1 }} />
           <div className="absolute inset-0 rounded-full" style={{ background: RAIL_GRADIENT, boxShadow: "0 1px 0 color-mix(in oklab, var(--color-foreground) 14%, transparent)" }} />
           <svg aria-hidden="true" className="absolute inset-0 size-full rounded-full opacity-25 mix-blend-overlay" preserveAspectRatio="none">
             <rect width="100%" height="100%" filter={`url(#${uid}-powder)`} />
           </svg>
-          <div className="absolute inset-x-2 top-[20%] h-px rounded-full bg-white/35 dark:bg-white/25" />
-          {[0, 1].map((side) => (
+          <div className="absolute inset-x-2 top-[20%] h-px rounded-full bg-white/35" />
+          {!size.carousel && [0, 1].map((side) => (
             <div key={side} className="absolute top-1/2 w-3.5 -translate-y-1/2 rounded-[3px]" style={{ [side ? "right" : "left"]: 8, height: geo.railT * 2.8, background: BRACKET_GRADIENT, boxShadow: "0 3px 6px color-mix(in oklab, black 22%, transparent)" }}>
               <span className="absolute left-1/2 top-1 size-1 -translate-x-1/2 rounded-full bg-white/30" />
               <span className="absolute bottom-1 left-1/2 size-1 -translate-x-1/2 rounded-full bg-white/30" />
@@ -795,10 +763,10 @@ export function SkateDeckRail({
               <span ref={(node) => { hangs.current[i] = node; }} data-hang className="absolute inset-0" style={{ transformOrigin: `calc(50% + ${hook.pivotX.toFixed(2)}px) ${hook.pivotY.toFixed(2)}px` }}>
                 <span ref={(node) => { swings.current[i] = node; }} data-swing className="absolute inset-0" style={{ transformOrigin: `50% ${HOLE_Y * 100}%`, visibility: lifted === i ? "hidden" : undefined }}>
                   <span aria-hidden="true" className="pointer-events-none absolute inset-0" style={{ filter: `blur(${Math.max(2, size.h * 0.008).toFixed(1)}px)` }}>
-                    <span ref={(node) => { nears.current[i] = node; }} data-shadow="near" className="absolute inset-0 block bg-black/25 dark:bg-black/70" style={maskStyle(mask, fallback)} />
+                    <span ref={(node) => { nears.current[i] = node; }} data-shadow="near" className="absolute inset-0 block bg-black/25" style={maskStyle(mask, fallback)} />
                   </span>
                   <span aria-hidden="true" className="pointer-events-none absolute inset-0" style={{ filter: `blur(${Math.max(6, size.h * 0.03).toFixed(1)}px)` }}>
-                    <span ref={(node) => { fars.current[i] = node; }} data-shadow="far" className="absolute inset-0 block bg-black/20 opacity-0 dark:bg-black/65" style={maskStyle(mask, fallback)} />
+                    <span ref={(node) => { fars.current[i] = node; }} data-shadow="far" className="absolute inset-0 block bg-black/20 opacity-0" style={maskStyle(mask, fallback)} />
                   </span>
                   <span ref={(node) => { turns.current[i] = node; }} data-turn className="absolute inset-0" style={{ transformOrigin: `50% ${HOLE_Y * 100}%`, transform: `perspective(${PERSPECTIVE}px) rotateY(${restAngle(i)}deg)` }}>
                     {fallback
@@ -808,22 +776,13 @@ export function SkateDeckRail({
                     <span aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden" style={maskStyle(mask, fallback)}>
                       <span ref={(node) => { glints.current[i] = node; }} className="absolute inset-y-0 left-0 w-[70%] opacity-0" style={{ background: "linear-gradient(90deg, transparent, color-mix(in oklab, white 55%, transparent) 50%, transparent)" }} />
                     </span>
-                    <Hole h={size.h} />
                   </span>
                 </span>
                 <Hook uid={uid} h={size.h} />
-                {item.tag && (
-                  <span ref={(node) => { tags.current[i] = node; }} aria-hidden="true" className="pointer-events-none absolute origin-top" style={{ left: `calc(50% + ${(hook.t * 0.6).toFixed(1)}px)`, top: `${HOLE_Y * 100}%`, transform: `rotate(-9deg) scale(${tagScale(size.h).toFixed(3)})` }}>
-                    <span className="block h-[12px] w-px bg-foreground/40" />
-                    <span className="relative -ml-2 block whitespace-nowrap rounded-[3px] border border-foreground/10 bg-card px-1.5 pb-1 pt-2 text-[9px] font-semibold leading-none tracking-wide text-card-foreground shadow-[0_2px_6px_color-mix(in_oklab,black_22%,transparent)]">
-                      <span className="absolute left-2 top-[3px] size-[3px] -translate-x-1/2 rounded-full bg-foreground/30" />
-                      {item.tag}
-                    </span>
-                  </span>
-                )}
               </span>
-              <span aria-hidden="true" className="pointer-events-none absolute left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-chart-1 px-2.5 py-1 text-[10px] font-semibold uppercase leading-none tracking-[0.16em] text-foreground opacity-0 shadow-sm transition-opacity duration-200 group-data-[front]:opacity-100 motion-reduce:transition-none" style={{ top: size.h * 1.12 + 8 }}>
-                {labels.open}
+              <span className={`pointer-events-none absolute left-1/2 flex -translate-x-1/2 flex-col items-center gap-1 text-center transition-opacity duration-300 motion-reduce:transition-none ${size.carousel && carouselIndex !== i ? "opacity-0" : ""}`} style={{ top: size.h * (1 + FOOT) + 4, width: size.carousel ? Math.min(280, size.width - 48) : w * 1.4 }}>
+                <span className="text-sm font-medium leading-tight">{item.name}</span>
+                {item.tag && <span className={`text-[13px] tabular-nums transition-colors duration-300 ${facing ? "font-semibold text-primary" : "text-muted-foreground"}`}>{item.tag}</span>}
               </span>
             </button>
           );
@@ -831,18 +790,16 @@ export function SkateDeckRail({
       </div>
 
       {size.carousel && count > 1 && (
-        <div className="relative z-10 flex justify-center gap-1.5" role="group" aria-label={heading ?? "Deck rail"}>
+        <div className="relative z-10 flex justify-center gap-1.5" role="group" aria-label={heading ?? "Rak raket"}>
           {items.map((item, i) => (
-            <button key={item.id} type="button" tabIndex={-1} aria-label={item.name} aria-current={carouselIndex === i} onClick={() => { stop(); choose(i); }} className={`h-1.5 rounded-full outline-none transition-[width,background-color] duration-300 focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transition-none ${carouselIndex === i ? "w-6 bg-foreground" : "w-1.5 bg-foreground/25 hover:bg-foreground/45"}`} />
+            <button key={item.id} type="button" tabIndex={-1} aria-label={item.name} aria-current={carouselIndex === i} onClick={() => { stop(); choose(i); }} className={`h-1.5 rounded-full outline-none transition-[width,background-color] duration-300 focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transition-none ${carouselIndex === i ? "w-6 bg-foreground" : "w-1.5 bg-black/25 hover:bg-black/45"}`} />
           ))}
         </div>
       )}
 
       <div className="relative z-10 flex flex-col items-center gap-3 px-6 pb-7 pt-3 text-center">
-        <div id={`${uid}-caption`} aria-live="polite" className="min-h-[2.75rem]">
-          <p className="text-sm font-medium">{current ? current.name : caption}</p>
-          {current && (current.series || current.tag) && <p className="mt-1 text-[13px] text-muted-foreground">{[current.series, current.tag].filter(Boolean).join(" · ")}</p>}
-        </div>
+        <div id={`${uid}-caption`} className="text-[13px] text-muted-foreground">{caption}</div>
+        <p aria-live="polite" className="sr-only">{current?.name}</p>
         {action}
       </div>
 
@@ -865,36 +822,10 @@ export function SkateDeckRail({
   );
 }
 
-function GripFace({ uid, item, mask, fallback, tone }: { uid: string; item: SkateDeck; mask: string; fallback: boolean; tone: number }) {
-  if (item.gripImage) {
-    return (
-      <div data-grip className="absolute inset-0">
-        <img src={item.gripImage} alt="" draggable={false} className="pointer-events-none absolute inset-0 size-full select-none object-contain" />
-      </div>
-    );
-  }
-  const cut = `inset(${GRIP_WINDOW.top}% ${GRIP_WINDOW.side}% ${GRIP_WINDOW.bottom}% ${GRIP_WINDOW.side}% round 4px)`;
-  return (
-    <div data-grip className="absolute inset-0 [--grip-ink:color-mix(in_oklab,var(--color-foreground)_90%,var(--color-background))] dark:[--grip-ink:color-mix(in_oklab,var(--color-background)_55%,black)]">
-      {fallback
-        ? <span aria-hidden="true" className="absolute inset-0" style={{ ...maskStyle(mask, fallback), background: PLY }} />
-        : <img src={item.image} alt="" draggable={false} className="pointer-events-none absolute inset-0 size-full -scale-x-100 select-none object-contain" />}
-      <span aria-hidden="true" className="absolute inset-0 overflow-hidden" style={{ ...maskStyle(mask, fallback), transform: "scale(0.974, 0.992)" }}>
-        <span className="absolute inset-0 bg-[var(--grip-ink)]" />
-        <svg aria-hidden="true" className="absolute inset-0 size-full opacity-50 mix-blend-screen dark:opacity-35" preserveAspectRatio="none">
-          <rect width="100%" height="100%" filter={`url(#${uid}-grit)`} />
-        </svg>
-        <span className="absolute inset-0" style={{ background: CONCAVE }} />
-      </span>
-      {BOLTS.map(([x, y]) => (
-        <span key={`${x}-${y}`} aria-hidden="true" data-bolt className="absolute h-auto min-w-1 -translate-x-1/2 -translate-y-1/2 rounded-full bg-black/80" style={{ left: `${(x ?? 0) * 100}%`, top: `${(y ?? 0) * 100}%`, width: "3.6%", aspectRatio: "1", boxShadow: "inset 0 1px 1px color-mix(in oklab, black 80%, transparent), 0 0.5px 0 color-mix(in oklab, white 26%, transparent)" }} />
-      ))}
-      <span aria-hidden="true" data-window className="absolute inset-0" style={{ clipPath: cut, WebkitClipPath: cut }}>
-        {fallback ? <FallbackArt tone={tone} /> : <img src={item.image} alt="" draggable={false} className="pointer-events-none absolute inset-0 size-full -scale-x-100 select-none object-contain" />}
-      </span>
-      <span aria-hidden="true" className="absolute rounded-[4px] shadow-[inset_0_1px_3px_color-mix(in_oklab,black_70%,transparent),0_0_0_1px_color-mix(in_oklab,white_14%,transparent)]" style={{ left: `${GRIP_WINDOW.side}%`, right: `${GRIP_WINDOW.side}%`, top: `${GRIP_WINDOW.top}%`, bottom: `${GRIP_WINDOW.bottom}%` }} />
-    </div>
-  );
+/** Sisi belakang: foto belakang kalau ada, kalau tidak bayangan cermin foto depan (raket simetris). */
+function BackFace({ item, fallback, tone }: { item: SkateDeck; fallback: boolean; tone: number }) {
+  if (fallback) return <FallbackArt tone={tone} />;
+  return <img src={item.gripImage ?? item.image} alt="" draggable={false} className={`pointer-events-none absolute inset-0 size-full select-none object-contain ${item.gripImage ? "" : "-scale-x-100"}`} />;
 }
 
 function Detail({ uid, item, index, total, labels, reduced, fallback, extra, source, onLift, onClose }: {
@@ -975,16 +906,7 @@ function Detail({ uid, item, index, total, labels, reduced, fallback, extra, sou
     }
     const raf = requestAnimationFrame(() => setShown(true));
     if (reduced) {
-      a.target = 180; a.value = 180; a.velocity = 0;
-      if (spinRef.current) spinRef.current.style.transform = "rotateY(180deg)";
-      setSide("grip");
-    } else {
-      a.auto = window.setTimeout(() => {
-        a.auto = 0;
-        a.target = 180;
-        setSide("grip");
-        spin();
-      }, 860);
+      a.target = 0; a.value = 0; a.velocity = 0;
     }
     return () => {
       cancelAnimationFrame(raf);
@@ -1044,36 +966,36 @@ function Detail({ uid, item, index, total, labels, reduced, fallback, extra, sou
   const faces = (["graphic", "grip"] as const);
 
   return createPortal(
-    <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} data-deck-detail className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-5 text-foreground sm:p-8" onKeyDown={onKeyDown}>
-      <div aria-hidden="true" className={`absolute inset-0 bg-background/90 backdrop-blur-xl transition-opacity duration-300 motion-reduce:transition-none ${shown ? "opacity-100" : "opacity-0"}`} onClick={dismiss} />
-      <button ref={closeRef} type="button" onClick={dismiss} className={`absolute right-4 top-4 z-10 inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium tracking-wide text-muted-foreground outline-none transition-[opacity,color] duration-300 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transition-none ${shown ? "opacity-100" : "opacity-0"}`}>
+    <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} data-deck-detail className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-5 sm:items-center text-foreground sm:p-8" onKeyDown={onKeyDown}>
+      <div aria-hidden="true" className={`fixed inset-0 bg-white/95 backdrop-blur-xl transition-opacity duration-300 motion-reduce:transition-none ${shown ? "opacity-100" : "opacity-0"}`} onClick={dismiss} />
+      <button ref={closeRef} type="button" onClick={dismiss} className={`fixed right-4 top-4 z-10 inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium tracking-wide text-muted-foreground outline-none transition-[opacity,color] duration-300 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transition-none ${shown ? "opacity-100" : "opacity-0"}`}>
         {labels.close}
         <svg aria-hidden="true" viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"><path d="M3 3l10 10M13 3L3 13" /></svg>
       </button>
-      <div className="relative grid w-full max-w-3xl grid-cols-[auto_minmax(0,1fr)] items-center gap-5 sm:gap-12">
-        <div ref={figureRef} data-figure className="relative h-[min(64svh,600px)] origin-top sm:h-[min(70svh,600px)]" style={{ aspectRatio: DECK_ASPECT }}>
-          <span aria-hidden="true" className="absolute inset-0 translate-x-[8%] translate-y-[3%] bg-black/25 blur-xl dark:bg-black/70" style={maskStyle(mask, fallback)} />
+      <div className="relative grid w-full max-w-3xl items-center justify-items-center gap-6 py-10 sm:grid-cols-[auto_minmax(0,1fr)] sm:gap-12 sm:py-0">
+        <div ref={figureRef} data-figure className="relative h-[44svh] origin-top sm:h-[min(70svh,600px)]" style={{ aspectRatio: DECK_ASPECT }}>
+          <span aria-hidden="true" className="absolute inset-0 translate-x-[6%] translate-y-[2%] blur-lg">
+            <span className="absolute inset-0 bg-black/25" style={maskStyle(mask, fallback)} />
+          </span>
           <div
             className="absolute inset-0 cursor-grab touch-pan-y active:cursor-grabbing"
             style={{ perspective: "1200px" }}
             onPointerDown={(event) => { const a = angle.current; window.clearTimeout(a.auto); a.auto = 0; a.dragging = true; a.startX = event.clientX; a.startAngle = a.value; cancelAnimationFrame(a.raf); a.raf = 0; a.last = 0; event.currentTarget.setPointerCapture(event.pointerId); }}
             onPointerMove={(event) => { const a = angle.current; if (!a.dragging) return; a.value = clamp(a.startAngle + (event.clientX - a.startX) * 0.6, a.startAngle - 220, a.startAngle + 220); if (spinRef.current) spinRef.current.style.transform = `rotateY(${a.value.toFixed(2)}deg)`; }}
-            onPointerUp={() => { const a = angle.current; if (!a.dragging) return; a.dragging = false; const facing = ((a.value % 360) + 360) % 360; turnTo(facing > 90 && facing < 270 ? "grip" : "graphic"); }}
+            onPointerUp={() => { const a = angle.current; if (!a.dragging) return; a.dragging = false; const facing = ((a.value % 360) + 360) % 360; turnTo(item.gripImage && facing > 90 && facing < 270 ? "grip" : "graphic"); }}
             onPointerCancel={() => { angle.current.dragging = false; turnTo(side); }}
           >
             <div ref={spinRef} data-detail-spin className="absolute inset-0 [transform-style:preserve-3d]">
               <div data-face="graphic" className="absolute inset-0 [backface-visibility:hidden]">
                 {fallback ? <FallbackArt tone={index} /> : <img src={item.image} alt={item.name} draggable={false} className="pointer-events-none absolute inset-0 size-full select-none object-contain" />}
-                <Hole h={600} />
               </div>
               <div data-face="grip" className="absolute inset-0 [backface-visibility:hidden]" style={{ transform: "rotateY(180deg)" }}>
-                <GripFace uid={uid} item={item} mask={mask} fallback={fallback} tone={index} />
-                <Hole h={600} />
+                <BackFace item={item} fallback={fallback} tone={index} />
               </div>
             </div>
           </div>
         </div>
-        <div className={`flex min-w-0 flex-col gap-3 transition-[opacity,transform] delay-150 duration-500 motion-reduce:transition-none ${shown ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"}`}>
+        <div className={`flex w-full min-w-0 flex-col items-start gap-3 transition-[opacity,transform] delay-150 duration-500 motion-reduce:transition-none ${shown ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"}`}>
           <p className="font-mono text-[11px] tracking-[0.2em] text-muted-foreground">
             {String(index + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}{item.series ? ` · ${item.series}` : ""}
           </p>
@@ -1090,13 +1012,13 @@ function Detail({ uid, item, index, total, labels, reduced, fallback, extra, sou
               {item.details.map((detail) => <li key={detail} className="rounded-full border border-border px-2.5 py-1 text-[11px] text-muted-foreground">{detail}</li>)}
             </ul>
           )}
-          <div role="group" aria-label={`${labels.graphic} / ${labels.grip}`} className="mt-1 inline-flex self-start rounded-full border border-border p-1">
+          {item.gripImage && <div role="group" aria-label={`${labels.graphic} / ${labels.grip}`} className="mt-1 inline-flex self-start rounded-full border border-border p-1">
             {faces.map((face) => (
-              <button key={face} type="button" data-side={face} aria-pressed={side === face} onClick={() => turnTo(face)} className={`rounded-full px-3.5 py-1.5 text-xs font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transition-none ${side === face ? "bg-chart-1 text-foreground" : "text-muted-foreground hover:text-foreground"}`}>
+              <button key={face} type="button" data-side={face} aria-pressed={side === face} onClick={() => turnTo(face)} className={`rounded-full px-3.5 py-1.5 text-xs font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transition-none ${side === face ? "bg-primary text-white" : "text-muted-foreground hover:text-foreground"}`}>
                 {face === "graphic" ? labels.graphic : labels.grip}
               </button>
             ))}
-          </div>
+          </div>}
           {extra && <div className="mt-1">{extra}</div>}
         </div>
       </div>

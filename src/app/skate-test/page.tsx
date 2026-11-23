@@ -27,17 +27,6 @@ export default function SkateTestPage() {
           --color-chart-4: #e8c468;
           --color-chart-5: #f4a462;
         }
-        @media (prefers-color-scheme: dark) {
-          :root {
-            --color-background: #0a0a0a;
-            --color-foreground: #fafafa;
-            --color-card: #141414;
-            --color-card-foreground: #fafafa;
-            --color-muted-foreground: #a1a1aa;
-            --color-border: #27272a;
-            --color-ring: #d4d4d8;
-          }
-        }
       `}</style>
       <SkateDeckRailDemo />
     </div>
