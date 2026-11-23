@@ -1024,14 +1024,27 @@ function Detail({ uid, item, index, total, labels, reduced, fallback, extra, sou
   const faces = (["graphic", "grip"] as const);
 
   return createPortal(
-    <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} data-deck-detail className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-5 sm:items-center text-foreground sm:p-8" onKeyDown={onKeyDown}>
-      <div aria-hidden="true" className={`fixed inset-0 bg-white/95 backdrop-blur-xl transition-opacity duration-300 motion-reduce:transition-none ${shown ? "opacity-100" : "opacity-0"}`} onClick={dismiss} />
-      <button ref={closeRef} type="button" onClick={dismiss} className={`fixed right-4 top-4 z-10 inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium tracking-wide text-muted-foreground outline-none transition-[opacity,color] duration-300 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transition-none ${shown ? "opacity-100" : "opacity-0"}`}>
-        {labels.close}
-        <svg aria-hidden="true" viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"><path d="M3 3l10 10M13 3L3 13" /></svg>
-      </button>
-      <div className="relative grid w-full max-w-3xl items-center justify-items-center gap-6 py-10 sm:grid-cols-[auto_minmax(0,1fr)] sm:gap-12 sm:py-0">
-        <div ref={figureRef} data-figure className="relative h-[44svh] origin-top sm:h-[min(70svh,600px)]" style={{ aspectRatio: DECK_ASPECT }}>
+    <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} data-deck-detail className="fixed inset-0 z-50 flex justify-center overflow-y-auto p-4 text-foreground sm:p-8" onKeyDown={onKeyDown}>
+      <div aria-hidden="true" className={`fixed inset-0 bg-black/20 transition-opacity duration-300 motion-reduce:transition-none ${shown ? "opacity-100" : "opacity-0"}`} onClick={dismiss} />
+      <div className="relative my-auto grid w-full max-w-3xl items-center justify-items-center gap-5 px-6 pb-7 pt-8 sm:grid-cols-[auto_minmax(0,1fr)] sm:gap-12 sm:px-14 sm:py-10">
+        {/* kaca dipisah jadi lapisan sendiri: raket tetap bebas terbang dari rel ke popup */}
+        <div
+          aria-hidden="true"
+          data-glass
+          className={`absolute inset-0 overflow-hidden rounded-[32px] border border-white/70 transition-[opacity,transform] duration-300 motion-reduce:transition-none ${shown ? "scale-100 opacity-100" : "scale-[0.96] opacity-0"}`}
+          style={{
+            background: "linear-gradient(135deg, rgba(255,255,255,0.72), rgba(255,255,255,0.5) 45%, rgba(255,255,255,0.62))",
+            backdropFilter: "blur(22px) saturate(180%)",
+            WebkitBackdropFilter: "blur(22px) saturate(180%)",
+            boxShadow: "0 30px 80px rgba(0,0,0,0.28), 0 4px 14px rgba(0,0,0,0.1), inset 0 1px 1px rgba(255,255,255,0.95), inset 1px 0 1px rgba(255,255,255,0.6), inset 0 -1px 2px rgba(255,255,255,0.55), inset 0 0 28px rgba(255,255,255,0.35)",
+          }}
+        >
+          <div className="absolute inset-x-0 top-0 h-1/3" style={{ background: "radial-gradient(75% 100% at 22% 0%, rgba(255,255,255,0.75), transparent 70%)" }} />
+        </div>
+        <button ref={closeRef} type="button" aria-label={labels.close} onClick={dismiss} className={`absolute right-4 top-4 z-10 inline-flex size-10 items-center justify-center rounded-full border border-white/70 bg-white/55 text-foreground shadow-sm outline-none transition-[opacity,background-color] duration-300 hover:bg-white/90 focus-visible:ring-2 focus-visible:ring-primary motion-reduce:transition-none ${shown ? "opacity-100" : "opacity-0"}`}>
+          <svg aria-hidden="true" viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M3 3l10 10M13 3L3 13" /></svg>
+        </button>
+        <div ref={figureRef} data-figure className="relative h-[40svh] origin-top sm:h-[min(62svh,520px)]" style={{ aspectRatio: DECK_ASPECT }}>
           <span aria-hidden="true" className="absolute inset-0 translate-x-[6%] translate-y-[2%] blur-lg">
             <span className="absolute inset-0 bg-black/25" style={maskStyle(mask, fallback)} />
           </span>
@@ -1053,26 +1066,26 @@ function Detail({ uid, item, index, total, labels, reduced, fallback, extra, sou
             </div>
           </div>
         </div>
-        <div className={`flex w-full min-w-0 flex-col items-start gap-3 transition-[opacity,transform] delay-150 duration-500 motion-reduce:transition-none ${shown ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"}`}>
-          <p className="font-mono text-[11px] tracking-[0.2em] text-muted-foreground">
+        <div className={`relative flex w-full min-w-0 flex-col items-start gap-3 transition-[opacity,transform] delay-150 duration-500 motion-reduce:transition-none ${shown ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"}`}>
+          <p className="font-mono text-[11px] tracking-[0.2em] text-zinc-700">
             {String(index + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}{item.series ? ` · ${item.series}` : ""}
           </p>
           <h3 id={titleId} className="text-balance text-xl font-medium tracking-tight sm:text-3xl">{item.name}</h3>
           {(item.tag || item.width) && (
             <div className="flex flex-wrap items-baseline gap-3">
               {item.tag && <span className="text-lg font-semibold tabular-nums">{item.tag}</span>}
-              {item.width && <span className="rounded-md border border-border px-2 py-0.5 font-mono text-xs text-muted-foreground">{item.width}</span>}
+              {item.width && <span className="rounded-md border border-border px-2 py-0.5 font-mono text-xs text-zinc-700">{item.width}</span>}
             </div>
           )}
-          {item.description && <p className="text-sm leading-relaxed text-muted-foreground">{item.description}</p>}
+          {item.description && <p className="text-sm leading-relaxed text-zinc-700">{item.description}</p>}
           {item.details && item.details.length > 0 && (
             <ul className="flex flex-wrap gap-1.5">
-              {item.details.map((detail) => <li key={detail} className="rounded-full border border-border px-2.5 py-1 text-[11px] text-muted-foreground">{detail}</li>)}
+              {item.details.map((detail) => <li key={detail} className="rounded-full border border-white/80 bg-white/55 px-2.5 py-1 text-[11px] text-zinc-700">{detail}</li>)}
             </ul>
           )}
           {item.gripImage && <div role="group" aria-label={`${labels.graphic} / ${labels.grip}`} className="mt-1 inline-flex self-start rounded-full border border-border p-1">
             {faces.map((face) => (
-              <button key={face} type="button" data-side={face} aria-pressed={side === face} onClick={() => turnTo(face)} className={`rounded-full px-3.5 py-1.5 text-xs font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transition-none ${side === face ? "bg-primary text-white" : "text-muted-foreground hover:text-foreground"}`}>
+              <button key={face} type="button" data-side={face} aria-pressed={side === face} onClick={() => turnTo(face)} className={`rounded-full px-3.5 py-1.5 text-xs font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transition-none ${side === face ? "bg-primary text-white" : "text-zinc-700 hover:text-foreground"}`}>
                 {face === "graphic" ? labels.graphic : labels.grip}
               </button>
             ))}
