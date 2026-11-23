@@ -110,7 +110,7 @@ function hookGeometry(h: number) {
   const r = railThickness(h) / 2;
   const t = Math.max(1.7, h * 0.0078);
   const rc = r * 0.95 + t * 0.6;
-  const lift = r * 0.25;
+  const lift = r + t / 2 - rc; // lengkung atas menempel di punggung rel
   const length = HOOK_LEN * h;
   const pad = t + 3;
   const cx = pad + t / 2;
@@ -118,7 +118,7 @@ function hookGeometry(h: number) {
   const width = cx + 2 * rc + pad + t;
   const height = cy + length + pad;
   const r2 = rc * 0.6;
-  const dip = cy + length + h * 0.02; // tepat di bawah tebal frame
+  const dip = cy + length + h * 0.0095 - r2 + t / 2; // dasar kait menempel di sisi dalam frame
   const f = (n: number) => n.toFixed(2);
   return {
     t, rc, cx, cy, width, height,
@@ -128,15 +128,24 @@ function hookGeometry(h: number) {
     pivotY: -(HOOK_LEN - HOLE_Y) * h - lift,
     // kait turun di BELAKANG frame, keluar di dalam lingkaran, lalu ujungnya naik di DEPAN frame
     shank: `M${f(cx + r2)},${f(dip + r2)} A${f(r2)},${f(r2)} 0 0 1 ${f(cx)},${f(dip)} L${f(cx)},${f(cy - lift)}`,
-    tip: `M${f(cx + r2)},${f(dip + r2)} A${f(r2)},${f(r2)} 0 0 0 ${f(cx + 2 * r2)},${f(dip)} L${f(cx + 2 * r2)},${f(cy + length - h * 0.002)}`,
-    curl: `M${f(cx)},${f(cy - lift)} A${f(rc)},${f(rc)} 0 0 1 ${f(cx + 2 * rc)},${f(cy - lift)} L${f(cx + 2 * rc)},${f(cy + r * 0.3)}`,
+    tip: `M${f(cx + r2)},${f(dip + r2)} A${f(r2)},${f(r2)} 0 0 0 ${f(cx + 2 * r2)},${f(dip)} L${f(cx + 2 * r2)},${f(cy + length - h * 0.005)}`,
+    // atas: separuh kiri di belakang rel (dipotong setebal rel), separuh kanan turun di depan rel
+    over: `A${f(rc)},${f(rc)} 0 0 1 ${f(cx + rc)},${f(cy - lift - rc)}`,
+    curl: `M${f(cx + rc)},${f(cy - lift - rc)} A${f(rc)},${f(rc)} 0 0 1 ${f(cx + 2 * rc)},${f(cy - lift)} L${f(cx + 2 * rc)},${f(cy + r * 0.6)}`,
+    railTop: cy - r,
+    railBottom: cy + r,
   };
 }
 
-function Defs({ uid }: { uid: string }) {
+function Defs({ uid, h }: { uid: string; h: number }) {
+  const g = hookGeometry(h);
   return (
     <svg aria-hidden="true" width="0" height="0" className="absolute" focusable="false">
       <defs>
+        <clipPath id={`${uid}-behind`} clipPathUnits="userSpaceOnUse">
+          <rect x={-50} y={-50} width={g.width + 100} height={50 + g.railTop} />
+          <rect x={-50} y={g.railBottom} width={g.width + 100} height={g.height + 50} />
+        </clipPath>
         <filter id={`${uid}-powder`} x="0" y="0" width="100%" height="100%" colorInterpolationFilters="sRGB">
           <feTurbulence type="fractalNoise" baseFrequency="1.4" numOctaves="1" seed="4" stitchTiles="stitch" />
           <feColorMatrix type="saturate" values="0" />
@@ -146,20 +155,22 @@ function Defs({ uid }: { uid: string }) {
   );
 }
 
-function Hook({ h, part }: { h: number; part: "back" | "front" }) {
+function Hook({ uid, h, part }: { uid: string; h: number; part: "back" | "front" }) {
   const g = hookGeometry(h);
   const back = part === "back";
   return (
     <svg aria-hidden="true" data-hook={part} width={g.width} height={g.height} viewBox={`0 0 ${g.width.toFixed(2)} ${g.height.toFixed(2)}`} className="pointer-events-none absolute overflow-visible" style={{ left: `calc(50% + ${g.left.toFixed(2)}px)`, top: g.top }}>
+      <g clipPath={back ? `url(#${uid}-behind)` : undefined}>
       <g fill="none" strokeLinecap="round" stroke="black" strokeOpacity="0.3" strokeWidth={g.t + 0.6} transform="translate(0.9 1.3)">
-        {back ? <path d={`${g.shank} ${g.curl.replace(/^M[^ ]+/, "")}`} /> : <path d={g.tip} />}
+        <path d={back ? `${g.shank} ${g.over}` : `${g.tip} ${g.curl}`} />
       </g>
       {/* logam: gelap di tepi, terang di tengah — sama untuk batang, lengkung, dan ujung */}
       {[["#6b7280", 1, 0], ["#c4c8ce", 0.7, -0.06], ["#ffffff", 0.28, -0.14]].map(([ink, k, shift]) => (
         <g key={ink as string} fill="none" stroke={ink as string} strokeWidth={g.t * (k as number)} strokeLinecap="round" strokeLinejoin="round" transform={`translate(${(g.t * (shift as number)).toFixed(2)} 0)`}>
-          {back ? <path d={`${g.shank} ${g.curl.replace(/^M[^ ]+/, "")}`} /> : <path d={g.tip} />}
+          <path d={back ? `${g.shank} ${g.over}` : `${g.tip} ${g.curl}`} />
         </g>
       ))}
+      </g>
     </svg>
   );
 }
@@ -738,7 +749,7 @@ export function SkateDeckRail({
       data-active={active ?? ""}
       className={`relative isolate w-full overflow-hidden bg-background text-foreground [--rail-ink:var(--color-foreground)] ${className ?? ""}`}
     >
-      <Defs uid={uid} />
+      <Defs uid={uid} h={size.h} />
       {(eyebrow || heading) && (
         <header className="relative z-10 flex flex-col items-center gap-2 px-6 pt-7 text-center">
           {eyebrow && <p className="text-[11px] font-medium uppercase tracking-[0.28em] text-muted-foreground">{eyebrow}</p>}
@@ -797,7 +808,7 @@ export function SkateDeckRail({
               onClick={(event) => { const pending = pendingOpen.current; pendingOpen.current = -1; if (event.detail === 0 || pending === i) open(i); }}
             >
               <span ref={(node) => { hangs.current[i] = node; }} data-hang className="absolute inset-0" style={{ transformOrigin: `calc(50% + ${hook.pivotX.toFixed(2)}px) ${hook.pivotY.toFixed(2)}px` }}>
-                <Hook h={size.h} part="back" />
+                <Hook uid={uid} h={size.h} part="back" />
                 <span ref={(node) => { swings.current[i] = node; }} data-swing className="absolute inset-0" style={{ transformOrigin: `50% ${HOLE_Y * 100}%`, visibility: lifted === i ? "hidden" : undefined }}>
                   <span aria-hidden="true" className="pointer-events-none absolute inset-0" style={{ filter: `blur(${Math.max(2, size.h * 0.008).toFixed(1)}px)` }}>
                     <span ref={(node) => { nears.current[i] = node; }} data-shadow="near" className="absolute inset-0 block bg-black/25" style={maskStyle(mask, fallback)} />
@@ -815,7 +826,7 @@ export function SkateDeckRail({
                     </span>
                   </span>
                 </span>
-                <Hook h={size.h} part="front" />
+                <Hook uid={uid} h={size.h} part="front" />
               </span>
               <span className={`pointer-events-none absolute left-1/2 flex -translate-x-1/2 flex-col items-center gap-1 text-center transition-opacity duration-300 motion-reduce:transition-none ${size.carousel && carouselIndex !== i ? "opacity-0" : ""}`} style={{ top: size.h * (1 + FOOT) + 4, width: size.carousel ? Math.min(280, size.width - 48) : w * 1.4 }}>
                 <span className="text-sm font-medium leading-tight">{item.name}</span>
