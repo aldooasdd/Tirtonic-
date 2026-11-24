@@ -4,9 +4,7 @@ import Footer from "@/components/Footer";
 import ProductDetail from "@/components/ProductDetail";
 import ProductCard from "@/components/ProductCard";
 import ViewBeacon from "@/components/ViewBeacon";
-import type { B1G1Option } from "@/components/B1G1Popup";
-import { isB1G1 } from "@/lib/b1g1";
-import { b1g1ProductIds } from "@/lib/b1g1-db";
+import { b1g1Options } from "@/lib/b1g1-db";
 
 // ISR: halaman produk di-cache 5 menit → DB cuma dibaca sekali per 5 menit (hemat egress),
 // bukan tiap kunjungan/crawler. Stok/harga telat maks 5 menit — oke buat toko.
@@ -35,23 +33,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
     []
   );
 
-  // Pilihan pasangan Buy 1 Get 1 (barang diskon ≥50% yang masih ada stok).
-  const b1Pool = await safeQuery(
-    async () => prisma.product.findMany({
-      where: { id: { in: await b1g1ProductIds() } },
-      include: { variants: { orderBy: { urutan: "asc" } } },
-    }),
-    [],
-  );
-  const b1g1Others: B1G1Option[] = b1Pool
-    .map((x) => ({
-      id: x.id, nama: x.nama, gambar: x.gambar[0] ?? null, harga: x.harga, stok: x.stok,
-      ok: x.variants.length === 0 && isB1G1(x.harga, x.hargaDiskon) && (x.stok == null || x.stok > 0),
-      variants: x.variants.filter((v) => v.stok > 0 && isB1G1(v.harga, v.hargaDiskon))
-        .map((v) => ({ id: v.id, label: `${v.warna}${v.ukuran ? " / " + v.ukuran : ""}`, harga: v.harga, stok: v.stok, gambar: v.gambar ?? x.gambar[0] ?? null })),
-    }))
-    .filter((x) => x.ok || x.variants.length > 0)
-    .map(({ ok: _ok, ...x }) => x);
+  const b1g1Others = await b1g1Options(); // pilihan pasangan Buy 1 Get 1
 
   return (
     <>

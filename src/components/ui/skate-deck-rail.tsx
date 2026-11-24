@@ -16,8 +16,6 @@ export interface SkateDeck {
   image: string;
   /** Short tag such as a price, hung from the hook. */
   tag?: string;
-  /** Semua varian, tampil di atas harga pada popup. */
-  variants?: string[];
   /** Short facts shown as chips in the detail view (wheelbase, plies, concave …). */
   details?: string[];
 }
@@ -1001,14 +999,7 @@ function Detail({ uid, item, index, total, labels, reduced, fallback, extra, sou
             {String(index + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}{item.series ? ` · ${item.series}` : ""}
           </p>
           <h3 id={titleId} className="text-balance text-xl font-medium tracking-tight sm:text-3xl">{item.name}</h3>
-          {item.variants && item.variants.length > 0 && (
-            <ul aria-label="Varian" className="flex flex-wrap gap-1.5">
-              {item.variants.map((v) => (
-                <li key={v} className="rounded-full border border-white/80 bg-white/65 px-3 py-1.5 text-xs text-zinc-900">{v}</li>
-              ))}
-            </ul>
-          )}
-          {(item.tag || item.width) && (
+          {!extra && (item.tag || item.width) && (
             <div className="flex flex-wrap items-baseline gap-3">
               {item.tag && <span className="text-lg font-semibold tabular-nums">{item.tag}</span>}
               {item.width && <span className="rounded-md border border-border px-2 py-0.5 font-mono text-xs text-zinc-700">{item.width}</span>}
@@ -1020,7 +1011,7 @@ function Detail({ uid, item, index, total, labels, reduced, fallback, extra, sou
               {item.details.map((detail) => <li key={detail} className="rounded-full border border-white/80 bg-white/55 px-2.5 py-1 text-[11px] text-zinc-700">{detail}</li>)}
             </ul>
           )}
-          {extra && <div className="mt-1">{extra}</div>}
+          {extra && <div className="mt-1 w-full">{extra}</div>}
         </div>
       </div>
     </div>,

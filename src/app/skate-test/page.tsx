@@ -1,26 +1,23 @@
 import SkateDeckRailDemo, { type RailItem } from "@/components/ui/skate-deck-rail-demo";
 import { prisma, safeQuery } from "@/lib/prisma";
 import { rupiah } from "@/lib/format";
-import { isB1G1 } from "@/lib/b1g1";
+import { ShopCartProvider } from "@/components/ShopCartProvider";
 import { productHref } from "@/lib/product-slug";
-import { railName } from "@/lib/rail";
+import { railName, railStok } from "@/lib/rail";
 
 export const revalidate = 300; // stok & harga; upload dari dashboard langsung tampil (revalidatePath)
-
-const hargaJual = (x: { harga: number; hargaDiskon: number | null }) => (x.hargaDiskon != null && x.hargaDiskon < x.harga && !isB1G1(x.harga, x.hargaDiskon) ? x.hargaDiskon : x.harga);
 
 async function railItems(): Promise<RailItem[]> {
   const rows = await safeQuery(() => prisma.racketRail.findMany({ where: { product: { status: "READY" } }, orderBy: [{ urutan: "asc" }, { createdAt: "asc" }], include: { product: { include: { variants: { orderBy: { urutan: "asc" } } } } } }), []);
   return rows.flatMap(({ id, foto, product: p }) => {
-    const ada = p.variants.filter((v) => v.stok > 0);
-    if (p.variants.length ? !ada.length : p.stok != null && p.stok <= 0) return []; // habis → turun dari rak
-    const harga = (ada.length ? ada : [p]).map(hargaJual);
+    const stok = railStok(p);
+    const ada = stok.opsi.filter((o) => o.stok > 0);
+    if (!ada.length) return []; // habis → turun dari rak
+    const harga = ada.map((o) => o.harga);
     const min = Math.min(...harga);
-    const variants = p.variants.map((v) => [v.warna, v.ukuran].filter(Boolean).join(" / "));
-    return [{ id, name: railName(p.nama), series: p.brand ?? undefined, tag: `${Math.max(...harga) > min ? "Mulai " : ""}${rupiah(min)}`, image: foto, variants, href: productHref(p) }];
+    return [{ id, name: railName(p.nama), series: p.brand ?? undefined, tag: `${Math.max(...harga) > min ? "Mulai " : ""}${rupiah(min)}`, image: foto, href: productHref(p), stok }];
   });
 }
-
 
 export const metadata = {
   title: "Skate Deck Rail — Test",
@@ -51,7 +48,9 @@ export default async function SkateTestPage() {
           --color-chart-5: #f4a462;
         }
       `}</style>
-      <SkateDeckRailDemo items={items} />
+      <ShopCartProvider>
+        <SkateDeckRailDemo items={items} />
+      </ShopCartProvider>
     </div>
   );
 }
