@@ -56,7 +56,6 @@ const LIFT_SCALE = 0.03;
 const GAP = 0.06;
 const MAX_H = 460;
 const CAROUSEL_MAX_H = 430;
-const EDGE = 24;
 const RAIL_TOP = 14;
 const RAIL_Y = 0.022;
 const HOOK_LEN = 0.085;
@@ -67,6 +66,8 @@ const STAGE_K = 1 + RAIL_Y + HOOK_LEN - HOLE_Y + FOOT;
 const SWING_K = 26;
 const SWING_DAMP = 2.3;
 const SWING_LIMIT = 8;
+const LOOP_MIN = 12; // minimal barang di rel supaya putaran tidak terlihat putus
+const IDLE_MS = 6000; // diam selama ini → muter lagi
 const RAIL_GAP = 0.6; // jarak antar raket di rel (× lebar raket)
 const CAROUSEL_BELOW = 640; // di bawah lebar ini: satu raket di tengah
 const COUPLE = 0.035;
@@ -77,9 +78,8 @@ const DEFAULT_LABELS: SkateDeckRailLabels = { close: "Tutup", open: "Lihat" };
 const DECK_PATH = "M3,150 C3,46 53,4 119,4 C185,4 235,46 235,150 L235,850 C235,954 185,996 119,996 C53,996 3,954 3,850 Z";
 const FALLBACK_MASK = `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 238 1000' preserveAspectRatio='none'><path d='${DECK_PATH}'/></svg>`)}")`;
 const CONCAVE = "linear-gradient(90deg, color-mix(in oklab, black 46%, transparent) 0%, transparent 15%, color-mix(in oklab, white 13%, transparent) 50%, transparent 85%, color-mix(in oklab, black 46%, transparent) 100%), linear-gradient(to bottom, color-mix(in oklab, white 14%, transparent) 0%, transparent 9%, transparent 91%, color-mix(in oklab, white 10%, transparent) 100%)";
-// pipa & braket besi silver
+// pipa besi silver
 const STEEL_RAIL = "linear-gradient(to bottom, #8b9097 0%, #d9dce0 9%, #ffffff 22%, #d3d6da 38%, #9a9fa6 60%, #6a6f76 82%, #868b92 93%, #b4b8bd 100%)";
-const STEEL_BRACKET = "linear-gradient(to right, #8b9097, #f4f5f6 28%, #c3c7cc 52%, #7c8188 88%, #a3a8ae)";
 const REST_SHADE = "linear-gradient(90deg, color-mix(in oklab, black 34%, transparent), color-mix(in oklab, black 12%, transparent) 45%, color-mix(in oklab, black 4%, transparent))";
 
 function clamp(value: number, min: number, max: number) {
@@ -191,7 +191,15 @@ function FallbackArt({ tone }: { tone: number }) {
   );
 }
 
+/** Selisih terpendek pada lingkaran sepanjang span. */
+function wrap(d: number, span: number) {
+  return span > 0 ? d - Math.round(d / span) * span : d;
+}
+
+const mod = (i: number, n: number) => ((i % n) + n) % n;
+
 type Sim = {
+  span: number; width: number; rail: boolean;
   x: number[]; vx: number[]; tx: number[];
   turn: number[]; vturn: number[]; tturn: number[];
   swing: number[]; vswing: number[];
@@ -199,11 +207,11 @@ type Sim = {
   frameX: number[]; frameV: number[]; acc: number[];
   drag: number; free: number; last: number; raf: number;
   // geser rel (desktop/tablet): posisi dasar tiap raket, offset, kecepatan, tujuan (panah/keyboard), batas
-  base: number[]; scroll: number; sv: number; goal: number | null; max: number; pan: boolean;
+  base: number[]; scroll: number; sv: number; goal: number | null; pan: boolean;
 };
 
 function emptySim(): Sim {
-  return { x: [], vx: [], tx: [], turn: [], vturn: [], tturn: [], swing: [], vswing: [], tag: [], vtag: [], frameX: [], frameV: [], acc: [], drag: -1, free: 0, last: 0, raf: 0, base: [], scroll: 0, sv: 0, goal: null, max: 0, pan: false };
+  return { span: 0, width: 0, rail: false, x: [], vx: [], tx: [], turn: [], vturn: [], tturn: [], swing: [], vswing: [], tag: [], vtag: [], frameX: [], frameV: [], acc: [], drag: -1, free: 0, last: 0, raf: 0, base: [], scroll: 0, sv: 0, goal: null, pan: false };
 }
 
 /** Lebar barang di rel. */
@@ -221,7 +229,7 @@ function progress(turn: number, i: number) {
 }
 
 export function SkateDeckRail({
-  items,
+  items: produk,
   eyebrow,
   heading,
   caption,
@@ -237,6 +245,9 @@ export function SkateDeckRail({
   ...rest
 }: SkateDeckRailProps) {
   const uid = React.useId().replace(/[^a-zA-Z0-9_-]/g, "");
+  // rel berputar tanpa ujung: produk diulang sampai cukup menutup layar lebar
+  const total = produk.length;
+  const items = React.useMemo(() => Array.from({ length: total ? Math.ceil(LOOP_MIN / total) : 0 }, (_, k) => produk.map((x) => (k ? { ...x, id: `${x.id}~${k}` } : x))).flat(), [produk, total]);
   const count = items.length;
   const stageRef = React.useRef(null as HTMLDivElement | null);
   const slots = React.useRef([] as (HTMLButtonElement | null)[]);
@@ -260,7 +271,6 @@ export function SkateDeckRail({
   const [playing, setPlaying] = React.useState(autoplay);
   const [lifted, setLifted] = React.useState(null as number | null);
   const [failed, setFailed] = React.useState({} as { [id: string]: boolean });
-  const [maxScroll, setMaxScroll] = React.useState(0);
   const returnFocus = React.useRef(null as number | null);
   const pendingOpen = React.useRef(-1);
   const pointer = React.useRef({ id: -1, index: -1, x: 0, y: 0, moved: false, kind: "", swipe: 0, lastX: 0, lastT: 0, v: 0 });
@@ -307,19 +317,27 @@ export function SkateDeckRail({
     const feet = items.map((item) => widthOf(h, !!item.shoe));
     if (carousel) {
       const gap = GAP * h * 1.5;
-      const c = clamp(centre, 0, Math.max(0, feet.length - 1));
+      const n = feet.length;
       const xs = feet.map(() => 0);
+      const span = feet.reduce((x, y) => x + y, 0) + gap * n;
+      if (!n) return { xs, span };
+      const c = mod(centre, n);
+      const right = Math.floor(n / 2);
       xs[c] = width / 2;
-      for (let i = c + 1; i < feet.length; i++) xs[i] = (xs[i - 1] ?? 0) + ((feet[i - 1] ?? 0) + (feet[i] ?? 0)) / 2 + gap;
-      for (let i = c - 1; i >= 0; i--) xs[i] = (xs[i + 1] ?? 0) - ((feet[i + 1] ?? 0) + (feet[i] ?? 0)) / 2 - gap;
-      return xs;
+      for (let k = 1; k <= right; k++) { const i = mod(c + k, n), q = mod(i - 1, n); xs[i] = (xs[q] ?? 0) + ((feet[q] ?? 0) + (feet[i] ?? 0)) / 2 + gap; }
+      for (let k = 1; k < n - right; k++) { const i = mod(c - k, n), q = mod(i + 1, n); xs[i] = (xs[q] ?? 0) - ((feet[q] ?? 0) + (feet[i] ?? 0)) / 2 - gap; }
+      return { xs, span };
     }
     const cells = items.map((item) => cellOf(h, !!item.shoe));
-    const span = cells.reduce((a, b) => a + b, 0);
-    const start = span <= width ? (width - span) / 2 : EDGE; // muat → di tengah; tidak muat → bisa digeser
-    let x = start;
-    return cells.map((c) => (x += c) - c / 2);
+    let x = 0;
+    return { xs: cells.map((c) => (x += c) - c / 2), span: x };
   }, [items]);
+
+  /** Posisi di layar (mode rel): digulung supaya selalu jatuh di sekitar tengah layar. */
+  const railX = React.useCallback((i: number) => {
+    const s = sim.current;
+    return wrap((s.base[i] ?? 0) - s.scroll - s.width / 2, s.span) + s.width / 2;
+  }, []);
 
   const paint = React.useCallback((i: number) => {
     const s = sim.current;
@@ -378,12 +396,10 @@ export function SkateDeckRail({
         } else {
           s.scroll += s.sv * dt;
           s.sv *= Math.exp(-3.2 * dt);
-          const over = s.scroll - clamp(s.scroll, 0, s.max);
-          if (over) { s.scroll -= over * (1 - Math.exp(-12 * dt)); s.sv *= Math.exp(-14 * dt); if (Math.abs(over) < 0.4) s.scroll = clamp(s.scroll, 0, s.max); }
           if (Math.abs(s.sv) < 4) s.sv = 0;
         }
       }
-      for (let i = 0; i < n; i++) { s.tx[i] = (s.base[i] ?? 0) - s.scroll; s.x[i] = s.tx[i] ?? 0; s.vx[i] = 0; }
+      for (let i = 0; i < n; i++) { s.tx[i] = railX(i); s.x[i] = s.tx[i] ?? 0; s.vx[i] = 0; }
     }
     const sub = Math.max(2, Math.ceil(dt / 0.017));
     const sdt = dt / sub;
@@ -401,6 +417,7 @@ export function SkateDeckRail({
         for (let i = 0; i < n - 1; i++) {
           const a = s.x[i] ?? 0;
           const b = s.x[i + 1] ?? 0;
+          if (b < a - s.span / 2) continue; // sambungan putaran
           const overlap = spacing(i) - (b - a);
           if (overlap <= 0) continue;
           if (i === s.drag) s.x[i + 1] = b + overlap;
@@ -437,6 +454,7 @@ export function SkateDeckRail({
           if (progress(s.turn[i] ?? 0, i) > 0.5 || progress(s.turn[i + 1] ?? 0, i + 1) > 0.5) continue;
           const ta = (s.x[i] ?? 0) - tail * Math.sin((s.swing[i] ?? 0) * RAD);
           const tb = (s.x[i + 1] ?? 0) - tail * Math.sin((s.swing[i + 1] ?? 0) * RAD);
+          if (tb < ta - s.span / 2) continue;
           const overlap = (((widths[i] ?? 0) + (widths[i + 1] ?? 0)) / 2) * 0.98 + 1 - (tb - ta);
           if (overlap <= 0) continue;
           const turn = overlap / 2 / tail / RAD;
@@ -453,13 +471,12 @@ export function SkateDeckRail({
       }
     }
     for (let i = 0; i < n; i++) {
-      const v = ((s.x[i] ?? 0) - (s.frameX[i] ?? 0)) / dt;
+      const v = wrap((s.x[i] ?? 0) - (s.frameX[i] ?? 0), s.span) / dt;
       const a = (v - (s.frameV[i] ?? 0)) / dt;
       s.frameV[i] = v;
       s.acc[i] = (s.acc[i] ?? 0) * 0.5 + clamp(a, -30000, 30000) * 0.5;
     }
-    const out = s.scroll !== clamp(s.scroll, 0, s.max);
-    let busy = s.drag >= 0 || now < s.free || (!carousel && (s.pan || s.sv !== 0 || s.goal !== null || out));
+    let busy = s.drag >= 0 || now < s.free || (!carousel && (s.pan || s.sv !== 0 || s.goal !== null));
     for (let i = 0; i < n; i++) {
       paint(i);
       if (Math.abs(s.vx[i] ?? 0) > 0.4 || (now > s.free && Math.abs((s.x[i] ?? 0) - (s.tx[i] ?? 0)) > 0.25) || Math.abs((s.turn[i] ?? 0) - (s.tturn[i] ?? 0)) > 0.05 || Math.abs(s.vturn[i] ?? 0) > 0.05 || Math.abs(s.swing[i] ?? 0) > 0.02 || Math.abs(s.vswing[i] ?? 0) > 0.05 || Math.abs(s.tag[i] ?? 0) > 0.05 || Math.abs(s.vtag[i] ?? 0) > 0.08 || Math.abs(s.acc[i] ?? 0) > 1) busy = true;
@@ -474,13 +491,13 @@ export function SkateDeckRail({
         paint(i);
       }
     }
-  }, [paint]);
+  }, [paint, railX]);
 
   const kick = React.useCallback(() => {
     const s = sim.current;
     if (live.current.reduced) {
       for (let i = 0; i < live.current.count; i++) {
-        if (!live.current.size.carousel) s.tx[i] = (s.base[i] ?? 0) - s.scroll;
+        if (!live.current.size.carousel) s.tx[i] = railX(i);
         s.x[i] = s.tx[i] ?? 0; s.vx[i] = 0; s.turn[i] = s.tturn[i] ?? restAngle(i); s.vturn[i] = 0;
         s.swing[i] = 0; s.vswing[i] = 0; s.tag[i] = 0; s.vtag[i] = 0; s.acc[i] = 0; s.frameV[i] = 0;
         paint(i);
@@ -488,7 +505,7 @@ export function SkateDeckRail({
       return;
     }
     if (!s.raf) { s.last = 0; s.raf = requestAnimationFrame(step); }
-  }, [paint, step]);
+  }, [paint, step, railX]);
 
   const impulse = React.useCallback((i: number, amount: number) => {
     const s = sim.current;
@@ -499,21 +516,21 @@ export function SkateDeckRail({
 
   const scrollTo = React.useCallback((x: number) => {
     const s = sim.current;
-    s.goal = clamp(x, 0, s.max);
+    s.goal = x;
     s.sv = 0;
-    if (live.current.reduced) { s.scroll = s.goal; s.goal = null; for (let i = 0; i < live.current.count; i++) s.tx[i] = (s.base[i] ?? 0) - s.scroll; }
+    if (live.current.reduced) { s.scroll = s.goal; s.goal = null; }
     kick();
   }, [kick]);
 
   /** Geser rel supaya raket ini kelihatan utuh (autoplay & keyboard). */
-  const reveal = React.useCallback((i: number) => {
+  const reveal = React.useCallback((i: number, centre = false) => {
     const { width, h, carousel } = live.current.size;
     if (carousel) return;
     const s = sim.current;
     const from = s.goal ?? s.scroll;
     const half = cellOf(h, live.current.shoes[i] ?? false) / 2;
-    const x = (s.base[i] ?? 0) - from;
-    if (x - half < 0 || x + half > width) scrollTo((s.base[i] ?? 0) - width / 2);
+    const d = wrap((s.base[i] ?? 0) - from - width / 2, s.span); // jarak terpendek ke tengah
+    if (centre || Math.abs(d) + half > width / 2) scrollTo(from + d);
   }, [scrollTo]);
 
   const page = (dir: 1 | -1) => {
@@ -545,15 +562,17 @@ export function SkateDeckRail({
     if (!size.width) return;
     const s = sim.current;
     const front = active;
-    const xs = targets(size.h, size.width, size.carousel, active ?? live.current.carouselIndex);
+    const { xs, span } = targets(size.h, size.width, size.carousel, active ?? live.current.carouselIndex);
     const fresh = s.x.length !== count;
-    s.base = xs;
-    const oldMax = s.max;
-    s.max = size.carousel ? 0 : Math.max(0, (xs[count - 1] ?? 0) + cellOf(size.h, !!items[count - 1]?.shoe) / 2 + EDGE - size.width);
-    s.scroll = size.carousel ? 0 : s.pan ? s.scroll : oldMax === s.max ? clamp(s.scroll, 0, s.max) : oldMax > 0 ? clamp(s.scroll / oldMax, 0, 1) * s.max : s.max / 2;
-    setMaxScroll(s.max);
+    const was = { span: s.span, width: s.width, rail: s.rail };
+    s.base = xs; s.span = span; s.width = size.width; s.rail = !size.carousel;
+    if (size.carousel) s.scroll = 0;
+    else if (fresh || !was.rail) s.scroll = (xs[live.current.carouselIndex] ?? 0) - size.width / 2;
+    else if (was.span !== span || was.width !== size.width) { s.scroll = ((s.scroll + was.width / 2) / was.span) * span - size.width / 2; s.goal = null; }
     for (let i = 0; i < count; i++) {
-      s.tx[i] = (xs[i] ?? 0) + (size.carousel ? pointer.current.swipe : -s.scroll);
+      s.tx[i] = size.carousel ? (xs[i] ?? 0) + pointer.current.swipe : railX(i);
+      // barang yang pindah ujung putaran dilompatkan, bukan terbang melintasi layar
+      if (size.carousel && !fresh) s.x[i] = (s.tx[i] ?? 0) + wrap((s.x[i] ?? 0) - (s.tx[i] ?? 0), span);
       s.tturn[i] = i === front ? 0 : restAngle(i);
       if (fresh || reduced) {
         s.x[i] = s.tx[i] ?? 0; s.vx[i] = 0; s.frameX[i] = s.x[i] ?? 0; s.frameV[i] = 0; s.acc[i] = 0;
@@ -563,7 +582,7 @@ export function SkateDeckRail({
     }
     if (fresh) { s.x.length = count; for (let i = 0; i < count; i++) paint(i); }
     kick();
-  }, [size, active, count, items, reduced, targets, paint, kick]);
+  }, [size, active, count, items, reduced, targets, railX, paint, kick]);
 
   const brushed = React.useRef(false);
   React.useEffect(() => {
@@ -582,15 +601,32 @@ export function SkateDeckRail({
     slots.current[index]?.focus({ preventScroll: true });
   }, [openIndex, lifted]);
 
-  const stop = React.useCallback(() => setPlaying(false), []);
+  const idle = React.useRef(0);
+  /** Berhenti saat disentuh; muter lagi setelah didiamkan. */
+  const stop = React.useCallback(() => {
+    setPlaying(false);
+    window.clearTimeout(idle.current);
+    if (!autoplay) return;
+    const lanjut = () => {
+      const el = stageRef.current;
+      const dipakai = live.current.openIndex !== null || pointer.current.id >= 0 || (el && window.matchMedia("(hover: hover)").matches && el.matches(":hover")) || el?.querySelector(":focus-visible");
+      if (dipakai) idle.current = window.setTimeout(lanjut, IDLE_MS / 2);
+      else setPlaying(true);
+    };
+    idle.current = window.setTimeout(lanjut, IDLE_MS);
+  }, [autoplay]);
+  React.useEffect(() => () => window.clearTimeout(idle.current), []);
 
   React.useEffect(() => {
     if (!playing || reduced || openIndex !== null || count === 0 || !size.width) return;
     let timer = window.setTimeout(function advance() {
       const current = live.current.active;
-      const next = current === null ? live.current.carouselIndex : (current + 1) % live.current.count;
+      const s = sim.current;
+      // belum ada yang dipilih → mulai dari yang paling dekat tengah layar
+      const tengah = live.current.size.carousel ? live.current.carouselIndex : s.x.reduce((b, x, i) => (Math.abs(x - s.width / 2) < Math.abs((s.x[b] ?? 0) - s.width / 2) ? i : b), 0);
+      const next = current === null ? tengah : (current + 1) % live.current.count;
       choose(next);
-      reveal(next);
+      reveal(next, true);
       timer = window.setTimeout(advance, interval);
     }, active === null ? 1100 : interval);
     return () => window.clearTimeout(timer);
@@ -653,12 +689,11 @@ export function SkateDeckRail({
         if (!live.current.size.carousel) {
           if (!s.pan) { s.pan = true; s.goal = null; p.swipe = s.scroll + dx; choose(null); }
           const raw = p.swipe - dx;
-          const edge = clamp(raw, 0, s.max);
-          s.scroll = edge + (raw - edge) * 0.35; // lewat ujung: terasa ditahan
+          s.scroll = raw;
           kick();
         } else {
           p.swipe = dx;
-          const xs = targets(live.current.size.h, live.current.size.width, true, live.current.active ?? live.current.carouselIndex);
+          const { xs } = targets(live.current.size.h, live.current.size.width, true, live.current.active ?? live.current.carouselIndex);
           for (let i = 0; i < live.current.count; i++) s.tx[i] = (xs[i] ?? 0) + dx;
           kick();
         }
@@ -697,7 +732,6 @@ export function SkateDeckRail({
       pointer.current.swipe = 0;
       // meluncur hanya kalau tangan masih bergerak saat dilepas
       s.sv = live.current.reduced ? 0 : clamp(-p.v * 1000, -2600, 2600) * clamp(1 - (performance.now() - p.lastT) / 120, 0, 1);
-      if (live.current.reduced) s.scroll = clamp(s.scroll, 0, s.max);
       kick();
       return;
     }
@@ -706,7 +740,7 @@ export function SkateDeckRail({
       const current = live.current.active ?? live.current.carouselIndex;
       const advance = Math.abs(dx) > 40 || Math.abs(p.v) > 0.45 ? (dx < 0 ? 1 : -1) : 0;
       pointer.current.swipe = 0;
-      choose(clamp(current + advance, 0, live.current.count - 1));
+      choose(mod(current + advance, live.current.count));
       for (let i = 0; i < live.current.count; i++) impulse(i, clamp(-p.v * 22, -30, 30));
       return;
     }
@@ -723,12 +757,12 @@ export function SkateDeckRail({
     if (!stage) return;
     const onWheel = (event: WheelEvent) => {
       const s = sim.current;
-      if (live.current.size.carousel || s.max <= 0 || Math.abs(event.deltaX) <= Math.abs(event.deltaY)) return;
+      if (live.current.size.carousel || Math.abs(event.deltaX) <= Math.abs(event.deltaY)) return;
       event.preventDefault();
       stop();
       s.goal = null;
       s.sv = 0;
-      s.scroll = clamp(s.scroll + event.deltaX, 0, s.max);
+      s.scroll += event.deltaX;
       kick();
     };
     stage.addEventListener("wheel", onWheel, { passive: false });
@@ -741,7 +775,7 @@ export function SkateDeckRail({
     event.preventDefault();
     stop();
     const from = active ?? focusIndex;
-    const next = event.key === "Home" ? 0 : event.key === "End" ? count - 1 : clamp(from + (event.key === "ArrowRight" ? 1 : -1), 0, count - 1);
+    const next = event.key === "Home" ? 0 : event.key === "End" ? count - 1 : mod(from + (event.key === "ArrowRight" ? 1 : -1), count);
     setFocusIndex(next);
     choose(next);
     reveal(next);
@@ -782,19 +816,13 @@ export function SkateDeckRail({
         onPointerLeave={(event) => { if (event.pointerType === "mouse" && pointer.current.id < 0 && !live.current.size.carousel && !document.activeElement?.matches("[data-deck]:focus-visible")) choose(null); }}
         onKeyDown={onKeyDown}
       >
-        <div aria-hidden="true" data-rail className={`pointer-events-none absolute z-[5] ${size.carousel || maxScroll > 0 ? "-inset-x-3" : "inset-x-4"}`} style={{ top: geo.railY - geo.railT / 2, height: geo.railT }}>
+        <div aria-hidden="true" data-rail className={`pointer-events-none absolute z-[5] -inset-x-3`} style={{ top: geo.railY - geo.railT / 2, height: geo.railT }}>
           <div className="absolute inset-x-3 h-3 rounded-full bg-black/15 blur-[5px]" style={{ top: geo.railT + 1 }} />
           <div className="absolute inset-0 rounded-full" style={{ background: STEEL_RAIL, boxShadow: "0 1px 0 color-mix(in oklab, var(--color-foreground) 14%, transparent)" }} />
           <svg aria-hidden="true" className="absolute inset-0 size-full rounded-full opacity-25 mix-blend-overlay" preserveAspectRatio="none">
             <rect width="100%" height="100%" filter={`url(#${uid}-powder)`} />
           </svg>
           <div className="absolute inset-x-2 top-[20%] h-px rounded-full bg-white/35" />
-          {!size.carousel && maxScroll <= 0 && [0, 1].map((side) => (
-            <div key={side} className="absolute top-1/2 w-3.5 -translate-y-1/2 rounded-[3px]" style={{ [side ? "right" : "left"]: 8, height: geo.railT * 2.8, background: STEEL_BRACKET, boxShadow: "0 3px 6px color-mix(in oklab, black 22%, transparent)" }}>
-              <span className="absolute left-1/2 top-1 size-1 -translate-x-1/2 rounded-full bg-white/30" />
-              <span className="absolute bottom-1 left-1/2 size-1 -translate-x-1/2 rounded-full bg-white/30" />
-            </div>
-          ))}
         </div>
 
         {items.map((item, i) => {
@@ -854,13 +882,13 @@ export function SkateDeckRail({
 
       {size.carousel && count > 1 && (
         <div className="relative z-10 flex justify-center gap-1.5" role="group" aria-label={heading ?? "Rak raket"}>
-          {items.map((item, i) => (
-            <button key={item.id} type="button" tabIndex={-1} aria-label={item.name} aria-current={carouselIndex === i} onClick={() => { stop(); choose(i); }} className={`h-1.5 rounded-full outline-none transition-[width,background-color] duration-300 focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transition-none ${carouselIndex === i ? "w-6 bg-foreground" : "w-1.5 bg-black/25 hover:bg-black/45"}`} />
+          {produk.map((item, i) => (
+            <button key={item.id} type="button" tabIndex={-1} aria-label={item.name} aria-current={(carouselIndex ?? 0) % total === i} onClick={() => { stop(); const c = carouselIndex ?? 0; choose(mod(c + wrap(i - (c % total), total), count)); }} className={`h-1.5 rounded-full outline-none transition-[width,background-color] duration-300 focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transition-none ${(carouselIndex ?? 0) % total === i ? "w-6 bg-foreground" : "w-1.5 bg-black/25 hover:bg-black/45"}`} />
           ))}
         </div>
       )}
 
-      {!size.carousel && maxScroll > 0 && (
+      {!size.carousel && count > 0 && (
         <div className="relative z-10 flex justify-center gap-2 pt-2">
           {([-1, 1] as const).map((dir) => (
             <button key={dir} type="button" aria-label={dir < 0 ? "Geser ke kiri" : "Geser ke kanan"} onClick={() => page(dir)} className="inline-flex size-10 items-center justify-center rounded-full border border-border bg-white outline-none transition-colors hover:border-primary hover:text-primary focus-visible:ring-2 focus-visible:ring-ring">
@@ -880,8 +908,8 @@ export function SkateDeckRail({
         <Detail
           uid={uid}
           item={items[openIndex]}
-          index={openIndex}
-          total={count}
+          index={openIndex % total}
+          total={total}
           labels={labels}
           reduced={reduced}
           fallback={!!failed[items[openIndex].id]}
