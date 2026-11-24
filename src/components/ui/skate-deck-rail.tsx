@@ -77,12 +77,10 @@ const DEFAULT_LABELS: SkateDeckRailLabels = { close: "Tutup", open: "Lihat" };
 const DECK_PATH = "M3,150 C3,46 53,4 119,4 C185,4 235,46 235,150 L235,850 C235,954 185,996 119,996 C53,996 3,954 3,850 Z";
 const FALLBACK_MASK = `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 238 1000' preserveAspectRatio='none'><path d='${DECK_PATH}'/></svg>`)}")`;
 const CONCAVE = "linear-gradient(90deg, color-mix(in oklab, black 46%, transparent) 0%, transparent 15%, color-mix(in oklab, white 13%, transparent) 50%, transparent 85%, color-mix(in oklab, black 46%, transparent) 100%), linear-gradient(to bottom, color-mix(in oklab, white 14%, transparent) 0%, transparent 9%, transparent 91%, color-mix(in oklab, white 10%, transparent) 100%)";
-const RAIL_GRADIENT = "linear-gradient(to bottom, color-mix(in oklab, var(--rail-ink) 56%, white) 0%, color-mix(in oklab, var(--rail-ink) 84%, white) 17%, var(--rail-ink) 46%, color-mix(in oklab, var(--rail-ink) 72%, black) 80%, color-mix(in oklab, var(--rail-ink) 50%, black) 100%)";
-// pipa & braket besi silver (rel yang ada sepatunya)
+// pipa & braket besi silver
 const STEEL_RAIL = "linear-gradient(to bottom, #8b9097 0%, #d9dce0 9%, #ffffff 22%, #d3d6da 38%, #9a9fa6 60%, #6a6f76 82%, #868b92 93%, #b4b8bd 100%)";
 const STEEL_BRACKET = "linear-gradient(to right, #8b9097, #f4f5f6 28%, #c3c7cc 52%, #7c8188 88%, #a3a8ae)";
 const REST_SHADE = "linear-gradient(90deg, color-mix(in oklab, black 34%, transparent), color-mix(in oklab, black 12%, transparent) 45%, color-mix(in oklab, black 4%, transparent))";
-const BRACKET_GRADIENT = "linear-gradient(to right, color-mix(in oklab, var(--rail-ink) 70%, white), var(--rail-ink) 55%, color-mix(in oklab, var(--rail-ink) 60%, black))";
 
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
@@ -752,7 +750,6 @@ export function SkateDeckRail({
 
   const current = active === null ? null : items[active];
   const hook = hookGeometry(size.h);
-  const silver = shoes.some(Boolean);
 
   return (
     <section
@@ -787,13 +784,13 @@ export function SkateDeckRail({
       >
         <div aria-hidden="true" data-rail className={`pointer-events-none absolute z-[5] ${size.carousel || maxScroll > 0 ? "-inset-x-3" : "inset-x-4"}`} style={{ top: geo.railY - geo.railT / 2, height: geo.railT }}>
           <div className="absolute inset-x-3 h-3 rounded-full bg-black/15 blur-[5px]" style={{ top: geo.railT + 1 }} />
-          <div className="absolute inset-0 rounded-full" style={{ background: silver ? STEEL_RAIL : RAIL_GRADIENT, boxShadow: "0 1px 0 color-mix(in oklab, var(--color-foreground) 14%, transparent)" }} />
+          <div className="absolute inset-0 rounded-full" style={{ background: STEEL_RAIL, boxShadow: "0 1px 0 color-mix(in oklab, var(--color-foreground) 14%, transparent)" }} />
           <svg aria-hidden="true" className="absolute inset-0 size-full rounded-full opacity-25 mix-blend-overlay" preserveAspectRatio="none">
             <rect width="100%" height="100%" filter={`url(#${uid}-powder)`} />
           </svg>
           <div className="absolute inset-x-2 top-[20%] h-px rounded-full bg-white/35" />
           {!size.carousel && maxScroll <= 0 && [0, 1].map((side) => (
-            <div key={side} className="absolute top-1/2 w-3.5 -translate-y-1/2 rounded-[3px]" style={{ [side ? "right" : "left"]: 8, height: geo.railT * 2.8, background: silver ? STEEL_BRACKET : BRACKET_GRADIENT, boxShadow: "0 3px 6px color-mix(in oklab, black 22%, transparent)" }}>
+            <div key={side} className="absolute top-1/2 w-3.5 -translate-y-1/2 rounded-[3px]" style={{ [side ? "right" : "left"]: 8, height: geo.railT * 2.8, background: STEEL_BRACKET, boxShadow: "0 3px 6px color-mix(in oklab, black 22%, transparent)" }}>
               <span className="absolute left-1/2 top-1 size-1 -translate-x-1/2 rounded-full bg-white/30" />
               <span className="absolute bottom-1 left-1/2 size-1 -translate-x-1/2 rounded-full bg-white/30" />
             </div>

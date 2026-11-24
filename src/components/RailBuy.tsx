@@ -68,7 +68,7 @@ export default function RailBuy({ awal, href }: { awal: RailStok; href: string }
   return (
     <div ref={root} className="flex w-full flex-col gap-3">
       {bervarian && (
-        <div role="group" aria-label="Pilih varian" className="flex flex-wrap gap-1.5">
+        <div role="group" aria-label={awal.sizeChart ? "Pilih ukuran" : "Pilih varian"} className="flex flex-wrap gap-1.5">
           {data.opsi.map((o) => (
             <button
               key={o.id}
@@ -100,6 +100,7 @@ export default function RailBuy({ awal, href }: { awal: RailStok; href: string }
         </button>
       </div>
       <div className="flex min-h-5 flex-wrap items-center gap-x-3 text-xs text-zinc-700">
+        {data.sizeChart && <a href={data.sizeChart} target="_blank" rel="noreferrer" className="underline underline-offset-2">Size chart</a>}
         <Link href={href} className="underline underline-offset-2">Detail produk</Link>
         <Link href="/cart" className="underline underline-offset-2">Lihat keranjang{items.length ? ` (${items.reduce((n, x) => n + x.qty, 0)})` : ""}</Link>
         <span role="status" className="font-medium text-primary">{info}</span>

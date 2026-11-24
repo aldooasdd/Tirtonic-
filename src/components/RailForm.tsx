@@ -2,12 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import { saveRail } from "@/app/dashboard/rak/actions";
-import { RAIL_W, RAIL_H, alphaBox, railPhotoProblem } from "@/lib/rail";
+import { RAIL_W, RAIL_H, SHOE_W, SHOE_H, alphaBox, railPhotoProblem, type JenisRak } from "@/lib/rail";
 
-type Item = { id: string; nama: string; foto: string | null; dipakai: boolean };
+type Item = { id: string; nama: string; foto: string | null; dipakai: boolean; jenis: JenisRak };
 
-/** Potong area kosong, samakan ukuran, kompres. Kait rel butuh tepi atas frame pas di atas kanvas. */
-async function prepare(file: File): Promise<File> {
+/** Potong area kosong, samakan ukuran, kompres. Raket: tepi atas frame pas di atas kanvas (kait). Sepatu: sol pas di bawah kanvas (plat). */
+async function prepare(file: File, jenis: JenisRak): Promise<File> {
   const img = await createImageBitmap(file);
   const k = Math.min(1, 2400 / Math.max(img.width, img.height));
   const src = document.createElement("canvas");
@@ -17,22 +17,24 @@ async function prepare(file: File): Promise<File> {
   sctx.drawImage(img, 0, 0, src.width, src.height);
   img.close();
   const box = alphaBox(sctx.getImageData(0, 0, src.width, src.height).data, src.width, src.height);
-  const problem = railPhotoProblem(box);
+  const problem = railPhotoProblem(box, jenis);
   if (problem || !box) throw new Error(problem ?? "Fotonya kosong.");
   const out = document.createElement("canvas");
-  out.width = RAIL_W;
-  out.height = RAIL_H;
-  const scale = Math.min(RAIL_W / box.w, RAIL_H / box.h);
+  const [W, H] = jenis === "sepatu" ? [SHOE_W, SHOE_H] : [RAIL_W, RAIL_H];
+  out.width = W;
+  out.height = H;
+  const scale = Math.min(W / box.w, H / box.h);
   const w = box.w * scale;
   const ctx = out.getContext("2d")!;
   ctx.imageSmoothingQuality = "high";
-  ctx.drawImage(src, box.x, box.y, box.w, box.h, (RAIL_W - w) / 2, 0, w, box.h * scale);
+  ctx.drawImage(src, box.x, box.y, box.w, box.h, (W - w) / 2, jenis === "sepatu" ? H - box.h * scale : 0, w, box.h * scale);
   const blob = await new Promise<Blob | null>((r) => out.toBlob(r, "image/webp", 0.88)); // Safari lama: jatuh ke PNG
   if (!blob) throw new Error("Foto gagal diproses.");
-  return new File([blob], blob.type === "image/webp" ? "raket.webp" : "raket.png", { type: blob.type });
+  return new File([blob], blob.type === "image/webp" ? `${jenis}.webp` : `${jenis}.png`, { type: blob.type });
 }
 
 export default function RailForm({ items }: { items: Item[] }) {
+  const [jenis, setJenis] = useState<JenisRak>("raket");
   const [q, setQ] = useState("");
   const [picked, setPicked] = useState<Item | null>(null);
   const [file, setFile] = useState<File | null>(null);
@@ -49,15 +51,21 @@ export default function RailForm({ items }: { items: Item[] }) {
   }, [file]);
 
   const words = q.toLowerCase().split(/\s+/).filter(Boolean);
-  const found = items.filter((x) => words.every((w) => x.nama.toLowerCase().includes(w)));
+  const found = items.filter((x) => x.jenis === jenis && words.every((w) => x.nama.toLowerCase().includes(w)));
 
   async function onFile(f?: File) {
     setMsg(null);
     setFile(null);
     if (!f) return;
     setBusy(true);
-    try { setFile(await prepare(f)); } catch (e) { setMsg({ ok: false, text: e instanceof Error && e.name === "Error" ? e.message : "File ini bukan gambar yang bisa dibaca." }); if (input.current) input.current.value = ""; }
+    try { setFile(await prepare(f, jenis)); } catch (e) { setMsg({ ok: false, text: e instanceof Error && e.name === "Error" ? e.message : "File ini bukan gambar yang bisa dibaca." }); if (input.current) input.current.value = ""; }
     setBusy(false);
+  }
+
+  function ganti(j: JenisRak) {
+    if (j === jenis) return;
+    setJenis(j); setFile(null); setPicked(null); setQ(""); setMsg(null);
+    if (input.current) input.current.value = "";
   }
 
   async function onSubmit(e: React.FormEvent) {
@@ -82,18 +90,23 @@ export default function RailForm({ items }: { items: Item[] }) {
 
   return (
     <form onSubmit={onSubmit} className="grid gap-6 md:grid-cols-[220px_1fr]">
+      <div role="group" aria-label="Jenis barang" className="flex gap-2 md:col-span-2">
+        {(["raket", "sepatu"] as const).map((j) => (
+          <button key={j} type="button" disabled={busy} aria-pressed={jenis === j} onClick={() => ganti(j)} className={`min-h-10 rounded-full border px-5 text-sm font-semibold transition-colors ${jenis === j ? "border-primary bg-primary text-white" : "bg-white text-gray-700 hover:border-primary"}`}>{j === "raket" ? "Raket" : "Sepatu"}</button>
+        ))}
+      </div>
       <div>
-        <label className="label" htmlFor="rail-foto">1. Foto raket</label>
+        <label className="label" htmlFor="rail-foto">1. Foto {jenis}</label>
         <label htmlFor="rail-foto" className="flex h-72 cursor-pointer items-center justify-center rounded-2xl border border-dashed bg-gray-50 p-3 text-center text-xs text-gray-500 hover:border-primary">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          {preview ? <img src={preview} alt="Pratinjau raket" className="h-full object-contain" /> : busy ? "Memproses…" : "Klik untuk pilih foto"}
+          {preview ? <img src={preview} alt={`Pratinjau ${jenis}`} className="h-full w-full object-contain" /> : busy ? "Memproses…" : "Klik untuk pilih foto"}
         </label>
         <input ref={input} id="rail-foto" type="file" accept="image/png,image/webp" className="sr-only" onChange={(e) => onFile(e.target.files?.[0])} />
-        <p className="mt-2 text-xs text-gray-500">PNG background transparan, satu raket tegak dari depan. Tepi kosong dipotong otomatis.</p>
+        <p className="mt-2 text-xs text-gray-500">{jenis === "raket" ? "PNG background transparan, satu raket tegak dari depan." : "PNG background transparan, satu sepatu dari samping, ujung menghadap kiri."} Tepi kosong dipotong otomatis.</p>
       </div>
       <div className="min-w-0">
         <label className="label" htmlFor="rail-cari">2. Pilih barang</label>
-        <input id="rail-cari" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Cari nama raket" className="field" autoComplete="off" />
+        <input id="rail-cari" value={q} onChange={(e) => setQ(e.target.value)} placeholder={`Cari nama ${jenis}`} className="field" autoComplete="off" />
         <div className="mt-2 max-h-56 overflow-y-auto rounded-xl border">
           {found.length === 0 && <p className="p-4 text-sm text-gray-400">Tidak ada barang yang cocok.</p>}
           {found.map((x) => (
