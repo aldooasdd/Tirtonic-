@@ -242,7 +242,8 @@ export function SkateDeckRail({
   const controlled = activeProp !== undefined;
   const wanted = controlled ? activeProp : innerActive;
   const active = wanted !== null && wanted !== undefined && wanted >= 0 && wanted < count ? wanted : null;
-  const [focusIndex, setFocusIndex] = React.useState(0);
+  const middle = Math.floor(count / 2); // tampilan awal mulai dari tengah
+  const [focusIndex, setFocusIndex] = React.useState(middle);
   const [openIndex, setOpenIndex] = React.useState(null as number | null);
   const [reduced, setReduced] = React.useState(false);
   const [playing, setPlaying] = React.useState(autoplay);
@@ -252,7 +253,7 @@ export function SkateDeckRail({
   const returnFocus = React.useRef(null as number | null);
   const pendingOpen = React.useRef(-1);
   const pointer = React.useRef({ id: -1, index: -1, x: 0, y: 0, moved: false, kind: "", swipe: 0, lastX: 0, lastT: 0, v: 0 });
-  const live = React.useRef({ active: null as number | null, requested: null as number | null | undefined, size, reduced, count, openIndex: null as number | null, carouselIndex: 0, controlled, onActiveChange, onOpenChange });
+  const live = React.useRef({ active: null as number | null, requested: null as number | null | undefined, size, reduced, count, openIndex: null as number | null, carouselIndex: middle, controlled, onActiveChange, onOpenChange });
   live.current = { ...live.current, active, size, reduced, count, openIndex, controlled, onActiveChange, onOpenChange };
 
   const carouselIndex = size.carousel ? (active ?? live.current.carouselIndex) : null;
@@ -535,8 +536,9 @@ export function SkateDeckRail({
     const xs = targets(size.h, size.width, size.carousel, front, active ?? live.current.carouselIndex);
     const fresh = s.x.length !== count;
     s.base = xs;
+    const oldMax = s.max;
     s.max = size.carousel ? 0 : Math.max(0, (xs[count - 1] ?? 0) + (size.h * DECK_ASPECT * (1 + RAIL_GAP)) / 2 + EDGE - size.width);
-    s.scroll = size.carousel ? 0 : s.pan ? s.scroll : clamp(s.scroll, 0, s.max);
+    s.scroll = size.carousel ? 0 : s.pan ? s.scroll : oldMax === s.max ? clamp(s.scroll, 0, s.max) : oldMax > 0 ? clamp(s.scroll / oldMax, 0, 1) * s.max : s.max / 2;
     setMaxScroll(s.max);
     for (let i = 0; i < count; i++) {
       s.tx[i] = (xs[i] ?? 0) + (size.carousel ? pointer.current.swipe : -s.scroll);
@@ -574,7 +576,7 @@ export function SkateDeckRail({
     if (!playing || reduced || openIndex !== null || count === 0 || !size.width) return;
     let timer = window.setTimeout(function advance() {
       const current = live.current.active;
-      const next = current === null ? 0 : (current + 1) % live.current.count;
+      const next = current === null ? live.current.carouselIndex : (current + 1) % live.current.count;
       choose(next);
       reveal(next);
       timer = window.setTimeout(advance, interval);
