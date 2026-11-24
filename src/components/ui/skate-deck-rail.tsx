@@ -58,7 +58,7 @@ const EDGE = 24;
 const RAIL_TOP = 14;
 const RAIL_Y = 0.022;
 const HOOK_LEN = 0.085;
-const HOLE_Y = 0.013; // titik kait = tengah frame atas raket
+export const HOLE_Y = 0.013; // titik kait = tengah frame atas raket
 const FOOT_PX = 72; // ruang nama + harga di bawah raket
 const FOOT = 0.085;
 const STAGE_K = 1 + RAIL_Y + HOOK_LEN - HOLE_Y + FOOT;
@@ -75,9 +75,9 @@ const DEFAULT_LABELS: SkateDeckRailLabels = { close: "Tutup", open: "Lihat" };
 const DECK_PATH = "M3,150 C3,46 53,4 119,4 C185,4 235,46 235,150 L235,850 C235,954 185,996 119,996 C53,996 3,954 3,850 Z";
 const FALLBACK_MASK = `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 238 1000' preserveAspectRatio='none'><path d='${DECK_PATH}'/></svg>`)}")`;
 const CONCAVE = "linear-gradient(90deg, color-mix(in oklab, black 46%, transparent) 0%, transparent 15%, color-mix(in oklab, white 13%, transparent) 50%, transparent 85%, color-mix(in oklab, black 46%, transparent) 100%), linear-gradient(to bottom, color-mix(in oklab, white 14%, transparent) 0%, transparent 9%, transparent 91%, color-mix(in oklab, white 10%, transparent) 100%)";
-const RAIL_GRADIENT = "linear-gradient(to bottom, color-mix(in oklab, var(--rail-ink) 56%, white) 0%, color-mix(in oklab, var(--rail-ink) 84%, white) 17%, var(--rail-ink) 46%, color-mix(in oklab, var(--rail-ink) 72%, black) 80%, color-mix(in oklab, var(--rail-ink) 50%, black) 100%)";
+export const RAIL_GRADIENT = "linear-gradient(to bottom, color-mix(in oklab, var(--rail-ink) 56%, white) 0%, color-mix(in oklab, var(--rail-ink) 84%, white) 17%, var(--rail-ink) 46%, color-mix(in oklab, var(--rail-ink) 72%, black) 80%, color-mix(in oklab, var(--rail-ink) 50%, black) 100%)";
 const REST_SHADE = "linear-gradient(90deg, color-mix(in oklab, black 34%, transparent), color-mix(in oklab, black 12%, transparent) 45%, color-mix(in oklab, black 4%, transparent))";
-const BRACKET_GRADIENT = "linear-gradient(to right, color-mix(in oklab, var(--rail-ink) 70%, white), var(--rail-ink) 55%, color-mix(in oklab, var(--rail-ink) 60%, black))";
+export const BRACKET_GRADIENT = "linear-gradient(to right, color-mix(in oklab, var(--rail-ink) 70%, white), var(--rail-ink) 55%, color-mix(in oklab, var(--rail-ink) 60%, black))";
 
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
@@ -92,7 +92,7 @@ function maskStyle(mask: string, fallback: boolean): React.CSSProperties {
   return { WebkitMask: value, mask: value };
 }
 
-function railThickness(h: number) {
+export function railThickness(h: number) {
   return Math.max(8, Math.round(h * 0.032));
 }
 
@@ -102,7 +102,7 @@ function stageGeometry(h: number) {
   return { railY, railT: railThickness(h), top, height: Math.round(top + h + FOOT_PX + FOOT * h) };
 }
 
-function hookGeometry(h: number) {
+export function hookGeometry(h: number) {
   const r = railThickness(h) / 2;
   const t = Math.max(1.7, h * 0.0078);
   const rc = r * 0.95 + t * 0.6;
@@ -133,7 +133,7 @@ function hookGeometry(h: number) {
   };
 }
 
-function Defs({ uid, h }: { uid: string; h: number }) {
+export function Defs({ uid, h }: { uid: string; h: number }) {
   const g = hookGeometry(h);
   return (
     <svg aria-hidden="true" width="0" height="0" className="absolute" focusable="false">
@@ -151,7 +151,7 @@ function Defs({ uid, h }: { uid: string; h: number }) {
   );
 }
 
-function Hook({ uid, h, part }: { uid: string; h: number; part: "back" | "front" }) {
+export function Hook({ uid, h, part }: { uid: string; h: number; part: "back" | "front" }) {
   const g = hookGeometry(h);
   const back = part === "back";
   return (
@@ -878,7 +878,7 @@ export function SkateDeckRail({
   );
 }
 
-function Detail({ uid, item, index, total, labels, reduced, fallback, extra, source, onLift, onClose }: {
+export function Detail({ uid, item, index, total, labels, reduced, fallback, extra, source, onLift, onClose, wide }: {
   uid: string;
   item: SkateDeck;
   index: number;
@@ -890,6 +890,8 @@ function Detail({ uid, item, index, total, labels, reduced, fallback, extra, sou
   source: () => DOMRect | null;
   onLift: (lifted: boolean) => void;
   onClose: () => void;
+  /** Foto mendatar (mis. sepatu): rasio lebar/tinggi. */
+  wide?: number;
 }) {
   const dialogRef = React.useRef(null as HTMLDivElement | null);
   const figureRef = React.useRef(null as HTMLDivElement | null);
@@ -972,7 +974,7 @@ function Detail({ uid, item, index, total, labels, reduced, fallback, extra, sou
   return createPortal(
     <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} data-deck-detail className="fixed inset-0 z-50 flex justify-center overflow-y-auto p-4 text-foreground sm:p-8" onKeyDown={onKeyDown}>
       <div aria-hidden="true" className={`fixed inset-0 bg-black/20 transition-opacity duration-300 motion-reduce:transition-none ${shown ? "opacity-100" : "opacity-0"}`} onClick={dismiss} />
-      <div className="relative my-auto grid w-full max-w-3xl items-center justify-items-center gap-5 px-6 pb-7 pt-8 sm:grid-cols-[auto_minmax(0,1fr)] sm:gap-12 sm:px-14 sm:py-10">
+      <div className={`relative my-auto grid w-full max-w-3xl items-center justify-items-center gap-5 px-6 pb-7 pt-8 ${wide ? "sm:grid-cols-[340px_minmax(0,1fr)]" : "sm:grid-cols-[auto_minmax(0,1fr)]"} sm:gap-12 sm:px-14 sm:py-10`}>
         {/* kaca dipisah jadi lapisan sendiri: raket tetap bebas terbang dari rel ke popup */}
         <div
           aria-hidden="true"
@@ -990,7 +992,7 @@ function Detail({ uid, item, index, total, labels, reduced, fallback, extra, sou
         <button ref={closeRef} type="button" aria-label={labels.close} onClick={dismiss} className={`absolute right-4 top-4 z-10 inline-flex size-10 items-center justify-center rounded-full border border-white/70 bg-white/55 text-foreground shadow-sm outline-none transition-[opacity,background-color] duration-300 hover:bg-white/90 focus-visible:ring-2 focus-visible:ring-primary motion-reduce:transition-none ${shown ? "opacity-100" : "opacity-0"}`}>
           <svg aria-hidden="true" viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M3 3l10 10M13 3L3 13" /></svg>
         </button>
-        <div ref={figureRef} data-figure className="relative h-[40svh] origin-top sm:h-[min(62svh,520px)]" style={{ aspectRatio: DECK_ASPECT }}>
+        <div ref={figureRef} data-figure className={`relative origin-top ${wide ? "w-full max-w-[340px]" : "h-[40svh] sm:h-[min(62svh,520px)]"}`} style={{ aspectRatio: wide ?? DECK_ASPECT }}>
           <span aria-hidden="true" className="absolute inset-0 translate-x-[6%] translate-y-[2%] blur-lg">
             <span className="absolute inset-0 bg-black/25" style={maskStyle(mask, fallback)} />
           </span>
