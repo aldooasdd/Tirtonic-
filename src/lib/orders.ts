@@ -210,8 +210,22 @@ export async function createOrder(input: CheckoutInput): Promise<CreateOrderResu
     email: order.email,
     telepon: order.telepon,
   });
+  // Simpan link bayar (paymentRef diganti referensi transaksi saat lunas) → tombol "Bayar" di halaman pesanan.
+  if (paymentUrl) await prisma.order.update({ where: { id: order.id }, data: { paymentRef: paymentUrl } }).catch((e) => console.error("simpan link bayar gagal:", e));
 
   return { ok: true, orderId: order.id, invoice: order.invoice, paymentUrl };
+}
+
+/** Link bayar pesanan PENDING yang masih dalam waktu bayar: pakai link tersimpan, atau buat baru. null = tak bisa dibayar. */
+export async function paymentLinkFor(orderId: string): Promise<string | null> {
+  const o = await prisma.order.findUnique({ where: { id: orderId } });
+  if (!o || o.status !== "PENDING") return null;
+  const left = Math.floor((o.createdAt.getTime() + PAY_WINDOW_MIN * 60_000 - Date.now()) / 60_000);
+  if (left < 1) return null;
+  if (o.paymentRef?.startsWith("https://")) return o.paymentRef;
+  const url = await createPayment({ id: o.id, invoice: o.invoice, total: o.total, nama: o.nama, email: o.email, telepon: o.telepon, dueMinutes: left });
+  if (url) await prisma.order.updateMany({ where: { id: o.id, status: "PENDING" }, data: { paymentRef: url } });
+  return url;
 }
 
 /** Transisi ke LUNAS: potong stok varian + kirim event ke n8n. Idempoten (aman

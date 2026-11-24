@@ -4,6 +4,8 @@ import { prisma, safeQuery } from "@/lib/prisma";
 import { rupiah, waLink } from "@/lib/format";
 import { expirePendingOrders, markOrderPaid, PAY_WINDOW_MIN } from "@/lib/orders";
 import { checkPaymentStatus, paymentLabel } from "@/lib/payment";
+import SubmitButton from "@/components/SubmitButton";
+import { payOrder } from "./actions";
 import PaymentCountdown from "@/components/PaymentCountdown";
 
 export const dynamic = "force-dynamic";
@@ -16,7 +18,7 @@ const STATUS: Record<string, { label: string; cls: string; desc: string }> = {
   CANCELLED: { label: "Dibatalkan", cls: "bg-red-100 text-red-700", desc: "Pesanan ini dibatalkan." },
 };
 
-export default async function OrderPage({ params }: { params: { id: string } }) {
+export default async function OrderPage({ params, searchParams }: { params: { id: string }; searchParams: { bayar?: string } }) {
   await expirePendingOrders(); // bersihkan PENDING kadaluarsa dulu
   const load = () => safeQuery(() => prisma.order.findUnique({ where: { id: params.id }, include: { items: true } }), null);
   let order = await load();
@@ -54,7 +56,13 @@ export default async function OrderPage({ params }: { params: { id: string } }) 
             <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-center">
               <PaymentCountdown deadline={new Date(order.createdAt.getTime() + PAY_WINDOW_MIN * 60_000).toISOString()} />
             </div>
-            <a href={waLink(`Halo Admin Tirtonic, saya mau konfirmasi pembayaran pesanan ${order.invoice}.`)} target="_blank" rel="noreferrer" className="btn-pill mt-3 w-full bg-primary hover:bg-primaryDark">
+            {searchParams.bayar === "gagal" && <p role="alert" className="mt-3 text-center text-sm text-red-600">Halaman pembayaran belum bisa dibuka. Coba lagi atau hubungi admin.</p>}
+            {Date.now() < order.createdAt.getTime() + PAY_WINDOW_MIN * 60_000 && (
+              <form action={payOrder.bind(null, order.id)}>
+                <SubmitButton className="btn-pill mt-3 w-full bg-primary hover:bg-primaryDark">Bayar Sekarang</SubmitButton>
+              </form>
+            )}
+            <a href={waLink(`Halo Admin Tirtonic, saya mau konfirmasi pembayaran pesanan ${order.invoice}.`)} target="_blank" rel="noreferrer" className="mt-4 block text-center text-sm font-semibold text-primary hover:underline">
               Konfirmasi Pembayaran via WhatsApp
             </a>
           </>

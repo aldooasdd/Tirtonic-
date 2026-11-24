@@ -9,6 +9,7 @@ export default function PaymentCountdown({ deadline, className }: { deadline: st
   const [left, setLeft] = useState(() => target - Date.now());
 
   useEffect(() => {
+    if (target <= Date.now()) return; // sudah lewat saat dibuka → jangan reload berulang
     const id = setInterval(() => {
       const ms = target - Date.now();
       setLeft(ms);
@@ -18,7 +19,7 @@ export default function PaymentCountdown({ deadline, className }: { deadline: st
   }, [target]);
 
   if (left <= 0) {
-    return <p className={`text-xs font-semibold text-red-600 ${className ?? ""}`}>Waktu pembayaran habis. Pesanan dibatalkan.</p>;
+    return <p className={`text-xs font-semibold text-red-600 ${className ?? ""}`}>Waktu pembayaran habis. Silakan buat pesanan baru.</p>;
   }
 
   const total = Math.floor(left / 1000);

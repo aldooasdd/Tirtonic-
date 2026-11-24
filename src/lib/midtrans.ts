@@ -64,8 +64,9 @@ export async function checkMidtransStatus(invoice: string): Promise<string | nul
       headers: { Accept: "application/json", Authorization: auth() },
       signal: AbortSignal.timeout(8000),
     });
-    const d = (await res.json()) as { transaction_status?: string; fraud_status?: string };
-    if (!d.transaction_status) return null; // 404: transaksi tak ada di Midtrans (mis. invoice DOKU)
+    const d = (await res.json()) as { transaction_status?: string; fraud_status?: string; status_code?: string };
+    if (d.status_code === "404") return "NOT_FOUND"; // pembeli belum pernah memilih metode bayar (atau invoice DOKU)
+    if (!d.transaction_status) return null; // jawaban tak dikenal / key ditolak → anggap cek gagal
     return midtransPaid(d.transaction_status, d.fraud_status) ? "SUCCESS" : d.transaction_status.toUpperCase();
   } catch (e) {
     console.error("checkMidtransStatus gagal:", e);
