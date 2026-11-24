@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { createPortal } from "react-dom";
+import { SHOE_ASPECT, SWING_W, ShoeSwing } from "./shoe-swing";
 
 export interface SkateDeck {
   id: string;
@@ -18,6 +19,8 @@ export interface SkateDeck {
   tag?: string;
   /** Short facts shown as chips in the detail view (wheelbase, plies, concave …). */
   details?: string[];
+  /** Sepatu: duduk di ayunan papan, bukan digantung. Foto menyamping 2:1, sol di tepi bawah. */
+  shoe?: boolean;
 }
 
 export interface SkateDeckRailLabels {
@@ -51,14 +54,13 @@ const PERSPECTIVE = 900;
 const LIFT_Z = 24;
 const LIFT_SCALE = 0.03;
 const GAP = 0.06;
-const FRONT_EXTRA = 0; // raket yang menghadap depan tidak menggeser tetangganya
 const MAX_H = 460;
 const CAROUSEL_MAX_H = 430;
 const EDGE = 24;
 const RAIL_TOP = 14;
 const RAIL_Y = 0.022;
 const HOOK_LEN = 0.085;
-export const HOLE_Y = 0.013; // titik kait = tengah frame atas raket
+const HOLE_Y = 0.013; // titik kait = tengah frame atas raket
 const FOOT_PX = 72; // ruang nama + harga di bawah raket
 const FOOT = 0.085;
 const STAGE_K = 1 + RAIL_Y + HOOK_LEN - HOLE_Y + FOOT;
@@ -75,9 +77,9 @@ const DEFAULT_LABELS: SkateDeckRailLabels = { close: "Tutup", open: "Lihat" };
 const DECK_PATH = "M3,150 C3,46 53,4 119,4 C185,4 235,46 235,150 L235,850 C235,954 185,996 119,996 C53,996 3,954 3,850 Z";
 const FALLBACK_MASK = `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 238 1000' preserveAspectRatio='none'><path d='${DECK_PATH}'/></svg>`)}")`;
 const CONCAVE = "linear-gradient(90deg, color-mix(in oklab, black 46%, transparent) 0%, transparent 15%, color-mix(in oklab, white 13%, transparent) 50%, transparent 85%, color-mix(in oklab, black 46%, transparent) 100%), linear-gradient(to bottom, color-mix(in oklab, white 14%, transparent) 0%, transparent 9%, transparent 91%, color-mix(in oklab, white 10%, transparent) 100%)";
-export const RAIL_GRADIENT = "linear-gradient(to bottom, color-mix(in oklab, var(--rail-ink) 56%, white) 0%, color-mix(in oklab, var(--rail-ink) 84%, white) 17%, var(--rail-ink) 46%, color-mix(in oklab, var(--rail-ink) 72%, black) 80%, color-mix(in oklab, var(--rail-ink) 50%, black) 100%)";
+const RAIL_GRADIENT = "linear-gradient(to bottom, color-mix(in oklab, var(--rail-ink) 56%, white) 0%, color-mix(in oklab, var(--rail-ink) 84%, white) 17%, var(--rail-ink) 46%, color-mix(in oklab, var(--rail-ink) 72%, black) 80%, color-mix(in oklab, var(--rail-ink) 50%, black) 100%)";
 const REST_SHADE = "linear-gradient(90deg, color-mix(in oklab, black 34%, transparent), color-mix(in oklab, black 12%, transparent) 45%, color-mix(in oklab, black 4%, transparent))";
-export const BRACKET_GRADIENT = "linear-gradient(to right, color-mix(in oklab, var(--rail-ink) 70%, white), var(--rail-ink) 55%, color-mix(in oklab, var(--rail-ink) 60%, black))";
+const BRACKET_GRADIENT = "linear-gradient(to right, color-mix(in oklab, var(--rail-ink) 70%, white), var(--rail-ink) 55%, color-mix(in oklab, var(--rail-ink) 60%, black))";
 
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
@@ -92,7 +94,7 @@ function maskStyle(mask: string, fallback: boolean): React.CSSProperties {
   return { WebkitMask: value, mask: value };
 }
 
-export function railThickness(h: number) {
+function railThickness(h: number) {
   return Math.max(8, Math.round(h * 0.032));
 }
 
@@ -102,7 +104,7 @@ function stageGeometry(h: number) {
   return { railY, railT: railThickness(h), top, height: Math.round(top + h + FOOT_PX + FOOT * h) };
 }
 
-export function hookGeometry(h: number) {
+function hookGeometry(h: number) {
   const r = railThickness(h) / 2;
   const t = Math.max(1.7, h * 0.0078);
   const rc = r * 0.95 + t * 0.6;
@@ -128,12 +130,14 @@ export function hookGeometry(h: number) {
     // atas: separuh kiri di belakang rel (dipotong setebal rel), separuh kanan turun di depan rel
     over: `A${f(rc)},${f(rc)} 0 0 1 ${f(cx + rc)},${f(cy - lift - rc)}`,
     curl: `M${f(cx + rc)},${f(cy - lift - rc)} A${f(rc)},${f(rc)} 0 0 1 ${f(cx + 2 * rc)},${f(cy - lift)} L${f(cx + 2 * rc)},${f(cy + r * 0.6)}`,
+    /** Dasar kait, relatif ke tengah-atas barang. */
+    hang: { x: r2, y: HOLE_Y * h + h * 0.0095 },
     railTop: cy - r,
     railBottom: cy + r,
   };
 }
 
-export function Defs({ uid, h }: { uid: string; h: number }) {
+function Defs({ uid, h }: { uid: string; h: number }) {
   const g = hookGeometry(h);
   return (
     <svg aria-hidden="true" width="0" height="0" className="absolute" focusable="false">
@@ -151,7 +155,7 @@ export function Defs({ uid, h }: { uid: string; h: number }) {
   );
 }
 
-export function Hook({ uid, h, part }: { uid: string; h: number; part: "back" | "front" }) {
+function Hook({ uid, h, part }: { uid: string; h: number; part: "back" | "front" }) {
   const g = hookGeometry(h);
   const back = part === "back";
   return (
@@ -201,8 +205,14 @@ function emptySim(): Sim {
   return { x: [], vx: [], tx: [], turn: [], vturn: [], tturn: [], swing: [], vswing: [], tag: [], vtag: [], frameX: [], frameV: [], acc: [], drag: -1, free: 0, last: 0, raf: 0, base: [], scroll: 0, sv: 0, goal: null, max: 0, pan: false };
 }
 
-function footprint(h: number, e: number) {
-  return h * DECK_ASPECT * (1 + FRONT_EXTRA * clamp(e, 0, 1));
+/** Lebar barang di rel. */
+function widthOf(h: number, shoe: boolean) {
+  return h * (shoe ? SWING_W : DECK_ASPECT);
+}
+
+/** Jatah tempat di rel: lebar barang + jarak. */
+function cellOf(h: number, shoe: boolean) {
+  return shoe ? h * (SWING_W + 0.12) : h * DECK_ASPECT * (1 + RAIL_GAP);
 }
 
 function progress(turn: number, i: number) {
@@ -253,12 +263,12 @@ export function SkateDeckRail({
   const returnFocus = React.useRef(null as number | null);
   const pendingOpen = React.useRef(-1);
   const pointer = React.useRef({ id: -1, index: -1, x: 0, y: 0, moved: false, kind: "", swipe: 0, lastX: 0, lastT: 0, v: 0 });
-  const live = React.useRef({ active: null as number | null, requested: null as number | null | undefined, size, reduced, count, openIndex: null as number | null, carouselIndex: middle, controlled, onActiveChange, onOpenChange });
-  live.current = { ...live.current, active, size, reduced, count, openIndex, controlled, onActiveChange, onOpenChange };
+  const shoes = items.map((item) => !!item.shoe);
+  const live = React.useRef({ shoes, active: null as number | null, requested: null as number | null | undefined, size, reduced, count, openIndex: null as number | null, carouselIndex: middle, controlled, onActiveChange, onOpenChange });
+  live.current = { ...live.current, shoes, active, size, reduced, count, openIndex, controlled, onActiveChange, onOpenChange };
 
   const carouselIndex = size.carousel ? (active ?? live.current.carouselIndex) : null;
   const geo = stageGeometry(size.h);
-  const w = size.h * DECK_ASPECT;
 
   React.useEffect(() => {
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -292,9 +302,8 @@ export function SkateDeckRail({
     return () => { observer.disconnect(); window.removeEventListener("resize", measure); };
   }, [count]);
 
-  const targets = React.useCallback((h: number, width: number, carousel: boolean, front: number | null, centre: number) => {
-    const deckW = h * DECK_ASPECT;
-    const feet = items.map((_, i) => footprint(h, i === front ? 1 : 0));
+  const targets = React.useCallback((h: number, width: number, carousel: boolean, centre: number) => {
+    const feet = items.map((item) => widthOf(h, !!item.shoe));
     if (carousel) {
       const gap = GAP * h * 1.5;
       const c = clamp(centre, 0, Math.max(0, feet.length - 1));
@@ -304,29 +313,31 @@ export function SkateDeckRail({
       for (let i = c - 1; i >= 0; i--) xs[i] = (xs[i + 1] ?? 0) - ((feet[i + 1] ?? 0) + (feet[i] ?? 0)) / 2 - gap;
       return xs;
     }
-    const pitch = deckW * (1 + RAIL_GAP);
-    const span = pitch * feet.length;
+    const cells = items.map((item) => cellOf(h, !!item.shoe));
+    const span = cells.reduce((a, b) => a + b, 0);
     const start = span <= width ? (width - span) / 2 : EDGE; // muat → di tengah; tidak muat → bisa digeser
-    return feet.map((_, i) => start + pitch * (i + 0.5));
+    let x = start;
+    return cells.map((c) => (x += c) - c / 2);
   }, [items]);
 
   const paint = React.useCallback((i: number) => {
     const s = sim.current;
     const { h } = live.current.size;
-    const deckW = h * DECK_ASPECT;
+    const shoe = live.current.shoes[i] ?? false;
+    const deckW = widthOf(h, shoe);
     const slot = slots.current[i];
     if (!slot) return;
     const angle = s.turn[i] ?? restAngle(i);
     const e = progress(angle, i);
     const lift = Math.min(1, e);
-    const theta = s.swing[i] ?? 0;
+    const theta = (s.swing[i] ?? 0) * (shoe ? 0.55 : 1); // sepatu lebih berat, ayunan lebih kecil
     slot.style.transform = `translate3d(${((s.x[i] ?? 0) - deckW / 2).toFixed(2)}px,0,0)`;
     const hang = hangs.current[i];
     if (hang) hang.style.transform = `rotate(${(theta * HANG_SHARE).toFixed(3)}deg)`;
     const sw = swings.current[i];
     if (sw) sw.style.transform = `rotate(${(theta * (1 - HANG_SHARE)).toFixed(3)}deg)`;
     const tu = turns.current[i];
-    if (tu) tu.style.transform = `perspective(${PERSPECTIVE}px) rotateY(${angle.toFixed(2)}deg) translateZ(${(LIFT_Z * lift).toFixed(2)}px) scale(${(1 + LIFT_SCALE * e).toFixed(4)})`;
+    if (tu) tu.style.transform = shoe ? `translateY(${(-h * 0.018 * lift).toFixed(2)}px)` : `perspective(${PERSPECTIVE}px) rotateY(${angle.toFixed(2)}deg) translateZ(${(LIFT_Z * lift).toFixed(2)}px) scale(${(1 + LIFT_SCALE * e).toFixed(4)})`;
     const shade = shades.current[i];
     if (shade) shade.style.opacity = (1 - lift).toFixed(3);
     const glint = glints.current[i];
@@ -353,9 +364,9 @@ export function SkateDeckRail({
     const dt = s.last ? Math.min(0.1, (now - s.last) / 1000) : 1 / 60;
     s.last = now;
     const { h, carousel } = live.current.size;
-    const deckW = h * DECK_ASPECT;
+    const widths = live.current.shoes.map((shoe) => widthOf(h, shoe));
     const tail = h * (1 - HOLE_Y) + HOOK_LEN * h * HANG_SHARE;
-    const spacing = (i: number) => (footprint(h, progress(s.turn[i] ?? 0, i)) + footprint(h, progress(s.turn[i + 1] ?? 0, i + 1))) / 2 + h * 0.012;
+    const spacing = (i: number) => ((widths[i] ?? 0) + (widths[i + 1] ?? 0)) / 2 + h * 0.012;
     for (let i = 0; i < n; i++) s.frameX[i] = s.x[i] ?? 0;
     if (!carousel) {
       if (!s.pan) {
@@ -425,7 +436,7 @@ export function SkateDeckRail({
           if (progress(s.turn[i] ?? 0, i) > 0.5 || progress(s.turn[i + 1] ?? 0, i + 1) > 0.5) continue;
           const ta = (s.x[i] ?? 0) - tail * Math.sin((s.swing[i] ?? 0) * RAD);
           const tb = (s.x[i + 1] ?? 0) - tail * Math.sin((s.swing[i + 1] ?? 0) * RAD);
-          const overlap = deckW * 0.98 + 1 - (tb - ta);
+          const overlap = (((widths[i] ?? 0) + (widths[i + 1] ?? 0)) / 2) * 0.98 + 1 - (tb - ta);
           if (overlap <= 0) continue;
           const turn = overlap / 2 / tail / RAD;
           s.swing[i] = clamp((s.swing[i] ?? 0) + turn, -SWING_LIMIT, SWING_LIMIT);
@@ -499,7 +510,7 @@ export function SkateDeckRail({
     if (carousel) return;
     const s = sim.current;
     const from = s.goal ?? s.scroll;
-    const half = (h * DECK_ASPECT * (1 + RAIL_GAP)) / 2;
+    const half = cellOf(h, live.current.shoes[i] ?? false) / 2;
     const x = (s.base[i] ?? 0) - from;
     if (x - half < 0 || x + half > width) scrollTo((s.base[i] ?? 0) - width / 2);
   }, [scrollTo]);
@@ -508,7 +519,7 @@ export function SkateDeckRail({
     stop();
     const s = sim.current;
     const { width, h } = live.current.size;
-    const pitch = h * DECK_ASPECT * (1 + RAIL_GAP);
+    const pitch = live.current.shoes.reduce((a, shoe) => a + cellOf(h, shoe), 0) / Math.max(1, live.current.count);
     scrollTo((s.goal ?? s.scroll) + dir * Math.max(1, Math.floor(width / pitch) - 1) * pitch);
   };
 
@@ -533,11 +544,11 @@ export function SkateDeckRail({
     if (!size.width) return;
     const s = sim.current;
     const front = active;
-    const xs = targets(size.h, size.width, size.carousel, front, active ?? live.current.carouselIndex);
+    const xs = targets(size.h, size.width, size.carousel, active ?? live.current.carouselIndex);
     const fresh = s.x.length !== count;
     s.base = xs;
     const oldMax = s.max;
-    s.max = size.carousel ? 0 : Math.max(0, (xs[count - 1] ?? 0) + (size.h * DECK_ASPECT * (1 + RAIL_GAP)) / 2 + EDGE - size.width);
+    s.max = size.carousel ? 0 : Math.max(0, (xs[count - 1] ?? 0) + cellOf(size.h, !!items[count - 1]?.shoe) / 2 + EDGE - size.width);
     s.scroll = size.carousel ? 0 : s.pan ? s.scroll : oldMax === s.max ? clamp(s.scroll, 0, s.max) : oldMax > 0 ? clamp(s.scroll / oldMax, 0, 1) * s.max : s.max / 2;
     setMaxScroll(s.max);
     for (let i = 0; i < count; i++) {
@@ -551,7 +562,7 @@ export function SkateDeckRail({
     }
     if (fresh) { s.x.length = count; for (let i = 0; i < count; i++) paint(i); }
     kick();
-  }, [size, active, count, reduced, targets, paint, kick]);
+  }, [size, active, count, items, reduced, targets, paint, kick]);
 
   const brushed = React.useRef(false);
   React.useEffect(() => {
@@ -615,7 +626,7 @@ export function SkateDeckRail({
     let best = null as number | null;
     let distance = Infinity;
     for (let i = 0; i < live.current.count; i++) {
-      const half = footprint(h, progress(s.turn[i] ?? 0, i)) / 2 + 4;
+      const half = widthOf(h, live.current.shoes[i] ?? false) / 2 + 4;
       const d = Math.abs(x - (s.x[i] ?? 0));
       if (d < half && d < distance) { best = i; distance = d; }
     }
@@ -646,7 +657,7 @@ export function SkateDeckRail({
           kick();
         } else {
           p.swipe = dx;
-          const xs = targets(live.current.size.h, live.current.size.width, true, live.current.active, live.current.active ?? live.current.carouselIndex);
+          const xs = targets(live.current.size.h, live.current.size.width, true, live.current.active ?? live.current.carouselIndex);
           for (let i = 0; i < live.current.count; i++) s.tx[i] = (xs[i] ?? 0) + dx;
           kick();
         }
@@ -658,7 +669,7 @@ export function SkateDeckRail({
     const current = live.current.active;
     if (current !== null && hit !== current) {
       const box = stage?.getBoundingClientRect();
-      const keep = box ? Math.abs(event.clientX - box.left - (s.x[current] ?? 0)) < footprint(live.current.size.h, 1) / 2 + 10 : false;
+      const keep = box ? Math.abs(event.clientX - box.left - (s.x[current] ?? 0)) < widthOf(live.current.size.h, live.current.shoes[current] ?? false) / 2 + 10 : false;
       if (keep && hit === null) return;
     }
     if (hit !== null) { stop(); choose(hit); }
@@ -789,6 +800,7 @@ export function SkateDeckRail({
           const fallback = !!failed[item.id];
           const mask = fallback ? FALLBACK_MASK : `url("${item.image}")`;
           const facing = active === i;
+          const w = widthOf(size.h, !!item.shoe);
           return (
             <button
               key={item.id}
@@ -807,7 +819,10 @@ export function SkateDeckRail({
             >
               <span ref={(node) => { hangs.current[i] = node; }} data-hang className="absolute inset-0" style={{ transformOrigin: `calc(50% + ${hook.pivotX.toFixed(2)}px) ${hook.pivotY.toFixed(2)}px` }}>
                 <Hook uid={uid} h={size.h} part="back" />
-                <span ref={(node) => { swings.current[i] = node; }} data-swing className="absolute inset-0" style={{ transformOrigin: `50% ${HOLE_Y * 100}%`, visibility: lifted === i ? "hidden" : undefined }}>
+                <span ref={(node) => { swings.current[i] = node; }} data-swing className="absolute inset-0" style={{ transformOrigin: `50% ${HOLE_Y * 100}%`, visibility: lifted === i && !item.shoe ? "hidden" : undefined }}>
+                  {item.shoe ? (
+                    <ShoeSwing uid={`${uid}${i}`} h={size.h} ax={w / 2 + hook.hang.x} ay={hook.hang.y} image={item.image} hidden={lifted === i} shoeRef={(node) => { turns.current[i] = node; }} />
+                  ) : (<>
                   <span aria-hidden="true" className="pointer-events-none absolute inset-0" style={{ filter: `blur(${Math.max(2, size.h * 0.008).toFixed(1)}px)` }}>
                     <span ref={(node) => { nears.current[i] = node; }} data-shadow="near" className="absolute inset-0 block bg-black/25" style={maskStyle(mask, fallback)} />
                   </span>
@@ -823,10 +838,11 @@ export function SkateDeckRail({
                       <span ref={(node) => { glints.current[i] = node; }} className="absolute inset-y-0 left-0 w-[70%] opacity-0" style={{ background: "linear-gradient(90deg, transparent, color-mix(in oklab, white 55%, transparent) 50%, transparent)" }} />
                     </span>
                   </span>
+                  </>)}
                 </span>
                 <Hook uid={uid} h={size.h} part="front" />
               </span>
-              <span className={`pointer-events-none absolute left-1/2 flex -translate-x-1/2 flex-col items-center gap-1 text-center transition-opacity duration-300 motion-reduce:transition-none ${size.carousel && carouselIndex !== i ? "opacity-0" : ""}`} style={{ top: size.h * (1 + FOOT) + 4, width: size.carousel ? Math.min(280, size.width - 48) : w * 1.4 }}>
+              <span className={`pointer-events-none absolute left-1/2 flex -translate-x-1/2 flex-col items-center gap-1 text-center transition-opacity duration-300 motion-reduce:transition-none ${size.carousel && carouselIndex !== i ? "opacity-0" : ""}`} style={{ top: size.h * (1 + FOOT) + 4, width: size.carousel ? Math.min(280, size.width - 48) : w * (item.shoe ? 1.1 : 1.4) }}>
                 <span className="text-sm font-medium leading-tight">{item.name}</span>
                 {item.tag && <span className={`text-[13px] tabular-nums transition-colors duration-300 ${facing ? "font-semibold text-primary" : "text-muted-foreground"}`}>{item.tag}</span>}
               </span>
@@ -872,13 +888,14 @@ export function SkateDeckRail({
           source={source}
           onLift={onLift}
           onClose={onDetailClose}
+          wide={items[openIndex].shoe ? SHOE_ASPECT : undefined}
         />
       )}
     </section>
   );
 }
 
-export function Detail({ uid, item, index, total, labels, reduced, fallback, extra, source, onLift, onClose, wide }: {
+function Detail({ uid, item, index, total, labels, reduced, fallback, extra, source, onLift, onClose, wide }: {
   uid: string;
   item: SkateDeck;
   index: number;
