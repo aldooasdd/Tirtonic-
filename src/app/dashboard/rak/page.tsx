@@ -4,6 +4,7 @@ import { prisma, safeQuery } from "@/lib/prisma";
 import { productHref } from "@/lib/product-slug";
 import { PageHeader, card } from "@/components/dashboard/ui";
 import { KATEGORI_RAK } from "@/lib/rail";
+import MerchForm from "@/components/MerchForm";
 import RailForm from "@/components/RailForm";
 import ConfirmSubmit from "@/components/ConfirmSubmit";
 import { deleteRail } from "./actions";
@@ -15,10 +16,13 @@ export default async function RakPage() {
   if (!isAuthed()) redirect("/dashboard/login");
   if (!can("hero")) redirect("/dashboard");
 
-  const [products, rail] = await Promise.all([
+  const [products, rail, calon, merch] = await Promise.all([
     safeQuery(() => prisma.product.findMany({ where: { kategori: { in: Object.values(KATEGORI_RAK) } }, orderBy: { nama: "asc" }, select: { id: true, nama: true, gambar: true, kategori: true } }), []),
     safeQuery(() => prisma.racketRail.findMany({ orderBy: [{ urutan: "asc" }, { createdAt: "asc" }], include: { product: { select: { id: true, nama: true, slug: true, kategori: true, status: true, stok: true, variants: { select: { stok: true } } } } } }), []),
+    safeQuery(() => prisma.product.findMany({ where: { kategori: { notIn: Object.values(KATEGORI_RAK) }, status: "READY" }, orderBy: { nama: "asc" }, select: { id: true, nama: true, gambar: true, kategori: true, stok: true, variants: { select: { stok: true } } } }), []),
+    safeQuery(() => prisma.merchandise.findMany({ select: { productId: true } }), []),
   ]);
+  const bonus = new Set(merch.map((m) => m.productId));
   const used = new Set(rail.map((r) => r.productId));
 
   return (
@@ -53,6 +57,11 @@ export default async function RakPage() {
             })}
           </div>
         )}
+      </section>
+      <section className={`${card} p-5`}>
+        <h2 className="text-[15px] font-semibold text-[#0F1F1A]">Bonus merchandise</h2>
+        <p className="mb-4 mt-1 text-sm text-gray-500">Pembeli produk rak memilih 1 barang ini gratis untuk setiap produk yang dibeli.</p>
+        <MerchForm items={calon.map((p) => ({ id: p.id, nama: p.nama, foto: p.gambar[0] ?? null, kategori: p.kategori, stok: p.variants.length ? p.variants.reduce((n, v) => n + Math.max(0, v.stok), 0) : p.stok, dipakai: bonus.has(p.id) }))} />
       </section>
     </div>
   );

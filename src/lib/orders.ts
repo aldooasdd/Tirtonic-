@@ -13,7 +13,7 @@ import { FREE_ONGKIR_MIN } from "@/lib/constants";
 // Fallback kalau Binderbyte belum dikonfigurasi / tak ada tarif untuk kode pos itu.
 const FLAT_OPTIONS: RateOption[] = [{ id: "flat::reguler", label: "Reguler (2-4 hari)", cost: 20000, etd: null }];
 
-export type CartLine = { productId: string; variantId?: string | null; qty: number };
+export type CartLine = { productId: string; variantId?: string | null; qty: number; gift?: boolean };
 export type CheckoutInput = {
   nama: string;
   email: string;
@@ -37,6 +37,7 @@ export type ResolvedLine = {
   productId: string; variantId: string | null; nama: string; varian: string | null;
   harga: number; qty: number; gambar: string | null; wasDiscounted: boolean;
   b1g1: boolean; // promo Buy 1 Get 1 (diskon ≥50% → harga normal, termurah tiap pasang gratis)
+  gift: boolean; // bonus merchandise produk rak: harga 0
 };
 
 type ProductWithVariants = { id: string; nama: string; berat: number; harga: number; hargaDiskon: number | null; status: string; stok: number | null; gambar: string[]; variants: { id: string; warna: string; ukuran: string; harga: number; hargaDiskon: number | null; stok: number; gambar: string | null }[] };
@@ -63,7 +64,7 @@ export const b1g1Of = (lines: ResolvedLine[]) =>
   b1g1Free(lines.map((l) => ({ key: `${l.productId}::${l.variantId ?? ""}`, harga: l.harga, qty: l.qty, b1g1: l.b1g1 })));
 /** Baris yang boleh kena kupon/voucher (B1G1 tidak bisa digabung). */
 export const couponLines = (lines: ResolvedLine[]) =>
-  lines.filter((l) => !l.b1g1).map((l) => ({ productId: l.productId, harga: l.harga, qty: l.qty, wasDiscounted: l.wasDiscounted }));
+  lines.filter((l) => !l.b1g1 && !l.gift).map((l) => ({ productId: l.productId, harga: l.harga, qty: l.qty, wasDiscounted: l.wasDiscounted }));
 
 /** Verifikasi tiap item keranjang dari DB → baris final (harga, varian, stok).
  *  Dipakai createOrder dan preview kupon di checkout. */
@@ -93,6 +94,7 @@ export async function resolveLines(items: CartLine[]): Promise<{ ok: true; lines
         gambar: v.gambar ?? p.gambar[0] ?? null,
         wasDiscounted: wasDiscounted(v.harga, v.hargaDiskon),
         b1g1: isB1G1(v.harga, v.hargaDiskon),
+        gift: !!it.gift,
       });
     } else {
       if (p.status === "SOLD" || (p.stok != null && p.stok <= 0)) return { ok: false, error: `${p.nama} sedang habis.` };
@@ -103,7 +105,29 @@ export async function resolveLines(items: CartLine[]): Promise<{ ok: true; lines
         gambar: p.gambar[0] ?? null,
         wasDiscounted: wasDiscounted(p.harga, p.hargaDiskon),
         b1g1: isB1G1(p.harga, p.hargaDiskon),
+        gift: !!it.gift,
       });
+    }
+  }
+
+  // Bonus merchandise: hanya barang yang didaftarkan di dashboard, maksimal 1 per unit produk rak yang dibeli.
+  const gifts = lines.filter((l) => l.gift);
+  if (gifts.length) {
+    const [boleh, rak] = await Promise.all([
+      prisma.merchandise.findMany({ where: { productId: { in: gifts.map((l) => l.productId) } }, select: { productId: true } }),
+      prisma.racketRail.findMany({ where: { productId: { in: lines.filter((l) => !l.gift).map((l) => l.productId) } }, select: { productId: true } }),
+    ]);
+    for (const g of gifts)
+      if (!boleh.some((b) => b.productId === g.productId)) return { ok: false, error: `Bonus ${g.nama} sudah tidak tersedia. Hapus dari keranjang dulu.` };
+    const berhak = lines.reduce((n, l) => n + (!l.gift && rak.some((r) => r.productId === l.productId) ? l.qty : 0), 0);
+    if (gifts.reduce((n, g) => n + g.qty, 0) > berhak) return { ok: false, error: "Bonus merchandise melebihi jumlah produk yang mendapat bonus. Hapus bonusnya dari keranjang dulu." };
+    // barang yang sama dibeli sekaligus jadi bonus → stoknya dijumlah
+    for (const g of gifts) {
+      const p = products.find((x) => x.id === g.productId)!;
+      const stok = g.variantId ? p.variants.find((v) => v.id === g.variantId)!.stok : p.stok;
+      const perlu = lines.reduce((n, l) => n + (l.productId === g.productId && l.variantId === g.variantId ? l.qty : 0), 0);
+      if (stok != null && stok < perlu) return { ok: false, error: `Stok bonus ${g.nama} tidak cukup. Hapus dari keranjang dulu.` };
+      g.harga = 0; g.wasDiscounted = false; g.b1g1 = false; g.nama = `[BONUS] ${g.nama}`;
     }
   }
   return { ok: true, lines };
@@ -196,7 +220,7 @@ export async function createOrder(input: CheckoutInput): Promise<CreateOrderResu
       voucherId: voucher?.id ?? null,
       ...(() => { const ft = readFirstTouch(); return { landingPage: ft.page, landingSource: ft.source }; })(),
       total,
-      items: { create: lines.map(({ wasDiscounted: _w, b1g1: _b, ...l }) => l) }, // flag hitung saja, bukan kolom OrderItem
+      items: { create: lines.map(({ wasDiscounted: _w, b1g1: _b, gift: _g, ...l }) => l) }, // flag hitung saja, bukan kolom OrderItem
     },
   });
 

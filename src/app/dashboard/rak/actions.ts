@@ -37,3 +37,17 @@ export async function deleteRail(id: string) {
   await prisma.racketRail.deleteMany({ where: { id } });
   refresh();
 }
+
+/** Daftar / hapus barang bonus merchandise. */
+export async function setMerch(productId: string, on: boolean): Promise<{ error?: string }> {
+  requireSection("hero");
+  try {
+    if (on) await prisma.merchandise.upsert({ where: { productId }, update: {}, create: { productId } });
+    else await prisma.merchandise.deleteMany({ where: { productId } });
+  } catch (e) {
+    console.error("setMerch gagal:", e);
+    return { error: "Gagal menyimpan. Coba lagi." };
+  }
+  revalidatePath("/dashboard/rak");
+  return {};
+}

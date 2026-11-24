@@ -30,8 +30,9 @@ export default function CartPage() {
                 <div className="min-w-0 flex-1">
                   <p className="line-clamp-2 text-sm font-semibold text-gray-900">{x.nama}</p>
                   {x.varian && <p className="text-xs text-gray-500">{x.varian}</p>}
-                  <p className="mt-1 text-sm font-bold text-primary">{rupiah(x.harga)}</p>
+                  <p className="mt-1 text-sm font-bold text-primary">{x.gift ? "Bonus gratis" : rupiah(x.harga)}</p>
                   <div className="mt-2 flex items-center gap-3">
+                    {x.gift ? <span className="text-sm font-semibold">×{x.qty}</span> : (
                     <div className="flex items-center rounded-lg border">
                       <button
                         onClick={() => setQty(x.key, x.qty - 1)}
@@ -49,12 +50,13 @@ export default function CartPage() {
                         +
                       </button>
                     </div>
+                    )}
                     <button onClick={() => remove(x.key)} className="text-xs font-medium text-red-500 hover:underline">
                       Hapus
                     </button>
                   </div>
                 </div>
-                <div className="shrink-0 text-right text-sm font-bold text-gray-900">{rupiah(x.harga * x.qty)}</div>
+                <div className="shrink-0 text-right text-sm font-bold text-gray-900">{x.gift ? "GRATIS" : rupiah(x.harga * x.qty)}</div>
               </li>
             ))}
           </ul>

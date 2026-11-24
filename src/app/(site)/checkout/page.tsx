@@ -69,7 +69,7 @@ export default function CheckoutPage() {
   useEffect(() => {
     if (phone.replace(/\D/g, "").length < 9) { setVoucher(null); return; }
     const t = setTimeout(() => {
-      checkMemberVoucher({ phone, items: items.map((x) => ({ productId: x.productId, variantId: x.variantId, qty: x.qty })) })
+      checkMemberVoucher({ phone, items: items.map((x) => ({ productId: x.productId, variantId: x.variantId, qty: x.qty, gift: x.gift })) })
         .then((v) => setVoucher(v ? { code: v.code, label: v.label, diskon: v.diskon } : null))
         .catch(() => setVoucher(null));
     }, 500);
@@ -83,7 +83,7 @@ export default function CheckoutPage() {
     setCouponBusy(true);
     setCouponMsg(null);
     try {
-      const res = await applyCoupon({ code, items: items.map((x) => ({ productId: x.productId, variantId: x.variantId, qty: x.qty })) });
+      const res = await applyCoupon({ code, items: items.map((x) => ({ productId: x.productId, variantId: x.variantId, qty: x.qty, gift: x.gift })) });
       if (res.ok) { setCoupon({ code: res.code, diskon: res.diskon }); setCouponMsg(null); }
       else { setCoupon(null); setCouponMsg(res.error); }
     } catch {
@@ -100,7 +100,7 @@ export default function CheckoutPage() {
     setRatesMsg(null);
     try {
       // Kode pos dari label lokasi (jalur yang terbukti di Binderbyte); id lokasi hanya cadangan.
-      const opts = await checkRates(kodePos || lokasi.id, items.map((x) => ({ productId: x.productId, variantId: x.variantId, qty: x.qty })));
+      const opts = await checkRates(kodePos || lokasi.id, items.map((x) => ({ productId: x.productId, variantId: x.variantId, qty: x.qty, gift: x.gift })));
       setRates(opts);
       setChosenId(opts[0]?.id ?? "");
       if (!opts.length) setRatesMsg("Ongkir tidak ditemukan untuk lokasi ini. Coba pilih kelurahan / kecamatan lain.");
@@ -161,7 +161,7 @@ export default function CheckoutPage() {
         kodePos: pickup ? undefined : kodePos || undefined,
         lokasiId: pickup ? undefined : lokasi?.id,
         shippingCourier: pickup ? undefined : chosen?.id,
-        items: items.map((x) => ({ productId: x.productId, variantId: x.variantId, qty: x.qty })),
+        items: items.map((x) => ({ productId: x.productId, variantId: x.variantId, qty: x.qty, gift: x.gift })),
       });
       if (!res.ok) {
         setError(res.error);
@@ -340,9 +340,15 @@ export default function CheckoutPage() {
                   <div className="min-w-0 flex-1">
                     <p className="line-clamp-1 font-medium text-gray-800">{x.nama}</p>
                     {x.varian && <p className="text-xs text-gray-500">{x.varian}</p>}
+                    {x.gift && <span className="mt-0.5 inline-block rounded bg-primary px-1.5 py-0.5 text-[9px] font-[800] text-white">BONUS</span>}
                     {x.b1g1 && <span className="mt-0.5 inline-block rounded bg-red-500 px-1.5 py-0.5 text-[9px] font-[800] text-white">BUY 1 GET 1</span>}
                   </div>
-                  {b1.freeQty[x.key] ? (
+                  {x.gift ? (
+                    <span className="shrink-0 text-right">
+                      {!!x.normal && <span className="block text-xs text-gray-400 line-through">{rupiah(x.normal * x.qty)}</span>}
+                      <span className="block font-semibold text-primary">GRATIS</span>
+                    </span>
+                  ) : b1.freeQty[x.key] ? (
                     <span className="shrink-0 text-right">
                       <span className="block text-xs text-gray-400 line-through">{rupiah(x.harga * b1.freeQty[x.key])}</span>
                       <span className="block font-semibold text-red-600">{x.qty > b1.freeQty[x.key] ? rupiah(x.harga * (x.qty - b1.freeQty[x.key])) : "GRATIS"}</span>
