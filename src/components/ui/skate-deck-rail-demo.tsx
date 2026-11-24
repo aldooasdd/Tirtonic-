@@ -28,7 +28,7 @@ export default function SkateDeckRailDemo({ items, autoplay = true, className = 
     <div data-skate-demo className={`flex w-full items-center justify-center bg-background text-foreground ${className}`}>
       <SkateDeckRail
         items={items.length ? items : SKATE_DEMO_DECKS}
-        heading={!sepatu ? "Pilih raketmu" : raket ? "Pilih raket & sepatumu" : "Pilih sepatumu"}
+        heading="Pilih Produk Bonus Merchandise"
         caption={sepatu ? "Geser untuk lihat yang lain, klik untuk beli." : "Geser untuk lihat raket lain, klik untuk beli."}
         interval={3600}
         autoplay={autoplay}
