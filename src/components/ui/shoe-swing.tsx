@@ -6,13 +6,13 @@ const SHOE_W = 0.45;
 /** Kanvas foto sepatu 2:1, sol menempel di tepi bawah. */
 export const SHOE_ASPECT = 2;
 
-// Ayunan = render 3D, dua lapis: belakang (papan, tali belakang, cincin, bayangan) & tali depan.
-// Kanvas 0.62h × 0.97h; titik kait 0.0384h dari atas, permukaan papan 0.785h di bawah kait.
+// Ayunan = render 3D, dua lapis: belakang (plat, tali belakang, cincin, bayangan) & tali depan.
+// Kanvas 0.62h × 0.97h; titik kait 0.0384h dari atas, permukaan plat 0.785h di bawah kait.
 const SPRITE_H = 0.97;
 const ANCHOR = 0.0384;
 const SEAT = 0.797;
 
-/** Ayunan papan kayu + sepatu. (ax, ay) = titik kait, dalam kotak SWING_W·h × h. */
+/** Ayunan plat baja + sepatu. (ax, ay) = titik kait, dalam kotak SWING_W·h × h. */
 export function ShoeSwing({ h, ax, ay, image, hidden, shoeRef }: { h: number; ax: number; ay: number; image: string; hidden: boolean; shoeRef: (n: HTMLSpanElement | null) => void }) {
   const w = SHOE_W * h;
   const sh = w / SHOE_ASPECT;
@@ -30,14 +30,14 @@ export function ShoeSwing({ h, ax, ay, image, hidden, shoeRef }: { h: number; ax
       </span>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/shoe-swing-back.webp" alt="" decoding="async" draggable={false} className="absolute select-none" style={layer} />
-      {/* bayangan sol di papan: siluet sepatu dipipihkan, lalu garis kontak gelap */}
-      <span className={`absolute transition-opacity duration-300 ${off}`} style={{ left: ax - w * 0.47, top: base - 0.017 * h, width: w * 0.98, height: 0.03 * h, filter: `blur(${0.007 * h}px)`, background: "radial-gradient(50% 50% at 50% 50%, rgba(40,22,8,.85) 60%, transparent)" }} />
-      <span className={`absolute transition-opacity duration-300 ${off}`} style={{ left: ax - w * 0.4, top: base - 0.01 * h, width: w * 0.82, height: 0.012 * h, filter: `blur(${0.0028 * h}px)`, background: "radial-gradient(50% 50% at 50% 50%, rgba(22,12,4,.9) 70%, transparent)" }} />
+      {/* bayangan sol di plat: siluet sepatu dipipihkan, lalu garis kontak gelap */}
+      <span className={`absolute transition-opacity duration-300 ${off}`} style={{ left: ax - w * 0.47, top: base - 0.017 * h, width: w * 0.98, height: 0.03 * h, filter: `blur(${0.007 * h}px)`, background: "radial-gradient(50% 50% at 50% 50%, rgba(20,22,26,.7) 60%, transparent)" }} />
+      <span className={`absolute transition-opacity duration-300 ${off}`} style={{ left: ax - w * 0.4, top: base - 0.01 * h, width: w * 0.82, height: 0.012 * h, filter: `blur(${0.0028 * h}px)`, background: "radial-gradient(50% 50% at 50% 50%, rgba(8,9,11,.9) 70%, transparent)" }} />
       <span ref={shoeRef} className="absolute block" style={{ ...box, visibility: hidden ? "hidden" : undefined }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={image} alt="" loading="lazy" decoding="async" draggable={false} className="size-full select-none object-contain object-bottom" />
-        {/* cahaya: sisi bawah lebih gelap & sedikit pantulan hangat dari kayu */}
-        <span className="absolute inset-0 mix-blend-multiply" style={{ ...shape, background: "linear-gradient(to top, rgba(96,60,30,.55), rgba(140,110,85,.18) 12%, transparent 34%)" }} />
+        {/* cahaya: sisi bawah lebih gelap & sedikit redup dari plat */}
+        <span className="absolute inset-0 mix-blend-multiply" style={{ ...shape, background: "linear-gradient(to top, rgba(80,84,92,.5), rgba(120,124,130,.16) 12%, transparent 34%)" }} />
       </span>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/shoe-swing-front.webp" alt="" decoding="async" draggable={false} className="absolute select-none" style={layer} />
