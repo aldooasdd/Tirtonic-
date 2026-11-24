@@ -6,7 +6,7 @@ import { PageHeader, card } from "@/components/dashboard/ui";
 import { KATEGORI_RAK } from "@/lib/rail";
 import RailForm from "@/components/RailForm";
 import ConfirmSubmit from "@/components/ConfirmSubmit";
-import { deleteRail, moveRail } from "./actions";
+import { deleteRail } from "./actions";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Rak Raket & Sepatu — Tirtonic" };
@@ -23,7 +23,7 @@ export default async function RakPage() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-5">
-      <PageHeader title="Rak Raket & Sepatu" desc="Pilih raket atau sepatu, upload fotonya, pilih barangnya, lalu tampil di rak landing. Nama dan harga ikut data produk." />
+      <PageHeader title="Rak Raket & Sepatu" desc="Pilih raket atau sepatu, upload fotonya, pilih barangnya, lalu tampil di rak landing. Nama dan harga ikut data produk, urutan diacak otomatis." />
       <section className={`${card} p-5`}>
         <RailForm items={products.map((p) => ({ id: p.id, nama: p.nama, foto: p.gambar[0] ?? null, jenis: p.kategori === KATEGORI_RAK.sepatu ? "sepatu" as const : "raket" as const, dipakai: used.has(p.id) }))} />
       </section>
@@ -36,7 +36,7 @@ export default async function RakPage() {
           <p className="text-sm text-gray-400">Belum ada barang. Rak tidak tampil di landing.</p>
         ) : (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
-            {rail.map((r, i) => {
+            {rail.map((r) => {
               const p = r.product;
               const habis = p.status === "SOLD" || (p.variants.length ? p.variants.every((v) => v.stok <= 0) : p.stok != null && p.stok <= 0);
               return (
@@ -46,8 +46,6 @@ export default async function RakPage() {
                   <a href={productHref(p)} target="_blank" rel="noreferrer" className="line-clamp-2 min-h-[2.25rem] text-xs font-semibold text-gray-900 hover:text-primary">{p.nama}</a>
                   <p className={`mt-1 text-[11px] ${habis ? "text-red-600" : "text-green-700"}`}>{habis ? "Stok habis, tidak tampil" : "Tampil"} · {p.kategori === KATEGORI_RAK.sepatu ? "Sepatu" : "Raket"}</p>
                   <div className="mt-2 flex items-center gap-1">
-                    <form action={moveRail.bind(null, r.id, -1)}><button disabled={i === 0} aria-label="Geser ke kiri" className="h-8 w-8 rounded-full border text-sm disabled:opacity-30">‹</button></form>
-                    <form action={moveRail.bind(null, r.id, 1)}><button disabled={i === rail.length - 1} aria-label="Geser ke kanan" className="h-8 w-8 rounded-full border text-sm disabled:opacity-30">›</button></form>
                     <form action={deleteRail.bind(null, r.id)} className="ml-auto"><ConfirmSubmit message={`Turunkan ${p.nama} dari rak? Produknya tidak dihapus.`} className="text-xs font-semibold text-red-600">Hapus</ConfirmSubmit></form>
                   </div>
                 </div>

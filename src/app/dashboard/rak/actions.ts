@@ -32,18 +32,6 @@ export async function saveRail(fd: FormData): Promise<{ error?: string }> {
   return {};
 }
 
-/** Tukar posisi dengan tetangga (dir -1 = maju). */
-export async function moveRail(id: string, dir: 1 | -1) {
-  requireSection("hero");
-  const rows = await prisma.racketRail.findMany({ orderBy: [{ urutan: "asc" }, { createdAt: "asc" }], select: { id: true } });
-  const i = rows.findIndex((r) => r.id === id);
-  const j = i + dir;
-  if (i < 0 || j < 0 || j >= rows.length) return;
-  [rows[i], rows[j]] = [rows[j], rows[i]];
-  await prisma.$transaction(rows.map((r, k) => prisma.racketRail.update({ where: { id: r.id }, data: { urutan: k + 1 } })));
-  refresh();
-}
-
 export async function deleteRail(id: string) {
   requireSection("hero");
   await prisma.racketRail.deleteMany({ where: { id } });
