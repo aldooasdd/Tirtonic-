@@ -212,7 +212,7 @@ function widthOf(h: number, shoe: boolean) {
 
 /** Jatah tempat di rel: lebar barang + jarak. */
 function cellOf(h: number, shoe: boolean) {
-  return shoe ? h * (SWING_W + 0.12) : h * DECK_ASPECT * (1 + RAIL_GAP);
+  return shoe ? h * (SWING_W + 0.08) : h * DECK_ASPECT * (1 + RAIL_GAP);
 }
 
 function progress(turn: number, i: number) {
@@ -337,7 +337,7 @@ export function SkateDeckRail({
     const sw = swings.current[i];
     if (sw) sw.style.transform = `rotate(${(theta * (1 - HANG_SHARE)).toFixed(3)}deg)`;
     const tu = turns.current[i];
-    if (tu) tu.style.transform = shoe ? `translateY(${(-h * 0.018 * lift).toFixed(2)}px)` : `perspective(${PERSPECTIVE}px) rotateY(${angle.toFixed(2)}deg) translateZ(${(LIFT_Z * lift).toFixed(2)}px) scale(${(1 + LIFT_SCALE * e).toFixed(4)})`;
+    if (tu) tu.style.transform = shoe ? "none" : `perspective(${PERSPECTIVE}px) rotateY(${angle.toFixed(2)}deg) translateZ(${(LIFT_Z * lift).toFixed(2)}px) scale(${(1 + LIFT_SCALE * e).toFixed(4)})`;
     const shade = shades.current[i];
     if (shade) shade.style.opacity = (1 - lift).toFixed(3);
     const glint = glints.current[i];
@@ -821,7 +821,7 @@ export function SkateDeckRail({
                 <Hook uid={uid} h={size.h} part="back" />
                 <span ref={(node) => { swings.current[i] = node; }} data-swing className="absolute inset-0" style={{ transformOrigin: `50% ${HOLE_Y * 100}%`, visibility: lifted === i && !item.shoe ? "hidden" : undefined }}>
                   {item.shoe ? (
-                    <ShoeSwing uid={`${uid}${i}`} h={size.h} ax={w / 2 + hook.hang.x} ay={hook.hang.y} image={item.image} hidden={lifted === i} shoeRef={(node) => { turns.current[i] = node; }} />
+                    <ShoeSwing h={size.h} ax={w / 2 + hook.hang.x} ay={hook.hang.y} image={item.image} hidden={lifted === i} shoeRef={(node) => { turns.current[i] = node; }} />
                   ) : (<>
                   <span aria-hidden="true" className="pointer-events-none absolute inset-0" style={{ filter: `blur(${Math.max(2, size.h * 0.008).toFixed(1)}px)` }}>
                     <span ref={(node) => { nears.current[i] = node; }} data-shadow="near" className="absolute inset-0 block bg-black/25" style={maskStyle(mask, fallback)} />

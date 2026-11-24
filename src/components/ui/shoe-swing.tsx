@@ -1,55 +1,46 @@
 import * as React from "react";
 
-/** Lebar papan ayunan & lebar sepatu, relatif terhadap tinggi raket. */
-export const SWING_W = 0.7;
-const SHOE_W = 0.6;
+/** Lebar ayunan & sepatu, relatif terhadap tinggi raket (skala nyata: raket 68 cm, sepatu ±30 cm). */
+export const SWING_W = 0.62;
+const SHOE_W = 0.45;
 /** Kanvas foto sepatu 2:1, sol menempel di tepi bawah. */
 export const SHOE_ASPECT = 2;
 
-/** Ayunan papan kayu bertali segitiga + sepatu. (ax, ay) = titik kait; digambar dalam kotak SWING_W·h × h. */
-export function ShoeSwing({ uid, h, ax, ay, image, hidden, shoeRef }: { uid: string; h: number; ax: number; ay: number; image: string; hidden: boolean; shoeRef: (n: HTMLSpanElement | null) => void }) {
-  const boardW = SWING_W * h;
+// Ayunan = render 3D, dua lapis: belakang (papan, tali belakang, cincin, bayangan) & tali depan.
+// Kanvas 0.62h × 0.97h; titik kait 0.0384h dari atas, permukaan papan 0.785h di bawah kait.
+const SPRITE_H = 0.97;
+const ANCHOR = 0.0384;
+const SEAT = 0.797;
+
+/** Ayunan papan kayu + sepatu. (ax, ay) = titik kait, dalam kotak SWING_W·h × h. */
+export function ShoeSwing({ h, ax, ay, image, hidden, shoeRef }: { h: number; ax: number; ay: number; image: string; hidden: boolean; shoeRef: (n: HTMLSpanElement | null) => void }) {
   const w = SHOE_W * h;
-  const boardY = h * 0.91; // papan sejajar ujung grip raket
-  const x0 = ax - boardW / 2;
-  const x1 = ax + boardW / 2;
-  const depth = w * 0.06;
-  const thick = Math.max(8, w * 0.042);
-  const inset = w * 0.055;
-  const eye = boardY + depth * 0.5;
-  const front = boardY + depth;
-  const id = `${uid}-sw`;
+  const sh = w / SHOE_ASPECT;
+  const base = ay + SEAT * h; // garis sol
+  const layer: React.CSSProperties = { left: ax - (SWING_W * h) / 2, top: ay - ANCHOR * h, width: SWING_W * h, height: SPRITE_H * h, maxWidth: "none" };
+  const mask = `url("${image}") center bottom / contain no-repeat`;
+  const shape: React.CSSProperties = { WebkitMask: mask, mask };
+  const box: React.CSSProperties = { left: ax - w / 2, top: base - sh, width: w, height: sh };
+  const off = hidden ? "opacity-0" : "opacity-100";
   return (
-    <>
-      <svg aria-hidden="true" width={boardW} height={h} className="pointer-events-none absolute inset-0 overflow-visible">
-        <defs>
-          <linearGradient id={`${id}-top`} x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor="#c69a68" /><stop offset="1" stopColor="#dfb988" /></linearGradient>
-          <linearGradient id={`${id}-edge`} x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor="#b98651" /><stop offset="1" stopColor="#8a5c32" /></linearGradient>
-          <filter id={`${id}-soft`} x="-20%" y="-200%" width="140%" height="500%"><feGaussianBlur stdDeviation="5" /></filter>
-        </defs>
-        {/* bayangan ke dinding */}
-        <path d={`M${x0 + inset + 8},${eye + 10} L${ax + 8},${ay + 10} L${x1 - inset + 8},${eye + 10}`} fill="none" stroke="#000" strokeOpacity=".1" strokeWidth="2" />
-        <rect x={x0 + 10} y={front + 12} width={boardW} height={thick} rx="6" fill="#000" fillOpacity=".22" filter={`url(#${id}-soft)`} />
-        {/* kawat baja */}
-        {([["#6b7280", 2.6], ["#d9dce1", 1.1]] as const).map(([c, t]) => (
-          <path key={c} d={`M${x0 + inset},${eye} L${ax},${ay} L${x1 - inset},${eye}`} fill="none" stroke={c} strokeWidth={t} strokeLinejoin="round" />
-        ))}
-        {/* papan kayu: permukaan atas + sisi depan */}
-        <path d={`M${x0 + depth * 0.9},${boardY} H${x1 - depth * 0.9} Q${x1 - depth * 0.3},${boardY} ${x1},${front} H${x0} Q${x0 + depth * 0.3},${boardY} ${x0 + depth * 0.9},${boardY} Z`} fill={`url(#${id}-top)`} />
-        <path d={`M${x0},${front} H${x1} V${front + thick - 5} Q${x1},${front + thick} ${x1 - 5},${front + thick} H${x0 + 5} Q${x0},${front + thick} ${x0},${front + thick - 5} Z`} fill={`url(#${id}-edge)`} />
-        {[0.3, 0.55, 0.78].map((k, n) => (
-          <path key={k} d={`M${x0 + 6 + n * 14},${front + thick * k} q${boardW * 0.25},${n % 2 ? 1.6 : -1.6} ${boardW * 0.5},0 t${boardW * 0.4 - n * 12},0`} fill="none" stroke="#6d4522" strokeOpacity=".35" strokeWidth=".8" />
-        ))}
-        <path d={`M${x0 + 2},${front + 0.6} H${x1 - 2}`} stroke="#f3d7ad" strokeOpacity=".8" strokeWidth="1" />
-        {/* bayangan sol */}
-        <ellipse cx={ax} cy={boardY + depth * 0.55} rx={w * 0.45} ry={depth * 0.34} fill="#3b2410" fillOpacity={hidden ? 0 : 0.5} filter={`url(#${id}-soft)`} />
-        {/* mur kawat */}
-        {[x0 + inset, x1 - inset].map((x) => <g key={x}><ellipse cx={x} cy={eye} rx="4.4" ry="2.4" fill="#4b5563" /><ellipse cx={x - 0.6} cy={eye - 0.6} rx="2.4" ry="1.1" fill="#d1d5db" /></g>)}
-      </svg>
-      <span ref={shoeRef} className="absolute block" style={{ left: ax - w / 2, top: boardY + depth * 0.62 - w / SHOE_ASPECT, width: w, height: w / SHOE_ASPECT, visibility: hidden ? "hidden" : undefined }}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={image} alt="" loading="lazy" decoding="async" draggable={false} className="pointer-events-none size-full select-none object-contain object-bottom" />
+    <span aria-hidden="true" className="pointer-events-none absolute inset-0">
+      {/* bayangan sepatu ke dinding */}
+      <span className={`absolute transition-opacity duration-300 ${off}`} style={{ ...box, transform: `translate(${0.03 * h}px, ${0.02 * h}px)`, filter: `blur(${0.016 * h}px)` }}>
+        <span className="absolute inset-0 bg-black/20" style={shape} />
       </span>
-    </>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/shoe-swing-back.webp" alt="" decoding="async" draggable={false} className="absolute select-none" style={layer} />
+      {/* bayangan sol di papan: siluet sepatu dipipihkan, lalu garis kontak gelap */}
+      <span className={`absolute transition-opacity duration-300 ${off}`} style={{ left: ax - w * 0.47, top: base - 0.017 * h, width: w * 0.98, height: 0.03 * h, filter: `blur(${0.007 * h}px)`, background: "radial-gradient(50% 50% at 50% 50%, rgba(40,22,8,.85) 60%, transparent)" }} />
+      <span className={`absolute transition-opacity duration-300 ${off}`} style={{ left: ax - w * 0.4, top: base - 0.01 * h, width: w * 0.82, height: 0.012 * h, filter: `blur(${0.0028 * h}px)`, background: "radial-gradient(50% 50% at 50% 50%, rgba(22,12,4,.9) 70%, transparent)" }} />
+      <span ref={shoeRef} className="absolute block" style={{ ...box, visibility: hidden ? "hidden" : undefined }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={image} alt="" loading="lazy" decoding="async" draggable={false} className="size-full select-none object-contain object-bottom" />
+        {/* cahaya: sisi bawah lebih gelap & sedikit pantulan hangat dari kayu */}
+        <span className="absolute inset-0 mix-blend-multiply" style={{ ...shape, background: "linear-gradient(to top, rgba(96,60,30,.55), rgba(140,110,85,.18) 12%, transparent 34%)" }} />
+      </span>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/shoe-swing-front.webp" alt="" decoding="async" draggable={false} className="absolute select-none" style={layer} />
+    </span>
   );
 }
