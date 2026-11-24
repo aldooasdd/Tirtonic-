@@ -10,6 +10,8 @@ import { articleHref } from "@/lib/article-slug";
 import ProductCard, { ProductCardData } from "@/components/ProductCard";
 import { rupiah } from "@/lib/format";
 import SeoBlock from "@/components/SeoBlock";
+import SkateDeckRailDemo from "@/components/ui/skate-deck-rail-demo";
+import { railItems } from "@/lib/rail-db";
 import HeroCarousel from "@/components/HeroCarousel";
 
 function fmtTanggal(d: Date) {
@@ -378,7 +380,7 @@ function GlassFilter() {
 }
 
 export default async function HomePage() {
-  const [stores, articles, slides, latest, deals, eventItems, popular, brands, sfBranches, sfActive, preorders] = await Promise.all([
+  const [stores, articles, slides, latest, deals, eventItems, popular, brands, sfBranches, sfActive, preorders, rak] = await Promise.all([
     safeQuery(() => prisma.store.findMany({ orderBy: [{ urutan: "asc" }, { nama: "asc" }] }), []),
     safeQuery(() => prisma.article.findMany({ orderBy: { tanggal: "desc" }, take: 8 }), []),
     safeQuery(
@@ -393,6 +395,7 @@ export default async function HomePage() {
     safeQuery(() => prisma.sfBranch.findMany({ where: { isActive: true, slug: { not: "tirtonic" } }, orderBy: { name: "asc" }, select: { id: true, name: true } }), []),
     safeQuery(() => prisma.sfOrder.findMany({ where: { status: { in: ["antri", "dikerjakan"] } }, orderBy: { createdAt: "asc" }, select: { resultCode: true, status: true, branchId: true, stringerName: true } }), []),
     safeQuery(() => prisma.preorderProduct.findMany({ where: { isActive: true, showOnLanding: true }, orderBy: { createdAt: "desc" }, take: 4, select: { id: true, nama: true, tagline: true, slogan: true, harga: true, gambar: true, bannerDesktop: true, bannerMobile: true, bannersDesktop: true, bannersMobile: true, estimasi: true, launchAt: true, kuota: true, variants: { select: { stok: true } }, _count: { select: { orders: true } } } }), []),
+    railItems(),
   ]);
   const toCard = (p: (typeof latest)[number]) => ({ id: p.id, slug: p.slug, nama: p.nama, harga: p.harga, hargaDiskon: p.hargaDiskon, gambar: p.gambar, status: p.status, fromPrice: p._count.variants > 0 });
   const arrivals = latest.map(toCard);
@@ -433,6 +436,11 @@ export default async function HomePage() {
         </p>
       </div>
       <PreorderBanners products={preorders} />
+      {rak.length > 0 && (
+        <section id="rak-raket" className="mx-auto max-w-site scroll-mt-20 sm:px-4 lg:px-6">
+          <SkateDeckRailDemo items={rak} className="" />
+        </section>
+      )}
       <EventPromo products={eventCards} title={eventItems[0]?.eventNama} />
       <BestDeal products={b1g1Deals} title="Buy 1 Get 1" href="/shop?b1g1=1" badge="Stok akhir" />
       <BrandPopular brands={brands.map((b) => ({ id: b.id, nama: b.nama, foto: b.foto }))} />

@@ -20,9 +20,9 @@ const SKATE_DEMO_DECKS: SkateDeck[] = [0, 1, 2].flatMap((k) => DECKS.map((d) => 
 /** Raket asli dari dashboard; href = halaman produk, stok = varian/harga/stok untuk popup. */
 export type RailItem = SkateDeck & { href: string; stok: RailStok };
 
-export default function SkateDeckRailDemo({ items, autoplay = true }: { items: RailItem[]; autoplay?: boolean }) {
+export default function SkateDeckRailDemo({ items, autoplay = true, className = "min-h-svh" }: { items: RailItem[]; autoplay?: boolean; className?: string }) {
   return (
-    <div data-skate-demo className="flex min-h-svh w-full items-center justify-center bg-background text-foreground">
+    <div data-skate-demo className={`flex w-full items-center justify-center bg-background text-foreground ${className}`}>
       <SkateDeckRail
         items={items.length ? items : SKATE_DEMO_DECKS}
         heading="Pilih raketmu"

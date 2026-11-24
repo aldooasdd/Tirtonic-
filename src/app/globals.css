@@ -6,6 +6,21 @@
   --site-max: 1200px;
 }
 
+:root {
+  /* token komponen rak raket (skate-deck-rail) */
+  --color-background: #ffffff;
+  --color-foreground: #0a0a0a;
+  --color-card: #ffffff;
+  --color-card-foreground: #0a0a0a;
+  --color-muted-foreground: #71717a;
+  --color-border: #e4e4e7;
+  --color-ring: #0a0a0a;
+  --color-chart-1: #e76e50;
+  --color-chart-2: #2a9d90;
+  --color-chart-3: #274754;
+  --color-chart-4: #e8c468;
+  --color-chart-5: #f4a462;
+}
 body {
   color: #1a1a1a;
   background: #ffffff;
