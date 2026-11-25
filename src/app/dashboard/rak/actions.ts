@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireSection } from "@/lib/auth";
+import { bagTag, jenisRak, validBag } from "@/lib/rail";
 import { uploadFile, storageConfigured } from "@/lib/storage";
 
 function refresh() {
@@ -19,10 +20,18 @@ export async function saveRail(fd: FormData): Promise<{ error?: string }> {
   if (!(file instanceof File) || !file.size) return { error: "Pilih foto dulu." };
   if (!["image/webp", "image/png"].includes(file.type) || file.size > 1_000_000) return { error: "Format atau ukuran foto tidak cocok." };
   if (!storageConfigured) return { error: "Penyimpanan foto belum dikonfigurasi." };
-  if (!(await prisma.product.findUnique({ where: { id: productId }, select: { id: true } }))) return { error: "Pilih barangnya dulu." };
+  const p = await prisma.product.findUnique({ where: { id: productId }, select: { kategori: true } });
+  if (!p) return { error: "Pilih barangnya dulu." };
+  let tag = "";
+  if (jenisRak(p.kategori) === "tas") {
+    const [ratio, x, y, grip] = String(fd.get("tas") || "").split(",").map(Number);
+    const bag = validBag({ ratio, x, y, grip });
+    if (!bag) return { error: "Titik gantung tas tidak terbaca. Upload ulang fotonya." };
+    tag = bagTag(bag);
+  }
   try {
     const last = await prisma.racketRail.aggregate({ _max: { urutan: true } }); // cek tabel dulu sebelum upload
-    const foto = await uploadFile(file, "rak");
+    const foto = (await uploadFile(file, "rak")) + tag;
     await prisma.racketRail.upsert({ where: { productId }, update: { foto }, create: { productId, foto, urutan: (last._max.urutan ?? 0) + 1 } });
   } catch (e) {
     console.error("saveRail gagal:", e);

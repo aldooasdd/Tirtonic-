@@ -22,21 +22,22 @@ export type RailItem = SkateDeck & { href: string; stok: RailStok };
 
 export default function SkateDeckRailDemo({ items, autoplay = true, className = "min-h-svh" }: { items: (RailItem | SkateDeck)[]; autoplay?: boolean; className?: string }) {
   const sepatu = items.some((x) => x.shoe);
-  const raket = !sepatu || items.some((x) => !x.shoe);
-  const tautan = [raket && ["Raket", "Lihat semua raket"], sepatu && ["Sepatu", "Lihat semua sepatu"]].filter(Boolean) as string[][];
+  const tas = items.some((x) => x.bag);
+  const raket = items.some((x) => !x.shoe && !x.bag) || !items.length;
+  const tautan = [raket && ["Raket%20Tenis", "Lihat semua raket"], sepatu && ["Sepatu%20Tenis", "Lihat semua sepatu"], tas && ["Tas", "Lihat semua tas"]].filter(Boolean) as string[][];
   return (
     <div data-skate-demo className={`flex w-full items-center justify-center bg-background text-foreground ${className}`}>
       <SkateDeckRail
         items={items.length ? items : SKATE_DEMO_DECKS}
         heading="Pilih Produk Bonus Merchandise"
-        caption={sepatu ? "Geser untuk lihat yang lain, klik untuk beli." : "Geser untuk lihat raket lain, klik untuk beli."}
+        caption={sepatu || tas ? "Geser untuk lihat yang lain, klik untuk beli." : "Geser untuk lihat raket lain, klik untuk beli."}
         interval={3600}
         autoplay={autoplay}
         detailAction={(deck) => "stok" in deck ? <RailBuy awal={(deck as RailItem).stok} href={(deck as RailItem).href} /> : null}
         action={
           <div className="flex flex-wrap justify-center gap-2">
             {tautan.map(([k, teks]) => (
-          <a key={k} href={`/shop?type=${k}%20Tenis`} className="rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-white shadow-sm outline-none transition-[transform,box-shadow] hover:-translate-y-px hover:shadow-md focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none">
+          <a key={k} href={`/shop?type=${k}`} className="rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-white shadow-sm outline-none transition-[transform,box-shadow] hover:-translate-y-px hover:shadow-md focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none">
             {teks}
           </a>
             ))}

@@ -3,14 +3,14 @@ import { isAuthed, can } from "@/lib/auth";
 import { prisma, safeQuery } from "@/lib/prisma";
 import { productHref } from "@/lib/product-slug";
 import { PageHeader, card } from "@/components/dashboard/ui";
-import { KATEGORI_RAK } from "@/lib/rail";
+import { KATEGORI_RAK, jenisRak } from "@/lib/rail";
 import MerchForm from "@/components/MerchForm";
 import RailForm from "@/components/RailForm";
 import ConfirmSubmit from "@/components/ConfirmSubmit";
 import { deleteRail } from "./actions";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Rak Raket & Sepatu — Tirtonic" };
+export const metadata = { title: "Rak Landing — Tirtonic" };
 
 export default async function RakPage() {
   if (!isAuthed()) redirect("/dashboard/login");
@@ -19,7 +19,7 @@ export default async function RakPage() {
   const [products, rail, calon, merch] = await Promise.all([
     safeQuery(() => prisma.product.findMany({ where: { kategori: { in: Object.values(KATEGORI_RAK) } }, orderBy: { nama: "asc" }, select: { id: true, nama: true, gambar: true, kategori: true } }), []),
     safeQuery(() => prisma.racketRail.findMany({ orderBy: [{ urutan: "asc" }, { createdAt: "asc" }], include: { product: { select: { id: true, nama: true, slug: true, kategori: true, status: true, stok: true, variants: { select: { stok: true } } } } } }), []),
-    safeQuery(() => prisma.product.findMany({ where: { kategori: { notIn: Object.values(KATEGORI_RAK) }, status: "READY" }, orderBy: { nama: "asc" }, select: { id: true, nama: true, gambar: true, kategori: true, stok: true, variants: { select: { stok: true } } } }), []),
+    safeQuery(() => prisma.product.findMany({ where: { kategori: { notIn: [KATEGORI_RAK.raket, KATEGORI_RAK.sepatu] }, status: "READY" }, orderBy: { nama: "asc" }, select: { id: true, nama: true, gambar: true, kategori: true, stok: true, variants: { select: { stok: true } } } }), []),
     safeQuery(() => prisma.merchandise.findMany({ select: { productId: true } }), []),
   ]);
   const bonus = new Set(merch.map((m) => m.productId));
@@ -27,9 +27,9 @@ export default async function RakPage() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-5">
-      <PageHeader title="Rak Raket & Sepatu" desc="Pilih raket atau sepatu, upload fotonya, pilih barangnya, lalu tampil di rak landing. Nama dan harga ikut data produk, urutan diacak otomatis." />
+      <PageHeader title="Rak Landing" desc="Pilih raket, sepatu, atau tas, upload fotonya, pilih barangnya, lalu tampil di rak landing. Nama dan harga ikut data produk, urutan diacak otomatis." />
       <section className={`${card} p-5`}>
-        <RailForm items={products.map((p) => ({ id: p.id, nama: p.nama, foto: p.gambar[0] ?? null, jenis: p.kategori === KATEGORI_RAK.sepatu ? "sepatu" as const : "raket" as const, dipakai: used.has(p.id) }))} />
+        <RailForm items={products.map((p) => ({ id: p.id, nama: p.nama, foto: p.gambar[0] ?? null, jenis: jenisRak(p.kategori), dipakai: used.has(p.id) }))} />
       </section>
       <section className={`${card} p-5`}>
         <div className="mb-4 flex items-center justify-between">
@@ -48,7 +48,7 @@ export default async function RakPage() {
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img loading="lazy" src={r.foto} alt="" className="mb-2 h-40 w-full object-contain" />
                   <a href={productHref(p)} target="_blank" rel="noreferrer" className="line-clamp-2 min-h-[2.25rem] text-xs font-semibold text-gray-900 hover:text-primary">{p.nama}</a>
-                  <p className={`mt-1 text-[11px] ${habis ? "text-red-600" : "text-green-700"}`}>{habis ? "Stok habis, tidak tampil" : "Tampil"} · {p.kategori === KATEGORI_RAK.sepatu ? "Sepatu" : "Raket"}</p>
+                  <p className={`mt-1 text-[11px] ${habis ? "text-red-600" : "text-green-700"}`}>{habis ? "Stok habis, tidak tampil" : "Tampil"} · {{ raket: "Raket", sepatu: "Sepatu", tas: "Tas" }[jenisRak(p.kategori)]}</p>
                   <div className="mt-2 flex items-center gap-1">
                     <form action={deleteRail.bind(null, r.id)} className="ml-auto"><ConfirmSubmit message={`Turunkan ${p.nama} dari rak? Produknya tidak dihapus.`} className="text-xs font-semibold text-red-600">Hapus</ConfirmSubmit></form>
                   </div>
