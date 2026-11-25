@@ -1090,14 +1090,14 @@ function Detail({ uid, item, index, total, labels, reduced, fallback, extra, sou
           {fallback ? <FallbackArt tone={index} /> : <img src={item.image} alt={item.name} draggable={false} className="pointer-events-none absolute inset-0 size-full select-none object-contain" />}
         </div>
         <div className={`relative flex w-full min-w-0 flex-col items-start gap-3 transition-[opacity,transform] delay-150 duration-500 motion-reduce:transition-none ${shown ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"}`}>
-          <p className="font-mono text-[11px] tracking-[0.2em] text-zinc-700">
+          <p className="text-xs text-zinc-700">
             {String(index + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}{item.series ? ` · ${item.series}` : ""}
           </p>
           <h3 id={titleId} className="text-balance text-xl font-medium tracking-tight sm:text-3xl">{item.name}</h3>
           {!extra && (item.tag || item.width) && (
             <div className="flex flex-wrap items-baseline gap-3">
               {item.tag && <span className="text-lg font-semibold tabular-nums">{item.tag}</span>}
-              {item.width && <span className="rounded-md border border-border px-2 py-0.5 font-mono text-xs text-zinc-700">{item.width}</span>}
+              {item.width && <span className="rounded-md border border-border px-2 py-0.5 text-xs text-zinc-700">{item.width}</span>}
             </div>
           )}
           {item.description && <p className="text-sm leading-relaxed text-zinc-700">{item.description}</p>}
