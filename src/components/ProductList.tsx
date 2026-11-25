@@ -4,7 +4,7 @@ import { useState } from "react";
 import { rupiah } from "@/lib/format";
 import ProductRowActions from "./ProductRowActions";
 
-type P = { id: string; nama: string; kategori: string; harga: number; status: "READY" | "SOLD"; gambar: string[]; habis?: boolean };
+type P = { id: string; nama: string; kategori: string; harga: number; status: "READY" | "SOLD"; gambar: string[]; habis?: boolean; stok: number | null; varian: { nama: string; stok: number }[] };
 
 const FILTERS = [
   { key: "all", label: "Semua" },
@@ -59,13 +59,14 @@ export default function ProductList({ products }: { products: P[] }) {
               <th className="px-5 py-3 font-semibold">Produk</th>
               <th className="px-5 py-3 font-semibold">Kategori</th>
               <th className="px-5 py-3 font-semibold">Harga</th>
+              <th className="px-5 py-3 font-semibold">Stok</th>
               <th className="px-5 py-3 font-semibold">Status / Aksi</th>
             </tr>
           </thead>
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={4} className="px-5 py-12 text-center text-gray-400">
+                <td colSpan={5} className="px-5 py-12 text-center text-gray-400">
                   {products.length === 0 ? "Belum ada produk. Tambahkan lewat panel di atas." : query ? `Tidak ada produk cocok "${q}".` : filter === "habis" ? "Tidak ada produk yang habis." : "Tidak ada produk."}
                 </td>
               </tr>
@@ -87,7 +88,29 @@ export default function ProductList({ products }: { products: P[] }) {
                     </div>
                   </td>
                   <td className="px-5 py-3 text-gray-600">{p.kategori}</td>
-                  <td className="px-5 py-3 font-semibold text-gray-900">{rupiah(p.harga)}</td>
+                  <td className="whitespace-nowrap px-5 py-3 font-semibold text-gray-900">{rupiah(p.harga)}</td>
+                  <td className="whitespace-nowrap px-5 py-3">
+                    {p.varian.length ? (
+                      <details>
+                        <summary className="cursor-pointer" title="Lihat stok per varian">
+                          <span className={`font-semibold tabular-nums ${p.stok ? "text-gray-900" : "text-red-600"}`}>{p.stok}</span>
+                          <span className="ml-1.5 text-xs text-gray-400">{p.varian.length} varian</span>
+                        </summary>
+                        <ul className="mt-1.5 space-y-0.5 text-xs">
+                          {p.varian.map((v, i) => (
+                            <li key={i} className={`flex justify-between gap-4 ${v.stok > 0 ? "text-gray-600" : "text-red-500"}`}>
+                              <span>{v.nama || "-"}</span>
+                              <span className="font-semibold tabular-nums">{v.stok}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </details>
+                    ) : p.stok == null ? (
+                      <span className="text-xs text-gray-400">Tak dibatasi</span>
+                    ) : (
+                      <span className={`font-semibold tabular-nums ${p.stok > 0 ? "text-gray-900" : "text-red-600"}`}>{p.stok}</span>
+                    )}
+                  </td>
                   <td className="px-5 py-3">
                     <ProductRowActions id={p.id} status={p.status} />
                   </td>

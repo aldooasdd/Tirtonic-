@@ -32,7 +32,7 @@ export default async function AdminDashboard() {
   }
 
   const [products, slides, stores, brands, articles, sponsorships, coupons] = await Promise.all([
-    safeQuery(() => prisma.product.findMany({ orderBy: { createdAt: "desc" }, include: { variants: { select: { stok: true } } } }), []),
+    safeQuery(() => prisma.product.findMany({ orderBy: { createdAt: "desc" }, include: { variants: { select: { stok: true, warna: true, ukuran: true }, orderBy: { urutan: "asc" } } } }), []),
     safeQuery(() => prisma.heroSlide.findMany({ orderBy: [{ urutan: "asc" }, { createdAt: "asc" }] }), []),
     safeQuery(() => prisma.store.findMany({ orderBy: [{ urutan: "asc" }, { nama: "asc" }] }), []),
     safeQuery(() => prisma.popularBrand.findMany({ orderBy: [{ urutan: "asc" }, { nama: "asc" }] }), []),
@@ -496,6 +496,8 @@ export default async function AdminDashboard() {
                 status: p.status,
                 gambar: p.gambar,
                 habis: isHabis(p),
+                stok: p.variants.length ? p.variants.reduce((a, v) => a + Math.max(0, v.stok), 0) : p.stok,
+                varian: p.variants.map((v) => ({ nama: [v.warna, v.ukuran].filter(Boolean).join(" "), stok: v.stok })),
               }))}
             />
           </div>
