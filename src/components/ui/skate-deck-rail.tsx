@@ -234,6 +234,44 @@ function progress(turn: number, i: number) {
   return clamp(1 - turn / restAngle(i), 0, 1.12);
 }
 
+type Bagian = { [k in "hangs" | "swings" | "turns" | "shades" | "glints" | "nears" | "fars"]: React.MutableRefObject<(HTMLSpanElement | null)[]> };
+
+/** Isi satu gantungan. Memo: geser/pilih tidak menggambar ulang semua barang. ringan = HP, tanpa kilau & bayangan jauh. */
+const Isi = React.memo(function Isi({ uid, item, i, h, fallback, diangkat, ringan, bagian, gagal }: { uid: string; item: SkateDeck; i: number; h: number; fallback: boolean; diangkat: boolean; ringan: boolean; bagian: Bagian; gagal: (id: string) => void }) {
+  const mask = fallback ? FALLBACK_MASK : `url("${item.image}")`;
+  const w = widthOf(h, jenisOf(item));
+  const hook = hookGeometry(h);
+  return (
+              <span ref={(node) => { bagian.hangs.current[i] = node; }} data-hang className="absolute inset-0 will-change-transform" style={{ transformOrigin: `calc(50% + ${hook.pivotX.toFixed(2)}px) ${hook.pivotY.toFixed(2)}px` }}>
+                <Hook uid={uid} h={h} part="back" />
+                <span ref={(node) => { bagian.swings.current[i] = node; }} data-swing className="absolute inset-0 will-change-transform" style={{ transformOrigin: `50% ${HOLE_Y * 100}%`, visibility: diangkat && !item.shoe && !item.bag ? "hidden" : undefined }}>
+                  {item.bag ? (
+                    <BagHang h={h} ax={w / 2 + hook.hang.x} ay={hook.hang.y} image={item.image} bag={item.bag} hidden={diangkat} bagRef={(node) => { bagian.turns.current[i] = node; }} />
+                  ) : item.shoe ? (
+                    <ShoeSwing h={h} ax={w / 2 + hook.hang.x} ay={hook.hang.y} image={item.image} hidden={diangkat} shoeRef={(node) => { bagian.turns.current[i] = node; }} />
+                  ) : (<>
+                  <span aria-hidden="true" className="pointer-events-none absolute inset-0" style={{ filter: `blur(${Math.max(2, h * 0.008).toFixed(1)}px)` }}>
+                    <span ref={(node) => { bagian.nears.current[i] = node; }} data-shadow="near" className="absolute inset-0 block bg-black/25" style={maskStyle(mask, fallback)} />
+                  </span>
+                  {!ringan && <span aria-hidden="true" className="pointer-events-none absolute inset-0" style={{ filter: `blur(${Math.max(6, h * 0.03).toFixed(1)}px)` }}>
+                    <span ref={(node) => { bagian.fars.current[i] = node; }} data-shadow="far" className="absolute inset-0 block bg-black/20 opacity-0" style={maskStyle(mask, fallback)} />
+                  </span>}
+                  <span ref={(node) => { bagian.turns.current[i] = node; }} data-turn className="absolute inset-0 will-change-transform" style={{ transformOrigin: `50% ${HOLE_Y * 100}%`, transform: `perspective(${PERSPECTIVE}px) rotateY(${restAngle(i)}deg)` }}>
+                    {fallback
+                      ? <FallbackArt tone={i} />
+                      : <img src={item.image} alt="" loading="lazy" draggable={false} decoding="async" onError={() => gagal(item.id)} className="pointer-events-none absolute inset-0 size-full select-none object-contain" />}
+                    <span ref={(node) => { bagian.shades.current[i] = node; }} aria-hidden="true" data-shade className="pointer-events-none absolute inset-0" style={{ ...maskStyle(mask, fallback), background: REST_SHADE }} />
+                    {!ringan && <span aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden" style={maskStyle(mask, fallback)}>
+                      <span ref={(node) => { bagian.glints.current[i] = node; }} className="absolute inset-y-0 left-0 w-[70%] opacity-0" style={{ background: "linear-gradient(90deg, transparent, color-mix(in oklab, white 55%, transparent) 50%, transparent)" }} />
+                    </span>}
+                  </span>
+                  </>)}
+                </span>
+                <Hook uid={uid} h={h} part="front" />
+              </span>
+  );
+});
+
 export function SkateDeckRail({
   items: produk,
   eyebrow,
@@ -264,6 +302,8 @@ export function SkateDeckRail({
   const glints = React.useRef([] as (HTMLSpanElement | null)[]);
   const nears = React.useRef([] as (HTMLSpanElement | null)[]);
   const fars = React.useRef([] as (HTMLSpanElement | null)[]);
+  const bagian = React.useRef({ hangs, swings, turns, shades, glints, nears, fars }).current;
+  const gagal = React.useCallback((id: string) => setFailed((old) => (old[id] ? old : { ...old, [id]: true })), []);
   const sim = React.useRef(emptySim());
   const [size, setSize] = React.useState({ width: 0, h: 300, carousel: false });
   const [innerActive, setInnerActive] = React.useState(null as number | null);
@@ -353,12 +393,20 @@ export function SkateDeckRail({
     const deckW = widthOf(h, jenis);
     const slot = slots.current[i];
     if (!slot) return;
+    // di luar layar: sembunyikan & jangan digambar tiap frame
+    const { width } = live.current.size;
+    const jauh = Math.abs((s.x[i] ?? 0) - width / 2) > width / 2 + deckW;
+    const hang = hangs.current[i];
+    if (hang) {
+      const v = jauh ? "hidden" : "";
+      if (hang.style.visibility !== v) hang.style.visibility = v;
+      else if (jauh) return;
+    }
     const angle = s.turn[i] ?? restAngle(i);
     const e = progress(angle, i);
     const lift = Math.min(1, e);
     const theta = (s.swing[i] ?? 0) * (shoe ? 0.55 : 1); // sepatu & tas lebih berat, ayunan lebih kecil
     slot.style.transform = `translate3d(${((s.x[i] ?? 0) - deckW / 2).toFixed(2)}px,0,0)`;
-    const hang = hangs.current[i];
     if (hang) hang.style.transform = `rotate(${(theta * HANG_SHARE).toFixed(3)}deg)`;
     const sw = swings.current[i];
     if (sw) sw.style.transform = `rotate(${(theta * (1 - HANG_SHARE)).toFixed(3)}deg)`;
@@ -408,11 +456,14 @@ export function SkateDeckRail({
       }
       for (let i = 0; i < n; i++) { s.tx[i] = railX(i); s.x[i] = s.tx[i] ?? 0; s.vx[i] = 0; }
     }
+    // HP: selama jari menempel, barang ikut jari persis (tanpa pegas)
+    const jari = carousel && pointer.current.id >= 0 && pointer.current.moved;
+    if (jari) for (let i = 0; i < n; i++) { s.x[i] = s.tx[i] ?? 0; s.vx[i] = 0; }
     const sub = Math.max(2, Math.ceil(dt / 0.017));
     const sdt = dt / sub;
     for (let k = 0; k < sub; k++) {
       for (let i = 0; i < n; i++) {
-        if (!carousel) break; // mode rel: posisi ikut geseran, bukan pegas
+        if (!carousel || jari) break; // mode rel: posisi ikut geseran, bukan pegas
         const restoring = now > s.free;
         const stiff = restoring ? 130 : 0;
         const damp = restoring ? 2 * Math.sqrt(130) * 0.86 : 3.2;
@@ -420,7 +471,7 @@ export function SkateDeckRail({
         s.vx[i] = (s.vx[i] ?? 0) + ax * sdt;
         s.x[i] = (s.x[i] ?? 0) + (s.vx[i] ?? 0) * sdt;
       }
-      for (let pass = 0; pass < 2; pass++) {
+      for (let pass = 0; pass < (carousel && !jari ? 2 : 0); pass++) {
         for (let i = 0; i < n - 1; i++) {
           const a = s.x[i] ?? 0;
           const b = s.x[i + 1] ?? 0;
@@ -483,7 +534,7 @@ export function SkateDeckRail({
       s.frameV[i] = v;
       s.acc[i] = (s.acc[i] ?? 0) * 0.5 + clamp(a, -30000, 30000) * 0.5;
     }
-    let busy = s.drag >= 0 || now < s.free || (!carousel && (s.pan || s.sv !== 0 || s.goal !== null));
+    let busy = jari || s.drag >= 0 || now < s.free || (!carousel && (s.pan || s.sv !== 0 || s.goal !== null));
     for (let i = 0; i < n; i++) {
       paint(i);
       if (Math.abs(s.vx[i] ?? 0) > 0.4 || (now > s.free && Math.abs((s.x[i] ?? 0) - (s.tx[i] ?? 0)) > 0.25) || Math.abs((s.turn[i] ?? 0) - (s.tturn[i] ?? 0)) > 0.05 || Math.abs(s.vturn[i] ?? 0) > 0.05 || Math.abs(s.swing[i] ?? 0) > 0.02 || Math.abs(s.vswing[i] ?? 0) > 0.05 || Math.abs(s.tag[i] ?? 0) > 0.05 || Math.abs(s.vtag[i] ?? 0) > 0.08 || Math.abs(s.acc[i] ?? 0) > 1) busy = true;
@@ -591,6 +642,11 @@ export function SkateDeckRail({
     kick();
   }, [size, active, count, items, reduced, targets, railX, paint, kick]);
 
+  React.useLayoutEffect(() => {
+    if (!size.width) return;
+    for (let i = 0; i < count; i++) if (hangs.current[i]) paint(i);
+  }, [carouselIndex, size, count, paint]);
+
   const brushed = React.useRef(false);
   React.useEffect(() => {
     if (!size.width || brushed.current || reduced) return;
@@ -627,6 +683,8 @@ export function SkateDeckRail({
   React.useEffect(() => {
     if (!playing || reduced || openIndex !== null || count === 0 || !size.width) return;
     let timer = window.setTimeout(function advance() {
+      const kotak = stageRef.current?.getBoundingClientRect();
+      if (document.hidden || !kotak || kotak.bottom < 0 || kotak.top > window.innerHeight) { timer = window.setTimeout(advance, interval); return; }
       const current = live.current.active;
       const s = sim.current;
       // belum ada yang dipilih → mulai dari yang paling dekat tengah layar
@@ -700,8 +758,7 @@ export function SkateDeckRail({
           kick();
         } else {
           p.swipe = dx;
-          const { xs } = targets(live.current.size.h, live.current.size.width, true, live.current.active ?? live.current.carouselIndex);
-          for (let i = 0; i < live.current.count; i++) s.tx[i] = (xs[i] ?? 0) + dx;
+          for (let i = 0; i < live.current.count; i++) s.tx[i] = (s.base[i] ?? 0) + dx;
           kick();
         }
       }
@@ -747,6 +804,8 @@ export function SkateDeckRail({
       const current = live.current.active ?? live.current.carouselIndex;
       const advance = Math.abs(dx) > 40 || Math.abs(p.v) > 0.45 ? (dx < 0 ? 1 : -1) : 0;
       pointer.current.swipe = 0;
+      const v = clamp(p.v * 1000, -2200, 2200) * clamp(1 - (performance.now() - p.lastT) / 120, 0, 1);
+      for (let i = 0; i < live.current.count; i++) { s.tx[i] = s.base[i] ?? 0; s.vx[i] = v; }
       choose(mod(current + advance, live.current.count));
       for (let i = 0; i < live.current.count; i++) impulse(i, clamp(-p.v * 22, -30, 30));
       return;
@@ -790,7 +849,11 @@ export function SkateDeckRail({
   };
 
   const current = active === null ? null : items[active];
-  const hook = hookGeometry(size.h);
+  // dipasang hanya yang dekat: HP ±3, sebelum ukuran layar diketahui ±6, desktop semua
+  const dipasang = (i: number) => {
+    const d = Math.abs(wrap(i - (carouselIndex ?? middle), count));
+    return lifted === i || openIndex === i || (!size.width ? d <= 6 : !size.carousel || d <= 3);
+  };
 
   return (
     <section
@@ -834,7 +897,6 @@ export function SkateDeckRail({
 
         {items.map((item, i) => {
           const fallback = !!failed[item.id];
-          const mask = fallback ? FALLBACK_MASK : `url("${item.image}")`;
           const facing = active === i;
           const w = widthOf(size.h, jenisOf(item));
           return (
@@ -853,33 +915,7 @@ export function SkateDeckRail({
               onFocus={() => { setFocusIndex(i); if (pointer.current.id < 0) { stop(); choose(i); reveal(i); } }}
               onClick={(event) => { const pending = pendingOpen.current; pendingOpen.current = -1; if (event.detail === 0 || pending === i) open(i); }}
             >
-              <span ref={(node) => { hangs.current[i] = node; }} data-hang className="absolute inset-0" style={{ transformOrigin: `calc(50% + ${hook.pivotX.toFixed(2)}px) ${hook.pivotY.toFixed(2)}px` }}>
-                <Hook uid={uid} h={size.h} part="back" />
-                <span ref={(node) => { swings.current[i] = node; }} data-swing className="absolute inset-0" style={{ transformOrigin: `50% ${HOLE_Y * 100}%`, visibility: lifted === i && !item.shoe && !item.bag ? "hidden" : undefined }}>
-                  {item.bag ? (
-                    <BagHang h={size.h} ax={w / 2 + hook.hang.x} ay={hook.hang.y} image={item.image} bag={item.bag} hidden={lifted === i} bagRef={(node) => { turns.current[i] = node; }} />
-                  ) : item.shoe ? (
-                    <ShoeSwing h={size.h} ax={w / 2 + hook.hang.x} ay={hook.hang.y} image={item.image} hidden={lifted === i} shoeRef={(node) => { turns.current[i] = node; }} />
-                  ) : (<>
-                  <span aria-hidden="true" className="pointer-events-none absolute inset-0" style={{ filter: `blur(${Math.max(2, size.h * 0.008).toFixed(1)}px)` }}>
-                    <span ref={(node) => { nears.current[i] = node; }} data-shadow="near" className="absolute inset-0 block bg-black/25" style={maskStyle(mask, fallback)} />
-                  </span>
-                  <span aria-hidden="true" className="pointer-events-none absolute inset-0" style={{ filter: `blur(${Math.max(6, size.h * 0.03).toFixed(1)}px)` }}>
-                    <span ref={(node) => { fars.current[i] = node; }} data-shadow="far" className="absolute inset-0 block bg-black/20 opacity-0" style={maskStyle(mask, fallback)} />
-                  </span>
-                  <span ref={(node) => { turns.current[i] = node; }} data-turn className="absolute inset-0" style={{ transformOrigin: `50% ${HOLE_Y * 100}%`, transform: `perspective(${PERSPECTIVE}px) rotateY(${restAngle(i)}deg)` }}>
-                    {fallback
-                      ? <FallbackArt tone={i} />
-                      : <img src={item.image} alt="" loading="lazy" draggable={false} decoding="async" onError={() => setFailed((old) => (old[item.id] ? old : { ...old, [item.id]: true }))} className="pointer-events-none absolute inset-0 size-full select-none object-contain" />}
-                    <span ref={(node) => { shades.current[i] = node; }} aria-hidden="true" data-shade className="pointer-events-none absolute inset-0" style={{ ...maskStyle(mask, fallback), background: REST_SHADE }} />
-                    <span aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden" style={maskStyle(mask, fallback)}>
-                      <span ref={(node) => { glints.current[i] = node; }} className="absolute inset-y-0 left-0 w-[70%] opacity-0" style={{ background: "linear-gradient(90deg, transparent, color-mix(in oklab, white 55%, transparent) 50%, transparent)" }} />
-                    </span>
-                  </span>
-                  </>)}
-                </span>
-                <Hook uid={uid} h={size.h} part="front" />
-              </span>
+              {dipasang(i) && <Isi uid={uid} item={item} i={i} h={size.h} fallback={fallback} diangkat={lifted === i} ringan={size.carousel} bagian={bagian} gagal={gagal} />}
               <span className={`pointer-events-none absolute left-1/2 flex -translate-x-1/2 flex-col items-center gap-1 text-center transition-opacity duration-300 motion-reduce:transition-none ${size.carousel && carouselIndex !== i ? "opacity-0" : ""}`} style={{ top: size.h * (1 + FOOT) + 4, width: size.carousel ? Math.min(280, size.width - 48) : w * (item.shoe || item.bag ? 1.1 : 1.4) }}>
                 <span className="text-sm font-medium leading-tight">{item.name}</span>
                 {item.tag && <span className={`text-[13px] tabular-nums transition-colors duration-300 ${facing ? "font-semibold text-primary" : "text-muted-foreground"}`}>{item.tag}</span>}

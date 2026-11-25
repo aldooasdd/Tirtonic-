@@ -37,7 +37,7 @@ export function ShoeSwing({ h, ax, ay, image, hidden, shoeRef }: { h: number; ax
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={image} alt="" loading="lazy" decoding="async" draggable={false} className="size-full select-none object-contain object-bottom" />
         {/* cahaya: sisi bawah lebih gelap & sedikit redup dari plat */}
-        <span className="absolute inset-0 mix-blend-multiply" style={{ ...shape, background: "linear-gradient(to top, rgba(80,84,92,.5), rgba(120,124,130,.16) 12%, transparent 34%)" }} />
+        <span className="absolute inset-0" style={{ ...shape, background: "linear-gradient(to top, rgba(20,22,26,.32), rgba(20,22,26,.1) 12%, transparent 34%)" }} />
       </span>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/shoe-swing-front.webp" alt="" decoding="async" draggable={false} className="absolute select-none" style={layer} />
