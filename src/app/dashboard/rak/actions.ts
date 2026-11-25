@@ -24,8 +24,8 @@ export async function saveRail(fd: FormData): Promise<{ error?: string }> {
   if (!p) return { error: "Pilih barangnya dulu." };
   let tag = "";
   if (jenisRak(p.kategori) === "tas") {
-    const [ratio, x, y, grip] = String(fd.get("tas") || "").split(",").map(Number);
-    const bag = validBag({ ratio, x, y, grip });
+    const [ratio, x, y, grip, skala] = String(fd.get("tas") || "").split(",").map(Number);
+    const bag = validBag({ ratio, x, y, grip, skala });
     if (!bag) return { error: "Titik gantung tas tidak terbaca. Upload ulang fotonya." };
     tag = bagTag(bag);
   }

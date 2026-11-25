@@ -12,16 +12,18 @@ export type JenisRak = keyof typeof KATEGORI_RAK;
 export const jenisRak = (kategori: string): JenisRak => (kategori === KATEGORI_RAK.sepatu ? "sepatu" : kategori === KATEGORI_RAK.tas ? "tas" : "raket");
 
 /** Tas: rasio foto, titik ikat tali (x, y = atas handle), tebal handle; semua 0–1. grip 0 = tanpa lubang handle. */
-export type BagInfo = { ratio: number; x: number; y: number; grip: number };
+/** skala = ukuran di rak, 0.5–1 (tanpa isi = 1). */
+export type BagInfo = { ratio: number; x: number; y: number; grip: number; skala?: number };
 /** Info tas disimpan di ujung URL foto (#tas=…), jadi tak perlu kolom baru. */
-export const bagTag = (b: BagInfo) => `#tas=${[b.ratio, b.x, b.y, b.grip].map((n) => n.toFixed(4)).join(",")}`;
+export const bagTag = (b: BagInfo) => `#tas=${[b.ratio, b.x, b.y, b.grip, b.skala ?? 1].map((n) => n.toFixed(4)).join(",")}`;
 export function bagFrom(foto: string): { url: string; bag: BagInfo | null } {
   const [url, tag] = foto.split("#tas=");
   const n = (tag ?? "").split(",").map(Number);
-  return { url, bag: n.length === 4 ? validBag({ ratio: n[0], x: n[1], y: n[2], grip: n[3] }) : null };
+  return { url, bag: n.length === 4 || n.length === 5 ? validBag({ ratio: n[0], x: n[1], y: n[2], grip: n[3], skala: n[4] ?? 1 }) : null };
 }
 export function validBag(b: BagInfo): BagInfo | null {
-  const ok = [b.ratio, b.x, b.y, b.grip].every(Number.isFinite) && b.ratio > 0.3 && b.ratio < 4 && b.x >= 0.1 && b.x <= 0.9 && b.y >= 0 && b.y < 0.8 && b.grip >= 0 && b.grip <= 0.3;
+  const k = b.skala ?? 1;
+  const ok = [b.ratio, b.x, b.y, b.grip, k].every(Number.isFinite) && k >= 0.5 && k <= 1 && b.ratio > 0.3 && b.ratio < 4 && b.x >= 0.1 && b.x <= 0.9 && b.y >= 0 && b.y < 0.8 && b.grip >= 0 && b.grip <= 0.3;
   return ok ? b : null;
 }
 

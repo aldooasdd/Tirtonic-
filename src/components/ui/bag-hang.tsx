@@ -13,7 +13,7 @@ const BASE = 0.845; // dasar tas sejajar plat sepatu
 const PX = 1 / 1600;
 
 export function BagHang({ h, ax, ay, image, bag, hidden, bagRef }: { h: number; ax: number; ay: number; image: string; bag: BagInfo; hidden: boolean; bagRef: (n: HTMLSpanElement | null) => void }) {
-  const w = Math.min(BAG_W / (2 * Math.max(bag.x, 1 - bag.x)), BAG_H * bag.ratio) * h; // titik ikat selalu di tengah jatah
+  const w = Math.min(BAG_W / (2 * Math.max(bag.x, 1 - bag.x)), BAG_H * bag.ratio) * h * (bag.skala ?? 1); // titik ikat selalu di tengah jatah
   const bh = w / bag.ratio;
   const top = BASE * h - bh;
   const left = ax - bag.x * w;
