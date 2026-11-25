@@ -910,7 +910,7 @@ export function SkateDeckRail({
               aria-label={item.name}
               aria-describedby={`${uid}-caption`}
               aria-pressed={facing}
-              className="group absolute left-0 cursor-pointer rounded-lg outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+              className="group absolute left-0 cursor-pointer outline-none focus-visible:!outline-none focus-visible:!shadow-none [-webkit-tap-highlight-color:transparent]"
               style={{ top: geo.top, width: w, height: size.h, zIndex: facing ? 30 : 10 + i, transform: `translate3d(${((sim.current.x[i] ?? 0) - w / 2).toFixed(2)}px,0,0)` }}
               onFocus={() => { setFocusIndex(i); if (pointer.current.id < 0) { stop(); choose(i); reveal(i); } }}
               onClick={(event) => { const pending = pendingOpen.current; pendingOpen.current = -1; if (event.detail === 0 || pending === i) open(i); }}
@@ -925,9 +925,6 @@ export function SkateDeckRail({
         })}
       </div>
 
-      {size.carousel && total > 12 && (
-        <p aria-hidden="true" className="relative z-10 text-center text-xs tabular-nums text-muted-foreground">{((carouselIndex ?? 0) % total) + 1} / {total}</p>
-      )}
       {size.carousel && count > 1 && total <= 12 && (
         <div className="relative z-10 flex justify-center gap-1.5" role="group" aria-label={heading ?? "Rak raket"}>
           {produk.map((item, i) => (
