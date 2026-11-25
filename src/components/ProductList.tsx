@@ -77,9 +77,9 @@ export default function ProductList({ products }: { products: P[] }) {
                     <div className="flex items-center gap-3">
                       {p.gambar[0] ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img loading="lazy" decoding="async" src={p.gambar[0]} alt="" className="h-11 w-11 rounded-lg border object-cover" />
+                        <img loading="lazy" decoding="async" src={p.gambar[0]} alt="" className="h-11 w-11 shrink-0 rounded-lg border object-cover" />
                       ) : (
-                        <div className="flex h-11 w-11 items-center justify-center rounded-lg border bg-gray-100 text-[9px] text-gray-300">
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border bg-gray-100 text-[9px] text-gray-300">
                           no img
                         </div>
                       )}
