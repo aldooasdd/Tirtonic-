@@ -30,7 +30,7 @@ export default function ProductLab({ items }: { items: Item[] }) {
       <div className="mt-6 grid items-start gap-8 md:grid-cols-2">
         <div className="flex flex-col items-center">
           {it.skor != null && (
-            <p className="mb-2 flex items-center gap-2 text-sm text-gray-600">Skor X-Compare <span className={`rounded-md px-2 py-0.5 text-lg font-bold ${tingkat(it.skor).cls}`}>{it.skor}</span><span>{tingkat(it.skor).label}</span></p>
+            <p className="mb-2 flex items-center gap-2 text-sm text-gray-600">Skor Tirtoniclab <span className={`rounded-md px-2 py-0.5 text-lg font-bold ${tingkat(it.skor).cls}`}>{it.skor}</span><span>{tingkat(it.skor).label}</span></p>
           )}
           {ada ? <Radar kriteria={kriteria} seri={[{ nilai: it.nilai, warna: WARNA[0] }]} /> : <p className="py-10 text-sm text-gray-500">Skor lab belum tersedia, spesifikasi di samping.</p>}
         </div>

@@ -29,7 +29,7 @@ export type Item = {
   sumber: string[];
 };
 
-/** Legenda skor X-Compare. */
+/** Legenda skor Tirtoniclab (0-100). */
 export const tingkat = (n: number) =>
   n >= 85 ? { label: "Exceptional", cls: "bg-emerald-600 text-white" }
   : n >= 70 ? { label: "Sangat baik", cls: "bg-emerald-100 text-emerald-800" }
