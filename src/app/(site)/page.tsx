@@ -437,7 +437,8 @@ export default async function HomePage() {
       </div>
       <PreorderBanners products={preorders} />
       {rak.length > 0 && (
-        <section id="rak-raket" className="mx-auto max-w-site scroll-mt-20 sm:px-4 lg:px-6">
+        <section id="rak-display" className="relative mx-auto max-w-site scroll-mt-20 sm:px-4 lg:px-6">
+          <span id="rak-raket" aria-hidden="true" className="absolute top-0 scroll-mt-20" />{/* link lama #rak-raket tetap jalan */}
           <SkateDeckRailDemo items={rak} className="" />
         </section>
       )}

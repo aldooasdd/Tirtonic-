@@ -34,7 +34,7 @@ export default async function RakPage() {
       <section className={`${card} p-5`}>
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-[15px] font-semibold text-[#0F1F1A]">Di rak ({rail.length})</h2>
-          <a href="/#rak-raket" target="_blank" rel="noreferrer" className="text-xs font-semibold text-primary hover:underline">Lihat rak ↗</a>
+          <a href="/#rak-display" target="_blank" rel="noreferrer" className="text-xs font-semibold text-primary hover:underline">Lihat rak ↗</a>
         </div>
         {rail.length === 0 ? (
           <p className="text-sm text-gray-400">Belum ada barang. Rak tidak tampil di landing.</p>
