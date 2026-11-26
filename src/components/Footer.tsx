@@ -70,7 +70,7 @@ export default function Footer({ benefits = false }: { benefits?: boolean }) {
         <div className="mx-auto flex max-w-site flex-col items-center justify-between gap-4 px-4 pt-8 pb-24 text-sm text-gray-300 sm:flex-row sm:py-8">
           <nav className="flex gap-6">
             <Link href="/contact">Terms and Conditions</Link>
-            <Link href="/contact">Return policy</Link>
+            <Link href="/kebijakan-pengembalian">Return policy</Link>
             <Link href="/contact">Stores</Link>
           </nav>
           <span className="flex items-center gap-2 font-semibold text-white">
