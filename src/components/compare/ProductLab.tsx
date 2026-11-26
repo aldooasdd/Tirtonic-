@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import { KATEGORI, SUMBER, tingkat, type Item } from "@/lib/compare-shared";
+import { KATEGORI, tingkat, type Item } from "@/lib/compare-shared";
 import Radar, { WARNA } from "./Radar";
 
 /** Data lab di halaman produk: radar + skor + spesifikasi utama + tombol Bandingkan. */
@@ -16,7 +16,7 @@ export default function ProductLab({ items }: { items: Item[] }) {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 className="text-2xl font-extrabold text-gray-900">Data lab</h2>
-          <p className="text-sm text-gray-500">Hasil uji laboratorium, bukan kesan subjektif.</p>
+          <p className="text-sm text-gray-500">Skor Tirtoniclab dari data uji lab, bukan kesan subjektif.</p>
         </div>
         <Link href={`/bandingkan?k=${it.kategori}&i=${it.id}`} className="rounded-full bg-primaryDark px-5 py-2 text-sm font-semibold text-white hover:bg-primary">Bandingkan dengan lainnya</Link>
       </div>
@@ -51,7 +51,7 @@ export default function ProductLab({ items }: { items: Item[] }) {
               <div key={k} className="border-b pb-1.5"><dt className="text-xs text-gray-500">{k}</dt><dd className="font-semibold text-gray-900">{v}</dd></div>
             ))}
           </dl>
-          <p className="mt-4 text-xs text-gray-400">Data: {it.sumber.map((s) => SUMBER[s] ?? s).join(" · ")}</p>
+          <p className="mt-4 text-xs text-gray-400">Data: Tirtoniclab, dihimpun dari hasil uji lab independen.</p>
         </div>
       </div>
     </section>

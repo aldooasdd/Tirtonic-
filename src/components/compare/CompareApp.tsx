@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { KATEGORI, SUMBER, tingkat, type Item, type Kat } from "@/lib/compare-shared";
+import { KATEGORI, tingkat, type Item, type Kat } from "@/lib/compare-shared";
 import { rupiah } from "@/lib/format";
 import Radar, { WARNA } from "./Radar";
 
@@ -30,7 +30,6 @@ export default function CompareApp({ kat, items, awal, picks }: { kat: Kat; item
     setSalin(true);
     setTimeout(() => setSalin(false), 2000);
   };
-  const sumber = [...new Set((dipilih.length ? dipilih : items).flatMap((i) => i.sumber))];
 
   return (
     <div className="mx-auto max-w-[1200px] px-4 py-8 sm:py-12">
@@ -117,9 +116,7 @@ export default function CompareApp({ kat, items, awal, picks }: { kat: Kat; item
       )}
 
       <Legenda />
-      <p className="mt-4 text-xs text-gray-500">
-        Data: {sumber.map((s) => SUMBER[s] ?? s).join(" · ")}. Skor Tirtoniclab 0–100 diolah dari data uji lab Extreme Tennis; spesifikasi dari pengukuran sumber masing-masing.
-      </p>
+      <p className="mt-4 text-xs text-gray-500">Data: Tirtoniclab, dihimpun dari hasil uji lab independen.</p>
 
       {pilih && <Pemilih items={items} ids={ids} kat={kat} tutup={() => setPilih(false)} tambah={(id) => { tambah(id); setPilih(false); }} />}
     </div>
