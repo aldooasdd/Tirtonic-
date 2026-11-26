@@ -15,7 +15,10 @@ export const merchantReady = () => !!(process.env.GOOGLE_MERCHANT_ID && process.
 let tok: { v: string; exp: number } | null = null;
 async function token() {
   if (tok && tok.exp > Date.now() + 60_000) return tok.v;
-  const key = JSON.parse(process.env.GOOGLE_MERCHANT_KEY!);
+  let key: { client_email: string; private_key: string };
+  try { key = JSON.parse(process.env.GOOGLE_MERCHANT_KEY!); } catch {
+    throw new Error("GOOGLE_MERCHANT_KEY di Vercel harus berisi ISI file JSON service account (diawali {\"type\": \"service_account\"), bukan nama file.");
+  }
   const now = Math.floor(Date.now() / 1000);
   const jwt = await new SignJWT({ scope: "https://www.googleapis.com/auth/content" })
     .setProtectedHeader({ alg: "RS256" })
