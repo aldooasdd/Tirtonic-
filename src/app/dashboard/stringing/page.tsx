@@ -30,6 +30,7 @@ const STRINGERS = [
   "Yopi", "Indy", "Edo", "Delfia", "Aldi",
   "Mutia", "Mawa", "Gifari", "Afi", "Lala",
   "Irvan", "Rahma", "N Taufiq", "Taufiq", "Jose",
+  "Arista",
 ];
 
 // Metode pemilihan senar (3 sumber): String Finder (kuesioner) / Hybrid / Full Bed.
