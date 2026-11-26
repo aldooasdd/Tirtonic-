@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import SkateDeckRail from "@/components/ui/skate-deck-rail";
 import type { SkateDeck } from "@/components/ui/skate-deck-rail";
 import RailBuy from "@/components/RailBuy";
@@ -20,11 +21,35 @@ const SKATE_DEMO_DECKS: SkateDeck[] = [0, 1, 2].flatMap((k) => DECKS.map((d) => 
 /** Raket asli dari dashboard; href = halaman produk, stok = varian/harga/stok untuk popup. */
 export type RailItem = SkateDeck & { href: string; stok: RailStok };
 
+/** Link #rak-display / #rak-raket: browser menggulung sebelum konten di atas rak selesai dimuat, jadi bisa berhenti kepagian. Gulung ulang setelah halaman siap. */
+function useLinkRak(ref: React.RefObject<HTMLDivElement | null>) {
+  React.useEffect(() => {
+    if (!["#rak-display", "#rak-raket"].includes(location.hash)) return;
+    let disentuh = false;
+    const stop = () => { disentuh = true; };
+    const gulung = () => { if (!disentuh) ref.current?.closest("section")?.scrollIntoView({ block: "start" }); };
+    addEventListener("wheel", stop, { passive: true });
+    addEventListener("touchstart", stop, { passive: true });
+    addEventListener("keydown", stop);
+    const timers = [300, 1200, 2500].map((ms) => setTimeout(gulung, ms));
+    if (document.readyState !== "complete") addEventListener("load", gulung, { once: true });
+    return () => {
+      timers.forEach(clearTimeout);
+      removeEventListener("load", gulung);
+      removeEventListener("wheel", stop);
+      removeEventListener("touchstart", stop);
+      removeEventListener("keydown", stop);
+    };
+  }, [ref]);
+}
+
 export default function SkateDeckRailDemo({ items, autoplay = true, className = "min-h-svh" }: { items: (RailItem | SkateDeck)[]; autoplay?: boolean; className?: string }) {
+  const ref = React.useRef<HTMLDivElement>(null);
+  useLinkRak(ref);
   const sepatu = items.some((x) => x.shoe);
   const tas = items.some((x) => x.bag);
   return (
-    <div data-skate-demo className={`flex w-full items-center justify-center bg-background text-foreground ${className}`}>
+    <div ref={ref} data-skate-demo className={`flex w-full items-center justify-center bg-background text-foreground ${className}`}>
       <SkateDeckRail
         items={items.length ? items : SKATE_DEMO_DECKS}
         heading="Pilih Produk Bonus Merchandise"
