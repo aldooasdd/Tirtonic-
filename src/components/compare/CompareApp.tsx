@@ -118,7 +118,7 @@ export default function CompareApp({ kat, items, awal, picks }: { kat: Kat; item
 
       <Legenda />
       <p className="mt-4 text-xs text-gray-500">
-        Data: {sumber.map((s) => SUMBER[s] ?? s).join(" · ")}. Skor 0–100 dari Extreme Tennis X-Compare; spesifikasi dari pengukuran sumber masing-masing.
+        Data: {sumber.map((s) => SUMBER[s] ?? s).join(" · ")}. Skor Tirtoniclab 0–100 diolah dari data uji lab Extreme Tennis; spesifikasi dari pengukuran sumber masing-masing.
       </p>
 
       {pilih && <Pemilih items={items} ids={ids} kat={kat} tutup={() => setPilih(false)} tambah={(id) => { tambah(id); setPilih(false); }} />}

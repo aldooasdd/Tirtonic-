@@ -8,7 +8,7 @@ export type Kat = keyof typeof KATEGORI;
 export const isKat = (k: unknown): k is Kat => typeof k === "string" && k in KATEGORI;
 
 export const SUMBER: Record<string, string> = {
-  extreme: "Extreme Tennis X-Compare",
+  extreme: "Extreme Tennis",
   twu: "Tennis Warehouse University",
   tw: "Tennis Warehouse",
   runrepeat: "RunRepeat",
