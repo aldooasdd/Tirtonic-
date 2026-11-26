@@ -5,6 +5,8 @@ import ProductDetail from "@/components/ProductDetail";
 import ProductCard from "@/components/ProductCard";
 import ViewBeacon from "@/components/ViewBeacon";
 import { b1g1Options } from "@/lib/b1g1-db";
+import { compareItems } from "@/lib/compare";
+import ProductLab from "@/components/compare/ProductLab";
 
 // ISR: halaman produk di-cache 5 menit → DB cuma dibaca sekali per 5 menit (hemat egress),
 // bukan tiap kunjungan/crawler. Stok/harga telat maks 5 menit — oke buat toko.
@@ -34,6 +36,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
   );
 
   const b1g1Others = await b1g1Options(); // pilihan pasangan Buy 1 Get 1
+  const lab = (await compareItems({ productId: p.id })).sort((a, b) => a.varian.localeCompare(b.varian, "id", { numeric: true }));
 
   return (
     <>
@@ -65,6 +68,8 @@ export default async function ProductPage({ params }: { params: { id: string } }
         }}
         b1g1Others={b1g1Others}
       />
+
+      {lab.length > 0 && <ProductLab items={lab} />}
 
       {related.length > 0 && (
         <section className="mx-auto max-w-[1200px] border-t px-4 py-12">

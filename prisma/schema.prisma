@@ -212,6 +212,7 @@ model Product {
   racketRail RacketRail?
   merchandise Merchandise?
   twuStrings TwuString[] // String Finder: senar TWU yg pakai produk ini sbg sumber harga/stok
+  compareItems CompareItem[] // fitur /bandingkan: data lab per produk/varian
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
 }
@@ -684,3 +685,30 @@ model DemoParticipant {
   @@index([claimId])
 }
 
+
+// Fitur /bandingkan: data lab & spesifikasi per produk/varian, gabungan beberapa sumber.
+// Diisi lewat scripts/import-compare.cjs dari /Users/a1/tirtonic-data.
+model CompareItem {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  varian    String   @default("") // isi kolom `warna` varian; "" = seluruh produk
+  kategori  String   // raket | senar | sepatu
+  skor      Int?     // skor X-Compare 0-100 (Extreme Tennis); null = hanya spesifikasi
+  nilai     Json     @default("{}") // kriteria -> 0..100
+  spek      Json     @default("{}") // label -> nilai teks
+  sumber    String[] // extreme | twu | tw | runrepeat
+  updatedAt DateTime @updatedAt
+
+  @@unique([productId, varian])
+  @@index([kategori])
+}
+
+// Top picks di /bandingkan, diatur dari dashboard.
+model ComparePick {
+  id       String   @id @default(cuid())
+  kategori String
+  judul    String
+  itemIds  String[]
+  urutan   Int      @default(0)
+}
