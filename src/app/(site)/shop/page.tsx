@@ -1,3 +1,4 @@
+import { adaStok } from "@/lib/shop-kat-db";
 import { isB1G1 } from "@/lib/b1g1";
 import { Prisma } from "@prisma/client";
 import { unstable_cache } from "next/cache";
@@ -75,12 +76,7 @@ export default async function ShopPage({ searchParams }: { searchParams: SP }) {
 
   // Sembunyikan produk yang benar-benar habis: status SOLD, semua varian stok 0,
   // atau non-varian stok 0. Produk dengan minimal satu varian ready tetap tampil.
-  where.status = "READY";
-  where.OR = [
-    { variants: { some: { stok: { gt: 0 } } } }, // ada varian yang masih ada stok
-    { variants: { none: {} }, stok: { gt: 0 } }, // non-varian, stok > 0
-    { variants: { none: {} }, stok: null }, // non-varian, stok tak terbatas
-  ];
+  Object.assign(where, adaStok);
 
   const [products, brands, jumlah] = await Promise.all([
     safeQuery(() => getShopProducts(JSON.stringify(where), searchParams.sort), []),

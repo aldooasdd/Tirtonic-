@@ -1,3 +1,4 @@
+import { adaStok } from "@/lib/shop-kat-db";
 import { isB1G1 } from "@/lib/b1g1";
 import { b1g1ProductIds } from "@/lib/b1g1-db";
 import Link from "next/link";
@@ -387,10 +388,10 @@ export default async function HomePage() {
       () => prisma.heroSlide.findMany({ orderBy: [{ urutan: "asc" }, { createdAt: "asc" }] }),
       []
     ),
-    safeQuery(() => prisma.product.findMany({ orderBy: { createdAt: "desc" }, take: 12, include: { _count: { select: { variants: true } } } }), []),
-    safeQuery(() => prisma.product.findMany({ where: { hargaDiskon: { not: null }, status: "READY" }, orderBy: { updatedAt: "desc" }, take: 300 /* B1G1 (≥50%) disaring di bawah */, include: { _count: { select: { variants: true } } } }), []),
-    safeQuery(() => prisma.product.findMany({ where: { eventCarousel: true, status: "READY" }, orderBy: { updatedAt: "desc" }, take: 16, include: { _count: { select: { variants: true } } } }), []),
-    safeQuery(() => prisma.product.findMany({ where: { status: "READY", views: { gt: 0 } }, orderBy: { views: "desc" }, take: 12, include: { _count: { select: { variants: true } } } }), []),
+    safeQuery(() => prisma.product.findMany({ where: adaStok, orderBy: { createdAt: "desc" }, take: 12, include: { _count: { select: { variants: true } } } }), []),
+    safeQuery(() => prisma.product.findMany({ where: { hargaDiskon: { not: null }, ...adaStok }, orderBy: { updatedAt: "desc" }, take: 300 /* B1G1 (≥50%) disaring di bawah */, include: { _count: { select: { variants: true } } } }), []),
+    safeQuery(() => prisma.product.findMany({ where: { eventCarousel: true, ...adaStok }, orderBy: { updatedAt: "desc" }, take: 16, include: { _count: { select: { variants: true } } } }), []),
+    safeQuery(() => prisma.product.findMany({ where: { views: { gt: 0 }, ...adaStok }, orderBy: { views: "desc" }, take: 12, include: { _count: { select: { variants: true } } } }), []),
     safeQuery(() => prisma.popularBrand.findMany({ orderBy: [{ urutan: "asc" }, { nama: "asc" }] }), []),
     safeQuery(() => prisma.sfBranch.findMany({ where: { isActive: true, slug: { not: "tirtonic" } }, orderBy: { name: "asc" }, select: { id: true, name: true } }), []),
     safeQuery(() => prisma.sfOrder.findMany({ where: { status: { in: ["antri", "dikerjakan"] } }, orderBy: { createdAt: "asc" }, select: { resultCode: true, status: true, branchId: true, stringerName: true } }), []),
@@ -403,7 +404,7 @@ export default async function HomePage() {
   // only keep real discounts (diskon < harga), cap at 12
   // Diskon ≥50% → bukan Best Deal lagi, masuk carousel Buy 1 Get 1 (harga normal).
   const b1Ids = await safeQuery(() => b1g1ProductIds(), [] as string[]);
-  const b1g1Deals = (await safeQuery(() => prisma.product.findMany({ where: { id: { in: b1Ids } }, orderBy: { updatedAt: "desc" }, include: { _count: { select: { variants: true } } } }), [])).map(toCard);
+  const b1g1Deals = (await safeQuery(() => prisma.product.findMany({ where: { id: { in: b1Ids }, ...adaStok }, orderBy: { updatedAt: "desc" }, include: { _count: { select: { variants: true } } } }), [])).map(toCard);
   // ponytail: diacak tiap render ISR (revalidate 120 dtk) — urutan berganti tiap ~2 menit, bukan tiap pengunjung.
   b1g1Deals.splice(0, b1g1Deals.length, ...b1g1Deals.map((x) => ({ x, r: Math.random() })).sort((a, b) => a.r - b.r).map(({ x }) => x));
   const bestDeals = deals.filter((p) => p.hargaDiskon != null && p.hargaDiskon < p.harga && !isB1G1(p.harga, p.hargaDiskon)).slice(0, 12).map(toCard);

@@ -1,3 +1,4 @@
+import { adaStok } from "@/lib/shop-kat-db";
 import type { Metadata } from "next";
 import { productHref } from "@/lib/product-slug";
 import { isB1G1 } from "@/lib/b1g1";
@@ -140,7 +141,7 @@ export default async function EventLanding({ searchParams }: { searchParams: { k
     ? safeQuery(
         () =>
           prisma.product.findMany({
-            where: { status: "READY", OR: brands.map((b) => ({ brand: { equals: b, mode: "insensitive" as const } })) },
+            where: { AND: [adaStok, { OR: brands.map((b) => ({ brand: { equals: b, mode: "insensitive" as const } })) }] },
             orderBy: { createdAt: "desc" },
             select: { id: true, slug: true, nama: true, brand: true, kategori: true, harga: true, hargaDiskon: true, gambar: true },
           }),

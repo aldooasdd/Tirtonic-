@@ -1,3 +1,4 @@
+import { adaStok } from "@/lib/shop-kat-db";
 import "server-only";
 import { prisma, safeQuery } from "@/lib/prisma";
 import type { B1G1Option } from "@/components/B1G1Popup";
@@ -6,7 +7,7 @@ import { isB1G1 } from "@/lib/b1g1";
 /** Semua id produk B1G1 (diskon ≥50%). Rasio tak bisa difilter Prisma → ambil kolom ringan lalu saring. */
 export async function b1g1ProductIds(): Promise<string[]> {
   const rows = await prisma.product.findMany({
-    where: { hargaDiskon: { not: null }, status: "READY" },
+    where: { hargaDiskon: { not: null }, ...adaStok },
     select: { id: true, harga: true, hargaDiskon: true },
     orderBy: { updatedAt: "desc" },
   });

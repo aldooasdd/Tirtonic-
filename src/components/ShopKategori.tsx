@@ -96,9 +96,8 @@ export default function ShopKategori({ slug, grup, produk, total, lab }: { slug:
             )}
           </Bagian>
           {i === 0 && (
-            <Bagian judul="Ketersediaan" buka={!!(sp.get("ready") || sp.get("diskon"))}>
+            <Bagian judul="Ketersediaan" buka={!!sp.get("diskon")}>
               <div className="flex flex-wrap gap-2">
-                <button onClick={() => set("ready", sp.get("ready") ? null : "1")} className={chip(!!sp.get("ready"))}>Ready stok</button>
                 <button onClick={() => set("diskon", sp.get("diskon") ? null : "1")} className={chip(!!sp.get("diskon"))}>Sedang diskon</button>
               </div>
             </Bagian>

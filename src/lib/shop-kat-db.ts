@@ -4,10 +4,20 @@ import { prisma } from "@/lib/prisma";
 import type { Row } from "@/lib/shop-kat";
 import type { ProductCardData } from "@/components/ProductCard";
 
+/** Produk yang masih ada stoknya (status READY + minimal satu varian stok > 0, atau non-varian stok > 0 / tak terbatas). */
+export const adaStok = {
+  status: "READY" as const,
+  OR: [
+    { variants: { some: { stok: { gt: 0 } } } },
+    { variants: { none: {} }, stok: { gt: 0 } },
+    { variants: { none: {} }, stok: null },
+  ],
+};
+
 export const rowsKategori = unstable_cache(
   async (db: string): Promise<Row[]> => {
     const ps = await prisma.product.findMany({
-      where: { kategori: db },
+      where: { kategori: db, ...adaStok },
       include: {
         variants: { select: { warna: true, ukuran: true, stok: true, harga: true, hargaDiskon: true }, orderBy: { urutan: "asc" } },
         compareItems: { select: { skor: true, nilai: true, spek: true } },
@@ -27,7 +37,7 @@ export const rowsKategori = unstable_cache(
 /** Jumlah produk per kategori (untuk tab). */
 export const jumlahKategori = unstable_cache(
   // tanpa safeQuery di dalam: kalau query gagal biarkan error supaya hasil kosong TIDAK tersimpan di cache (pemanggil sudah pakai safeQuery)
-  async () => Object.fromEntries((await prisma.product.groupBy({ by: ["kategori"], _count: true })).map((g) => [g.kategori, g._count])),
+  async () => Object.fromEntries((await prisma.product.groupBy({ by: ["kategori"], where: adaStok, _count: true })).map((g) => [g.kategori, g._count])),
   ["shop-kat-jumlah"],
   { revalidate: 300, tags: ["products"] }
 );
