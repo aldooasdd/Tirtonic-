@@ -17,10 +17,12 @@ const KAT: { k: Kat; judul: string; find: string; opt: string }[] = [
 ];
 
 export default async function MatchLanding() {
-  const data = await Promise.all(KAT.map(async (x) => {
+  // berurutan, bukan Promise.all: 3 query paralel bisa kehabisan koneksi DB lalu salah satunya kosong
+  const data = [];
+  for (const x of KAT) {
     const it = (await itemsMatch(x.k)).filter((i) => Object.keys(i.nilai).length);
-    return { ...x, n: it.length, foto: it.find((i) => i.ready && i.foto)?.foto ?? null };
-  }));
+    data.push({ ...x, n: it.length, foto: it.find((i) => i.ready && i.foto)?.foto ?? null });
+  }
   const total = data.reduce((t, x) => t + x.n, 0);
   return (
     <>
