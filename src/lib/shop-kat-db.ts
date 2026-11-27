@@ -1,6 +1,6 @@
 // Loader data halaman kategori shop (server). Cache 2 menit per kategori, tag "products".
 import { unstable_cache } from "next/cache";
-import { prisma, safeQuery } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import type { Row } from "@/lib/shop-kat";
 import type { ProductCardData } from "@/components/ProductCard";
 
@@ -26,7 +26,8 @@ export const rowsKategori = unstable_cache(
 
 /** Jumlah produk per kategori (untuk tab). */
 export const jumlahKategori = unstable_cache(
-  async () => Object.fromEntries((await safeQuery(() => prisma.product.groupBy({ by: ["kategori"], _count: true }), [])).map((g) => [g.kategori, g._count])),
+  // tanpa safeQuery di dalam: kalau query gagal biarkan error supaya hasil kosong TIDAK tersimpan di cache (pemanggil sudah pakai safeQuery)
+  async () => Object.fromEntries((await prisma.product.groupBy({ by: ["kategori"], _count: true })).map((g) => [g.kategori, g._count])),
   ["shop-kat-jumlah"],
   { revalidate: 300, tags: ["products"] }
 );

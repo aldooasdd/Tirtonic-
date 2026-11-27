@@ -12,7 +12,7 @@ export default function ShopTabs({ aktif, jumlah }: { aktif?: string; jumlah: Re
       <div className="liquid-tabs rounded-full p-1.5">
         <nav className="flex gap-1 overflow-x-auto [scrollbar-width:none] [&>:first-child]:ml-auto [&>:last-child]:mr-auto">
           <Link href="/shop" className={pil(!aktif)}>Semua</Link>
-          {KATS.filter((k) => jumlah[k.db]).map((k) => (
+          {KATS.filter((k) => jumlah[k.db] || !Object.keys(jumlah).length).map((k) => (
             <Link key={k.slug} href={`/shop/${k.slug}`} className={pil(aktif === k.slug)}>{k.label}</Link>
           ))}
         </nav>
