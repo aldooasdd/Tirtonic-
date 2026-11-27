@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { katBySlug, saring, readyRow } from "@/lib/shop-kat";
+import { katBySlug, saring } from "@/lib/shop-kat";
 import { rowsKategori, jumlahKategori, kartu } from "@/lib/shop-kat-db";
 import { safeQuery } from "@/lib/prisma";
 import ShopTabs from "@/components/ShopTabs";
@@ -29,7 +29,6 @@ export default async function KategoriPage({ params, searchParams }: { params: {
   const [rows, jumlah] = await Promise.all([safeQuery(() => rowsKategori(kat.db), []), safeQuery(() => jumlahKategori(), {})]);
   const { hasil, opsi } = saring(kat, rows, searchParams);
   const sort = searchParams.sort || "";
-  const siap = rows.filter(readyRow).length;
 
   return (
     <>
@@ -37,15 +36,8 @@ export default async function KategoriPage({ params, searchParams }: { params: {
       <section className="relative overflow-x-clip pb-6 pt-8 sm:pb-8 sm:pt-10 [letter-spacing:-0.011em]">
         <div aria-hidden className="ev-orb -top-24 left-0 h-[260px] w-[620px] bg-gradient-to-r from-lime-300/35 via-emerald-300/25 to-sky-300/30" />
         <div aria-hidden className="ev-orb right-6 top-0 hidden h-[300px] w-[300px] bg-gradient-to-bl from-teal-200/40 to-blue-200/30 sm:block" />
-        <div className="relative mx-auto grid max-w-[1400px] gap-6 px-4 sm:px-6 lg:grid-cols-[1fr_auto] lg:items-end lg:gap-12">
+        <div className="relative mx-auto grid max-w-[1400px] gap-6 px-4 sm:px-6 lg:grid-cols-[1fr_minmax(0,40rem)] lg:items-end lg:gap-12">
           <div className="max-w-2xl">
-          <div className="ev-pill mb-5 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-[600] text-emerald-800">
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-75" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-600" />
-            </span>
-            {siap} ready · {rows.length} produk
-          </div>
           <h1 className="text-4xl font-[600] leading-[1.08] tracking-[-0.03em] text-neutral-950 sm:text-5xl md:text-[56px]">{kat.judul}</h1>
           <p className="mt-4 text-base leading-relaxed text-neutral-600 sm:text-lg">{kat.intro}</p>
           <details className="group mt-3">
@@ -58,13 +50,13 @@ export default async function KategoriPage({ params, searchParams }: { params: {
           </details>
           </div>
           {kat.lab && (
-            <div className="flex flex-wrap gap-2 lg:max-w-xl lg:justify-end">
+            <div className="-mx-4 flex snap-x gap-2 overflow-x-auto px-4 py-2 [scrollbar-width:none] sm:-mx-6 sm:px-6 lg:mx-0 lg:px-1 lg:[mask-image:linear-gradient(to_right,transparent,#000_16px,#000_calc(100%-32px),transparent)]">
               {TOP[kat.lab].map((k) => {
                 const on = sort === `lab_${k}`;
                 const q = new URLSearchParams(Object.entries(searchParams).filter(([a, v]) => a !== "sort" && v) as [string, string][]);
                 if (!on) q.set("sort", `lab_${k}`);
                 return (
-                  <Link key={k} href={`/shop/${kat.slug}${q.toString() ? `?${q}` : ""}`} scroll={false} className={`rounded-full px-4 py-2 text-sm font-[600] transition active:scale-95 ${on ? "ev-btn border border-white/20 bg-neutral-950 text-white" : "ev-pill text-neutral-800 hover:bg-white"}`}>
+                  <Link key={k} href={`/shop/${kat.slug}${q.toString() ? `?${q}` : ""}`} scroll={false} className={`shrink-0 snap-start whitespace-nowrap rounded-full px-4 py-2 text-sm font-[600] transition active:scale-95 ${on ? "ev-btn border border-white/20 bg-neutral-950 text-white" : "ev-pill text-neutral-800 hover:bg-white"}`}>
                     Top {k.toLowerCase()}
                   </Link>
                 );

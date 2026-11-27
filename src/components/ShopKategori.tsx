@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import ProductCard, { type ProductCardData } from "./ProductCard";
 
@@ -17,6 +17,15 @@ export default function ShopKategori({ slug, grup, produk, total, lab }: { slug:
   const router = useRouter();
   const sp = useSearchParams();
   const [laci, setLaci] = useState(false);
+  // swipe ke bawah untuk menutup bottom sheet (hanya kalau isi sudah di posisi paling atas)
+  const [tarik, setTarik] = useState(0);
+  const awal = useRef<number | null>(null);
+  const isi = useRef<HTMLDivElement>(null);
+  const geser = {
+    onTouchStart: (e: React.TouchEvent) => { awal.current = (isi.current?.scrollTop ?? 0) <= 0 ? e.touches[0].clientY : null; },
+    onTouchMove: (e: React.TouchEvent) => { if (awal.current != null) setTarik(Math.max(0, e.touches[0].clientY - awal.current)); },
+    onTouchEnd: () => { if (tarik > 100) setLaci(false); setTarik(0); awal.current = null; },
+  };
   const [harga, setHarga] = useState(() => (sp.get("harga") || "-").split("-"));
   useEffect(() => setHarga((sp.get("harga") || "-").split("-")), [sp]);
 
@@ -156,14 +165,14 @@ export default function ShopKategori({ slug, grup, produk, total, lab }: { slug:
       {laci && (
         <div className="fixed inset-0 z-[70] flex items-end bg-black/40 backdrop-blur-sm md:hidden" onClick={() => setLaci(false)}>
           {/* bottom sheet: muncul dari bawah (.sheet-in di globals.css) */}
-          <div role="dialog" aria-modal="true" aria-label="Filter" onClick={(e) => e.stopPropagation()} className="sheet-in flex max-h-[85vh] w-full flex-col rounded-t-3xl bg-white shadow-2xl">
+          <div role="dialog" aria-modal="true" aria-label="Filter" onClick={(e) => e.stopPropagation()} {...geser} style={{ transform: tarik ? `translateY(${tarik}px)` : undefined, transition: tarik ? "none" : "transform .2s" }} className="sheet-in flex max-h-[85vh] w-full flex-col rounded-t-3xl bg-white shadow-2xl">
             <div className="relative flex justify-center pb-1 pt-3">
               <span className="h-1.5 w-10 rounded-full bg-gray-300" />
               <button onClick={() => setLaci(false)} aria-label="Tutup" className="absolute right-3 top-2 flex h-9 w-9 items-center justify-center rounded-full text-gray-500 hover:bg-gray-100">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto overscroll-contain px-4 pb-4 pt-2">{panel}</div>
+            <div ref={isi} className="flex-1 overflow-y-auto overscroll-contain px-4 pb-4 pt-2">{panel}</div>
             <div className="border-t p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
               <button onClick={() => setLaci(false)} className="w-full rounded-full bg-neutral-950 py-3 font-semibold text-white">Lihat {total} produk</button>
             </div>
