@@ -52,7 +52,7 @@ export async function uploadFoto(nama: string, tipe: string, base64: string) {
 }
 
 export type SimpanProduk = {
-  ref: string; // "HUB:<id>" kunci upsert
+  ref: string; // "HUB:<id>" (form Produk web baru) atau "TOKOPEDIA:<id>" (form Tambah Produk, tujuan tirtonic.com); kunci upsert
   nama: string;
   kategori: string; // Product.kategori, mis. "Raket Tenis"
   brand?: string | null;
@@ -77,7 +77,7 @@ export async function simpanProduk(p: SimpanProduk): Promise<{ id: string; slug:
   const ref = p.ref?.trim();
   const nama = bersih(p.nama);
   const kat = KATS.find((k) => k.db === p.kategori);
-  if (!ref?.startsWith("HUB:")) return { error: "ref harus HUB:<id>" };
+  if (!/^(HUB|TOKOPEDIA):\S+$/.test(ref ?? "")) return { error: "ref harus HUB:<id> atau TOKOPEDIA:<id>" };
   if (!nama || nama.length < 3) return { error: "Nama minimal 3 huruf." };
   if (!kat) return { error: "Kategori tidak dikenal." };
   const variants = (p.variants ?? [])
