@@ -4,7 +4,7 @@ import Link from "next/link";
 import { KATEGORI, tingkat, type Item } from "@/lib/compare-shared";
 import { rupiah } from "@/lib/format";
 import { useShopCart, type CartItem } from "../ShopCartProvider";
-import Radar, { WARNA } from "./Radar";
+import Radar from "./Radar";
 
 /** Data lab di halaman produk: radar + skor + spesifikasi utama + tombol Bandingkan. */
 export type Serupa = Item & { beli: Omit<CartItem, "key"> | null };
@@ -39,7 +39,7 @@ export default function ProductLab({ items, serupa = [] }: { items: Item[]; seru
           {it.skor != null && (
             <p className="mb-2 flex items-center gap-2 text-sm text-gray-600">Skor Tirtoniclab <span className={`rounded-md px-2 py-0.5 text-lg font-bold ${tingkat(it.skor).cls}`}>{it.skor}</span><span>{tingkat(it.skor).label}</span></p>
           )}
-          {ada ? <Radar kriteria={kriteria} seri={[{ nilai: it.nilai, warna: WARNA[0] }]} /> : <p className="py-10 text-sm text-gray-500">Skor lab belum tersedia, spesifikasi di samping.</p>}
+          {ada ? <Radar kriteria={kriteria} seri={[{ nilai: it.nilai, warna: "#146b52" }]} /> : <p className="py-10 text-sm text-gray-500">Skor lab belum tersedia, spesifikasi di samping.</p>}
         </div>
         <div>
           {ada && (

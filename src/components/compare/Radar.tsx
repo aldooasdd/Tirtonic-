@@ -1,5 +1,6 @@
 // Grafik radar SVG sederhana: tiap seri = satu barang, skala 0–100.
-export const WARNA = ["#0E7C5A", "#E4572E", "#2E86DE", "#B8860B"];
+// Warna per slot dibuat saling jauh (biru, oranye, ungu, hijau) supaya gampang dibedakan, juga oleh buta warna merah-hijau.
+export const WARNA = ["#2563EB", "#F97316", "#9333EA", "#16A34A"];
 
 export default function Radar({ kriteria, seri, size = 300 }: {
   kriteria: readonly string[];
