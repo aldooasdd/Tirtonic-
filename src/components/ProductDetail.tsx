@@ -52,7 +52,7 @@ const Info = ({ icon, label, value }: { icon: string; label: string; value: stri
 );
 
 
-export default function ProductDetail({ p, b1g1Others = [], lab = [] }: { p: P; b1g1Others?: B1G1Option[]; lab?: { id: string; kategori: string; varian: string }[] }) {
+export default function ProductDetail({ p, b1g1Others = [], lab = [], lawan }: { p: P; b1g1Others?: B1G1Option[]; lab?: { id: string; kategori: string; varian: string }[]; lawan?: string }) {
   const variants = p.variants || [];
   const hasVar = variants.length > 0;
   const hasSizeAxis = variants.some((v) => v.ukuran !== "");
@@ -389,7 +389,7 @@ export default function ProductDetail({ p, b1g1Others = [], lab = [] }: { p: P; 
               // item lab untuk varian yang dipilih (varian lab = warna tanpa grip), fallback item pertama
               const it = lab.find((x) => x.varian === tanpaGrip(color)) ?? lab[0];
               return (
-                <Link href={`/bandingkan?k=${it.kategori}&i=${it.id}`} className="grid h-[50px] shrink-0 place-items-center rounded-full border border-gray-300 px-5 text-sm font-[600] text-gray-800 transition hover:border-gray-900">
+                <Link href={`/bandingkan?k=${it.kategori}&i=${it.id}${lawan ? `,${lawan}` : ""}`} className="grid h-[50px] shrink-0 place-items-center rounded-full border border-gray-300 px-5 text-sm font-[600] text-gray-800 transition hover:border-gray-900">
                   Compare
                 </Link>
               );
