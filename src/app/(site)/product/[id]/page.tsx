@@ -67,6 +67,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
           })),
         }}
         b1g1Others={b1g1Others}
+        lab={lab.map((x) => ({ id: x.id, kategori: x.kategori, varian: x.varian }))}
       />
 
       {lab.length > 0 && <ProductLab items={lab} />}
