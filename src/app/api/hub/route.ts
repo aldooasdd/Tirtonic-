@@ -241,6 +241,8 @@ async function importProduct(p: ImportProduct): Promise<{ ok: true; id: string; 
     const dup = manual.find((m) => nameKey(m.nama) === nameKey(nama));
     if (dup) existing = await prisma.product.update({ where: { id: dup.id }, data: { sourceRef: ref }, include: { variants: true } });
   }
+  // raket yang sudah dipisah per varian (scripts/split-raket.ts): jangan sinkron ulang varian, nanti varian lain balik lagi
+  if (existing && (existing.atribut as Record<string, unknown> | null)?._varianAsal) return { ok: true, id: existing.id, created: false };
   if (!existing) {
     const slug = await uniqueProductSlug(String(data.nama), async (x) => !!(await prisma.product.findUnique({ where: { slug: x }, select: { id: true } })));
     const created = await prisma.product.create({ data: { ...data, slug, sourceRef: ref, variants: { create: variants } } });
