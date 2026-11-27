@@ -15,8 +15,11 @@ export default function ProductLab({ items }: { items: Item[] }) {
     <section className="mx-auto max-w-[1200px] border-t px-4 py-10">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-extrabold text-gray-900">Data lab</h2>
-          <p className="text-sm text-gray-500">Skor Tirtoniclab dari data uji lab, bukan kesan subjektif.</p>
+          <h2>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/compare-logo.png" alt="Compare" width={1160} height={262} className="h-8 w-auto sm:h-10" />
+          </h2>
+          <p className="mt-2 text-sm text-gray-500">Skor Tirtoniclab dari data uji lab, bukan kesan subjektif.</p>
         </div>
         <Link href={`/bandingkan?k=${it.kategori}&i=${it.id}`} className="rounded-full bg-primaryDark px-5 py-2 text-sm font-semibold text-white hover:bg-primary">Bandingkan dengan lainnya</Link>
       </div>
