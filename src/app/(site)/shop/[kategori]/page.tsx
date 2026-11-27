@@ -37,14 +37,7 @@ export default async function KategoriPage({ params, searchParams }: { params: {
         <header className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primaryDark to-primary px-5 py-7 text-white sm:px-10 sm:py-10">
           <span aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full border-[18px] border-ball/25" />
           <span aria-hidden className="pointer-events-none absolute -bottom-20 right-24 h-40 w-40 rounded-full bg-ball/10" />
-          <nav className="relative text-sm text-white/70">
-            <Link href="/" className="hover:text-white">Home</Link>
-            <span className="mx-2">/</span>
-            <Link href="/shop" className="hover:text-white">Shop</Link>
-            <span className="mx-2">/</span>
-            <span className="text-white">{kat.judul}</span>
-          </nav>
-          <h1 className="relative mt-3 text-3xl font-extrabold tracking-tight sm:text-5xl">{kat.judul}</h1>
+          <h1 className="relative text-3xl font-extrabold tracking-tight sm:text-5xl">{kat.judul}</h1>
           <div className="relative mt-3 max-w-3xl text-[15px] leading-relaxed text-white/85">
             <p>{kat.intro}</p>
             <details className="group mt-2">
