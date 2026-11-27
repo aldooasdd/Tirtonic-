@@ -1,10 +1,12 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import ProductCard, { type ProductCardData } from "./ProductCard";
 
 type Opsi = { nilai: string; label: string; jumlah: number };
-type Grup = { key: string; label: string; type: "multi" | "min"; lab: boolean; opsi: Opsi[] };
+type Grup = { key: string; label: string; type: "multi" | "range"; grup?: string; opsi: Opsi[]; min?: number; max?: number; step?: number; unit?: string };
+const rp = (n: number) => `Rp ${n.toLocaleString("id-ID")}`;
+const teksAngka = (g: Grup, n: number) => (g.key === "harga" ? rp(n) : `${n}${g.unit ? ` ${g.unit}` : ""}`);
 
 const SORT = [
   { v: "", l: "Populer" },
@@ -22,12 +24,10 @@ export default function ShopKategori({ slug, grup, produk, total, lab }: { slug:
   const awal = useRef<number | null>(null);
   const isi = useRef<HTMLDivElement>(null);
   const geser = {
-    onTouchStart: (e: React.TouchEvent) => { awal.current = (isi.current?.scrollTop ?? 0) <= 0 ? e.touches[0].clientY : null; },
+    onTouchStart: (e: React.TouchEvent) => { awal.current = (isi.current?.scrollTop ?? 0) <= 0 && !(e.target as HTMLElement).closest(".dual-range") ? e.touches[0].clientY : null; },
     onTouchMove: (e: React.TouchEvent) => { if (awal.current != null) setTarik(Math.max(0, e.touches[0].clientY - awal.current)); },
     onTouchEnd: () => { if (tarik > 100) setLaci(false); setTarik(0); awal.current = null; },
   };
-  const [harga, setHarga] = useState(() => (sp.get("harga") || "-").split("-"));
-  useEffect(() => setHarga((sp.get("harga") || "-").split("-")), [sp]);
 
   const go = (next: URLSearchParams) => router.push(`/shop/${slug}${next.toString() ? `?${next}` : ""}`, { scroll: false });
   const set = (k: string, v: string | null) => {
@@ -52,12 +52,31 @@ export default function ShopKategori({ slug, grup, produk, total, lab }: { slug:
   for (const [k, v] of sp.entries()) {
     if (k === "sort") continue;
     const g = label.get(k);
-    if (k === "harga") { const [a, b] = v.split("-"); pill.push({ teks: `Rp ${a ? (+a).toLocaleString("id-ID") : "0"} – ${b ? `Rp ${(+b).toLocaleString("id-ID")}` : "∞"}`, hapus: () => set("harga", null) }); }
-    else if (k === "ready") pill.push({ teks: "Ready stok", hapus: () => set(k, null) });
+    if (k === "ready") pill.push({ teks: "Ready stok", hapus: () => set(k, null) });
     else if (k === "diskon") pill.push({ teks: "Sedang diskon", hapus: () => set(k, null) });
-    else if (g?.type === "min") pill.push({ teks: `${g.label} ${v}+`, hapus: () => set(k, null) });
+    else if (g?.type === "range") {
+      const [a, b = ""] = v.split("-");
+      pill.push({ teks: `${g.label}: ${a ? teksAngka(g, +a) : "min"} – ${b ? teksAngka(g, +b) : "maks"}`, hapus: () => set(k, null) });
+    }
     else if (g) for (const x of v.split(",").filter(Boolean)) pill.push({ teks: x, hapus: () => toggle(k, x) });
   }
+
+  // Filter ber-grup sama (Spesifikasi, Data expert, Skor Tirtoniclab) digabung dalam satu bagian, seperti sidebar Extreme.
+  const bagian: { judul: string; isi: Grup[] }[] = [];
+  for (const g of grup) {
+    const judul = g.grup ?? g.label, ada = bagian.find((b) => b.judul === judul);
+    if (ada) ada.isi.push(g);
+    else bagian.push({ judul, isi: [g] });
+  }
+  const isiGrup = (g: Grup) => g.type === "range" ? <Rentang g={g} nilai={sp.get(g.key)} ubah={(v) => set(g.key, v)} /> : (
+    <div className="flex flex-wrap gap-2">
+      {g.opsi.map((o) => (
+        <button key={o.nilai} onClick={() => toggle(g.key, o.nilai)} className={chip(pilih(g.key).includes(o.nilai))}>
+          {o.label} <span className="text-xs opacity-60">({o.jumlah})</span>
+        </button>
+      ))}
+    </div>
+  );
 
   const panel = (
     <div>
@@ -66,53 +85,26 @@ export default function ShopKategori({ slug, grup, produk, total, lab }: { slug:
         {aktif > 0 && <button onClick={() => go(new URLSearchParams(sp.get("sort") ? { sort: sp.get("sort")! } : {}))} className="text-sm font-semibold text-primary">Hapus filter</button>}
       </div>
 
-      <Bagian judul="Harga" buka>
-        <form
-          className="flex items-center gap-2"
-          onSubmit={(e) => { e.preventDefault(); set("harga", harga[0] || harga[1] ? `${harga[0] || ""}-${harga[1] || ""}` : null); }}
-        >
-          <input inputMode="numeric" placeholder="Min" value={harga[0] ?? ""} onChange={(e) => setHarga([e.target.value.replace(/\D/g, ""), harga[1]])} className="w-full rounded-full border border-gray-200 px-3 py-2 text-sm outline-none focus:border-primary" />
-          <span className="text-gray-400">–</span>
-          <input inputMode="numeric" placeholder="Max" value={harga[1] ?? ""} onChange={(e) => setHarga([harga[0], e.target.value.replace(/\D/g, "")])} className="w-full rounded-full border border-gray-200 px-3 py-2 text-sm outline-none focus:border-primary" />
-          <button className="rounded-full bg-primaryDark px-3.5 py-2 text-sm font-semibold text-white hover:bg-primary">OK</button>
-        </form>
-        <div className="mt-3 flex flex-wrap gap-2">
-          <button onClick={() => set("ready", sp.get("ready") ? null : "1")} className={chip(!!sp.get("ready"))}>Ready stok</button>
-          <button onClick={() => set("diskon", sp.get("diskon") ? null : "1")} className={chip(!!sp.get("diskon"))}>Sedang diskon</button>
-        </div>
-      </Bagian>
-
-      {grup.filter((g) => !g.lab).map((g) => (
-        <Bagian key={g.key} judul={g.label} buka={g.key === "brand" || !!sp.get(g.key)}>
-          <div className="flex flex-wrap gap-2">
-            {g.opsi.map((o) => (
-              <button key={o.nilai} onClick={() => toggle(g.key, o.nilai)} className={chip(pilih(g.key).includes(o.nilai))}>
-                {o.label} <span className="text-xs opacity-60">({o.jumlah})</span>
-              </button>
-            ))}
-          </div>
-        </Bagian>
-      ))}
-
-      {grup.some((g) => g.lab) && (
-        <Bagian judul="Skor Tirtoniclab" buka={grup.some((g) => g.lab && sp.get(g.key))}>
-          <p className="mb-3 rounded-lg bg-ball/15 px-3 py-2 text-xs text-gray-700">Skor uji lab 0–100. Hanya produk yang punya data lab ikut tersaring.</p>
-          <div className="space-y-3">
-            {grup.filter((g) => g.lab).map((g) => (
-              <div key={g.key}>
-                <p className="mb-1.5 text-sm font-semibold text-gray-700">{g.label}</p>
-                <div className="flex flex-wrap gap-2">
-                  {g.opsi.map((o) => (
-                    <button key={o.nilai} onClick={() => set(g.key, sp.get(g.key) === o.nilai ? null : o.nilai)} className={chip(sp.get(g.key) === o.nilai)}>
-                      {o.label} <span className="text-xs opacity-60">({o.jumlah})</span>
-                    </button>
-                  ))}
-                </div>
+      {bagian.map((b, i) => (
+        <Fragment key={b.judul}>
+          <Bagian judul={b.judul} buka={b.isi.some((g) => g.key === "brand" || g.key === "harga" || !!sp.get(g.key))}>
+            {b.isi.length === 1 && !b.isi[0].grup ? isiGrup(b.isi[0]) : (
+              <div className="space-y-5">
+                {b.judul === "Skor Tirtoniclab" && <p className="rounded-lg bg-ball/15 px-3 py-2 text-xs text-gray-700">Skor uji lab 0–100. Hanya produk yang punya data lab ikut tersaring.</p>}
+                {b.isi.map((g) => <div key={g.key}><p className="mb-2 text-sm font-semibold text-gray-700">{g.label}</p>{isiGrup(g)}</div>)}
               </div>
-            ))}
-          </div>
-        </Bagian>
-      )}
+            )}
+          </Bagian>
+          {i === 0 && (
+            <Bagian judul="Ketersediaan" buka={!!(sp.get("ready") || sp.get("diskon"))}>
+              <div className="flex flex-wrap gap-2">
+                <button onClick={() => set("ready", sp.get("ready") ? null : "1")} className={chip(!!sp.get("ready"))}>Ready stok</button>
+                <button onClick={() => set("diskon", sp.get("diskon") ? null : "1")} className={chip(!!sp.get("diskon"))}>Sedang diskon</button>
+              </div>
+            </Bagian>
+          )}
+        </Fragment>
+      ))}
     </div>
   );
 
@@ -193,5 +185,48 @@ function Bagian({ judul, buka = false, children }: { judul: string; buka?: boole
       </summary>
       <div className="pt-4">{children}</div>
     </details>
+  );
+}
+
+/** Slider rentang dua kenop + kotak angka. Kirim ke URL saat kenop dilepas / angka dikonfirmasi. */
+function Rentang({ g, nilai, ubah }: { g: Grup; nilai: string | null; ubah: (v: string | null) => void }) {
+  const lo = g.min!, hi = g.max!, st = g.step!;
+  const baca = (): [number, number] => { const [a, b = ""] = (nilai || "").split("-"); return [a ? Math.max(lo, +a) : lo, b ? Math.min(hi, +b) : hi]; };
+  const [v, setV] = useState(baca);
+  const kini = useRef(v);
+  kini.current = v;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => setV(baca()), [nilai, lo, hi]);
+  const kirim = () => {
+    const [a, b] = [...kini.current].sort((x, y) => x - y);
+    const s = `${a > lo ? a : ""}-${b < hi ? b : ""}`;
+    if (s !== "-" ? s !== nilai : nilai) ubah(s === "-" ? null : s);
+  };
+  const pct = (n: number) => ((n - lo) / (hi - lo)) * 100;
+  const [a, b] = [Math.min(...v), Math.max(...v)];
+  return (
+    <div>
+      <div className="dual-range relative h-6">
+        <span className="absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-gray-200" />
+        <span className="absolute top-1/2 h-1 -translate-y-1/2 rounded-full bg-primaryDark" style={{ left: `${pct(a)}%`, right: `${100 - pct(b)}%` }} />
+        {[0, 1].map((i) => (
+          <input key={i} type="range" min={lo} max={hi} step={st} value={v[i]} aria-label={`${g.label} ${i ? "maksimal" : "minimal"}`}
+            onChange={(e) => { const n: [number, number] = [...v]; n[i] = +e.target.value; setV(n); }}
+            onPointerUp={kirim} onKeyUp={kirim} onTouchEnd={kirim} />
+        ))}
+      </div>
+      <div className="mt-2 flex items-center gap-2 text-sm">
+        {[a, b].map((n, i) => (
+          <Fragment key={i}>
+            {i === 1 && <span className="text-gray-400">–</span>}
+            <input inputMode="decimal" value={g.key === "harga" ? n.toLocaleString("id-ID") : n} aria-label={`${g.label} ${i ? "maksimal" : "minimal"}`}
+              onChange={(e) => { const x = +e.target.value.replace(g.key === "harga" ? /\D/g : /[^\d.]/g, ""); setV(i ? [a, x] : [x, b]); }}
+              onBlur={kirim} onKeyDown={(e) => e.key === "Enter" && kirim()}
+              className="w-full min-w-0 rounded-full border border-gray-200 px-3 py-1.5 text-center tabular-nums outline-none focus:border-primary" />
+          </Fragment>
+        ))}
+        {g.key !== "harga" && g.unit && <span className="shrink-0 text-gray-500">{g.unit}</span>}
+      </div>
+    </div>
   );
 }

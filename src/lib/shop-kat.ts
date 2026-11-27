@@ -75,19 +75,26 @@ function gender(n: string) {
   return "Pria";
 }
 
+const vnRow = (r: Row) => r.variants.map((v) => `${v.warna} ${v.ukuran}`).join(" | ");
+const spekRow = (r: Row, k: string) => uniq(r.lab.map((l) => l.spek[k]));
+/** Angka pertama di teks ("305g" → 305, "12.59in / 31.98cm" pakai pola khusus). */
+const angka = (s: string | undefined, re = /([\d.]+)/) => { const m = s?.match(re); return m ? +m[1] : NaN; };
+const gramRaket = (r: Row) => uniq([...spekRow(r, "Berat tanpa senar"), ...[...`${vnRow(r)} ${r.nama}`.matchAll(/(\d{3})\s*g/gi)].map((m) => m[1])])
+  .map((g) => angka(g)).filter((g) => g >= 200 && g <= 360);
+const headRaket = (r: Row) => [...spekRow(r, "Head size").map((h) => angka(h, /^(\d{2,3})/)),
+  ...[...vnRow(r).matchAll(/(?:^|\s|\|)(9[5-9]|1[01]\d)(?=\s*[A-Za-z]*\s*\/|L|SL|UL|D|H|\s+Tour)/g)].map((m) => +m[1])].filter((h) => h >= 80 && h <= 125);
+const WARNA: Record<string, string> = { gray: "Abu-abu", grey: "Abu-abu", abu: "Abu-abu", "abu-abu": "Abu-abu", black: "Hitam", white: "Putih", yellow: "Kuning", blue: "Biru", red: "Merah", green: "Hijau" };
+
 /** Atribut hasil tebakan otomatis per kategori (kunci → nilai). */
 export function otomatis(kat: Kat, r: Row): Record<string, string[]> {
   const n = r.nama;
-  const vn = r.variants.map((v) => `${v.warna} ${v.ukuran}`).join(" | ");
-  const spek = (k: string) => uniq(r.lab.map((l) => l.spek[k]));
+  const vn = vnRow(r);
+  const spek = (k: string) => spekRow(r, k);
   switch (kat.slug) {
     case "raket": {
       const junior = ada(/\b(junior|jr|anak|kids?)\b/i, n);
-      const gram = uniq([...`${vn} ${n}`.matchAll(/(\d{3})\s*g/gi)].map((m) => +m[1] >= 200 && +m[1] <= 360 ? m[1] : null));
-      const berat = uniq(gram.map((g) => (+g < 270 ? "< 270 g" : +g < 290 ? "270–289 g" : +g < 305 ? "290–304 g" : "305 g +")));
-      const hs = uniq([...spek("Head size").map((h) => h.match(/\((\d{2,3})in/)?.[1] ?? h.match(/^(\d{2,3})\s*in/)?.[1]),
-        ...[...vn.matchAll(/(?:^|\s|\|)(9[5-9]|1[01]\d)(?=\s*[A-Za-z]*\s*\/|L|SL|UL|D|H|\s+Tour)/g)].map((m) => m[1])]);
-      const head = uniq(hs.map((h) => (+h < 98 ? "< 98 in²" : +h < 100 ? "98–99 in²" : +h <= 100 ? "100 in²" : +h < 105 ? "101–104 in²" : "105 in² +")));
+      const berat = uniq(gramRaket(r).map((g) => (g < 270 ? "< 270 g" : g < 290 ? "270–289 g" : g < 305 ? "290–304 g" : "305 g +")));
+      const head = uniq(headRaket(r).map((h) => (h < 98 ? "< 98 in²" : h < 100 ? "98–99 in²" : h <= 100 ? "100 in²" : h < 105 ? "101–104 in²" : "105 in² +")));
       return {
         usia: [junior ? "Junior" : "Dewasa"],
         level: junior ? ["Pemula"] : uniq(spek("Level pemain").map((l) => LEVEL[l])),
@@ -95,6 +102,7 @@ export function otomatis(kat: Kat, r: Row): Record<string, string[]> {
         head: junior ? [] : head,
         pola: uniq([...spek("Pola senar"), ...[...vn.matchAll(/\b(1[68]x(?:1[69]|20))\b/gi)].map((m) => m[1])]),
         keunggulan: uniq(spek("Keunggulan").flatMap((s) => s.split(/,\s*/)).map((s) => KEUNGGULAN[s.trim()])),
+        grip: uniq(r.variants.flatMap((v) => [v.ukuran, v.warna]).map((x) => x.trim().toUpperCase().match(/^[GL]([0-5])$/)?.[1]).map((g) => g && `G${g}`)),
       };
     }
     case "senar": {
@@ -105,6 +113,7 @@ export function otomatis(kat: Kat, r: Row): Record<string, string[]> {
         gauge: uniq([...`${vn} ${n}`.matchAll(/\b(1\.[0-4]\d)\b/g)].map((m) => m[1])),
         kemasan: [ada(/reel|200\s*m|100\s*m|220\s*m/i, `${vn} ${n}`) ? "Reel" : "Set 12 m"],
         keunggulan: uniq(spek("Keunggulan").flatMap((s) => s.split(/,\s*/)).map((s) => KEUNGGULAN[s.trim()])),
+        warna: uniq(r.variants.map((v) => v.warna.trim()).filter((w) => w && !/\d/.test(w)).map((w) => WARNA[w.toLowerCase()] ?? w[0].toUpperCase() + w.slice(1).toLowerCase())),
       };
     }
     case "sepatu":
@@ -112,6 +121,12 @@ export function otomatis(kat: Kat, r: Row): Record<string, string[]> {
         gender: [gender(n)],
         lapangan: [ada(/\b(clay|cly)\b/i, n) ? "Clay" : ada(/padel/i, n) ? "Padel" : "All court"],
         gaya: uniq(spek("Gaya main").map((g) => ({ Forward: "Menyerang", Versatile: "Serbaguna", Defender: "Bertahan" })[g])),
+        keunggulan: uniq(spek("Keunggulan").flatMap((s) => s.split(/,\s*/)).map((s) => KEUNGGULAN[s.trim()])),
+        stabilitas: uniq(spek("Stabilitas lateral").map((x) => ({ Standard: "Standar", Reinforced: "Diperkuat", Maximum: "Maksimal" })[x])),
+        bantalan: uniq(spek("Cushioning").map((x) => ({ "Minimal (Responsive)": "Minimal (responsif)", Balanced: "Seimbang", Maximum: "Maksimal" })[x])),
+        lebar: uniq(spek("Lebar kaki").map((x) => ({ Narrow: "Sempit", Standard: "Standar", Wide: "Lebar" })[x])),
+        bobot: uniq([...spek("Berat (EU 42.5)"), ...spek("Berat (lab)").map((x) => x.match(/\((\d+)g\)/)?.[1])].map((g) => angka(g ?? undefined)).filter((g) => g > 200)
+          .map((g) => (g < 350 ? "Ultra ringan (< 350 g)" : g <= 380 ? "Ringan (350–380 g)" : g <= 410 ? "Standar (381–410 g)" : "Kokoh (> 410 g)"))).slice(0, 1),
       };
     case "apparel": {
       const J: [RegExp, string][] = [[/polo/i, "Polo"], [/tank|singlet/i, "Tank top"], [/\b(skort|rok|skirt)\b/i, "Rok"], [/dress/i, "Dress"], [/legging|tights/i, "Legging"], [/\bbra\b/i, "Sports bra"], [/jacket|jaket|hoodie|windbreaker/i, "Jaket"], [/sweat|crew|pullover|long sleeve|lengan panjang/i, "Lengan panjang"], [/\b(short|shorts|celana|pants?|jogger)\b/i, "Celana"], [/\b(cap|topi|visor|hat)\b/i, "Topi"], [/\b(tee|t-?shirt|shirt|kaos|baju|top|crew)\b/i, "Kaos"]];
@@ -149,9 +164,10 @@ export const ATRIBUT_FORM: Record<string, { key: string; label: string; contoh: 
 };
 
 // ---------- filter ----------
+// grup = judul bagian yang menampung beberapa filter (mis. "Spesifikasi"), seperti sidebar Extreme.
 export type Facet =
-  | { key: string; label: string; type: "multi"; get: (r: Row, a: Record<string, string[]>) => string[]; urut?: string[] }
-  | { key: string; label: string; type: "min"; get: (r: Row) => number | null; lab?: true };
+  | { key: string; label: string; type: "multi"; get: (r: Row, a: Record<string, string[]>) => string[]; urut?: string[]; grup?: string }
+  | { key: string; label: string; type: "range"; get: (r: Row) => number[]; step: number; unit?: string; grup?: string };
 
 export const hargaJual = (h: number, d: number | null) => (d != null && d < h && !isB1G1(h, d) ? d : h);
 export const hargaRow = (r: Row) => Math.min(...(r.variants.length ? r.variants : [r]).map((v) => hargaJual(v.harga, v.hargaDiskon)));
@@ -169,7 +185,9 @@ const labMax = (r: Row, k: string) => {
   const v = r.lab.map((l) => (k === "skor" ? l.skor : l.nilai[k])).filter((x): x is number => x != null);
   return v.length ? Math.max(...v) : null;
 };
-const m = (key: string, label: string, urut?: string[]): Facet => ({ key, label, type: "multi", get: (_r, a) => a[key] ?? [], urut });
+const m = (key: string, label: string, urut?: string[], grup?: string): Facet => ({ key, label, type: "multi", get: (_r, a) => a[key] ?? [], urut, grup });
+const rg = (key: string, label: string, step: number, unit: string, get: (r: Row) => number[], grup?: string): Facet => ({ key, label, type: "range", get, step, unit, grup });
+const spekAngka = (k: string, re?: RegExp) => (r: Row) => spekRow(r, k).map((x) => angka(x, re)).filter((x) => !isNaN(x));
 const KRITERIA: Record<string, string[]> = {
   raket: ["Power", "Kontrol", "Kenyamanan", "Spin", "Toleransi", "Manuver", "Stabilitas"],
   senar: ["Power", "Kontrol", "Kenyamanan", "Spin", "Tahan tension", "Ketahanan"],
@@ -177,45 +195,52 @@ const KRITERIA: Record<string, string[]> = {
 };
 
 export function facets(kat: Kat): Facet[] {
+  const harga = rg("harga", "Harga", 50000, "", (r) => [hargaRow(r)]);
   const brand: Facet = { key: "brand", label: "Brand", type: "multi", get: (r) => [brandRow(r)] };
   const ukuran: Facet = { key: "ukuran", label: "Ukuran", type: "multi", get: (r) => ukuranRow(r) };
   const lab: Facet[] = kat.lab
-    ? [{ key: "skor", label: "Skor Tirtoniclab", type: "min", get: (r) => labMax(r, "skor"), lab: true },
-       ...KRITERIA[kat.lab].map((k): Facet => ({ key: `lab_${k}`, label: k, type: "min", get: (r) => labMax(r, k), lab: true }))]
+    ? KRITERIA[kat.lab].map((k) => rg(`lab_${k}`, k, 1, "", (r) => r.lab.map((l) => l.nilai[k]).filter((x) => x != null), "Skor Tirtoniclab"))
     : [];
+  const S = "Spesifikasi", X = "Data expert";
   const khusus: Record<string, Facet[]> = {
-    raket: [m("usia", "Usia"), m("level", "Level pemain", ["Pemula", "Menengah", "Mahir", "Expert"]), m("berat", "Berat", ["< 270 g", "270–289 g", "290–304 g", "305 g +"]), m("head", "Head size", ["< 98 in²", "98–99 in²", "100 in²", "101–104 in²", "105 in² +"]), m("pola", "Pola senar"), m("keunggulan", "Keunggulan")],
-    senar: [m("tipe", "Tipe"), m("gauge", "Gauge"), m("kemasan", "Kemasan"), m("keunggulan", "Keunggulan")],
-    sepatu: [ukuran, m("gender", "Gender", ["Pria", "Wanita", "Anak", "Unisex"]), m("lapangan", "Lapangan"), m("gaya", "Gaya main")],
+    raket: [m("level", "Level pemain", ["Pemula", "Menengah", "Mahir", "Expert"]),
+      rg("berat", "Berat tanpa senar", 5, "g", gramRaket, S), rg("head", "Head size", 1, "in²", headRaket, S),
+      rg("balance", "Balance", 0.5, "cm", (r) => spekAngka("Balance", /([\d.]+)\s*cm/)(r).filter((x) => x > 25 && x < 40), S), m("pola", "Pola senar", undefined, S),
+      m("grip", "Grip size", ["G0", "G1", "G2", "G3", "G4", "G5"]), m("keunggulan", "Keunggulan"), m("usia", "Usia"),
+      rg("ra", "Kekakuan frame", 1, "RA", spekAngka("Kekakuan (RA)"), X), rg("sw", "Swingweight", 1, "", spekAngka("Swingweight"), X), rg("tw", "Twistweight", 0.1, "", spekAngka("Twistweight"), X)],
+    senar: [m("tipe", "Tipe"), m("keunggulan", "Keunggulan"), m("gauge", "Gauge"), m("kemasan", "Kemasan"), m("warna", "Warna")],
+    sepatu: [ukuran, m("lapangan", "Lapangan"), m("gender", "Gender", ["Pria", "Wanita", "Anak", "Unisex"]),
+      m("stabilitas", "Stabilitas lateral", ["Standar", "Diperkuat", "Maksimal"], S), m("bantalan", "Bantalan", ["Minimal (responsif)", "Seimbang", "Maksimal"], S),
+      m("bobot", "Berat sepatu", ["Ultra ringan (< 350 g)", "Ringan (350–380 g)", "Standar (381–410 g)", "Kokoh (> 410 g)"], S), m("lebar", "Lebar kaki", ["Sempit", "Standar", "Lebar"], S),
+      m("keunggulan", "Keunggulan"), m("gaya", "Gaya main")],
     apparel: [m("jenis", "Jenis pakaian"), m("gender", "Gender", ["Pria", "Wanita", "Anak", "Unisex"]), ukuran],
     tas: [m("jenis", "Jenis tas")],
     bola: [m("jenis", "Jenis bola"), m("kemasan", "Kemasan")],
     grip: [m("jenis", "Jenis"), m("isi", "Isi")],
   };
-  return [brand, ...(khusus[kat.slug] ?? []), ...lab];
+  return [harga, brand, ...(khusus[kat.slug] ?? []), ...lab];
 }
 
-export const MIN_OPSI = [60, 70, 80];
+/** "a-b", "a-", "-b", atau "a" (format lama = minimal) → [min, max] (NaN = tanpa batas). */
+export const rentang = (s?: string) => { const [a, b = ""] = (s || "").split("-"); return [a ? +a : NaN, b ? +b : NaN] as const; };
+const bulat = (x: number, st: number, f: (n: number) => number) => +(f(x / st) * st).toFixed(st < 1 ? 1 : 0);
 
 /** Saring + hitung jumlah per opsi (tiap filter dihitung terhadap filter lain yang aktif). */
 export function saring(kat: Kat, rows: Row[], q: Record<string, string | undefined>) {
   const fs = facets(kat);
   const attr = new Map(rows.map((r) => [r.id, atribut(kat, r)]));
   const pilih = (k: string) => (q[k] || "").split(",").filter(Boolean);
-  const [hMin, hMax] = (q.harga || "").split("-").map((x) => (x ? +x : NaN));
   const lolos = (r: Row, kecuali?: string) => {
     if (q.ready && !readyRow(r)) return false;
     if (q.diskon && hargaRow(r) >= r.harga) return false;
-    const h = hargaRow(r);
-    if ((!isNaN(hMin) && h < hMin) || (!isNaN(hMax) && h > hMax)) return false;
     for (const f of fs) {
       if (f.key === kecuali || !q[f.key]) continue;
       if (f.type === "multi") {
         const v = f.get(r, attr.get(r.id)!);
         if (!pilih(f.key).some((p) => v.includes(p))) return false;
       } else {
-        const v = f.get(r);
-        if (v == null || v < +q[f.key]!) return false;
+        const [a, b] = rentang(q[f.key]);
+        if (!f.get(r).some((v) => !(v < a) && !(v > b))) return false;
       }
     }
     return true;
@@ -223,9 +248,11 @@ export function saring(kat: Kat, rows: Row[], q: Record<string, string | undefin
   const hasil = rows.filter((r) => lolos(r));
   const opsi = fs.map((f) => {
     const dasar = rows.filter((r) => lolos(r, f.key));
-    if (f.type === "min") {
-      const vals = dasar.map(f.get).filter((x): x is number => x != null);
-      return { ...f, opsi: MIN_OPSI.map((n) => ({ nilai: String(n), label: `${n}+`, jumlah: vals.filter((v) => v >= n).length })).filter((o) => o.jumlah || q[f.key] === o.nilai) };
+    if (f.type === "range") {
+      // batas slider dari semua produk kategori (stabil walau filter lain berubah)
+      const vals = rows.flatMap(f.get);
+      const ada = dasar.some((r) => f.get(r).length);
+      return { key: f.key, label: f.label, type: f.type, grup: f.grup, opsi: [], min: vals.length ? bulat(Math.min(...vals), f.step, Math.floor) : 0, max: vals.length ? bulat(Math.max(...vals), f.step, Math.ceil) : 0, step: f.step, unit: f.unit, ada };
     }
     const hit = new Map<string, number>();
     for (const r of dasar) for (const v of new Set(f.get(r, attr.get(r.id)!))) hit.set(v, (hit.get(v) ?? 0) + 1);
@@ -237,8 +264,8 @@ export function saring(kat: Kat, rows: Row[], q: Record<string, string | undefin
       if (f.key === "ukuran" || f.key === "gauge") return a[0].localeCompare(b[0], "en", { numeric: true });
       return b[1] - a[1] || a[0].localeCompare(b[0]);
     });
-    return { key: f.key, label: f.label, type: f.type, lab: false, opsi: list.map(([nilai, jumlah]) => ({ nilai, label: nilai, jumlah })) };
-  }).filter((f) => f.opsi.length > (f.type === "multi" ? 1 : 0) || q[f.key]);
+    return { key: f.key, label: f.label, type: f.type, grup: f.grup, opsi: list.map(([nilai, jumlah]) => ({ nilai, label: nilai, jumlah })) };
+  }).filter((f) => (f.type === "range" ? "max" in f && f.max > f.min && f.ada : f.opsi.length > 1) || q[f.key]);
 
   const urut = q.sort || "";
   const skor = (r: Row) => labMax(r, urut.startsWith("lab_") ? urut.slice(4) : "skor") ?? -1;
@@ -248,7 +275,7 @@ export function saring(kat: Kat, rows: Row[], q: Record<string, string | undefin
     : urut === "newest" ? b.createdAt.localeCompare(a.createdAt)
     : urut === "skor" || urut.startsWith("lab_") ? skor(b) - skor(a)
     : Number(readyRow(b)) - Number(readyRow(a)) || b.views - a.views);
-  return { hasil, opsi: opsi.map(({ key, label, type, opsi, ...f }) => ({ key, label, type, opsi, lab: "lab" in f && !!f.lab })) };
+  return { hasil, opsi: opsi.map(({ ada: _a, ...f }: { ada?: boolean } & typeof opsi[number]) => f) };
 }
 
 // ponytail: self-check tebakan atribut; jalankan via tsx bila regex diubah.
@@ -271,5 +298,10 @@ export function demo() {
   if (atribut(k("raket"), { ...base, nama: "Raket Tenis Babolat Pure Aero", variants: [{ warna: "100 / 300g", ukuran: "G2", stok: 1, harga: 1, hargaDiskon: null }] }).berat?.[0] !== "290–304 g") throw new Error("berat varian");
   if (atribut(k("tas"), { ...base, nama: "Tas Wilson Backpack", atribut: { jenis: ["Duffel"] } }).jenis[0] !== "Duffel") throw new Error("koreksi admin harus menang");
   if (brandRow({ ...base, brand: "YONEX" }) !== "Yonex" || brandRow({ ...base, brand: "K-Swiss" }) !== "K-Swiss" || brandRow({ ...base, brand: "new balance" }) !== "New Balance") throw new Error("brand");
+  const sepatu = atribut(k("sepatu"), { ...base, nama: "Asics", lab: [{ skor: 1, nilai: {}, spek: { "Berat (lab)": "13.3 oz (376g)", Cushioning: "Balanced", "Lebar kaki": "Wide" } }] });
+  if (sepatu.bobot[0] !== "Ringan (350–380 g)" || sepatu.bantalan[0] !== "Seimbang" || sepatu.lebar[0] !== "Lebar") throw new Error("spek sepatu");
+  const rows = [{ ...base, id: "a", harga: 100 }, { ...base, id: "b", harga: 300 }];
+  if (saring(k("bola"), rows, { harga: "200-" }).hasil.length !== 1 || saring(k("bola"), rows, { harga: "-150" }).hasil[0].id !== "a") throw new Error("rentang harga");
+  if (atribut(k("raket"), { ...base, nama: "x", variants: [{ warna: "100/300g", ukuran: "G2", stok: 1, harga: 1, hargaDiskon: null }] }).grip[0] !== "G2") throw new Error("grip");
   return "ok";
 }
