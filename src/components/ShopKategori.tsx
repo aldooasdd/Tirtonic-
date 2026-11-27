@@ -154,10 +154,19 @@ export default function ShopKategori({ slug, grup, produk, total, lab }: { slug:
       </div>
 
       {laci && (
-        <div className="fixed inset-0 z-[70] flex flex-col bg-white md:hidden">
-          <div className="flex-1 overflow-y-auto p-4">{panel}</div>
-          <div className="border-t p-3">
-            <button onClick={() => setLaci(false)} className="w-full rounded-full bg-primaryDark py-3 font-semibold text-white">Lihat {total} produk</button>
+        <div className="fixed inset-0 z-[70] flex items-end bg-black/40 backdrop-blur-sm md:hidden" onClick={() => setLaci(false)}>
+          {/* bottom sheet: muncul dari bawah (.sheet-in di globals.css) */}
+          <div role="dialog" aria-modal="true" aria-label="Filter" onClick={(e) => e.stopPropagation()} className="sheet-in flex max-h-[85vh] w-full flex-col rounded-t-3xl bg-white shadow-2xl">
+            <div className="relative flex justify-center pb-1 pt-3">
+              <span className="h-1.5 w-10 rounded-full bg-gray-300" />
+              <button onClick={() => setLaci(false)} aria-label="Tutup" className="absolute right-3 top-2 flex h-9 w-9 items-center justify-center rounded-full text-gray-500 hover:bg-gray-100">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto overscroll-contain px-4 pb-4 pt-2">{panel}</div>
+            <div className="border-t p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+              <button onClick={() => setLaci(false)} className="w-full rounded-full bg-neutral-950 py-3 font-semibold text-white">Lihat {total} produk</button>
+            </div>
           </div>
         </div>
       )}
