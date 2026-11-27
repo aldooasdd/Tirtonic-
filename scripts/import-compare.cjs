@@ -1,6 +1,6 @@
 // Impor data /bandingkan ke tabel CompareItem dari file di /Users/a1/tirtonic-data.
 // Pakai: NODE_PATH=node_modules node --env-file=.env scripts/import-compare.cjs [folder-data]
-// Sumber: Extreme Tennis X-Compare (skor 0-100), TWU (lab senar, dari tabel TwuString),
+// Sumber: Extreme Tennis X-Compare (skor 0-100), TWU (lab senar, dari tabel TwuString), tambahan.json (lihat build-tambahan.cjs),
 // Tennis Warehouse (spek raket), RunRepeat (lab sepatu). Baris status CEK dilewati.
 // Aman diulang: upsert per (productId, varian); item yang tidak ada lagi di sumber dihapus.
 const fs = require("fs");
@@ -86,6 +86,19 @@ const ok = (r) => (r.status ? r.status === "OK" : r.selisih >= 0 && String(r.tah
       "Energy return": m.energyReturnPct != null ? `${m.energyReturnPct}%` : null, "Spin potential": m.spinPotential,
       "Model TWU": t.name,
     }, { Bahan: "Bahan", Gauge: "Gauge", "Stiffness (lb/in)": "Stiffness TWU (lb/in)", "Tension loss": "Tension loss TWU", "Energy return": "Energy return TWU", "Spin potential": "Spin potential TWU", "Model TWU": "Model yang diuji TWU" }, "twu");
+  }
+
+  // Tambahan (scripts/build-tambahan.cjs): skor untuk produk yang belum punya skor dari sumber di atas.
+  if (fs.existsSync(path.join(DIR, "tambahan.json"))) {
+    for (const r of baca("tambahan.json")) {
+      if (!P.has(r.productId)) continue;
+      const it = item(r.productId, r.varian, r.kategori);
+      if (Object.keys(it.nilai).length) continue; // data dari sumber utama menang
+      it.nilai = r.nilai;
+      it.skor = r.skor;
+      it.spek["Sumber skor"] = r.catatan;
+      if (!it.sumber.includes(r.sumber)) it.sumber.push(r.sumber);
+    }
   }
 
   const all = [...items.values()];

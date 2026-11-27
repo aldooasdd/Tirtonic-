@@ -55,7 +55,7 @@ export default function ProductLab({ items, serupa = [] }: { items: Item[]; seru
               <div key={k} className="border-b pb-1.5"><dt className="text-xs text-gray-500">{k}</dt><dd className="font-semibold text-gray-900">{v}</dd></div>
             ))}
           </dl>
-          <p className="mt-4 text-xs text-gray-400">Data: Tirtoniclab, dihimpun dari hasil uji lab independen.</p>
+          <p className="mt-4 text-xs text-gray-400">Data: Tirtoniclab, dihimpun dari hasil uji lab dan playtest independen.</p>
         </div>
       </div>
 

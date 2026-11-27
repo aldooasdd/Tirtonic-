@@ -49,7 +49,7 @@ export default async function MatchPage({ params }: { params: { kat: string; mod
             <p className="mt-4 text-base leading-relaxed text-neutral-600 sm:text-lg">{SUB[mode]}</p>
           </header>
           {mode === "find" ? <MatchFind kat={kat} items={items} /> : <MatchOptimize kat={kat} items={items} />}
-          <p className="mt-10 text-center text-xs text-gray-400">Data: Tirtoniclab, dihimpun dari hasil uji lab independen. Hanya produk ready dengan data lab yang direkomendasikan.</p>
+          <p className="mt-10 text-center text-xs text-gray-400">Data: Tirtoniclab, dihimpun dari hasil uji lab dan playtest independen. Hanya produk ready dengan data lab yang direkomendasikan.</p>
         </div>
       </div>
       <Footer />
