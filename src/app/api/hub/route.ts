@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { markOrderShipped } from "@/lib/orders";
 import { markPreorderShipped } from "@/lib/preorder";
 import { detectKategori } from "@/lib/tokopedia";
+import { formProduk, simpanProduk, uploadFoto, type SimpanProduk } from "@/lib/hub-produk";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -102,12 +103,13 @@ export async function GET(req: NextRequest) {
       })),
     });
   }
-  return bad("type harus orders atau products");
+  if (type === "form") return NextResponse.json({ kategori: await formProduk() });
+  return bad("type harus orders, products, atau form");
 }
 
 export async function POST(req: NextRequest) {
   if (!authed(req)) return bad("unauthorized", 401);
-  let body: { action?: string; sn?: string; resi?: string; kurir?: string; productId?: string; variantId?: string; stock?: number; price?: number; name?: string; product?: ImportProduct; weights?: WeightRow[] };
+  let body: { action?: string; sn?: string; resi?: string; kurir?: string; productId?: string; variantId?: string; stock?: number; price?: number; name?: string; product?: ImportProduct; weights?: WeightRow[]; produk?: SimpanProduk; foto?: { nama: string; tipe: string; data: string } };
   try {
     body = await req.json();
   } catch {
@@ -171,7 +173,20 @@ export async function POST(req: NextRequest) {
     const r = await importProduct(body.product);
     return "error" in r ? bad(r.error) : NextResponse.json(r);
   }
-  return bad("action harus ship, update, import, atau weights");
+  if (body.action === "upload") {
+    if (!body.foto?.data) return bad("foto wajib");
+    try {
+      return NextResponse.json({ url: await uploadFoto(body.foto.nama, body.foto.tipe, body.foto.data) });
+    } catch (e) {
+      return bad(e instanceof Error ? e.message : "Upload gagal");
+    }
+  }
+  if (body.action === "simpan") {
+    if (!body.produk) return bad("produk wajib");
+    const r = await simpanProduk(body.produk);
+    return "error" in r ? bad(r.error) : NextResponse.json({ ok: true, ...r });
+  }
+  return bad("action harus ship, update, import, weights, upload, atau simpan");
 }
 
 // --- Impor produk dari Produk Master Tirtonichub (mis. semua produk Tokopedia) ---

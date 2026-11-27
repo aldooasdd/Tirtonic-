@@ -200,7 +200,7 @@ const labMax = (r: Row, k: string) => {
 const m = (key: string, label: string, urut?: string[], grup?: string): Facet => ({ key, label, type: "multi", get: (_r, a) => a[key] ?? [], urut, grup });
 const rg = (key: string, label: string, step: number, unit: string, get: (r: Row) => number[], grup?: string): Facet => ({ key, label, type: "range", get, step, unit, grup });
 const spekAngka = (k: string, re?: RegExp) => (r: Row) => spekRow(r, k).map((x) => angka(x, re)).filter((x) => !isNaN(x));
-const KRITERIA: Record<string, string[]> = {
+export const KRITERIA: Record<string, string[]> = {
   raket: ["Power", "Kontrol", "Kenyamanan", "Spin", "Toleransi", "Manuver", "Stabilitas"],
   senar: ["Power", "Kontrol", "Kenyamanan", "Spin", "Tahan tension", "Ketahanan"],
   sepatu: ["Kenyamanan", "Stabilitas", "Ketahanan", "Dinamis"],

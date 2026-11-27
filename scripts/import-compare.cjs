@@ -101,12 +101,14 @@ const ok = (r) => (r.status ? r.status === "OK" : r.selisih >= 0 && String(r.tah
     }
   }
 
-  const all = [...items.values()];
+  // data "manual" (diisi dari form Tirtonichub, src/lib/hub-produk.ts) tidak ditimpa dan tidak dihapus
+  const manual = new Set((await db.compareItem.findMany({ where: { sumber: { has: "manual" } }, select: { productId: true, varian: true } })).map((x) => `${x.productId}|${x.varian}`));
+  const all = [...items.values()].filter((i) => !manual.has(`${i.productId}|${i.varian}`));
   for (const it of all) {
     const data = { kategori: it.kategori, skor: it.skor, nilai: it.nilai, spek: it.spek, sumber: it.sumber };
     await db.compareItem.upsert({ where: { productId_varian: { productId: it.productId, varian: it.varian } }, create: { productId: it.productId, varian: it.varian, ...data }, update: data });
   }
-  const keep = new Set(all.map((i) => `${i.productId}|${i.varian}`));
+  const keep = new Set([...all.map((i) => `${i.productId}|${i.varian}`), ...manual]);
   const lama = await db.compareItem.findMany({ select: { id: true, productId: true, varian: true } });
   const buang = lama.filter((x) => !keep.has(`${x.productId}|${x.varian}`)).map((x) => x.id);
   if (buang.length) await db.compareItem.deleteMany({ where: { id: { in: buang } } });
