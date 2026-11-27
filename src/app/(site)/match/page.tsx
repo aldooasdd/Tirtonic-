@@ -72,10 +72,6 @@ export default async function MatchLanding() {
             ))}
           </div>
 
-          <div className="mt-10 rounded-3xl border border-white bg-white/70 p-5 text-center backdrop-blur-xl sm:p-6">
-            <p className="text-sm text-gray-600">Mau sekalian pasang senar dengan tension yang pas? <Link href="/string-finder" className="font-semibold text-gray-950 underline underline-offset-2">Coba String Finder</Link> · Mau membandingkan sendiri? <Link href="/bandingkan" className="font-semibold text-gray-950 underline underline-offset-2">Buka Compare</Link></p>
-          </div>
-
           <section className="mx-auto mt-16 max-w-3xl">
             <h2 className="text-2xl font-semibold tracking-tight text-gray-950">Cara kerjanya</h2>
             <div className="mt-5 space-y-4 text-[15px] leading-relaxed text-gray-600">
