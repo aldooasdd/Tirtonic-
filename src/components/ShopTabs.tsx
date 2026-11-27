@@ -1,22 +1,20 @@
 import Link from "next/link";
 import { KATS } from "@/lib/shop-kat";
 
-/** Bar kategori di atas shop. Kategori tanpa produk disembunyikan. */
+/** Bar kategori shop gaya dock kaca (sama dengan filter kota di /event). Kategori kosong disembunyikan. */
 export default function ShopTabs({ aktif, jumlah }: { aktif?: string; jumlah: Record<string, number> }) {
-  const tab = (on: boolean) =>
-    `relative whitespace-nowrap px-3 py-4 text-[15px] font-semibold transition sm:px-4 ${on ? "text-gray-900" : "text-gray-500 hover:text-gray-900"}`;
-  const garis = <span className="absolute inset-x-3 bottom-0 h-[3px] rounded-full bg-ball sm:inset-x-4" />;
+  const pil = (on: boolean) =>
+    `whitespace-nowrap rounded-full px-4 py-2 text-sm font-[600] transition active:scale-95 ${on ? "bg-neutral-950 text-white shadow-[0_6px_16px_-6px_rgba(0,0,0,0.45)]" : "text-neutral-600 hover:bg-white hover:text-neutral-950"}`;
   return (
-    <nav className="border-b border-gray-100 bg-white">
-      <div className="mx-auto flex max-w-[1600px] overflow-x-auto px-2 [scrollbar-width:none] lg:justify-center">
-        <Link href="/shop" className={tab(!aktif)}>Semua{!aktif && garis}</Link>
-        {KATS.filter((k) => jumlah[k.db]).map((k) => (
-          <Link key={k.slug} href={`/shop/${k.slug}`} className={tab(aktif === k.slug)}>
-            {k.label}
-            {aktif === k.slug && garis}
-          </Link>
-        ))}
+    <div className="relative z-20 mx-auto mt-4 max-w-[1400px] px-4 sm:px-6">
+      <div className="ev-dock rounded-2xl p-2">
+        <nav className="flex gap-1 overflow-x-auto [scrollbar-width:none] [&>:first-child]:ml-auto [&>:last-child]:mr-auto">
+          <Link href="/shop" className={pil(!aktif)}>Semua</Link>
+          {KATS.filter((k) => jumlah[k.db]).map((k) => (
+            <Link key={k.slug} href={`/shop/${k.slug}`} className={pil(aktif === k.slug)}>{k.label}</Link>
+          ))}
+        </nav>
       </div>
-    </nav>
+    </div>
   );
 }
