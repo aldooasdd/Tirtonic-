@@ -35,10 +35,6 @@ export default async function KategoriPage({ params, searchParams }: { params: {
       <ShopTabs aktif={kat.slug} jumlah={jumlah} />
       <div className="mx-auto max-w-[1600px] px-4 pb-10 pt-4">
         <div className="relative overflow-hidden rounded-[2rem]">
-        {/* warna di belakang kaca supaya efek liquid glass terlihat; dikurung di dalam kotak */}
-        <span aria-hidden className="pointer-events-none absolute -right-10 -top-16 h-56 w-56 rounded-full bg-ball blur-2xl sm:h-72 sm:w-72" />
-        <span aria-hidden className="pointer-events-none absolute -bottom-16 left-[20%] h-40 w-80 rounded-full bg-emerald-400/70 blur-3xl" />
-        <span aria-hidden className="pointer-events-none absolute right-[28%] top-1/2 h-24 w-24 rounded-full bg-teal-300/60 blur-2xl" />
         <header className="liquid-green overflow-hidden rounded-[2rem] px-5 py-7 text-white sm:px-10 sm:py-10">
           <h1 className="relative text-3xl font-extrabold tracking-tight sm:text-5xl">{kat.judul}</h1>
           <div className="relative mt-3 max-w-3xl text-[15px] leading-relaxed text-white/85">

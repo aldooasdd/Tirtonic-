@@ -74,10 +74,10 @@ body {
 .liquid-green {
   position: relative;
   isolation: isolate;
-  background: linear-gradient(140deg, rgba(22, 118, 90, 0.72), rgba(9, 62, 46, 0.84));
-  backdrop-filter: blur(22px) saturate(180%);
-  -webkit-backdrop-filter: blur(22px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.32);
+  background: linear-gradient(135deg, rgba(20, 107, 82, 0.88), rgba(11, 63, 48, 0.9)); /* = .glass-primary (navbar) */
+  backdrop-filter: blur(12px) saturate(170%);
+  -webkit-backdrop-filter: blur(12px) saturate(170%);
+  border: 1px solid rgba(255, 255, 255, 0.28);
   box-shadow:
     0 30px 60px -28px rgba(14, 85, 64, 0.55),
     inset 0 1px 0 rgba(255, 255, 255, 0.55),
