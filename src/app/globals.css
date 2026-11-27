@@ -70,6 +70,40 @@ body {
 }
 .glass-primary:hover { filter: brightness(1.06); }
 
+/* Liquid glass hijau (header kategori shop): kaca hijau bening + kilap atas + pantulan tepi. */
+.liquid-green {
+  position: relative;
+  isolation: isolate;
+  background: linear-gradient(140deg, rgba(22, 118, 90, 0.72), rgba(9, 62, 46, 0.84));
+  backdrop-filter: blur(22px) saturate(180%);
+  -webkit-backdrop-filter: blur(22px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  box-shadow:
+    0 30px 60px -28px rgba(14, 85, 64, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 0 40px rgba(164, 208, 55, 0.08);
+}
+.liquid-green::before { /* kilap kaca */
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background:
+    radial-gradient(120% 60% at 15% -10%, rgba(255, 255, 255, 0.16), transparent 55%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.07), transparent 40%);
+  pointer-events: none;
+}
+.liquid-chip {
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+.liquid-chip:hover { background: rgba(255, 255, 255, 0.2); }
+
 /* softer weights — "tebal, tapi jangan terlalu bold" */
 .font-semibold {
   font-weight: 400;

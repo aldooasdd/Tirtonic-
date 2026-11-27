@@ -34,14 +34,17 @@ export default async function KategoriPage({ params, searchParams }: { params: {
     <>
       <ShopTabs aktif={kat.slug} jumlah={jumlah} />
       <div className="mx-auto max-w-[1600px] px-4 pb-10 pt-4">
-        <header className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primaryDark to-primary px-5 py-7 text-white sm:px-10 sm:py-10">
-          <span aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full border-[18px] border-ball/25" />
-          <span aria-hidden className="pointer-events-none absolute -bottom-20 right-24 h-40 w-40 rounded-full bg-ball/10" />
+        <div className="relative overflow-hidden rounded-[2rem]">
+        {/* warna di belakang kaca supaya efek liquid glass terlihat; dikurung di dalam kotak */}
+        <span aria-hidden className="pointer-events-none absolute -right-10 -top-16 h-56 w-56 rounded-full bg-ball blur-2xl sm:h-72 sm:w-72" />
+        <span aria-hidden className="pointer-events-none absolute -bottom-16 left-[20%] h-40 w-80 rounded-full bg-emerald-400/70 blur-3xl" />
+        <span aria-hidden className="pointer-events-none absolute right-[28%] top-1/2 h-24 w-24 rounded-full bg-teal-300/60 blur-2xl" />
+        <header className="liquid-green overflow-hidden rounded-[2rem] px-5 py-7 text-white sm:px-10 sm:py-10">
           <h1 className="relative text-3xl font-extrabold tracking-tight sm:text-5xl">{kat.judul}</h1>
           <div className="relative mt-3 max-w-3xl text-[15px] leading-relaxed text-white/85">
             <p>{kat.intro}</p>
             <details className="group mt-2">
-              <summary className="inline-flex cursor-pointer list-none items-center gap-1 text-sm font-semibold text-ball">
+              <summary className="inline-flex cursor-pointer list-none items-center gap-1 rounded text-sm font-semibold text-ball outline-none">
                 <span className="group-open:hidden">Baca selengkapnya</span><span className="hidden group-open:inline">Tutup</span>
                 <svg className="h-4 w-4 transition group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="6 9 12 15 18 9" /></svg>
               </summary>
@@ -56,7 +59,7 @@ export default async function KategoriPage({ params, searchParams }: { params: {
                 const q = new URLSearchParams(Object.entries(searchParams).filter(([a, v]) => a !== "sort" && v) as [string, string][]);
                 if (!on) q.set("sort", `lab_${k}`);
                 return (
-                  <Link key={k} href={`/shop/${kat.slug}${q.toString() ? `?${q}` : ""}`} scroll={false} className={`rounded-full px-4 py-2 text-sm font-semibold transition ${on ? "bg-ball text-gray-900" : "bg-white/10 text-white ring-1 ring-white/20 hover:bg-white/20"}`}>
+                  <Link key={k} href={`/shop/${kat.slug}${q.toString() ? `?${q}` : ""}`} scroll={false} className={`rounded-full px-4 py-2 text-sm font-semibold transition ${on ? "bg-ball text-gray-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)]" : "liquid-chip text-white"}`}>
                     Top {k.toLowerCase()}
                   </Link>
                 );
@@ -64,6 +67,7 @@ export default async function KategoriPage({ params, searchParams }: { params: {
             </div>
           )}
         </header>
+        </div>
 
         <div className="mt-8">
           <Suspense fallback={null}>
