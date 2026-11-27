@@ -26,7 +26,7 @@ export default async function MatchLanding() {
   const total = data.reduce((t, x) => t + x.n, 0);
   return (
     <>
-      <div className="relative overflow-x-clip bg-[#f7f9fb] [letter-spacing:-0.011em]">
+      <div className="relative overflow-x-clip bg-[#f7f9fb] [letter-spacing:-0.011em] sm:-mt-20 sm:pt-20">
         <div aria-hidden className="ev-orb -top-32 left-1/2 h-[340px] w-[720px] -translate-x-1/2 bg-gradient-to-r from-lime-300/35 via-emerald-300/25 to-sky-300/30" />
         <div aria-hidden className="ev-orb right-10 top-24 hidden h-[360px] w-[360px] bg-gradient-to-bl from-teal-200/40 to-blue-200/30 sm:block" />
         <div className="relative mx-auto max-w-6xl px-4 pb-16 pt-12 sm:px-6 sm:pt-20">

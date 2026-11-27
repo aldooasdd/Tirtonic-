@@ -31,7 +31,7 @@ export default async function MatchPage({ params }: { params: { kat: string; mod
   const lain = mode === "find" ? "optimize" : "find";
   return (
     <>
-      <div className="relative overflow-x-clip bg-[#f7f9fb] [letter-spacing:-0.011em]">
+      <div className="relative overflow-x-clip bg-[#f7f9fb] [letter-spacing:-0.011em] sm:-mt-20 sm:pt-20">
         <div aria-hidden className="ev-orb -top-24 left-0 h-[300px] w-[640px] bg-gradient-to-r from-lime-300/35 via-emerald-300/25 to-sky-300/30" />
         <div aria-hidden className="ev-orb right-0 top-40 hidden h-[340px] w-[340px] bg-gradient-to-bl from-teal-200/40 to-blue-200/30 sm:block" />
         <div className="relative mx-auto max-w-6xl px-4 pb-16 pt-8 sm:px-6 sm:pt-12">
