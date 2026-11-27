@@ -23,7 +23,6 @@ export default function ProductLab({ items, serupa = [] }: { items: Item[]; seru
           </h2>
           <p className="mt-2 text-sm text-gray-500">Skor Tirtoniclab dari data uji lab, bukan kesan subjektif.</p>
         </div>
-        <Link href={`/bandingkan?k=${it.kategori}&i=${it.id}`} className="rounded-full bg-primaryDark px-5 py-2 text-sm font-semibold text-white hover:bg-primary">Bandingkan dengan lainnya</Link>
       </div>
       {items.length > 1 && (
         <div className="mt-4 flex flex-wrap gap-2">
