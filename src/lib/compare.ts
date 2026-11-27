@@ -28,6 +28,7 @@ export async function compareItems(where: { kategori?: Kat; productId?: string }
     const harga = Math.min(...(vs.length ? vs : [p]).map((v) => (v.hargaDiskon != null && v.hargaDiskon < v.harga && !isB1G1(v.harga, v.hargaDiskon) ? v.hargaDiskon : v.harga)));
     return {
       id: r.id,
+      productId: r.productId,
       kategori: r.kategori as Kat,
       nama: namaBersih(p.nama),
       varian: r.varian,

@@ -16,6 +16,7 @@ export const SUMBER: Record<string, string> = {
 
 export type Item = {
   id: string;
+  productId: string;
   kategori: Kat;
   nama: string;
   varian: string;
@@ -54,7 +55,7 @@ export function mirip(a: Item, semua: Item[], n = 8): Item[] {
     .filter((x) => x.d < Infinity)
     .sort((x, y) => x.d - y.d || Number(y.b.ready) - Number(x.b.ready))
     .filter(({ b }) => !lihat.has(pid(b)) && !!lihat.add(pid(b)))
-    .slice(0, n * 2) // ponytail: dari 2n terdekat, yang ready didahulukan
+    // yang ready didahulukan (urutan kemiripan tetap di dalam grup); sold out hanya pengisi
     .sort((x, y) => Number(y.b.ready) - Number(x.b.ready))
     .slice(0, n)
     .map((x) => x.b);

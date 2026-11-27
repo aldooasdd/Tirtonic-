@@ -7,7 +7,8 @@ import ViewBeacon from "@/components/ViewBeacon";
 import { b1g1Options } from "@/lib/b1g1-db";
 import { compareItems } from "@/lib/compare";
 import ProductLab from "@/components/compare/ProductLab";
-import { mirip } from "@/lib/compare-shared";
+import { mirip, tanpaGrip } from "@/lib/compare-shared";
+import { isB1G1 } from "@/lib/b1g1";
 
 // ISR: halaman produk di-cache 5 menit → DB cuma dibaca sekali per 5 menit (hemat egress),
 // bukan tiap kunjungan/crawler. Stok/harga telat maks 5 menit — oke buat toko.
@@ -40,7 +41,25 @@ export default async function ProductPage({ params }: { params: { id: string } }
   const lab = (await compareItems({ productId: p.id })).sort((a, b) => a.varian.localeCompare(b.varian, "id", { numeric: true }));
   // Produk serupa ala Extreme X-Compare: jarak skor per kriteria paling dekat, 1 item per produk.
   const acuan = lab.find((x) => Object.keys(x.nilai).length);
-  const serupa = acuan ? mirip(acuan, await compareItems({ kategori: acuan.kategori })) : [];
+  const serupa4 = acuan ? mirip(acuan, await compareItems({ kategori: acuan.kategori }), 4) : [];
+  // Tombol keranjang langsung: hanya kalau tepat satu pilihan ready (tanpa perlu pilih grip/ukuran); selain itu ke halaman produk.
+  const prodSerupa = await safeQuery(
+    () => prisma.product.findMany({ where: { id: { in: serupa4.map((x) => x.productId) } }, select: { id: true, nama: true, status: true, stok: true, ukuran: true, harga: true, hargaDiskon: true, gambar: true, variants: { select: { id: true, warna: true, ukuran: true, stok: true, harga: true, hargaDiskon: true, gambar: true } } } }),
+    [],
+  );
+  const serupa = serupa4.map((it) => {
+    const q = prodSerupa.find((x) => x.id === it.productId);
+    if (!q || q.status === "SOLD") return { ...it, beli: null };
+    const vs = q.variants.filter((v) => (!it.varian || tanpaGrip(v.warna) === it.varian) && v.stok > 0);
+    const satu = q.variants.length ? (vs.length === 1 ? vs[0] : null) : !q.ukuran.length && (q.stok == null || q.stok > 0) ? { id: null, warna: "", ukuran: "", stok: q.stok ?? 99, harga: q.harga, hargaDiskon: q.hargaDiskon, gambar: null } : null;
+    if (!satu) return { ...it, beli: null };
+    const b1g1 = isB1G1(satu.harga, satu.hargaDiskon);
+    const diskon = !b1g1 && satu.hargaDiskon != null && satu.hargaDiskon < satu.harga;
+    return {
+      ...it,
+      beli: { productId: q.id, variantId: satu.id, nama: q.nama, varian: satu.id ? [satu.warna, satu.ukuran].filter(Boolean).join(" / ") : null, harga: diskon ? satu.hargaDiskon! : satu.harga, gambar: satu.gambar ?? q.gambar[0] ?? null, qty: 1, max: satu.stok, b1g1 },
+    };
+  });
 
   return (
     <>
