@@ -2,10 +2,11 @@
 import { useState } from "react";
 import Link from "next/link";
 import { KATEGORI, tingkat, type Item } from "@/lib/compare-shared";
+import { rupiah } from "@/lib/format";
 import Radar, { WARNA } from "./Radar";
 
 /** Data lab di halaman produk: radar + skor + spesifikasi utama + tombol Bandingkan. */
-export default function ProductLab({ items }: { items: Item[] }) {
+export default function ProductLab({ items, serupa = [] }: { items: Item[]; serupa?: Item[] }) {
   const [n, setN] = useState(0);
   const it = items[n];
   const kriteria = KATEGORI[it.kategori].kriteria;
@@ -57,6 +58,42 @@ export default function ProductLab({ items }: { items: Item[] }) {
           <p className="mt-4 text-xs text-gray-400">Data: Tirtoniclab, dihimpun dari hasil uji lab independen.</p>
         </div>
       </div>
+
+      {serupa.length > 0 && (
+        <div className="mt-12">
+          <div className="mb-4 flex items-end justify-between gap-3">
+            <div>
+              <h3 className="text-xl font-extrabold text-gray-900">{JUDUL_SERUPA[it.kategori]}</h3>
+              <p className="text-sm text-gray-500">Karakter skornya paling mirip dengan produk ini.</p>
+            </div>
+          </div>
+          <div className="-mx-4 flex snap-x scroll-px-4 gap-3 overflow-x-auto px-4 pb-2 [scrollbar-width:none]">
+            {serupa.map((s) => {
+              const t = s.skor != null ? tingkat(s.skor) : null;
+              return (
+                <div key={s.id} className="flex w-[200px] shrink-0 snap-start flex-col rounded-2xl border bg-white p-3 sm:w-[220px]">
+                  <Link href={s.href} className="group block">
+                    <div className="relative aspect-square overflow-hidden rounded-xl bg-gray-50">
+                      {s.foto && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={s.foto} alt="" loading="lazy" className="h-full w-full object-cover transition group-hover:scale-105" />
+                      )}
+                      {t && <span className={`absolute left-2 top-2 rounded-md px-2 py-0.5 text-sm font-bold ${t.cls}`}>{s.skor}</span>}
+                    </div>
+                    <p className="mt-2 line-clamp-2 text-sm font-semibold text-gray-900">{s.nama}</p>
+                  </Link>
+                  <p className="mt-1 text-sm text-gray-700">{s.ready ? rupiah(s.harga) : <span className="text-gray-400">Sold out</span>}</p>
+                  <Link href={`/bandingkan?k=${it.kategori}&i=${it.id},${s.id}`} className="mt-auto pt-3 text-center">
+                    <span className="block rounded-full border border-gray-300 py-2 text-xs font-semibold text-gray-800 hover:border-gray-900">Bandingkan</span>
+                  </Link>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </section>
   );
 }
+
+const JUDUL_SERUPA: Record<string, string> = { raket: "Raket serupa", senar: "Senar serupa", sepatu: "Sepatu serupa" };
