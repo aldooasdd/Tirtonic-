@@ -389,8 +389,8 @@ export default function ProductDetail({ p, b1g1Others = [], lab = [] }: { p: P; 
               // item lab untuk varian yang dipilih (varian lab = warna tanpa grip), fallback item pertama
               const it = lab.find((x) => x.varian === tanpaGrip(color)) ?? lab[0];
               return (
-                <Link href={`/bandingkan?k=${it.kategori}&i=${it.id}`} aria-label="Bandingkan produk" title="Bandingkan (Compare)" className="grid h-[50px] w-[50px] shrink-0 place-items-center rounded-full border border-gray-300 text-gray-800 transition hover:border-gray-900">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" /><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" /><path d="M7 21h10" /><path d="M12 3v18" /><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2" /></svg>
+                <Link href={`/bandingkan?k=${it.kategori}&i=${it.id}`} className="grid h-[50px] shrink-0 place-items-center rounded-full border border-gray-300 px-5 text-sm font-[600] text-gray-800 transition hover:border-gray-900">
+                  Compare
                 </Link>
               );
             })()}
