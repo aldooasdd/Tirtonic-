@@ -18,7 +18,7 @@ export default function ProductLab({ items, serupa = [] }: { items: Item[]; seru
         <div>
           <h2>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/compare-logo.png" alt="Compare" width={1160} height={262} className="h-8 w-auto sm:h-10" />
+            <img src="/compare-logo.png?v=2" alt="Compare" width={1292} height={258} className="h-8 w-auto sm:h-10" />
           </h2>
           <p className="mt-2 text-sm text-gray-500">Skor Tirtoniclab dari data uji lab, bukan kesan subjektif.</p>
         </div>
