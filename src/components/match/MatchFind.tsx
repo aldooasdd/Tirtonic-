@@ -88,7 +88,7 @@ export default function MatchFind({ kat, items }: { kat: Kat; items: Item[] }) {
           <div className="mt-10 text-center">
             <h2 className="text-3xl font-semibold tracking-tight text-gray-950 sm:text-4xl">{hasil.length ? `${hasil.length} ${NAMA[kat]} paling cocok untukmu` : `Belum ada ${NAMA[kat]} yang pas`}</h2>
             <p className="mt-2 text-sm text-gray-500">
-              {hasil.length ? `Dipilih dari ${items.filter((x) => x.ready && Object.keys(x.nilai).length).length} ${NAMA[kat]} ready yang punya data lab Tirtoniclab.` : "Coba naikkan budget atau ubah salah satu jawaban."}
+              {hasil.length ? `Dipilih dari ${items.filter((x) => x.ready && Object.keys(x.nilai).length).length} ${NAMA[kat]} ready yang punya data lab Tirtoniclab.` : "Coba ubah salah satu jawaban."}
             </p>
           </div>
 

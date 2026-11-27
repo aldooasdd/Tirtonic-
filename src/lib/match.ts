@@ -25,21 +25,11 @@ const RAKET: Tanya[] = [
     { v: "sedang", label: "Sedang / standar", hint: "Postur rata-rata, tenaga cukup, tanpa batasan khusus." },
     { v: "kuat", label: "Kekar / atletis", hint: "Kuat mengayun raket yang lebih berat dan stabil.", w: { Stabilitas: 1 } },
   ] },
-  { id: "backhand", teks: "Backhand kamu?", opsi: [
-    { v: "dua", label: "Dua tangan", hint: "Lebih stabil, cocok dengan raket yang berat dan bertenaga.", w: { Stabilitas: 0.5 } },
-    { v: "satu", label: "Satu tangan", hint: "Lebih menuntut, pilih raket yang lincah dan seimbang.", w: { Manuver: 1, Kontrol: 0.5 } },
-  ] },
   { id: "gaya", teks: "Gaya main kamu?", opsi: [
     { v: "agresif", label: "Baseliner agresif", hint: "Memukul keras, ambil bola lebih awal, langsung serang.", w: { Power: 1.5, Spin: 1, Stabilitas: 1 } },
     { v: "konsisten", label: "Baseliner konsisten", hint: "Bangun reli, kembalikan semua bola, tunggu lawan salah.", w: { Spin: 1, Toleransi: 1, Kontrol: 0.5 } },
     { v: "allround", label: "All-round", hint: "Sama enaknya main di baseline maupun di net." },
     { v: "net", label: "Net player / penyerang", hint: "Sering maju ke net untuk menguasai poin.", w: { Manuver: 1.5, Stabilitas: 1, Kontrol: 1 } },
-  ] },
-  { id: "lapangan", teks: "Paling sering main di lapangan apa?", opsi: [
-    { v: "clay", label: "Tanah liat (clay)", hint: "Reli panjang, banyak topspin.", w: { Spin: 1 } },
-    { v: "hard", label: "Hard court outdoor", hint: "Lapangan cepat, pukulan keras.", w: { Power: 0.5, Stabilitas: 0.5 } },
-    { v: "indoor", label: "Indoor / karpet", hint: "Tempo cepat, pantulan rendah.", w: { Kontrol: 0.5, Manuver: 0.5 } },
-    { v: "campur", label: "Campur", hint: "Ganti-ganti tergantung tempat dan musim." },
   ] },
   { id: "main", teks: "Kamu main tenis untuk apa?", opsi: [
     { v: "rekreasi", label: "Rekreasi, buat senang", hint: "Main untuk santai, tanpa beban hasil.", w: { Kenyamanan: 1, Toleransi: 1 } },
@@ -86,10 +76,6 @@ const RAKET: Tanya[] = [
     { v: "sedikit", label: "Sedikit", hint: "Ingin rasa yang sedikit lebih empuk.", w: { Kenyamanan: 1 } },
     { v: "parah", label: "Cukup mengganggu", hint: "Kenyamanan harus jadi prioritas.", w: { Kenyamanan: 3 } },
   ] },
-  { id: "budget", teks: "Budget kamu?", opsi: [
-    { v: String(jt(2)), label: "Di bawah Rp2 juta" }, { v: String(jt(3)), label: "Di bawah Rp3 juta" },
-    { v: String(jt(4)), label: "Di bawah Rp4 juta" }, { v: "0", label: "Tanpa batas" },
-  ] },
 ];
 
 const SENAR: Tanya[] = [
@@ -128,10 +114,6 @@ const SENAR: Tanya[] = [
     { v: "gut", label: "Natural gut", hint: "Rasa terbaik, mahal dan rapuh." },
     { v: "tahu", label: "Tidak tahu", hint: "Tidak apa-apa, tetap bisa dihitung." },
   ] },
-  { id: "budget", teks: "Budget untuk satu set senar?", opsi: [
-    { v: String(rb(100)), label: "Di bawah Rp100 ribu" }, { v: String(rb(200)), label: "Di bawah Rp200 ribu" },
-    { v: String(rb(350)), label: "Di bawah Rp350 ribu" }, { v: "0", label: "Tanpa batas" },
-  ] },
 ];
 
 const SEPATU: Tanya[] = [
@@ -161,10 +143,6 @@ const SEPATU: Tanya[] = [
     { v: "tidak", label: "Tidak ada" },
     { v: "sedikit", label: "Sedikit", hint: "Ingin bantalan sedikit lebih empuk.", w: { Kenyamanan: 1.5 } },
     { v: "parah", label: "Cukup mengganggu", hint: "Bantalan dan stabilitas harus jadi prioritas.", w: { Kenyamanan: 3, Stabilitas: 1 } },
-  ] },
-  { id: "budget", teks: "Budget kamu?", opsi: [
-    { v: String(jt(1)), label: "Di bawah Rp1 juta" }, { v: String(jt(1.5)), label: "Di bawah Rp1,5 juta" },
-    { v: String(jt(2.5)), label: "Di bawah Rp2,5 juta" }, { v: "0", label: "Tanpa batas" },
   ] },
 ];
 
