@@ -14,6 +14,15 @@ export type ProductCardData = {
   status: "READY" | "SOLD";
   fromPrice?: boolean; // true → show "mulai Rp ..." (product has variants)
   varian?: { label: string; sold: boolean }[]; // chip varian di panel hover (grid shop)
+  spek?: { berat?: string; balance?: string; head?: string; headIn?: string; pola?: string }; // spek singkat raket
+};
+
+const ik = "mx-auto h-5 w-5";
+const SPEK_IKON = {
+  berat: <svg viewBox="0 0 24 24" className={ik} fill="currentColor"><path d="M9 7a3 3 0 1 1 6 0h-1.6a1.4 1.4 0 1 0-2.8 0zM6.5 8h11l2.5 12H4z" /></svg>,
+  balance: <svg viewBox="0 0 24 24" className={ik} fill="currentColor"><path d="M3 10.5 21 6.5l.3 1.4-18 4zM12 12l4 6H8z" /></svg>,
+  head: <svg viewBox="0 0 24 24" className={ik} fill="none" stroke="currentColor" strokeWidth="1.5"><ellipse cx="12" cy="11" rx="6.5" ry="8.5" transform="rotate(20 12 11)" /><path d="M10 13.5 11 15l2.5-1M14 8l-1-1.5" /></svg>,
+  pola: <svg viewBox="0 0 24 24" className={ik} fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M8 3v18M12 3v18M16 3v18M3 8h18M3 12h18M3 16h18" /></svg>,
 };
 
 export default function ProductCard({ p, thinPrice = false, hoverExpand = false, badge }: { p: ProductCardData; thinPrice?: boolean; hoverExpand?: boolean; badge?: string }) {
@@ -57,6 +66,17 @@ export default function ProductCard({ p, thinPrice = false, hoverExpand = false,
           </div>
         ) : (
           <p className={`mt-1 text-base text-gray-900 ${thinPrice ? "font-thin" : "font-bold"}`}>{rupiah(p.harga)}</p>
+        )}
+        {p.spek && (
+          <div className="mt-3 grid grid-cols-4 gap-0.5 text-center text-[10px] leading-tight tabular-nums text-gray-700">
+            {(["berat", "balance", "head", "pola"] as const).map((k) => (
+              <div key={k} className={`min-w-0 ${p.spek![k] ? "" : "opacity-30"}`}>
+                {SPEK_IKON[k]}
+                <p className="mt-1">{p.spek![k] ?? "–"}</p>
+                {k === "head" && p.spek!.headIn && <p className="text-gray-500">{p.spek!.headIn}</p>}
+              </div>
+            ))}
+          </div>
         )}
       </Link>
 

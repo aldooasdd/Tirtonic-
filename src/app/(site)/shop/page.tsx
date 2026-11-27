@@ -1,3 +1,4 @@
+import { spekKartuRaket, type Row } from "@/lib/shop-kat";
 import { adaStok } from "@/lib/shop-kat-db";
 import { isB1G1 } from "@/lib/b1g1";
 import { Prisma } from "@prisma/client";
@@ -22,7 +23,7 @@ const getShopProducts = unstable_cache(
     return prisma.product.findMany({
       where,
       orderBy: orderBy(sort),
-      include: { _count: { select: { variants: true } }, variants: { select: { warna: true, ukuran: true, stok: true }, orderBy: { urutan: "asc" } } },
+      include: { _count: { select: { variants: true } }, variants: { select: { warna: true, ukuran: true, stok: true }, orderBy: { urutan: "asc" } }, compareItems: { select: { spek: true } } },
     });
   },
   ["shop-products"],
@@ -101,6 +102,7 @@ export default async function ShopPage({ searchParams }: { searchParams: SP }) {
     status: p.status,
     fromPrice: p._count.variants > 0,
     varian: variantChips(p.variants),
+    spek: p.kategori === "Raket Tenis" ? spekKartuRaket({ nama: p.nama, variants: p.variants as Row["variants"], lab: p.compareItems.map((c) => ({ skor: null, nilai: {}, spek: c.spek as Record<string, string> })) }) : undefined,
   }));
 
   return (

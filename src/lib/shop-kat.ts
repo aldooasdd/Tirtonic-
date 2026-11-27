@@ -83,6 +83,18 @@ const gramRaket = (r: Row) => uniq([...spekRow(r, "Berat tanpa senar"), ...[...`
   .map((g) => angka(g)).filter((g) => g >= 200 && g <= 360);
 const headRaket = (r: Row) => [...spekRow(r, "Head size").map((h) => angka(h, /^(\d{2,3})/)),
   ...[...vnRow(r).matchAll(/(?:^|\s|\|)(9[5-9]|1[01]\d)(?=\s*[A-Za-z]*\s*\/|L|SL|UL|D|H|\s+Tour)/g)].map((m) => +m[1])].filter((h) => h >= 80 && h <= 125);
+/** Spek singkat untuk kartu raket: berat, balance, head size, pola senar (yang tak diketahui = undefined). */
+export function spekKartuRaket(r: Pick<Row, "nama" | "variants" | "lab">) {
+  if (!/rac?ket|raket/i.test(r.nama) || /\b(junior|jr|anak|kids?)\b/i.test(r.nama)) return undefined;
+  const x = r as Row;
+  const g = gramRaket(x)[0];
+  const bal = spekRow(x, "Balance").map((b) => angka(b, /([\d.]+)\s*cm/)).find((b) => b > 25 && b < 40);
+  const h = headRaket(x)[0];
+  const pola = [...spekRow(x, "Pola senar"), ...[...`${vnRow(x)} ${r.nama}`.matchAll(/\b(1[68]x(?:1[69]|20))\b/gi)].map((m) => m[1])][0];
+  const s = { berat: g ? `${g}g` : undefined, balance: bal ? `${+bal.toFixed(1)}cm` : undefined, head: h ? `${Math.round(h * 6.4516)}cm²` : undefined, headIn: h ? `(${h}in²)` : undefined, pola };
+  return s.berat || s.balance || s.head || s.pola ? s : undefined;
+}
+
 const WARNA: Record<string, string> = { gray: "Abu-abu", grey: "Abu-abu", abu: "Abu-abu", "abu-abu": "Abu-abu", black: "Hitam", white: "Putih", yellow: "Kuning", blue: "Biru", red: "Merah", green: "Hijau" };
 
 /** Atribut hasil tebakan otomatis per kategori (kunci → nilai). */
@@ -297,6 +309,7 @@ export function demo() {
   cek("raket", "Raket Tenis Head Junior Novak Raket Tenis Anak", "usia", "Junior");
   if (atribut(k("raket"), { ...base, nama: "Raket Tenis Babolat Pure Aero", variants: [{ warna: "100 / 300g", ukuran: "G2", stok: 1, harga: 1, hargaDiskon: null }] }).berat?.[0] !== "290–304 g") throw new Error("berat varian");
   if (atribut(k("tas"), { ...base, nama: "Tas Wilson Backpack", atribut: { jenis: ["Duffel"] } }).jenis[0] !== "Duffel") throw new Error("koreksi admin harus menang");
+  { const k = spekKartuRaket({ nama: "Raket Tenis Yonex Vcore 98 / 305gr Japan Tennis Racket", variants: [], lab: [{ skor: 1, nilai: {}, spek: { "Balance": "32cm / 6 pts HL", "Pola senar": "16x19" } }] }); if (k?.berat !== "305g" || k.balance !== "32cm" || k.head !== "632cm²" || k.pola !== "16x19") throw new Error("spekKartu " + JSON.stringify(k)); }
   if (brandRow({ ...base, brand: "YONEX" }) !== "Yonex" || brandRow({ ...base, brand: "K-Swiss" }) !== "K-Swiss" || brandRow({ ...base, brand: "new balance" }) !== "New Balance") throw new Error("brand");
   const sepatu = atribut(k("sepatu"), { ...base, nama: "Asics", lab: [{ skor: 1, nilai: {}, spek: { "Berat (lab)": "13.3 oz (376g)", Cushioning: "Balanced", "Lebar kaki": "Wide" } }] });
   if (sepatu.bobot[0] !== "Ringan (350–380 g)" || sepatu.bantalan[0] !== "Seimbang" || sepatu.lebar[0] !== "Lebar") throw new Error("spek sepatu");

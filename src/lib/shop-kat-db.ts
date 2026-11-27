@@ -1,7 +1,7 @@
 // Loader data halaman kategori shop (server). Cache 2 menit per kategori, tag "products".
 import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import type { Row } from "@/lib/shop-kat";
+import { spekKartuRaket, type Row } from "@/lib/shop-kat";
 import type { ProductCardData } from "@/components/ProductCard";
 
 /** Produk yang masih ada stoknya (status READY + minimal satu varian stok > 0, atau non-varian stok > 0 / tak terbatas). */
@@ -59,5 +59,5 @@ export function variantChips(vs: { warna: string; ukuran: string; stok: number }
 
 export const kartu = (r: Row): ProductCardData => ({
   id: r.id, slug: r.slug, nama: r.nama, harga: r.harga, hargaDiskon: r.hargaDiskon, gambar: r.gambar, status: r.status,
-  fromPrice: r.variants.length > 0, varian: variantChips(r.variants),
+  fromPrice: r.variants.length > 0, varian: variantChips(r.variants), spek: spekKartuRaket(r),
 });
