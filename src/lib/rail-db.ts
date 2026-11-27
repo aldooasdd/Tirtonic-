@@ -13,7 +13,7 @@ function acak<T extends { shoe?: boolean; bag?: unknown }>(items: T[]): T[] {
   return [...sebar(items.filter((x) => !x.shoe && !x.bag)), ...sebar(items.filter((x) => x.shoe)), ...sebar(items.filter((x) => x.bag))].sort((a, b) => a.pos - b.pos).map(({ x }) => x);
 }
 
-/** Raket & sepatu di rak yang masih ada stoknya (dipakai beranda & /skate-test). */
+/** Raket & sepatu di rak yang masih ada stoknya (dipakai beranda). */
 export async function railItems(): Promise<RailItem[]> {
   const rows = await safeQuery(() => prisma.racketRail.findMany({ where: { product: { status: "READY" } }, include: { product: { include: { variants: { orderBy: { urutan: "asc" } } } } } }), []);
   // ponytail: diacak tiap render ISR (±2 menit di beranda), bukan tiap pengunjung

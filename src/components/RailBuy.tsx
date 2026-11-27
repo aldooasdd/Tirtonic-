@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
-import { liveRail, railB1G1, railMerch } from "@/app/skate-test/actions";
+import { liveRail, railB1G1, railMerch } from "@/lib/rail-actions";
 import B1G1Popup, { type B1G1Option } from "./B1G1Popup";
 import MerchPopup from "./MerchPopup";
 import { useShopCart, type CartItem } from "./ShopCartProvider";

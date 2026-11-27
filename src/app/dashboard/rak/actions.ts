@@ -8,7 +8,6 @@ import { uploadFile, storageConfigured } from "@/lib/storage";
 
 function refresh() {
   revalidatePath("/dashboard/rak");
-  revalidatePath("/skate-test");
   revalidatePath("/");
 }
 
