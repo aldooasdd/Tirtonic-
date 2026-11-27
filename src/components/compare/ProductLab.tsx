@@ -3,13 +3,10 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { KATEGORI, tingkat, type Item } from "@/lib/compare-shared";
 import { rupiah } from "@/lib/format";
-import { useShopCart, type CartItem } from "../ShopCartProvider";
 import Radar, { WARNA } from "./Radar";
 
 /** Data lab di halaman produk: radar + skor + spesifikasi utama + tombol Bandingkan. */
-export type Serupa = Item & { beli: Omit<CartItem, "key"> | null };
-
-export default function ProductLab({ items, serupa = [] }: { items: Item[]; serupa?: Serupa[] }) {
+export default function ProductLab({ items, serupa = [] }: { items: Item[]; serupa?: Item[] }) {
   const [n, setN] = useState(0);
   const [lawan, setLawan] = useState<Item | null>(null);
   const it = items[n];
@@ -78,38 +75,26 @@ export default function ProductLab({ items, serupa = [] }: { items: Item[]; seru
 
 const JUDUL_SERUPA: Record<string, string> = { raket: "Raket serupa", senar: "Senar serupa", sepatu: "Sepatu serupa" };
 
-/** Satu produk serupa: foto, nama, harga, tombol keranjang & compare. */
-function Serupa({ s, onCompare }: { s: Serupa; onCompare: () => void }) {
-  const { add } = useShopCart();
-  const [ok, setOk] = useState(false);
+/** Satu produk serupa: foto, nama, harga, tombol compare. */
+function Serupa({ s, onCompare }: { s: Item; onCompare: () => void }) {
   const t = s.skor != null ? tingkat(s.skor) : null;
-  const tombol = "grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-gray-200 bg-white text-gray-700 transition hover:border-gray-900 hover:text-gray-900";
-  const cart = <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden><circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" /><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6" /></svg>;
+  // Seluruh kartu bisa diklik ke detail produk (link "stretched"); tombol + di atasnya tetap untuk compare.
   return (
-    <div className="flex items-center gap-3">
-      <Link href={s.href} className="relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl bg-white">
+    <div className="group relative flex items-center gap-3 rounded-2xl p-2 transition hover:bg-white">
+      <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl bg-white">
         {s.foto && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={s.foto} alt="" loading="lazy" className="h-full w-full object-cover" />
+          <img src={s.foto} alt="" loading="lazy" className="h-full w-full object-cover transition group-hover:scale-105" />
         )}
         {t && <span className={`absolute left-1 top-1 rounded px-1.5 text-[11px] font-bold ${t.cls}`}>{s.skor}</span>}
-      </Link>
+      </div>
       <div className="min-w-0 flex-1">
-        <Link href={s.href} className="line-clamp-2 text-sm font-semibold leading-snug text-gray-900 hover:underline">{s.nama}</Link>
+        <Link href={s.href} className="line-clamp-2 text-sm font-semibold leading-snug text-gray-900 after:absolute after:inset-0 after:rounded-2xl">{s.nama}</Link>
         <p className="mt-0.5 text-sm text-gray-600">{s.ready ? rupiah(s.harga) : <span className="text-gray-400">Sold out</span>}</p>
       </div>
-      <div className="flex shrink-0 flex-col gap-1.5">
-        {s.beli ? (
-          <button onClick={() => { add(s.beli!); setOk(true); setTimeout(() => setOk(false), 1500); }} aria-label="Tambah ke keranjang" title="Tambah ke keranjang" className={`${tombol} ${ok ? "border-emerald-600 text-emerald-700" : ""}`}>
-            {ok ? "✓" : cart}
-          </button>
-        ) : s.ready ? (
-          <Link href={s.href} aria-label="Pilih varian lalu tambah ke keranjang" title="Pilih varian" className={tombol}>{cart}</Link>
-        ) : null}
-        <button onClick={onCompare} aria-label="Bandingkan" title="Bandingkan" className={tombol}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden><path d="M12 5v14M5 12h14" /></svg>
-        </button>
-      </div>
+      <button onClick={onCompare} aria-label="Bandingkan" title="Bandingkan" className="relative z-10 grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-gray-200 bg-white text-gray-700 transition hover:border-gray-900 hover:text-gray-900">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden><path d="M12 5v14M5 12h14" /></svg>
+      </button>
     </div>
   );
 }
