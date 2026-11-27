@@ -54,7 +54,6 @@ export default async function MatchLanding() {
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={x.foto} alt="" className="h-full w-full object-cover" />
                   )}
-                  <span className="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-gray-800 backdrop-blur">{x.n} {x.judul.toLowerCase()} dengan data lab</span>
                 </div>
                 <div className="flex flex-1 flex-col p-5">
                   <h2 className="text-2xl font-semibold tracking-tight text-gray-950">{x.judul}</h2>
