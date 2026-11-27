@@ -32,7 +32,7 @@ export default async function MatchLanding() {
             <h1>
               <span className="sr-only">Tirtonic Match</span>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/match-logo.png" alt="" width={1040} height={256} className="mx-auto h-12 w-auto sm:h-16" />
+              <img src="/match-logo.png?v=2" alt="" width={1040} height={256} className="mx-auto h-12 w-auto sm:h-16" />
             </h1>
             <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-neutral-600 sm:text-lg">
               Temukan perlengkapan tenis yang benar-benar cocok dengan level, gaya, dan kebutuhanmu. Dihitung dari data uji lab, bukan opini atau titipan brand.
