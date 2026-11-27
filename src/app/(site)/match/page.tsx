@@ -29,7 +29,11 @@ export default async function MatchLanding() {
         <div aria-hidden className="ev-orb right-10 top-24 hidden h-[360px] w-[360px] bg-gradient-to-bl from-teal-200/40 to-blue-200/30 sm:block" />
         <div className="relative mx-auto max-w-6xl px-4 pb-16 pt-12 sm:px-6 sm:pt-20">
           <header className="mx-auto max-w-3xl text-center">
-            <h1 className="text-4xl font-semibold leading-[1.08] tracking-[-0.03em] text-neutral-950 sm:text-6xl">Tirtonic Match</h1>
+            <h1>
+              <span className="sr-only">Tirtonic Match</span>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/match-logo.png" alt="" width={1040} height={256} className="mx-auto h-12 w-auto sm:h-16" />
+            </h1>
             <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-neutral-600 sm:text-lg">
               Temukan perlengkapan tenis yang benar-benar cocok dengan level, gaya, dan kebutuhanmu. Dihitung dari data uji lab, bukan opini atau titipan brand.
             </p>
