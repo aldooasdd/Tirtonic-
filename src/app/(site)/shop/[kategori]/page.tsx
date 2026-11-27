@@ -35,17 +35,18 @@ export default async function KategoriPage({ params, searchParams }: { params: {
       <ShopTabs aktif={kat.slug} jumlah={jumlah} />
       <div className="mx-auto max-w-[1600px] px-4 pb-10 pt-4">
         <div className="relative overflow-hidden rounded-[2rem]">
-        <header className="liquid-green overflow-hidden rounded-[2rem] px-5 py-7 text-white sm:px-10 sm:py-10">
+        <header className="liquid-green overflow-hidden rounded-[2rem] px-5 py-7 text-gray-900 sm:px-10 sm:py-10">
+          <span aria-hidden className="pointer-events-none absolute -bottom-20 right-24 h-40 w-40 rounded-full bg-ball/25" />
           <h1 className="relative text-3xl font-extrabold tracking-tight sm:text-5xl">{kat.judul}</h1>
-          <div className="relative mt-3 max-w-3xl text-[15px] leading-relaxed text-white/85">
+          <div className="relative mt-3 max-w-3xl text-[15px] leading-relaxed text-gray-900">
             <p>{kat.intro}</p>
             <details className="group mt-2">
-              <summary className="inline-flex cursor-pointer list-none items-center gap-1 rounded text-sm font-semibold text-ball outline-none">
+              <summary className="inline-flex cursor-pointer list-none items-center gap-1 rounded text-sm font-semibold text-white outline-none">
                 <span className="group-open:hidden">Baca selengkapnya</span><span className="hidden group-open:inline">Tutup</span>
                 <svg className="h-4 w-4 transition group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="6 9 12 15 18 9" /></svg>
               </summary>
               <p className="mt-2">{kat.lebih}</p>
-              {kat.lab && <p className="mt-2">Bandingkan detail sampai 4 produk di <Link href={`/bandingkan?k=${kat.lab}`} className="font-semibold text-ball underline">Compare</Link>.</p>}
+              {kat.lab && <p className="mt-2">Bandingkan detail sampai 4 produk di <Link href={`/bandingkan?k=${kat.lab}`} className="font-semibold text-white underline">Compare</Link>.</p>}
             </details>
           </div>
           {kat.lab && (
@@ -55,7 +56,7 @@ export default async function KategoriPage({ params, searchParams }: { params: {
                 const q = new URLSearchParams(Object.entries(searchParams).filter(([a, v]) => a !== "sort" && v) as [string, string][]);
                 if (!on) q.set("sort", `lab_${k}`);
                 return (
-                  <Link key={k} href={`/shop/${kat.slug}${q.toString() ? `?${q}` : ""}`} scroll={false} className={`rounded-full px-4 py-2 text-sm font-semibold transition ${on ? "bg-ball text-gray-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)]" : "liquid-chip text-white"}`}>
+                  <Link key={k} href={`/shop/${kat.slug}${q.toString() ? `?${q}` : ""}`} scroll={false} className={`rounded-full px-4 py-2 text-sm font-semibold transition ${on ? "bg-ball text-gray-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)]" : "liquid-chip text-gray-900"}`}>
                     Top {k.toLowerCase()}
                   </Link>
                 );
