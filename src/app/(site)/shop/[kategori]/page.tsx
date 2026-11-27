@@ -33,10 +33,12 @@ export default async function KategoriPage({ params, searchParams }: { params: {
 
   return (
     <>
-      <section className="relative overflow-x-clip bg-gradient-to-b from-[#f7f9fb] to-white pb-8 pt-8 sm:pb-12 sm:pt-14 [letter-spacing:-0.011em]">
-        <div aria-hidden className="ev-orb -top-32 left-1/2 h-[300px] w-[680px] -translate-x-1/2 bg-gradient-to-r from-lime-300/35 via-emerald-300/25 to-sky-300/30" />
-        <div aria-hidden className="ev-orb right-6 top-24 hidden h-[300px] w-[300px] bg-gradient-to-bl from-teal-200/40 to-blue-200/30 sm:block" />
-        <div className="relative mx-auto max-w-4xl px-4 text-center sm:px-6">
+      <ShopTabs aktif={kat.slug} jumlah={jumlah} />
+      <section className="relative overflow-x-clip pb-6 pt-8 sm:pb-8 sm:pt-10 [letter-spacing:-0.011em]">
+        <div aria-hidden className="ev-orb -top-24 left-0 h-[260px] w-[620px] bg-gradient-to-r from-lime-300/35 via-emerald-300/25 to-sky-300/30" />
+        <div aria-hidden className="ev-orb right-6 top-0 hidden h-[300px] w-[300px] bg-gradient-to-bl from-teal-200/40 to-blue-200/30 sm:block" />
+        <div className="relative mx-auto grid max-w-[1400px] gap-6 px-4 sm:px-6 lg:grid-cols-[1fr_auto] lg:items-end lg:gap-12">
+          <div className="max-w-2xl">
           <div className="ev-pill mb-5 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-[600] text-emerald-800">
             <span className="relative flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-75" />
@@ -45,17 +47,18 @@ export default async function KategoriPage({ params, searchParams }: { params: {
             {siap} ready · {rows.length} produk
           </div>
           <h1 className="text-4xl font-[600] leading-[1.08] tracking-[-0.03em] text-neutral-950 sm:text-5xl md:text-[56px]">{kat.judul}</h1>
-          <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-neutral-600 sm:text-lg">{kat.intro}</p>
-          <details className="group mx-auto mt-3 max-w-2xl">
+          <p className="mt-4 text-base leading-relaxed text-neutral-600 sm:text-lg">{kat.intro}</p>
+          <details className="group mt-3">
             <summary className="inline-flex cursor-pointer list-none items-center gap-1 rounded-full text-sm font-[600] text-neutral-900 outline-none">
               <span className="group-open:hidden">Baca selengkapnya</span><span className="hidden group-open:inline">Tutup</span>
               <svg className="h-4 w-4 transition group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 12 15 18 9" /></svg>
             </summary>
-            <p className="mt-3 text-left text-[15px] leading-relaxed text-neutral-600 sm:text-center">{kat.lebih}</p>
+            <p className="mt-3 text-[15px] leading-relaxed text-neutral-600">{kat.lebih}</p>
             {kat.lab && <p className="mt-2 text-[15px] text-neutral-600">Bandingkan detail sampai 4 produk di <Link href={`/bandingkan?k=${kat.lab}`} className="font-[600] text-emerald-700 underline underline-offset-2">Compare</Link>.</p>}
           </details>
+          </div>
           {kat.lab && (
-            <div className="mt-7 flex flex-wrap justify-center gap-2">
+            <div className="flex flex-wrap gap-2 lg:max-w-xl lg:justify-end">
               {TOP[kat.lab].map((k) => {
                 const on = sort === `lab_${k}`;
                 const q = new URLSearchParams(Object.entries(searchParams).filter(([a, v]) => a !== "sort" && v) as [string, string][]);
@@ -71,10 +74,8 @@ export default async function KategoriPage({ params, searchParams }: { params: {
         </div>
       </section>
 
-      <ShopTabs aktif={kat.slug} jumlah={jumlah} />
-
       <div className="mx-auto max-w-[1600px] px-4 pb-10">
-        <div className="mt-8">
+        <div className="mt-2">
           <Suspense fallback={null}>
             <ShopKategori slug={kat.slug} grup={opsi} produk={hasil.map(kartu)} total={hasil.length} lab={!!kat.lab} />
           </Suspense>
