@@ -14,6 +14,7 @@ const MENU = [
   { href: "/preorder", label: "Exclusive Launch" },
   { href: "/event", label: "Event" },
   { href: "/bandingkan", label: "Compare" },
+  { href: "/match", label: "Match" },
   { href: "/articles", label: "Articles" },
   { href: "/contact", label: "Contact" },
   { href: "/sponsorship", label: "Sponsorship" },

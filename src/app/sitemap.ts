@@ -13,7 +13,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     prisma.article.findMany({ select: { id: true, slug: true, tanggal: true } }),
   ]);
 
-  const staticPages = ["", "/shop", "/articles", "/string-finder", "/sponsorship", "/contact", "/kebijakan-pengembalian", "/bandingkan", ...KATS.map((k) => `/shop/${k.slug}`)].map((p) => ({
+  const staticPages = ["", "/shop", "/articles", "/string-finder", "/sponsorship", "/contact", "/kebijakan-pengembalian", "/bandingkan", "/match", ...(["raket", "senar", "sepatu"].flatMap((k) => [`/match/${k}/find`, `/match/${k}/optimize`])), ...KATS.map((k) => `/shop/${k.slug}`)].map((p) => ({
     url: `${BASE}${p}`,
     lastModified: new Date(),
     changeFrequency: "weekly" as const,
