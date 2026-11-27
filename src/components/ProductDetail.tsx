@@ -371,7 +371,7 @@ export default function ProductDetail({ p, b1g1Others = [], lab = [], lawan }: {
                   onClick={addItem}
                   aria-label="Tambah ke keranjang"
                   title="Tambah ke keranjang"
-                  className={`grid h-[50px] shrink-0 place-items-center rounded-full border transition ${added ? "w-auto border-emerald-600 bg-emerald-50 px-4 text-xs font-[600] text-emerald-700" : "w-[50px] border-gray-300 text-gray-800 hover:border-gray-900"}`}
+                  className={`order-last grid h-[50px] shrink-0 place-items-center rounded-full border transition ${added ? "w-auto border-emerald-600 bg-emerald-50 px-4 text-xs font-[600] text-emerald-700" : "w-[50px] border-gray-300 text-gray-800 hover:border-gray-900"}`}
                 >
                   {added ? (
                     "✓ Masuk keranjang"
