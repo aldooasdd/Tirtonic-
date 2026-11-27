@@ -6,6 +6,8 @@ import ShopClient from "@/components/ShopClient";
 import Footer from "@/components/Footer";
 import { Suspense } from "react";
 import { DISKON_RANGES } from "@/lib/constants";
+import { variantChips, jumlahKategori } from "@/lib/shop-kat-db";
+import ShopTabs from "@/components/ShopTabs";
 
 export const dynamic = "force-dynamic";
 
@@ -80,26 +82,11 @@ export default async function ShopPage({ searchParams }: { searchParams: SP }) {
     { variants: { none: {} }, stok: null }, // non-varian, stok tak terbatas
   ];
 
-  const [products, brands] = await Promise.all([
+  const [products, brands, jumlah] = await Promise.all([
     safeQuery(() => getShopProducts(JSON.stringify(where), searchParams.sort), []),
     safeQuery(() => getShopBrands(), []),
+    safeQuery(() => jumlahKategori(), {}),
   ]);
-
-  // Label varian untuk panel hover: pakai sumbu ukuran kalau ada, kalau tidak
-  // pakai warna (mis. sepatu, warna = ukuran). sold = semua stok label itu 0.
-  const variantChips = (vs: { warna: string; ukuran: string; stok: number }[]) => {
-    if (!vs.length) return [];
-    const axis = vs.some((v) => v.ukuran !== "") ? (v: (typeof vs)[number]) => v.ukuran : (v: (typeof vs)[number]) => v.warna;
-    const order: string[] = [];
-    const grup = new Map<string, number[]>();
-    for (const v of vs) {
-      const k = axis(v);
-      if (!k) continue;
-      if (!grup.has(k)) { grup.set(k, []); order.push(k); }
-      grup.get(k)!.push(v.stok);
-    }
-    return order.map((label) => ({ label, sold: grup.get(label)!.every((s) => s <= 0) }));
-  };
 
   // Diskon (%) per produk dari harga coret; filter ?diskon= dihitung di sini (semua produk sudah termuat).
   const pct = (p: { harga: number; hargaDiskon: number | null }) => (p.hargaDiskon && p.hargaDiskon < p.harga ? Math.round((1 - p.hargaDiskon / p.harga) * 100) : 0);
@@ -122,8 +109,9 @@ export default async function ShopPage({ searchParams }: { searchParams: SP }) {
 
   return (
     <>
+      <ShopTabs jumlah={jumlah} />
       <Suspense fallback={null}>
-        <ShopClient products={cards} brands={brands} diskonCounts={diskonCounts} q={searchParams.q} page={1} hasMore={false} />
+        <ShopClient products={cards} brands={brands} diskonCounts={diskonCounts} q={searchParams.q} page={1} hasMore={false} tanpaFilter />
       </Suspense>
       <Footer />
     </>

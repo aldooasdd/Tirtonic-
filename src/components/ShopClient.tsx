@@ -24,6 +24,7 @@ export default function ShopClient({
   q,
   page,
   hasMore,
+  tanpaFilter = false,
 }: {
   products: ProductCardData[];
   brands: string[];
@@ -31,8 +32,9 @@ export default function ShopClient({
   q?: string;
   page: number;
   hasMore: boolean;
+  tanpaFilter?: boolean; // /shop: semua produk lebar penuh, filter ada di halaman kategori
 }) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(!tanpaFilter);
   const router = useRouter();
   const sp = useSearchParams();
 
@@ -48,12 +50,13 @@ export default function ShopClient({
   // Desktop (lg+): filter always shown & can't be hidden. Below lg: toggle allowed
   // (open on tablet, hidden on phone).
   useEffect(() => {
+    if (tanpaFilter) return;
     const mq = window.matchMedia("(min-width: 1024px)");
     const apply = () => setOpen(mq.matches ? true : window.innerWidth >= 768);
     apply();
     mq.addEventListener("change", apply);
     return () => mq.removeEventListener("change", apply);
-  }, []);
+  }, [tanpaFilter]);
 
   function setSort(value: string) {
     const next = new URLSearchParams(sp.toString());
@@ -154,14 +157,14 @@ export default function ShopClient({
       ) : (
         <div>
           <div className="mb-6 flex items-center justify-between gap-4">
-            <button
+            {tanpaFilter ? <p className="text-sm text-gray-500">{products.length} produk</p> : <button
               type="button"
               onClick={() => setOpen(true)}
               className="inline-flex items-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-semibold text-gray-800 transition hover:border-primary hover:text-primary"
             >
               <FilterIcon />
               Filter
-            </button>
+            </button>}
             {sortEl}
           </div>
           {grid}

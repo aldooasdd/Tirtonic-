@@ -204,6 +204,7 @@ model Product {
   gambar    String[] // image URLs (Supabase Storage)
   sizeChart String? // size chart image URL (from Tokopedia import or manual)
   ukuran    String[] // shoe sizes, only for Sepatu Tenis
+  atribut   Json     @default("{}") // koreksi filter shop per kategori, mis. {"jenis":["Polo"]}; kosong = ditebak otomatis (src/lib/shop-kat.ts)
   status    StockStatus @default(READY)
   stok      Int?        // stok produk non-varian (null = tak terbatas; 0 = habis). Produk bervarian pakai stok per-varian.
   views     Int         @default(0) // product-page view counter

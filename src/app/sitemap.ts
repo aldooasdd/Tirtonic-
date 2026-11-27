@@ -1,3 +1,4 @@
+import { KATS } from "@/lib/shop-kat";
 import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/prisma";
 import { articleHref } from "@/lib/article-slug";
@@ -12,7 +13,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     prisma.article.findMany({ select: { id: true, slug: true, tanggal: true } }),
   ]);
 
-  const staticPages = ["", "/shop", "/articles", "/string-finder", "/sponsorship", "/contact", "/kebijakan-pengembalian", "/bandingkan"].map((p) => ({
+  const staticPages = ["", "/shop", "/articles", "/string-finder", "/sponsorship", "/contact", "/kebijakan-pengembalian", "/bandingkan", ...KATS.map((k) => `/shop/${k.slug}`)].map((p) => ({
     url: `${BASE}${p}`,
     lastModified: new Date(),
     changeFrequency: "weekly" as const,

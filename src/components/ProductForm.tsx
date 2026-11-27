@@ -1,4 +1,5 @@
 "use client";
+import { ATRIBUT_FORM } from "@/lib/shop-kat";
 
 import { useState } from "react";
 import { useFormStatus } from "react-dom";
@@ -30,6 +31,7 @@ type ProductInput = {
   sizeChart?: string | null;
   status: "READY" | "SOLD";
   stok?: number | null;
+  atribut?: unknown; // koreksi filter shop {kunci: string[]}
   variants?: { warna: string; ukuran: string; harga: number; hargaDiskon?: number | null; stok: number; gambar: string | null }[];
 };
 
@@ -246,6 +248,21 @@ export default function ProductForm({
           <label className="label">Deskripsi</label>
           <textarea name="deskripsi" rows={4} value={deskripsi} onChange={(e) => setDeskripsi(e.target.value)} className="field" />
         </div>
+
+        {ATRIBUT_FORM[kategori] && (
+          <div className="rounded-xl border border-dashed p-3">
+            <p className="text-sm font-semibold text-gray-800">Filter shop (opsional)</p>
+            <p className="mb-2 text-xs text-gray-400">Kosongkan = ditebak otomatis dari nama produk. Isi kalau tebakannya salah; pisahkan dengan koma.</p>
+            <div className="grid gap-3 md:grid-cols-2">
+              {ATRIBUT_FORM[kategori].map((f) => (
+                <div key={`${kategori}-${f.key}`}>
+                  <label className="label">{f.label}</label>
+                  <input name={`atr_${f.key}`} defaultValue={((product?.atribut as Record<string, string[]> | undefined)?.[f.key] ?? []).join(", ")} placeholder={f.contoh} className="field" />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="flex flex-wrap gap-4">
           <div>

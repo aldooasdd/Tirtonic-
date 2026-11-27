@@ -86,7 +86,19 @@ function parseData(formData: FormData) {
     ukuran: formData.getAll("ukuran").map(String),
     status: (formData.get("status") as string) === "SOLD" ? ("SOLD" as const) : ("READY" as const),
     stok: parseStok(formData.get("stok")), // non-varian: null = tak terbatas, angka = jumlah stok
+    atribut: parseAtribut(formData),
   };
+}
+
+/** Koreksi filter shop dari input atr_<kunci> (dipisah koma). Kosong = ditebak otomatis dari nama. */
+function parseAtribut(formData: FormData): Record<string, string[]> {
+  const out: Record<string, string[]> = {};
+  for (const [k, v] of formData.entries()) {
+    if (!k.startsWith("atr_")) continue;
+    const vals = String(v).split(",").map((x) => x.trim()).filter(Boolean);
+    if (vals.length) out[k.slice(4)] = vals;
+  }
+  return out;
 }
 
 /** Stok produk non-varian: kosong → null (tak terbatas), selain itu angka ≥ 0. */
