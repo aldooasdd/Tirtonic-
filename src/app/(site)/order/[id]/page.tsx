@@ -32,6 +32,8 @@ export default async function OrderPage({ params, searchParams }: { params: { id
 
   const s = STATUS[order.status] ?? STATUS.PENDING;
   const lunas = ["PAID", "SHIPPED", "DELIVERED"].includes(order.status);
+  // pembeli baru = belum pernah punya pesanan lunas lain dengan nomor HP yang sama sebelum pesanan ini
+  const newCustomer = lunas && !(await safeQuery(() => prisma.order.count({ where: { telepon: order!.telepon, id: { not: order!.id }, status: { in: ["PAID", "SHIPPED", "DELIVERED"] }, createdAt: { lt: order!.createdAt } } }), 0));
 
   return (
     <div className="mx-auto max-w-2xl px-4 pb-16 pt-6">
@@ -42,6 +44,7 @@ export default async function OrderPage({ params, searchParams }: { params: { id
           shipping={order.ongkir}
           coupon={order.kupon}
           paidAt={(order.paidAt ?? order.createdAt).toISOString()}
+          newCustomer={newCustomer}
           items={order.items.map((i) => ({ item_id: i.productId ?? i.id, item_name: i.nama, ...(i.varian ? { item_variant: i.varian } : {}), price: i.harga, quantity: i.qty }))}
         />
       )}
