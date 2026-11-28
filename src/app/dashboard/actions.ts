@@ -271,7 +271,10 @@ export async function updateProduct(id: string, formData: FormData) {
   const variants = await parseVariants(formData, data.diskonPersen);
   const headline = headlinePrice(variants, data);
   // Slug dibuat sekali (produk lama tanpa slug); tak diubah saat ganti nama supaya link lama tetap jalan.
-  const cur = await prisma.product.findUnique({ where: { id }, select: { slug: true } });
+  const cur = await prisma.product.findUnique({ where: { id }, select: { slug: true, atribut: true } });
+  // kunci internal "_..." (mis. _induk/_varianAsal dari scripts/split-raket.ts) tidak ada di form → pertahankan
+  const internal = Object.fromEntries(Object.entries((cur?.atribut ?? {}) as Record<string, string[]>).filter(([k]) => k.startsWith("_")));
+  data.atribut = { ...internal, ...data.atribut };
   const slug = cur?.slug ?? (await uniqueProductSlug(data.nama, async (x) => !!(await prisma.product.findFirst({ where: { slug: x, id: { not: id } }, select: { id: true } }))));
   await prisma.product.update({
     where: { id },

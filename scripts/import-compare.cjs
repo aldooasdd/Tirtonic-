@@ -24,7 +24,12 @@ const SPEK = {
 };
 
 const items = new Map(); // key productId|varian -> item
+// Raket yang dipisah per varian (scripts/split-raket.ts): data "produk lama|varian" → produk hasil pisah (varian "").
+const SPLIT = new Map();
+const kunci = (v) => String(v || "").toLowerCase().replace(/[^a-z0-9+]/g, "");
 function item(productId, varian, kategori) {
+  const s = varian && SPLIT.get(`${productId}|${kunci(varian)}`);
+  if (s) { productId = s; varian = ""; }
   const k = `${productId}|${varian}`;
   if (!items.has(k)) items.set(k, { productId, varian, kategori, skor: null, nilai: {}, spek: {}, sumber: [] });
   return items.get(k);
@@ -40,15 +45,23 @@ function isiSpek(it, row, map, src) {
 }
 // sama dengan tanpaGrip di src/lib/compare-shared.ts
 const tanpaGrip = (w) => w.replace(/\s*(-\s*G\d?|\(G?\d?\)|\bG\d)\s*$/i, "").replace(/\s*\(\)\s*$/, "").trim();
-const ok = (r) => (r.status ? r.status === "OK" : r.selisih >= 0 && String(r.tahunBeda) !== "True");
+// Baris yang ditandai ragu (selisih < 0 / beda tahun) tapi dicek manual = raket & frame yang sama (edisi/warna beda).
+const SAMA = /Smiley Beast Power 100|Prince Tour (Carbon )?100P?|Prince Tour 98|Pro Staff 97L? (V14|Classic)|Pro Staff 97UL V14|Ezone (Alpha 275g |100L )2025/i;
+const ok = (r) => (r.status ? r.status === "OK" : (r.selisih >= 0 && String(r.tahunBeda) !== "True") || SAMA.test(r.sumber || ""));
 
 (async () => {
-  const prods = await db.product.findMany({ select: { id: true, kategori: true, variants: { select: { warna: true, ukuran: true } } } });
+  const prods = await db.product.findMany({ select: { id: true, kategori: true, atribut: true, variants: { select: { warna: true, ukuran: true } } } });
+  for (const p of prods) {
+    const a = p.atribut || {};
+    if (a._varianAsal?.[0]) SPLIT.set(`${a._induk?.[0] ?? p.id}|${kunci(tanpaGrip(a._varianAsal[0]))}`, p.id);
+  }
   const P = new Map(prods.map((p) => [p.id, p]));
   // varian TW ditulis "warna ukuran" (mis. "100 / 285gr G2") → ambil warna-nya saja
   const keWarna = (pid, v) => tanpaGrip(P.get(pid)?.variants.find((x) => `${x.warna} ${x.ukuran}`.trim() === v || x.warna === v)?.warna ?? "");
 
-  for (const r of baca("extreme-tennis-raket.json")) {
+  // extreme-manual.json: data X-Compare yang diambil manual dari halaman produk Extreme (productId produk sekarang, model "")
+  const extremeRaket = [...baca("extreme-tennis-raket.json"), ...(fs.existsSync(path.join(DIR, "extreme-manual.json")) ? baca("extreme-manual.json") : [])];
+  for (const r of extremeRaket) {
     if (!P.has(r.productId) || !ok(r)) continue;
     const it = item(r.productId, P.get(r.productId).variants.length ? tanpaGrip(r.model) : "", "raket");
     it.skor = +r.skor;
@@ -57,7 +70,8 @@ const ok = (r) => (r.status ? r.status === "OK" : r.selisih >= 0 && String(r.tah
   }
   for (const r of baca("tw-raket.json")) {
     if (!P.has(r.productId)) continue;
-    isiSpek(item(r.productId, keWarna(r.productId, r.varian), "raket"), r, SPEK.tw, "tw");
+    const v = SPLIT.has(`${r.productId}|${kunci(tanpaGrip(r.varian || ""))}`) ? tanpaGrip(r.varian) : keWarna(r.productId, r.varian);
+    isiSpek(item(r.productId, v, "raket"), r, SPEK.tw, "tw");
   }
   for (const [f, kat, map] of [["extreme-tennis-senar.json", "senar", SPEK.extremeSenar], ["extreme-tennis-sepatu.json", "sepatu", SPEK.extremeSepatu]]) {
     for (const r of baca(f)) {
