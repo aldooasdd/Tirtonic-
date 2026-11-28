@@ -425,12 +425,15 @@ export default async function HomePage() {
     return { name: b.name, items: list.map((o) => ({ code: o.resultCode, status: o.status, stringer: o.stringerName })) };
   });
 
+  // Hero 3 panel (slider + 2 banner samping). Banner samping kurang dari 2 → diisi slide terakhir supaya tetap 3 panel.
+  const keSlide = (s: (typeof slides)[number]) => ({ id: s.id, gambar: s.gambar, gambarMobile: s.gambarMobile, link: s.link });
+  const heroUtama = slides.filter((s) => s.posisi !== "samping").map(keSlide);
+  const heroSamping = slides.filter((s) => s.posisi === "samping").map((s) => ({ ...keSlide(s), gambarMobile: null })).slice(0, 2);
+  while (heroSamping.length < 2 && heroUtama.length > 1) heroSamping.push({ ...heroUtama.pop()!, gambarMobile: null });
+
   return (
     <>
-      <HeroCarousel
-        slides={slides.filter((s) => s.posisi !== "samping").map((s) => ({ id: s.id, gambar: s.gambar, gambarMobile: s.gambarMobile, link: s.link }))}
-        samping={slides.filter((s) => s.posisi === "samping").map((s) => ({ id: s.id, gambar: s.gambar, gambarMobile: null, link: s.link }))}
-      />
+      <HeroCarousel slides={heroUtama} samping={heroSamping} />
       <div className="mx-auto max-w-site px-4 lg:px-6 pb-2 pt-8 text-center">
         <h2 className="text-xl font-extrabold text-gray-900">
           Toko Tennis Yogyakarta, Solo &amp; Semarang

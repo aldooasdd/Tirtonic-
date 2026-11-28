@@ -51,12 +51,10 @@ export default function HeroCarousel({ slides, samping = [] }: { slides: Slide[]
   }
 
   const dua = samping.slice(0, 2);
-  // belum ada banner samping: slider selebar halaman dengan rasio banner lama (2400×920)
-  const rasio = dua.length ? "sm:aspect-[1600/970]" : "sm:aspect-[2400/920]";
   return (
     <section className={`mx-auto grid max-w-site gap-3 px-4 pt-4 sm:gap-4 ${dua.length ? "lg:grid-cols-[3fr_2fr]" : ""}`}>
       {slides.length > 0 && (
-        <div onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} className={`relative w-full touch-pan-y overflow-hidden rounded-2xl bg-gray-100 ${kotak ? "aspect-square" : dua.length ? "aspect-[1600/970]" : "aspect-[2400/920]"} ${rasio}`}>
+        <div onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} className={`relative w-full touch-pan-y overflow-hidden rounded-2xl bg-gray-100 ${kotak ? "aspect-square" : "aspect-[1600/970]"} sm:aspect-[1600/970]`}>
           {slides.map((s, idx) => (
             <div key={s.id} className={`absolute inset-0 transition-opacity duration-700 ${idx === i ? "z-10 opacity-100" : idx === prev ? "pointer-events-none z-0 opacity-100" : "pointer-events-none opacity-0 duration-0"}`}>
               <Wrap link={s.link} className="block h-full w-full">
