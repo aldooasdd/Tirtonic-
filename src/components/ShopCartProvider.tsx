@@ -1,4 +1,5 @@
 "use client";
+import { trackEcom } from "@/lib/gtag";
 
 import { createContext, useContext, useEffect, useState } from "react";
 
@@ -70,6 +71,7 @@ export function ShopCartProvider({ children }: { children: React.ReactNode }) {
   const clampQty = (qty: number, max: number) => Math.max(1, Math.min(qty, max || 99));
 
   const add = (item: Omit<CartItem, "key">) => {
+    if (!item.gift) trackEcom("add_to_cart", [{ item_id: item.productId, item_name: item.nama, ...(item.varian ? { item_variant: item.varian } : {}), price: item.harga, quantity: item.qty }]);
     const key = `${item.productId}::${item.variantId ?? ""}${item.gift ? "::gift" : ""}`;
     setItems((prev) => {
       const found = prev.find((x) => x.key === key);

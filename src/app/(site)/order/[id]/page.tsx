@@ -7,6 +7,7 @@ import { checkPaymentStatus, paymentLabel } from "@/lib/payment";
 import SubmitButton from "@/components/SubmitButton";
 import { payOrder } from "./actions";
 import PaymentCountdown from "@/components/PaymentCountdown";
+import PurchaseEvent from "@/components/PurchaseEvent";
 
 export const dynamic = "force-dynamic";
 
@@ -30,9 +31,20 @@ export default async function OrderPage({ params, searchParams }: { params: { id
   }
 
   const s = STATUS[order.status] ?? STATUS.PENDING;
+  const lunas = ["PAID", "SHIPPED", "DELIVERED"].includes(order.status);
 
   return (
     <div className="mx-auto max-w-2xl px-4 pb-16 pt-6">
+      {lunas && (
+        <PurchaseEvent
+          invoice={order.invoice}
+          total={order.total}
+          shipping={order.ongkir}
+          coupon={order.kupon}
+          paidAt={(order.paidAt ?? order.createdAt).toISOString()}
+          items={order.items.map((i) => ({ item_id: i.productId ?? i.id, item_name: i.nama, ...(i.varian ? { item_variant: i.varian } : {}), price: i.harga, quantity: i.qty }))}
+        />
+      )}
       <div className="rounded-2xl border bg-white p-6">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>

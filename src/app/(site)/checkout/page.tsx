@@ -1,4 +1,5 @@
 "use client";
+import { trackEcom } from "@/lib/gtag";
 
 import { b1g1Free, b1g1OngkirQty } from "@/lib/b1g1";
 import { useRouter } from "next/navigation";
@@ -49,6 +50,14 @@ export default function CheckoutPage() {
 
 
   useEffect(() => setMounted(true), []);
+  // begin_checkout sekali saat keranjang termuat
+  const ga = (x: typeof items) => x.filter((i) => !i.gift).map((i) => ({ item_id: i.productId, item_name: i.nama, ...(i.varian ? { item_variant: i.varian } : {}), price: i.harga, quantity: i.qty }));
+  const [gaSent, setGaSent] = useState(false);
+  useEffect(() => {
+    if (gaSent || !items.length) return;
+    setGaSent(true);
+    trackEcom("begin_checkout", ga(items));
+  }, [items, gaSent]); // eslint-disable-line react-hooks/exhaustive-deps
   // Kode pos / isi keranjang berubah → tarif lama tak berlaku.
   useEffect(() => { setRates(null); setChosenId(""); }, [lokasi, subtotal]);
   // Ketik ≥3 huruf → cari lokasi (debounce, hemat kuota Binderbyte).
@@ -147,6 +156,7 @@ export default function CheckoutPage() {
     const pickup = metode === "pickup";
     const catatanRaw = String(fd.get("catatan") || "");
     setSubmitting(true);
+    trackEcom("add_payment_info", ga(items), { payment_type: "online", ...(coupon?.code ? { coupon: coupon.code } : {}) });
     try {
       const res = await submitCheckout({
         nama: String(fd.get("nama") || ""),

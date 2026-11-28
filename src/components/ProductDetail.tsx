@@ -1,4 +1,5 @@
 "use client";
+import { trackEcom } from "@/lib/gtag";
 import { tanpaGrip } from "@/lib/compare-shared";
 
 import Link from "next/link";
@@ -91,6 +92,9 @@ export default function ProductDetail({ p, b1g1Others = [], lab = [], lawan }: {
   const scrollerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => setUrl(window.location.href), []);
+  useEffect(() => {
+    trackEcom("view_item", [{ item_id: p.id, item_name: p.nama, ...(p.brand ? { item_brand: p.brand } : {}), item_category: p.kategori, price: p.hargaDiskon && p.hargaDiskon < p.harga ? p.hargaDiskon : p.harga, quantity: 1 }]);
+  }, [p.id]); // eslint-disable-line react-hooks/exhaustive-deps
   // when the color changes, its photo becomes first — jump the gallery back to the start
   useEffect(() => {
     setActive(0);

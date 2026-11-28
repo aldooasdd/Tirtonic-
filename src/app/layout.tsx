@@ -1,4 +1,5 @@
 import FirstTouch from "@/components/FirstTouch";
+import GoogleTag from "@/components/GoogleTag";
 import { TirtonicLoaderWarmup } from "@/components/TirtonicLoader";
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
@@ -65,6 +66,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
         {children}
         <FirstTouch />
+        <GoogleTag />
         <TirtonicLoaderWarmup />
       </body>
     </html>
