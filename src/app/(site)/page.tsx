@@ -427,7 +427,12 @@ export default async function HomePage() {
 
   // Hero 3 panel (slider + 2 banner samping). Banner samping kurang dari 2 → diisi slide terakhir supaya tetap 3 panel.
   const keSlide = (s: (typeof slides)[number]) => ({ id: s.id, gambar: s.gambar, gambarMobile: s.gambarMobile, link: s.link });
-  const heroUtama = slides.filter((s) => s.posisi !== "samping").map(keSlide);
+  const heroUtama = slides.filter((s) => s.posisi === "utama").map(keSlide);
+  // Exclusive tools: tampil hanya kalau fotonya sudah diupload di dashboard (posisi tools-match / tools-compare)
+  const tools = (["tools-match", "tools-compare"] as const)
+    .map((pos) => ({ pos, s: slides.findLast((x) => x.posisi === pos) }))
+    .filter((t) => t.s)
+    .map(({ pos, s }) => ({ id: s!.id, gambar: s!.gambar, link: s!.link || (pos === "tools-match" ? "/match" : "/bandingkan"), nama: pos === "tools-match" ? "Tirtonic Match" : "Tirtonic Compare" }));
   const heroSamping = slides.filter((s) => s.posisi === "samping").map((s) => ({ ...keSlide(s), gambarMobile: null })).slice(0, 2);
   while (heroSamping.length < 2 && heroUtama.length > 1) heroSamping.push({ ...heroUtama.pop()!, gambarMobile: null });
 
@@ -453,6 +458,21 @@ export default async function HomePage() {
       <BestDeal products={b1g1Deals} title="Buy 1 Get 1" href="/shop?b1g1=1" badge="Stok akhir" />
       <BrandPopular brands={brands.map((b) => ({ id: b.id, nama: b.nama, foto: b.foto }))} />
       <BestDeal products={bestDeals} />
+      {tools.length > 0 && (
+        <section className="mx-auto max-w-site px-4 py-8 text-center lg:px-6">
+          <h2 className="text-2xl font-extrabold uppercase text-gray-900 sm:text-3xl">Our Exclusive Tools</h2>
+          <p className="mt-1 text-sm text-gray-600 sm:text-base">Match mencarikan raket, senar, dan sepatu yang cocok untukmu; Compare membandingkan dengan data lab</p>
+          <div className={`mt-5 grid gap-4 ${tools.length > 1 ? "sm:grid-cols-2" : "mx-auto max-w-2xl"}`}>
+            {tools.map((t) => (
+              <Link key={t.id} href={t.link} aria-label={t.nama} className="group relative block aspect-[2/1] overflow-hidden rounded-2xl bg-gray-100">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img loading="lazy" decoding="async" src={t.gambar} alt={t.nama} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
+                <span className="absolute bottom-4 right-4 rounded-full bg-white px-5 py-2 text-sm font-bold text-gray-900 shadow sm:bottom-5 sm:right-5 sm:px-7 sm:py-2.5 sm:text-base">Discover</span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
       <NewArrival products={arrivals} />
       <Benefits />
       <OurStore stores={storeItems} />

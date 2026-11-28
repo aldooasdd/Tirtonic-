@@ -140,6 +140,8 @@ export default async function AdminDashboard() {
                 <select name="posisi" className="field w-56">
                   <option value="utama">Slider besar (1600×970)</option>
                   <option value="samping">Banner samping (1070×470)</option>
+                  <option value="tools-match">Exclusive tools: Match (1200×600)</option>
+                  <option value="tools-compare">Exclusive tools: Compare (1200×600)</option>
                 </select>
               </div>
               <div>
@@ -166,11 +168,12 @@ export default async function AdminDashboard() {
             ) : (
               <>
               <p className="text-xs text-gray-500">Banner samping yang tampil hanya 2 pertama (urutan terkecil): atas lalu bawah. Gambar HP slider dipakai kalau semua slide punya.</p>
-              {(["utama", "samping"] as const).map((pos) => (
+              <p className="text-xs text-gray-500">Exclusive tools muncul di bawah Best Deal setelah fotonya diupload (yang terbaru dipakai). Link otomatis ke /match dan /bandingkan kalau kosong.</p>
+              {(["utama", "samping", "tools-match", "tools-compare"] as const).map((pos) => (
               <div key={pos}>
-              <p className="mb-2 text-sm font-semibold text-gray-700">{pos === "utama" ? "Slider besar" : "Banner samping"}</p>
+              <p className="mb-2 text-sm font-semibold text-gray-700">{{ utama: "Slider besar", samping: "Banner samping", "tools-match": "Exclusive tools: Match", "tools-compare": "Exclusive tools: Compare" }[pos]}</p>
               <div className="flex flex-wrap gap-3">
-                {slides.filter((s) => (s.posisi === "samping" ? "samping" : "utama") === pos).map((s) => (
+                {slides.filter((s) => s.posisi === pos).map((s) => (
                   <div key={s.id} className="relative">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img loading="lazy" decoding="async" src={s.gambar} alt="" className="h-20 w-36 rounded-lg border object-cover" />
