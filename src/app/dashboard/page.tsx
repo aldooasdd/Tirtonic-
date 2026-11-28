@@ -131,7 +131,7 @@ export default async function AdminDashboard() {
         <details id="hero" className={`group scroll-mt-20 overflow-hidden ${card}`}>
           <summary className="flex cursor-pointer items-center justify-between px-5 py-4 text-[15px] font-semibold text-[#0F1F1A]">
             <span className="flex items-center gap-2">Hero Banner (Home)</span>
-            <span className="text-xs font-normal text-gray-400">{slides.length} banner</span>
+            <span className="text-xs font-normal text-gray-400">{slides.filter((s) => !s.posisi.startsWith("tools")).length} banner</span>
           </summary>
           <div className="space-y-4 border-t p-5">
             <form action={createHeroSlide} className="flex flex-wrap items-end gap-3">
@@ -140,8 +140,6 @@ export default async function AdminDashboard() {
                 <select name="posisi" className="field w-56">
                   <option value="utama">Slider besar (1600×970)</option>
                   <option value="samping">Banner samping (1070×470)</option>
-                  <option value="tools-match">Exclusive tools: Match (1200×600)</option>
-                  <option value="tools-compare">Exclusive tools: Compare (1200×600)</option>
                 </select>
               </div>
               <div>
@@ -163,15 +161,14 @@ export default async function AdminDashboard() {
               <button className="btn-green">Tambah Slide</button>
             </form>
 
-            {slides.length === 0 ? (
+            {slides.filter((s) => !s.posisi.startsWith("tools")).length === 0 ? (
               <p className="text-sm text-gray-400">Belum ada banner. Home memakai banner default.</p>
             ) : (
               <>
               <p className="text-xs text-gray-500">Banner samping yang tampil hanya 2 pertama (urutan terkecil): atas lalu bawah. Gambar HP slider dipakai kalau semua slide punya.</p>
-              <p className="text-xs text-gray-500">Exclusive tools muncul di bawah Best Deal setelah fotonya diupload (yang terbaru dipakai). Link otomatis ke /match dan /bandingkan kalau kosong.</p>
-              {(["utama", "samping", "tools-match", "tools-compare"] as const).map((pos) => (
+              {(["utama", "samping"] as const).map((pos) => (
               <div key={pos}>
-              <p className="mb-2 text-sm font-semibold text-gray-700">{{ utama: "Slider besar", samping: "Banner samping", "tools-match": "Exclusive tools: Match", "tools-compare": "Exclusive tools: Compare" }[pos]}</p>
+              <p className="mb-2 text-sm font-semibold text-gray-700">{pos === "utama" ? "Slider besar" : "Banner samping"}</p>
               <div className="flex flex-wrap gap-3">
                 {slides.filter((s) => s.posisi === pos).map((s) => (
                   <div key={s.id} className="relative">
@@ -190,6 +187,45 @@ export default async function AdminDashboard() {
               ))}
               </>
             )}
+          </div>
+        </details>
+        )}
+
+        {/* exclusive tools (Match & Compare) di bawah Best Deal — terpisah dari hero, simpan di HeroSlide posisi tools-* */}
+        {can("hero") && (
+        <details id="tools" className={`group scroll-mt-20 overflow-hidden ${card}`}>
+          <summary className="flex cursor-pointer items-center justify-between px-5 py-4 text-[15px] font-semibold text-[#0F1F1A]">
+            <span className="flex items-center gap-2">Exclusive Tools (Home)</span>
+            <span className="text-xs font-normal text-gray-400">{slides.filter((s) => s.posisi.startsWith("tools")).length} / 2 foto</span>
+          </summary>
+          <div className="space-y-4 border-t p-5">
+            <p className="text-xs text-gray-500">Muncul di bawah Best Deal setelah fotonya diupload. Ukuran 1200×600, tanpa tombol (tombol Discover ditambahkan otomatis). Upload ulang = foto lama diganti.</p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {([["tools-match", "Match", "/match"], ["tools-compare", "Compare", "/bandingkan"]] as const).map(([pos, nama, href]) => {
+                const ada = slides.filter((s) => s.posisi === pos).at(-1);
+                return (
+                  <div key={pos} className="space-y-2 rounded-xl border p-3">
+                    <p className="text-sm font-semibold text-gray-800">{nama} <span className="font-normal text-gray-400">→ {href}</span></p>
+                    {ada ? (
+                      <div className="relative">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img loading="lazy" decoding="async" src={ada.gambar} alt="" className="aspect-[2/1] w-full rounded-lg border object-cover" />
+                        <form action={deleteHeroSlide.bind(null, ada.id)}>
+                          <button className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white shadow">×</button>
+                        </form>
+                      </div>
+                    ) : (
+                      <div className="flex aspect-[2/1] w-full items-center justify-center rounded-lg border border-dashed text-xs text-gray-400">Belum ada foto (belum tampil)</div>
+                    )}
+                    <form action={createHeroSlide} className="flex flex-wrap items-end gap-2">
+                      <input type="hidden" name="posisi" value={pos} />
+                      <input name="gambar" type="file" accept="image/*" required className="text-sm" />
+                      <button className="btn-green">{ada ? "Ganti" : "Upload"}</button>
+                    </form>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </details>
         )}

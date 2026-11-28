@@ -345,6 +345,8 @@ export async function createHeroSlide(formData: FormData) {
   const url = await uploadFile(file, "hero");
   const mobileUrl =
     mobileFile instanceof File && mobileFile.size > 0 ? await uploadFile(mobileFile, "hero") : null;
+  const pos = formData.get("posisi") as string;
+  if (pos === "tools-match" || pos === "tools-compare") await prisma.heroSlide.deleteMany({ where: { posisi: pos } }); // 1 foto per tool
   await prisma.heroSlide.create({
     data: {
       gambar: url,
