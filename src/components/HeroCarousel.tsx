@@ -8,10 +8,15 @@ const fixLink = (l: string) => (/^(\/|#|https?:|mailto:|tel:)/i.test(l.trim()) ?
 
 export type Slide = { id: string; gambar: string; gambarMobile: string | null; link: string | null };
 
-export default function HeroCarousel({ slides }: { slides: Slide[] }) {
-  const [i, setI] = useState(0);
+const Wrap = ({ link, className, children }: { link: string | null; className: string; children: React.ReactNode }) =>
+  link ? <Link href={fixLink(link)} className={className}>{children}</Link> : <div className={className}>{children}</div>;
 
+/** Hero landing ala Extreme: slider besar (1600×970) + 2 banner samping (1070×470). HP: slider lalu banner bertumpuk. */
+export default function HeroCarousel({ slides, samping = [] }: { slides: Slide[]; samping?: Slide[] }) {
+  const [i, setI] = useState(0);
   const touchX = useRef<number | null>(null);
+  // HP pakai gambar kotak kalau SEMUA slide punya gambar mobile; kalau tidak, pakai gambar utama 1600×970
+  const kotak = slides.length > 0 && slides.every((s) => s.gambarMobile);
 
   // Auto-geser 5 dtk; timer reset tiap slide ganti (termasuk habis di-swipe).
   useEffect(() => {
@@ -31,10 +36,10 @@ export default function HeroCarousel({ slides }: { slides: Slide[] }) {
   }
 
   // Fallback when no slides added yet.
-  if (slides.length === 0) {
+  if (slides.length === 0 && samping.length === 0) {
     return (
-      <section className="mx-auto max-w-site px-4 sm:-mt-20">
-        <div className="flex h-[42vh] min-h-[240px] sm:h-[50vh] flex-col items-center justify-center overflow-hidden rounded-b-2xl bg-gradient-to-br from-primaryDark to-primary px-4 text-center text-white">
+      <section className="mx-auto max-w-site px-4 pt-4">
+        <div className="flex aspect-[1600/970] max-h-[60vh] w-full flex-col items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-primaryDark to-primary px-4 text-center text-white">
           <h1 className="text-4xl font-black uppercase leading-[0.95] drop-shadow sm:text-5xl">Garansi Tukar Ukuran</h1>
           <p className="mt-3 text-sm font-semibold">*HINGGA 7 HARI SETELAH PESANANMU DITERIMA</p>
           <Link href="/shop" className="mt-5 rounded bg-black/70 px-8 py-3 font-bold text-white">SHOP NOW</Link>
@@ -43,43 +48,40 @@ export default function HeroCarousel({ slides }: { slides: Slide[] }) {
     );
   }
 
+  const dua = samping.slice(0, 2);
   return (
-    <section className="mx-auto max-w-site px-4 sm:-mt-20">
-      <div onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} className="relative h-[42vh] min-h-[240px] sm:h-[50vh] w-full touch-pan-y overflow-hidden rounded-b-2xl bg-primaryDark">
-        {slides.map((s, idx) => {
-          const img = (
-            <>
-              {/* mobile (square) — falls back to desktop image if none set */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img loading={idx === 0 ? "eager" : "lazy"} decoding="async" src={s.gambarMobile || s.gambar} alt="" className="h-full w-full object-cover sm:hidden" />
-              {/* desktop (wide) */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img loading={idx === 0 ? "eager" : "lazy"} decoding="async" src={s.gambar} alt="" className="hidden h-full w-full object-cover sm:block" />
-            </>
-          );
-          return (
-            <div
-              key={s.id}
-              className={`absolute inset-0 transition-opacity duration-700 ${idx === i ? "opacity-100" : "pointer-events-none opacity-0"}`}
-            >
-              {s.link ? <Link href={fixLink(s.link)} className="block h-full w-full">{img}</Link> : img}
+    <section className={`mx-auto grid max-w-site gap-3 px-4 pt-4 sm:gap-4 ${dua.length ? "lg:grid-cols-[3fr_2fr]" : ""}`}>
+      {slides.length > 0 && (
+        <div onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} className={`relative w-full touch-pan-y overflow-hidden rounded-2xl bg-gray-100 ${kotak ? "aspect-square" : "aspect-[1600/970]"} sm:aspect-[1600/970]`}>
+          {slides.map((s, idx) => (
+            <div key={s.id} className={`absolute inset-0 transition-opacity duration-700 ${idx === i ? "opacity-100" : "pointer-events-none opacity-0"}`}>
+              <Wrap link={s.link} className="block h-full w-full">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img loading={idx === 0 ? "eager" : "lazy"} decoding="async" src={(kotak && s.gambarMobile) || s.gambar} alt="" className="h-full w-full object-cover sm:hidden" />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img loading={idx === 0 ? "eager" : "lazy"} decoding="async" src={s.gambar} alt="" className="hidden h-full w-full object-cover sm:block" />
+              </Wrap>
             </div>
-          );
-        })}
-
-        {slides.length > 1 && (
-          <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2">
-            {slides.map((s, idx) => (
-              <button
-                key={s.id}
-                onClick={() => setI(idx)}
-                aria-label={`Slide ${idx + 1}`}
-                className={`h-2 rounded-full transition-all ${idx === i ? "w-6 bg-white" : "w-2 bg-white/60"}`}
-              />
-            ))}
-          </div>
-        )}
-      </div>
+          ))}
+          {slides.length > 1 && (
+            <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-2">
+              {slides.map((s, idx) => (
+                <button key={s.id} onClick={() => setI(idx)} aria-label={`Slide ${idx + 1}`} className={`h-2 rounded-full transition-all ${idx === i ? "w-6 bg-white" : "w-2 bg-white/60"}`} />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+      {dua.length > 0 && (
+        <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-1 lg:grid-rows-2">
+          {dua.map((s) => (
+            <Wrap key={s.id} link={s.link} className="block aspect-[1070/470] overflow-hidden rounded-2xl bg-gray-100 lg:aspect-auto">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img loading="eager" decoding="async" src={s.gambar} alt="" className="h-full w-full object-cover" />
+            </Wrap>
+          ))}
+        </div>
+      )}
     </section>
   );
 }

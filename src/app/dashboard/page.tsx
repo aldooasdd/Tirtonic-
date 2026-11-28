@@ -131,16 +131,23 @@ export default async function AdminDashboard() {
         <details id="hero" className={`group scroll-mt-20 overflow-hidden ${card}`}>
           <summary className="flex cursor-pointer items-center justify-between px-5 py-4 text-[15px] font-semibold text-[#0F1F1A]">
             <span className="flex items-center gap-2">Hero Banner (Home)</span>
-            <span className="text-xs font-normal text-gray-400">{slides.length} slide</span>
+            <span className="text-xs font-normal text-gray-400">{slides.length} banner</span>
           </summary>
           <div className="space-y-4 border-t p-5">
             <form action={createHeroSlide} className="flex flex-wrap items-end gap-3">
               <div>
-                <label className="label">Gambar desktop * (lebar ~2.6:1, mis. 2400×920)</label>
+                <label className="label">Posisi</label>
+                <select name="posisi" className="field w-56">
+                  <option value="utama">Slider besar (1600×970)</option>
+                  <option value="samping">Banner samping (1070×470)</option>
+                </select>
+              </div>
+              <div>
+                <label className="label">Gambar * (sesuai ukuran posisi)</label>
                 <input name="gambar" type="file" accept="image/*" required className="text-sm" />
               </div>
               <div>
-                <label className="label">Gambar mobile (opsional, kotak 1:1, mis. 1080×1080)</label>
+                <label className="label">Gambar HP (opsional, slider saja, kotak 1080×1080)</label>
                 <input name="gambarMobile" type="file" accept="image/*" className="text-sm" />
               </div>
               <div>
@@ -157,8 +164,13 @@ export default async function AdminDashboard() {
             {slides.length === 0 ? (
               <p className="text-sm text-gray-400">Belum ada banner. Home memakai banner default.</p>
             ) : (
+              <>
+              <p className="text-xs text-gray-500">Banner samping yang tampil hanya 2 pertama (urutan terkecil): atas lalu bawah. Gambar HP slider dipakai kalau semua slide punya.</p>
+              {(["utama", "samping"] as const).map((pos) => (
+              <div key={pos}>
+              <p className="mb-2 text-sm font-semibold text-gray-700">{pos === "utama" ? "Slider besar" : "Banner samping"}</p>
               <div className="flex flex-wrap gap-3">
-                {slides.map((s) => (
+                {slides.filter((s) => (s.posisi === "samping" ? "samping" : "utama") === pos).map((s) => (
                   <div key={s.id} className="relative">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img loading="lazy" decoding="async" src={s.gambar} alt="" className="h-20 w-36 rounded-lg border object-cover" />
@@ -171,6 +183,9 @@ export default async function AdminDashboard() {
                   </div>
                 ))}
               </div>
+              </div>
+              ))}
+              </>
             )}
           </div>
         </details>

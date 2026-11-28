@@ -250,8 +250,9 @@ model Article {
 
 model HeroSlide {
   id           String   @id @default(cuid())
-  gambar       String // desktop (wide, ~2.6:1)
-  gambarMobile String? // optional mobile (square, ~1:1); falls back to gambar
+  gambar       String // utama: 1600×970 · samping: 1070×470
+  gambarMobile String? // opsional, khusus slide utama: kotak 1080×1080 untuk HP; falls back to gambar
+  posisi       String   @default("utama") // utama (slider besar) | samping (2 banner kanan, urut sesuai urutan)
   link         String?
   urutan       Int      @default(0)
   createdAt    DateTime @default(now())

@@ -351,6 +351,7 @@ export async function createHeroSlide(formData: FormData) {
       gambarMobile: mobileUrl,
       link: ((formData.get("link") as string) || "").trim() || null,
       urutan: parseInt((formData.get("urutan") as string) || "0", 10) || 0,
+      posisi: formData.get("posisi") === "samping" ? "samping" : "utama",
     },
   });
   revalidatePath("/");

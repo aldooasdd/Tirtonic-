@@ -427,7 +427,10 @@ export default async function HomePage() {
 
   return (
     <>
-      <HeroCarousel slides={slides.map((s) => ({ id: s.id, gambar: s.gambar, gambarMobile: s.gambarMobile, link: s.link }))} />
+      <HeroCarousel
+        slides={slides.filter((s) => s.posisi !== "samping").map((s) => ({ id: s.id, gambar: s.gambar, gambarMobile: s.gambarMobile, link: s.link }))}
+        samping={slides.filter((s) => s.posisi === "samping").map((s) => ({ id: s.id, gambar: s.gambar, gambarMobile: null, link: s.link }))}
+      />
       <div className="mx-auto max-w-site px-4 lg:px-6 pb-2 pt-8 text-center">
         <h2 className="text-xl font-extrabold text-gray-900">
           Toko Tennis Yogyakarta, Solo &amp; Semarang
