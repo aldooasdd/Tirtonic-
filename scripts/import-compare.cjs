@@ -1,7 +1,7 @@
 // Impor data /bandingkan ke tabel CompareItem dari file di /Users/a1/tirtonic-data.
 // Pakai: NODE_PATH=node_modules node --env-file=.env scripts/import-compare.cjs [folder-data]
 // Sumber: Extreme Tennis X-Compare (skor 0-100), TWU (lab senar, dari tabel TwuString), tambahan.json (lihat build-tambahan.cjs),
-// Tennis Warehouse (spek raket), RunRepeat (lab sepatu). Baris status CEK dilewati.
+// Tennis Warehouse (spek raket), RunRepeat (lab sepatu). Baris status CEK (senar/sepatu) sudah dicek manual = produk sama beda warna/edisi.
 // Aman diulang: upsert per (productId, varian); item yang tidak ada lagi di sumber dihapus.
 const fs = require("fs");
 const path = require("path");
@@ -47,7 +47,7 @@ function isiSpek(it, row, map, src) {
 const tanpaGrip = (w) => w.replace(/\s*(-\s*G\d?|\(G?\d?\)|\bG\d)\s*$/i, "").replace(/\s*\(\)\s*$/, "").trim();
 // Baris yang ditandai ragu (selisih < 0 / beda tahun) tapi dicek manual = raket & frame yang sama (edisi/warna beda).
 const SAMA = /Smiley Beast Power 100|Prince Tour (Carbon )?100P?|Prince Tour 98|Pro Staff 97L? (V14|Classic)|Pro Staff 97UL V14|Ezone (Alpha 275g |100L )2025/i;
-const ok = (r) => (r.status ? r.status === "OK" : (r.selisih >= 0 && String(r.tahunBeda) !== "True") || SAMA.test(r.sumber || ""));
+const ok = (r) => (r.status ? r.status === "OK" || r.status === "CEK" : (r.selisih >= 0 && String(r.tahunBeda) !== "True") || SAMA.test(r.sumber || ""));
 
 (async () => {
   const prods = await db.product.findMany({ select: { id: true, kategori: true, atribut: true, variants: { select: { warna: true, ukuran: true } } } });
@@ -60,7 +60,10 @@ const ok = (r) => (r.status ? r.status === "OK" : (r.selisih >= 0 && String(r.ta
   const keWarna = (pid, v) => tanpaGrip(P.get(pid)?.variants.find((x) => `${x.warna} ${x.ukuran}`.trim() === v || x.warna === v)?.warna ?? "");
 
   // extreme-manual.json: data X-Compare yang diambil manual dari halaman produk Extreme (productId produk sekarang, model "")
-  const extremeRaket = [...baca("extreme-tennis-raket.json"), ...(fs.existsSync(path.join(DIR, "extreme-manual.json")) ? baca("extreme-manual.json") : [])];
+  // extreme-manual.json: tiap baris punya `kategori` (raket|senar|sepatu; kosong = raket)
+  const manualRows = fs.existsSync(path.join(DIR, "extreme-manual.json")) ? baca("extreme-manual.json") : [];
+  const manualKat = (k) => manualRows.filter((r) => (r.kategori || "raket") === k);
+  const extremeRaket = [...baca("extreme-tennis-raket.json"), ...manualKat("raket")];
   for (const r of extremeRaket) {
     if (!P.has(r.productId) || !ok(r)) continue;
     const it = item(r.productId, P.get(r.productId).variants.length ? tanpaGrip(r.model) : "", "raket");
@@ -74,7 +77,7 @@ const ok = (r) => (r.status ? r.status === "OK" : (r.selisih >= 0 && String(r.ta
     isiSpek(item(r.productId, v, "raket"), r, SPEK.tw, "tw");
   }
   for (const [f, kat, map] of [["extreme-tennis-senar.json", "senar", SPEK.extremeSenar], ["extreme-tennis-sepatu.json", "sepatu", SPEK.extremeSepatu]]) {
-    for (const r of baca(f)) {
+    for (const r of [...baca(f), ...manualKat(kat)]) {
       if (!P.has(r.productId) || !ok(r)) continue;
       const it = item(r.productId, "", kat);
       it.skor = +r.skor;
