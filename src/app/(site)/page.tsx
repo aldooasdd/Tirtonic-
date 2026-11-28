@@ -467,7 +467,7 @@ export default async function HomePage() {
               <Link key={t.id} href={t.link} aria-label={t.nama} className="group relative block aspect-[2/1] overflow-hidden rounded-2xl bg-gray-100">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img loading="lazy" decoding="async" src={t.gambar} alt={t.nama} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
-                <span className="absolute bottom-4 right-4 rounded-full bg-white px-5 py-2 text-sm font-bold text-gray-900 shadow sm:bottom-5 sm:right-5 sm:px-7 sm:py-2.5 sm:text-base">Discover</span>
+                <span className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full border border-white/50 bg-white/25 px-6 py-2 text-sm font-bold text-white shadow-[0_8px_24px_rgba(0,0,0,0.25),inset_0_1px_0_rgba(255,255,255,0.6),inset_0_-1px_0_rgba(255,255,255,0.15)] backdrop-blur-md backdrop-saturate-150 transition-colors group-hover:bg-white/40 sm:bottom-5 sm:px-8 sm:py-2.5 sm:text-base [text-shadow:0_1px_2px_rgba(0,0,0,0.35)]">Discover</span>
               </Link>
             ))}
           </div>
