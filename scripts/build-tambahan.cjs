@@ -72,6 +72,18 @@ const ATURAN = [
   ["senar", /O-Toro Spin/i, null, twSenar([71, 89, 84, 70, 78, 85]), "tw", TW],
   ["senar", /O-Toro(?! ?(Snap|Octa))/i, null, twSenar([55, 94, 75, 92, 79, 82]), "tw", TW],
 
+  // dilengkapi 28 Nov 2026
+  ["raket", /Ezone Espresso Brown 2026 98 Tour/, null, twRaket([87, 83, 78, 85, 87, 81]), "tw", TW],
+  ["raket", /Vcore 98\+/, null, twRaket([88, 80, 79, 85, 81, 86]), "tw", `${TW} (VCORE 98+ 2026)`],
+  ["raket", /Blade 98PRO\/305g 18x20/, null, E([67, 84, 74, 39, 52, 61, 74]), "extreme", `${XD}: Blade 98 18x20 V10 305g`],
+  ["raket", /Ezone Espresso Brown 2026 100SL/, null, E([83, 57, 64, 76, 72, 70, 77]), "extreme", `${XD}: Ezone 100L 2025 285g`],
+  ["raket", /Ezone Espresso Brown 2026 98L/, null, E([79, 70, 70, 62, 73, 65, 78]), "extreme", `${XD}: Ezone 98 Espresso 2026 305g`],
+  ["senar", /Alu Power Vibe/, null, twSenar([66, 66, 82, 75, 73, 88]), "tw", TW],
+  // sepatu TW: Kenyamanan=Comfort, Stabilitas=Foot Support/Stability, Ketahanan=Overall Sole Durability, Dinamis=Weight (skala 10 ×10)
+  ["sepatu", /Eclipsion 5/, null, obj(SP, [81, 83, 82, 77]), "tw", TW],
+  ["sepatu", /GP Challenge 1 /, null, obj(SP, [85, 78, 81, 73]), "tw", TW],
+  ["sepatu", /GP Challenge 1\.5/, null, obj(SP, [85, 78, 81, 73]), "tw", `${TW} (model terdekat: GP Challenge 1)`],
+
   ["sepatu", /AG-LT Ultra/, null, obj(SP, [88, 86, 78, 82]), "extreme", X],
   ["sepatu", /Coco Gauff CG2/, null, obj(SP, [85, 88, 88, 87]), "extreme", X],
   ["sepatu", /Resolution X/, null, obj(SP, [82, 91, 93, 72]), "extreme", XD],
@@ -85,15 +97,39 @@ const ATURAN = [
   ["sepatu", /Ultrashot Team/, null, obj(SP, [85, 74, 80, 90]), "tw", TW],
 ];
 const KAT = { raket: "Raket Tenis", senar: "String", sepatu: "Sepatu Tenis" };
+/** "Raket Tenis Head Extreme PRO Tennis Racket" + "PRO" → "Raket Tenis Head Extreme Tennis Racket" (nama sebelum dipisah). */
+const namaTanpaVarian = (nama, varian) => {
+  const buang = new Set(tanpaGrip(varian).toLowerCase().split(/\s+/));
+  return nama.split(/\s+/).filter((k) => !buang.has(k.toLowerCase())).join(" ");
+};
+console.assert(namaTanpaVarian("Raket Tenis Solinco Whiteout 98 / 305g XTD Tennis Racket", "98 / 305g XTD") === "Raket Tenis Solinco Whiteout Tennis Racket", "namaTanpaVarian");
+/** Kuadrat terkecil (persamaan normal + eliminasi Gauss). A: baris [1, x1..xn], y: target. */
+function kuadratTerkecil(A, y) {
+  const n = A[0].length;
+  const M = Array.from({ length: n }, (_, i) => [...Array.from({ length: n }, (_, j) => A.reduce((s, a) => s + a[i] * a[j], 0)), A.reduce((s, a, k) => s + a[i] * y[k], 0)]);
+  for (let i = 0; i < n; i++) {
+    let p = i;
+    for (let r = i + 1; r < n; r++) if (Math.abs(M[r][i]) > Math.abs(M[p][i])) p = r;
+    [M[i], M[p]] = [M[p], M[i]];
+    for (let r = 0; r < n; r++) if (r !== i) { const f = M[r][i] / M[i][i]; for (let j = i; j <= n; j++) M[r][j] -= f * M[i][j]; }
+  }
+  return M.map((r, i) => r[n] / r[i]);
+}
+{ const b = kuadratTerkecil([[1, 0], [1, 1], [1, 2]], [1, 3, 5]); console.assert(Math.abs(b[0] - 1) < 1e-9 && Math.abs(b[1] - 2) < 1e-9, "kuadratTerkecil"); }
 
 (async () => {
   const out = [], kena = new Set();
   for (const [kat, reNama, reVar, nilai, sumber, catatan] of ATURAN) {
-    const ps = await db.product.findMany({ where: { kategori: KAT[kat] }, select: { id: true, nama: true, variants: { select: { warna: true } } } });
-    for (const p of ps.filter((p) => reNama.test(p.nama))) {
+    const ps = await db.product.findMany({ where: { kategori: KAT[kat] }, select: { id: true, nama: true, atribut: true, variants: { select: { warna: true } } } });
+    for (const p of ps) {
+      // raket hasil pisah (scripts/split-raket.ts): nama sudah berisi varian → cocokkan nama tanpa kata varian, varian = _varianAsal
+      const asal = p.atribut?._varianAsal?.[0];
+      const namaCocok = asal ? namaTanpaVarian(p.nama, asal) : p.nama;
+      if (!reNama.test(p.nama) && !reNama.test(namaCocok)) continue;
       const vs = [...new Set(p.variants.map((v) => tanpaGrip(v.warna)))];
       // varian dipakai hanya untuk raket bervarian (sama dengan import-compare); senar/sepatu = seluruh produk
-      const target = kat === "raket" && p.variants.length && vs.some(Boolean) ? (reVar ? vs.filter((v) => reVar.test(v)) : vs) : [""];
+      const target = asal ? (!reVar || reVar.test(tanpaGrip(asal)) ? [""] : [])
+        : kat === "raket" && p.variants.length && vs.some(Boolean) ? (reVar ? vs.filter((v) => reVar.test(v)) : vs) : [""];
       for (const varian of target) {
         const k = `${p.id}|${varian}`;
         if (kena.has(k)) continue;
@@ -103,6 +139,24 @@ const KAT = { raket: "Raket Tenis", senar: "String", sepatu: "Sepatu Tenis" };
       }
     }
   }
+  // Senar tanpa skor tapi punya pengukuran lab TWU (stiffness lb/in, tension loss %, energy return %, spin potential; 51 lbs, ayunan cepat):
+  // skor diturunkan lewat regresi linear  nilai = b0 + b1·stiffness + b2·tensionLoss + b3·energyReturn + b4·spin,
+  // di-fit ulang tiap jalan dari senar yang punya skor X-Compare DAN data TWU (28 Nov 2026: 37 senar, galat LOO rata-rata 5–7 poin).
+  // Hasil dibatasi ke rentang skor senar pelatihan (spin potential > 7.4 di luar rentang data → tidak diekstrapolasi).
+  const num = (s) => { const m = String(s ?? "").match(/-?[\d.]+/); return m ? +m[0] : null; };
+  const FT = ["Stiffness TWU (lb/in)", "Tension loss TWU", "Energy return TWU", "Spin potential TWU"];
+  const ci = (await db.compareItem.findMany({ where: { kategori: "senar", sumber: { has: "twu" } }, select: { productId: true, nilai: true, spek: true, sumber: true, product: { select: { nama: true } } } }))
+    .map((c) => ({ ...c, f: [1, ...FT.map((k) => num(c.spek?.[k]))] })).filter((c) => !c.f.includes(null));
+  const latih = ci.filter((c) => c.sumber.includes("extreme") && Object.keys(c.nilai || {}).length);
+  const koef = Object.fromEntries(SN.map((k) => { const d = latih.filter((c) => c.nilai[k] != null); return [k, { b: kuadratTerkecil(d.map((c) => c.f), d.map((c) => c.nilai[k])), min: Math.min(...d.map((c) => c.nilai[k])), max: Math.max(...d.map((c) => c.nilai[k])) }]; }));
+  for (const c of ci) {
+    if (c.sumber.includes("extreme") || kena.has(`${c.productId}|`)) continue; // skor X-Compare menang; skor turunan TWU lama dihitung ulang
+    kena.add(`${c.productId}|`);
+    const nilai = Object.fromEntries(SN.map((k) => [k, Math.round(Math.max(koef[k].min, Math.min(koef[k].max, c.f.reduce((s, x, i) => s + x * koef[k].b[i], 0))))]));
+    const v = Object.values(nilai);
+    out.push({ productId: c.productId, nama: c.product.nama, varian: "", kategori: "senar", skor: Math.round(v.reduce((a, b) => a + b, 0) / v.length), nilai, sumber: "twu", catatan: "Diturunkan dari pengukuran lab TWU (Tennis Warehouse University), dikalibrasi ke skala X-Compare" });
+  }
+
   fs.writeFileSync("/Users/a1/tirtonic-data/tambahan.json", JSON.stringify(out, null, 1));
   const per = {};
   for (const r of out) per[r.kategori] = (per[r.kategori] || 0) + 1;
