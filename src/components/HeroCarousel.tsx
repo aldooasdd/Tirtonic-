@@ -14,6 +14,8 @@ const Wrap = ({ link, className, children }: { link: string | null; className: s
 /** Hero landing ala Extreme: slider besar (1600×970) + 2 banner samping (1070×470). HP: slider lalu banner bertumpuk. */
 export default function HeroCarousel({ slides, samping = [] }: { slides: Slide[]; samping?: Slide[] }) {
   const [i, setI] = useState(0);
+  const [prev, setPrev] = useState<number | null>(null); // slide sebelumnya tetap tampil di bawah selama fade (tanpa efek pudar ganda)
+  const pindah = (n: number) => setI((v) => { setPrev(v); return n; });
   const touchX = useRef<number | null>(null);
   // HP pakai gambar kotak kalau SEMUA slide punya gambar mobile; kalau tidak, pakai gambar utama 1600×970
   const kotak = slides.length > 0 && slides.every((s) => s.gambarMobile);
@@ -21,7 +23,7 @@ export default function HeroCarousel({ slides, samping = [] }: { slides: Slide[]
   // Auto-geser 5 dtk; timer reset tiap slide ganti (termasuk habis di-swipe).
   useEffect(() => {
     if (slides.length <= 1) return;
-    const t = setTimeout(() => setI((v) => (v + 1) % slides.length), 5000);
+    const t = setTimeout(() => pindah((i + 1) % slides.length), 5000);
     return () => clearTimeout(t);
   }, [i, slides.length]);
 
@@ -32,7 +34,7 @@ export default function HeroCarousel({ slides, samping = [] }: { slides: Slide[]
     const dx = e.changedTouches[0].clientX - touchX.current;
     touchX.current = null;
     if (Math.abs(dx) < 40) return;
-    setI((v) => (v + (dx < 0 ? 1 : -1) + slides.length) % slides.length);
+    pindah((i + (dx < 0 ? 1 : -1) + slides.length) % slides.length);
   }
 
   // Fallback when no slides added yet.
@@ -49,12 +51,14 @@ export default function HeroCarousel({ slides, samping = [] }: { slides: Slide[]
   }
 
   const dua = samping.slice(0, 2);
+  // belum ada banner samping: slider selebar halaman dengan rasio banner lama (2400×920)
+  const rasio = dua.length ? "sm:aspect-[1600/970]" : "sm:aspect-[2400/920]";
   return (
     <section className={`mx-auto grid max-w-site gap-3 px-4 pt-4 sm:gap-4 ${dua.length ? "lg:grid-cols-[3fr_2fr]" : ""}`}>
       {slides.length > 0 && (
-        <div onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} className={`relative w-full touch-pan-y overflow-hidden rounded-2xl bg-gray-100 ${kotak ? "aspect-square" : "aspect-[1600/970]"} sm:aspect-[1600/970]`}>
+        <div onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} className={`relative w-full touch-pan-y overflow-hidden rounded-2xl bg-gray-100 ${kotak ? "aspect-square" : dua.length ? "aspect-[1600/970]" : "aspect-[2400/920]"} ${rasio}`}>
           {slides.map((s, idx) => (
-            <div key={s.id} className={`absolute inset-0 transition-opacity duration-700 ${idx === i ? "opacity-100" : "pointer-events-none opacity-0"}`}>
+            <div key={s.id} className={`absolute inset-0 transition-opacity duration-700 ${idx === i ? "z-10 opacity-100" : idx === prev ? "pointer-events-none z-0 opacity-100" : "pointer-events-none opacity-0 duration-0"}`}>
               <Wrap link={s.link} className="block h-full w-full">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img loading={idx === 0 ? "eager" : "lazy"} decoding="async" src={(kotak && s.gambarMobile) || s.gambar} alt="" className="h-full w-full object-cover sm:hidden" />
@@ -64,9 +68,9 @@ export default function HeroCarousel({ slides, samping = [] }: { slides: Slide[]
             </div>
           ))}
           {slides.length > 1 && (
-            <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-2">
+            <div className="absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 gap-2">
               {slides.map((s, idx) => (
-                <button key={s.id} onClick={() => setI(idx)} aria-label={`Slide ${idx + 1}`} className={`h-2 rounded-full transition-all ${idx === i ? "w-6 bg-white" : "w-2 bg-white/60"}`} />
+                <button key={s.id} onClick={() => idx !== i && pindah(idx)} aria-label={`Slide ${idx + 1}`} className={`h-2 rounded-full transition-all ${idx === i ? "w-6 bg-white" : "w-2 bg-white/60"}`} />
               ))}
             </div>
           )}
